@@ -1,6 +1,6 @@
 provider "instana" {
   api_key     = "my-api-key"
-  endpoint    = "https://tisdev-tis.instana.io"
+  endpoint    = "https://mytenant-mycustomername.instana.io"
   //timeout     = 60
   //max_retries = 5
 }
