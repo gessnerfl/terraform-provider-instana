@@ -20,7 +20,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/gox v1.0.0 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
-	github.com/petergtz/pegomock v2.1.0+incompatible
 	github.com/rs/xid v1.2.1
 	github.com/sirupsen/logrus v1.4.0
 	github.com/zclconf/go-cty v0.0.0-20190212192503-19dda139b164 // indirect

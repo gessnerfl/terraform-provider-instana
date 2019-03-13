@@ -3,7 +3,8 @@ package instana
 import (
 	"errors"
 
-	"github.com/gessnerfl/terraform-provider-instana/instana/api"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi/resources"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -67,14 +68,14 @@ func resourceRuleCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*api.RestClient)
+	client := meta.(*restapi.RestClient)
 	ruleID := d.Id()
 	if len(ruleID) == 0 {
 		return errors.New("ID of rule is missing")
 	}
-	rule, err := api.NewRuleAPI(*client).GetOne(ruleID)
+	rule, err := resources.NewRuleAPI(*client).GetOne(ruleID)
 	if err != nil {
-		if err == api.ErrEntityNotFound {
+		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
 			return nil
 		}
@@ -85,9 +86,9 @@ func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*api.RestClient)
+	client := meta.(*restapi.RestClient)
 	rule := createRuleFromResourceData(d)
-	updatedRule, err := api.NewRuleAPI(*client).Upsert(rule)
+	updatedRule, err := resources.NewRuleAPI(*client).Upsert(rule)
 	if err != nil {
 		return err
 	}
@@ -96,9 +97,9 @@ func resourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*api.RestClient)
+	client := meta.(*restapi.RestClient)
 	rule := createRuleFromResourceData(d)
-	err := api.NewRuleAPI(*client).Delete(rule)
+	err := resources.NewRuleAPI(*client).Delete(rule)
 	if err != nil {
 		return err
 	}
@@ -106,8 +107,8 @@ func resourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func createRuleFromResourceData(d *schema.ResourceData) api.Rule {
-	return api.Rule{
+func createRuleFromResourceData(d *schema.ResourceData) resources.Rule {
+	return resources.Rule{
 		ID:                d.Id(),
 		Name:              d.Get(fieldName).(string),
 		EntityType:        d.Get(fieldEntityType).(string),
@@ -120,7 +121,7 @@ func createRuleFromResourceData(d *schema.ResourceData) api.Rule {
 	}
 }
 
-func updateRuleState(d *schema.ResourceData, rule api.Rule) {
+func updateRuleState(d *schema.ResourceData, rule resources.Rule) {
 	d.Set(fieldName, rule.Name)
 	d.Set(fieldEntityType, rule.EntityType)
 	d.Set(fieldMetricName, rule.MetricName)

@@ -1,4 +1,4 @@
-package endpoints_test
+package resources_test
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/gessnerfl/terraform-provider-instana/instana/api/endpoints"
+	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/resources"
 	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
@@ -143,6 +143,7 @@ func TestSuccessfulDeleteOfRuleByRule(t *testing.T) {
 		t.Errorf("Expected no error got %s", err)
 	}
 }
+
 func TestFailedDeleteOfRuleByRule(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

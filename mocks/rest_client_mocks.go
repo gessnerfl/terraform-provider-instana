@@ -5,9 +5,10 @@
 package mocks
 
 import (
-	api "github.com/gessnerfl/terraform-provider-instana/instana/api"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	api "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockRestClient is a mock of RestClient interface

@@ -1,15 +1,15 @@
-package endpoints
+package resources
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 
-	"github.com/gessnerfl/terraform-provider-instana/instana/api"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
 //NewRuleAPI constructs a new instance of RuleApi
-func NewRuleAPI(client api.RestClient) *RuleAPI {
+func NewRuleAPI(client restapi.RestClient) *RuleAPI {
 	return &RuleAPI{
 		client:       client,
 		resourcePath: "/rules",
@@ -18,7 +18,7 @@ func NewRuleAPI(client api.RestClient) *RuleAPI {
 
 //RuleAPI is the GO representation of the Rule API of Instana
 type RuleAPI struct {
-	client       api.RestClient
+	client       restapi.RestClient
 	resourcePath string
 }
 

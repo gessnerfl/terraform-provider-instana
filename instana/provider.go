@@ -1,7 +1,7 @@
 package instana
 
 import (
-	"github.com/gessnerfl/terraform-provider-instana/instana/api"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -36,6 +36,6 @@ func providerResources() map[string]*schema.Resource {
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	client := api.NewClient(d.Get("api_key").(string), d.Get("endpoint").(string))
+	client := restapi.NewClient(d.Get("api_key").(string), d.Get("endpoint").(string))
 	return &client, nil
 }

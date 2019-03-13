@@ -1,15 +1,15 @@
-package endpoints
+package resources
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 
-	"github.com/gessnerfl/terraform-provider-instana/instana/api"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
 //NewRuleBindingAPI constructs a new instance of RuleBindingAPI
-func NewRuleBindingAPI(client api.RestClient) *RuleBindingAPI {
+func NewRuleBindingAPI(client restapi.RestClient) *RuleBindingAPI {
 	return &RuleBindingAPI{
 		client:       client,
 		resourcePath: "/ruleBindings",
@@ -18,7 +18,7 @@ func NewRuleBindingAPI(client api.RestClient) *RuleBindingAPI {
 
 //RuleBindingAPI is the GO representation of the rule binding API of the Instana
 type RuleBindingAPI struct {
-	client       api.RestClient
+	client       restapi.RestClient
 	resourcePath string
 }
 
