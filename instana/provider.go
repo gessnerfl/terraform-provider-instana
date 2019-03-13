@@ -31,7 +31,8 @@ func providerSchema() map[string]*schema.Schema {
 
 func providerResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"instana_rule": createResourceRule(),
+		"instana_rule":         createResourceRule(),
+		"instana_rule_binding": createResourceRuleBinding(),
 	}
 }
 

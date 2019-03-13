@@ -9,9 +9,6 @@ env:
 install:
 - go get golang.org/x/lint/golint
 
-script:
-- make all release
-
 addons:
   sonarcloud:
     organization: "gessnerfl-github"
@@ -19,6 +16,10 @@ addons:
       secure: "fv5LVtDkqMFT/H731gvenBfgo59mI7wjbA3J7eX9ZabkeLu5ZmtdhChFAJc05n46Olb1NI2fAmz6IqYw/TU41BmQE0Gapwdf3wxsvHGR/sC9kgH3dApktPD66uiY6OxikSjsPNUBVIVaqPoIKaxA0kt8613vG9oeyiBBqcfbLsrOkjZ1QtMRhnyMV+5Qx4ZK5/A7ICqUjumxlUaJG9mkmS27HcD5uPitVd2iKbKEPrBmqFhSVEwNryw7Ut0jOjYrvl2rMBNx85JT4rHO0MAM3An5hFUdlxRDGoiruwEWAvBQcnuEKG6V4rsamrO5CIXiE5IfMEAtwL+hLFMeiIJ/oAzojFoMBjoD8TqOJ8dlAyTNFpl3aoXgyEEAM3I5CfqzHNimNNEds8Vz5PGKVl5l3edu4tHkL5Ou7Slj7s/aHi10X+NvbnMv2EWjUeXVbJ8aVewm5Tz21P3f+K0p5VUhr3T3FT890DHkwr83oJpgxg81Ks55lDpYZ8e430XlVxdcI/8tslxSpa4RhlecQazSxVK6WRUbKCI/W9sIU0XEeXs+HO60c4cDCuEIkELNymQc6H/zKqLXz0FK4BHz9cTOX8x+OaKvKMK/X1WGZBlgnfb5kb52YvXyiZz01hD6scLHU73L61+2IucolEPW7SHbCeYZ+L14WIoJwRheRNFIhLg="
     branches:
       - master
+
+script:
+- make all release
+- sonar-scanner
 
 deploy:
   skip_cleanup: true
