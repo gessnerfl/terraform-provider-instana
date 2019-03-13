@@ -1,4 +1,8 @@
 # terraform-provider-instana
+
+[![Build Status](https://travis-ci.org/gessnerfl/terraform-provider-instana.svg?branch=master)](https://travis-ci.org/gessnerfl/terraform-provider-instana)
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=terraform-provider-instana&metric=alert_status)](https://sonarcloud.io/dashboard/index/terraform-provider-instana)
+
 Terraform provider implementation for Instana REST API
 
 
