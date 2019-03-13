@@ -73,6 +73,9 @@ func (resource *RuleAPI) DeleteByID(ruleID string) error {
 
 //Upsert creates or updates a custom rule
 func (resource *RuleAPI) Upsert(rule Rule) error {
+	if err := rule.Validate(); err != nil {
+		return err
+	}
 	return resource.client.Put(rule, resource.resourcePath)
 }
 

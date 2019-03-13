@@ -36,7 +36,7 @@ func TestInvalidRuleBecauseOfMissingId(t *testing.T) {
 		ConditionValue:    0,
 	}
 
-	if err := rule.Validate(); err == nil && strings.Contains(err.Error(), "ID") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
 		t.Errorf("Expected invalid rule because of missing ID")
 	}
 }
@@ -53,7 +53,7 @@ func TestInvalidRuleBecauseOfMissingName(t *testing.T) {
 		ConditionValue:    0,
 	}
 
-	if err := rule.Validate(); err == nil && strings.Contains(err.Error(), "Name") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "Name") {
 		t.Errorf("Expected invalid rule because of missing Name")
 	}
 }
@@ -70,7 +70,7 @@ func TestInvalidRuleBecauseOfMissingEntityType(t *testing.T) {
 		ConditionValue:    0,
 	}
 
-	if err := rule.Validate(); err == nil && strings.Contains(err.Error(), "EntityType") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "EntityType") {
 		t.Errorf("Expected invalid rule because of missing EntityType")
 	}
 }
@@ -87,7 +87,7 @@ func TestInvalidRuleBecauseOfMissingMetricName(t *testing.T) {
 		ConditionValue:    0,
 	}
 
-	if err := rule.Validate(); err == nil && strings.Contains(err.Error(), "MetricName") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "MetricName") {
 		t.Errorf("Expected invalid rule because of missing MetricName")
 	}
 }
@@ -104,7 +104,7 @@ func TestInvalidRuleBecauseOfMissingAggregation(t *testing.T) {
 		ConditionValue:    0,
 	}
 
-	if err := rule.Validate(); err == nil && strings.Contains(err.Error(), "Aggregation") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "Aggregation") {
 		t.Errorf("Expected invalid rule because of missing Aggregation")
 	}
 }
@@ -121,7 +121,7 @@ func TestInvalidRuleBecauseOfMissingConditionOperator(t *testing.T) {
 		ConditionValue: 0,
 	}
 
-	if err := rule.Validate(); err == nil && strings.Contains(err.Error(), "ConditionOperator") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "ConditionOperator") {
 		t.Errorf("Expected invalid rule because of missing ConditionOperator")
 	}
 }
@@ -169,7 +169,7 @@ func TestSuccessfulUpsertOfRule(t *testing.T) {
 	client.VerifyWasCalledOnce().Put(rule, "/rules")
 }
 
-func TestFailedUpsertOfRule(t *testing.T) {
+func TestFailedUpsertOfRuleBecauseOfClientError(t *testing.T) {
 	client := NewMockRestClient(pegomock.WithT(t))
 	sut := NewRuleAPI(client)
 	rule := makeTestRule()
@@ -185,7 +185,30 @@ func TestFailedUpsertOfRule(t *testing.T) {
 	client.VerifyWasCalledOnce().Put(rule, "/rules")
 }
 
-func TestSuccessfulGetAll(t *testing.T) {
+func TestFailedUpsertOfRuleBecauseOfInvalidRule(t *testing.T) {
+	client := NewMockRestClient(pegomock.WithT(t))
+	sut := NewRuleAPI(client)
+	rule := Rule{
+		Name:              "Test Rule",
+		EntityType:        "test",
+		MetricName:        "test.metric",
+		Rollup:            0,
+		Window:            300000,
+		Aggregation:       "sum",
+		ConditionValue:    0,
+		ConditionOperator: ">",
+	}
+
+	err := sut.Upsert(rule)
+
+	if err == nil {
+		t.Error("Expected to get error")
+	}
+
+	client.VerifyWasCalled(pegomock.Never()).Put(rule, "/rules")
+}
+
+func TestSuccessfulGetAllRules(t *testing.T) {
 	client := NewMockRestClient(pegomock.WithT(t))
 	sut := NewRuleAPI(client)
 	rule1 := makeTestRuleWithCounter(1)
@@ -208,7 +231,7 @@ func TestSuccessfulGetAll(t *testing.T) {
 	client.VerifyWasCalledOnce().GetAll("/rules")
 }
 
-func TestFailedGetAllWithErrorFromRestClient(t *testing.T) {
+func TestFailedGetAllRulesWithErrorFromRestClient(t *testing.T) {
 	client := NewMockRestClient(pegomock.WithT(t))
 	sut := NewRuleAPI(client)
 
@@ -223,7 +246,7 @@ func TestFailedGetAllWithErrorFromRestClient(t *testing.T) {
 	client.VerifyWasCalledOnce().GetAll("/rules")
 }
 
-func TestFailedGetAllWithInvalidJsonArray(t *testing.T) {
+func TestFailedGetAllRulesWithInvalidJsonArray(t *testing.T) {
 	client := NewMockRestClient(pegomock.WithT(t))
 	sut := NewRuleAPI(client)
 
@@ -238,7 +261,7 @@ func TestFailedGetAllWithInvalidJsonArray(t *testing.T) {
 	client.VerifyWasCalledOnce().GetAll("/rules")
 }
 
-func TestFailedGetAllWithInvalidJsonObject(t *testing.T) {
+func TestFailedGetAllRulesWithInvalidJsonObject(t *testing.T) {
 	client := NewMockRestClient(pegomock.WithT(t))
 	sut := NewRuleAPI(client)
 
@@ -253,7 +276,7 @@ func TestFailedGetAllWithInvalidJsonObject(t *testing.T) {
 	client.VerifyWasCalledOnce().GetAll("/rules")
 }
 
-func TestFailedGetAllWithNoJsonAsResponse(t *testing.T) {
+func TestFailedGetAllRulesWithNoJsonAsResponse(t *testing.T) {
 	client := NewMockRestClient(pegomock.WithT(t))
 	sut := NewRuleAPI(client)
 

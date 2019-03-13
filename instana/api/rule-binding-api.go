@@ -44,6 +44,9 @@ func (binding RuleBinding) Validate() error {
 	if len(binding.Description) == 0 {
 		return errors.New("Description is missing")
 	}
+	if len(binding.RuleIds) == 0 {
+		return errors.New("RuleIds are missing")
+	}
 	return nil
 }
 
@@ -64,6 +67,9 @@ func (resource *RuleBindingAPI) DeleteByID(ruleBindingID string) error {
 
 //Upsert creates or updates a rule binding
 func (resource *RuleBindingAPI) Upsert(binding RuleBinding) error {
+	if err := binding.Validate(); err != nil {
+		return err
+	}
 	return resource.client.Put(binding, resource.resourcePath)
 }
 
