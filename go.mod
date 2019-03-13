@@ -3,6 +3,7 @@ module github.com/gessnerfl/terraform-provider-instana
 require (
 	github.com/apparentlymart/go-cidr v1.0.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
+	github.com/golang/mock v1.2.0
 	github.com/google/go-cmp v0.2.0
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-getter v1.2.0 // indirect

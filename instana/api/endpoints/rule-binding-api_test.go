@@ -1,4 +1,4 @@
-package api_test
+package endpoints_test
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/gessnerfl/terraform-provider-instana/instana/api"
+	. "github.com/gessnerfl/terraform-provider-instana/instana/api/endpoints"
 	"github.com/google/go-cmp/cmp"
 	"github.com/petergtz/pegomock"
 )
