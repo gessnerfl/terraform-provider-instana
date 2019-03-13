@@ -30,7 +30,7 @@ type Rule struct {
 	Window            int     `json:"window"`
 	Aggregation       string  `json:"aggregation"`
 	ConditionOperator string  `json:"conditionOperator"`
-	ConditionValue    float32 `json:"conditionValue"`
+	ConditionValue    float64 `json:"conditionValue"`
 }
 
 //GetID implemention of the interface InstanaDataObject

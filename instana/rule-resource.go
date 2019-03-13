@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-const fieldID = "identifier"
 const fieldName = "name"
 const fieldEntityType = "entity_type"
 const fieldMetricName = "metric_name"
@@ -25,10 +24,6 @@ func createResourceRule() *schema.Resource {
 		Delete: resourceRuleDelete,
 
 		Schema: map[string]*schema.Schema{
-			fieldID: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
 			fieldName: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
@@ -44,6 +39,7 @@ func createResourceRule() *schema.Resource {
 			fieldRollup: &schema.Schema{
 				Type:     schema.TypeInt,
 				Required: false,
+				Optional: true,
 			},
 			fieldWindow: &schema.Schema{
 				Type:     schema.TypeInt,
@@ -66,6 +62,7 @@ func createResourceRule() *schema.Resource {
 }
 
 func resourceRuleCreate(d *schema.ResourceData, meta interface{}) error {
+	d.SetId(RandomID())
 	return resourceRuleUpdate(d, meta)
 }
 
@@ -77,6 +74,10 @@ func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	rule, err := api.NewRuleAPI(*client).GetOne(ruleID)
 	if err != nil {
+		if err == api.ErrEntityNotFound {
+			d.SetId("")
+			return nil
+		}
 		return err
 	}
 	updateRuleState(d, rule)
@@ -107,7 +108,7 @@ func resourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
 
 func createRuleFromResourceData(d *schema.ResourceData) api.Rule {
 	return api.Rule{
-		ID:                d.Get(fieldID).(string),
+		ID:                d.Id(),
 		Name:              d.Get(fieldName).(string),
 		EntityType:        d.Get(fieldEntityType).(string),
 		MetricName:        d.Get(fieldMetricName).(string),
@@ -115,12 +116,11 @@ func createRuleFromResourceData(d *schema.ResourceData) api.Rule {
 		Window:            d.Get(fieldWindow).(int),
 		Aggregation:       d.Get(fieldAggregation).(string),
 		ConditionOperator: d.Get(fieldConditionOperator).(string),
-		ConditionValue:    d.Get(fieldConditionValue).(float32),
+		ConditionValue:    d.Get(fieldConditionValue).(float64),
 	}
 }
 
 func updateRuleState(d *schema.ResourceData, rule api.Rule) {
-	d.Set(fieldID, rule.ID)
 	d.Set(fieldName, rule.Name)
 	d.Set(fieldEntityType, rule.EntityType)
 	d.Set(fieldMetricName, rule.MetricName)

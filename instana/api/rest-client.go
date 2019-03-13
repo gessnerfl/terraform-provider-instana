@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -24,6 +25,9 @@ type RestClientImpl struct {
 
 var emptyResponse = make([]byte, 0)
 
+//ErrEntityNotFound error message which is returned when the entity cannot be found at the server
+var ErrEntityNotFound = errors.New("Failed to get resource from Instana API. 404 - Resource not found")
+
 //GetOne request the resource with the given ID
 func (client *RestClientImpl) GetOne(id string, resourcePath string) ([]byte, error) {
 	return client.get(client.buildResourceURL(resourcePath, id))
@@ -37,7 +41,17 @@ func (client *RestClientImpl) GetAll(resourcePath string) ([]byte, error) {
 func (client *RestClientImpl) get(url string) ([]byte, error) {
 	log.Infof("Call GET %s", url)
 	resp, err := client.newResty().Get(url)
-	return client.verifyResponseAndReturnBodyAsBytes(resp, err)
+	if err != nil {
+		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
+	}
+	statusCode := resp.StatusCode()
+	if statusCode == 404 {
+		return emptyResponse, ErrEntityNotFound
+	}
+	if statusCode < 200 || statusCode >= 300 {
+		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s", statusCode, resp.Status())
+	}
+	return resp.Body(), nil
 }
 
 //Put executes a HTTP PUT request to create or update the given resource
@@ -45,10 +59,6 @@ func (client *RestClientImpl) Put(data InstanaDataObject, resourcePath string) (
 	url := client.buildResourceURL(resourcePath, data.GetID())
 	log.Infof("Call PUT %s", url)
 	resp, err := client.newResty().SetBody(data).Put(url)
-	return client.verifyResponseAndReturnBodyAsBytes(resp, err)
-}
-
-func (client *RestClientImpl) verifyResponseAndReturnBodyAsBytes(resp *resty.Response, err error) ([]byte, error) {
 	if err != nil {
 		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}

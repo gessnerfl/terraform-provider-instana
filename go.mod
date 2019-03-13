@@ -4,6 +4,7 @@ require (
 	github.com/apparentlymart/go-cidr v1.0.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/google/go-cmp v0.2.0
+	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-getter v1.2.0 // indirect
 	github.com/hashicorp/go-hclog v0.8.0 // indirect
 	github.com/hashicorp/go-plugin v0.0.0-20190220160451-3f118e8ee104 // indirect
@@ -19,6 +20,7 @@ require (
 	github.com/mitchellh/gox v1.0.0 // indirect
 	github.com/mitchellh/hashstructure v1.0.0 // indirect
 	github.com/petergtz/pegomock v2.1.0+incompatible
+	github.com/rs/xid v1.2.1
 	github.com/sirupsen/logrus v1.4.0
 	github.com/zclconf/go-cty v0.0.0-20190212192503-19dda139b164 // indirect
 	golang.org/x/lint v0.0.0-20190301231843-5614ed5bae6f // indirect
