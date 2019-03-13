@@ -159,11 +159,18 @@ func TestSuccessfulUpsertOfRule(t *testing.T) {
 	client := NewMockRestClient(pegomock.WithT(t))
 	sut := NewRuleAPI(client)
 	rule := makeTestRule()
+	serializedJson, _ := json.Marshal(rule)
 
-	err := sut.Upsert(rule)
+	pegomock.When(client.Put(rule, "/rules")).ThenReturn(serializedJson, nil)
+
+	result, err := sut.Upsert(rule)
 
 	if err != nil {
 		t.Errorf("Expected no error but got %s", err)
+	}
+
+	if !cmp.Equal(rule, result) {
+		t.Errorf("Expected json to be unmarshalled to %v but got %v; diff %s", rule, result, cmp.Diff(result, result))
 	}
 
 	client.VerifyWasCalledOnce().Put(rule, "/rules")
@@ -174,9 +181,9 @@ func TestFailedUpsertOfRuleBecauseOfClientError(t *testing.T) {
 	sut := NewRuleAPI(client)
 	rule := makeTestRule()
 
-	pegomock.When(client.Put(rule, "/rules")).ThenReturn(errors.New("Error during test"))
+	pegomock.When(client.Put(rule, "/rules")).ThenReturn(nil, errors.New("Error during test"))
 
-	err := sut.Upsert(rule)
+	_, err := sut.Upsert(rule)
 
 	if err == nil {
 		t.Error("Expected to get error")
@@ -185,7 +192,39 @@ func TestFailedUpsertOfRuleBecauseOfClientError(t *testing.T) {
 	client.VerifyWasCalledOnce().Put(rule, "/rules")
 }
 
-func TestFailedUpsertOfRuleBecauseOfInvalidRule(t *testing.T) {
+func TestFailedUpsertOfRuleBecauseOfInvalidResponseMessage(t *testing.T) {
+	client := NewMockRestClient(pegomock.WithT(t))
+	sut := NewRuleAPI(client)
+	rule := makeTestRule()
+
+	pegomock.When(client.Put(rule, "/rules")).ThenReturn([]byte("invalid response"), nil)
+
+	_, err := sut.Upsert(rule)
+
+	if err == nil {
+		t.Errorf("Expected to get error")
+	}
+
+	client.VerifyWasCalledOnce().Put(rule, "/rules")
+}
+
+func TestFailedUpsertOfRuleBecauseOfInvalidRuleInResponse(t *testing.T) {
+	client := NewMockRestClient(pegomock.WithT(t))
+	sut := NewRuleAPI(client)
+	rule := makeTestRule()
+
+	pegomock.When(client.Put(rule, "/rules")).ThenReturn([]byte("{ \"invalid\" : \"rule\" }"), nil)
+
+	_, err := sut.Upsert(rule)
+
+	if err == nil {
+		t.Errorf("Expected to get error")
+	}
+
+	client.VerifyWasCalledOnce().Put(rule, "/rules")
+}
+
+func TestFailedUpsertOfRuleBecauseOfInvalidRuleProvided(t *testing.T) {
 	client := NewMockRestClient(pegomock.WithT(t))
 	sut := NewRuleAPI(client)
 	rule := Rule{
@@ -199,13 +238,98 @@ func TestFailedUpsertOfRuleBecauseOfInvalidRule(t *testing.T) {
 		ConditionOperator: ">",
 	}
 
-	err := sut.Upsert(rule)
+	_, err := sut.Upsert(rule)
 
 	if err == nil {
 		t.Error("Expected to get error")
 	}
 
 	client.VerifyWasCalled(pegomock.Never()).Put(rule, "/rules")
+}
+
+func TestSuccessfulGetOneRule(t *testing.T) {
+	client := NewMockRestClient(pegomock.WithT(t))
+	sut := NewRuleAPI(client)
+	rule := makeTestRule()
+	serializedJson, _ := json.Marshal(rule)
+
+	pegomock.When(client.GetOne(rule.ID, "/rules")).ThenReturn(serializedJson, nil)
+
+	data, err := sut.GetOne(rule.ID)
+
+	if err != nil {
+		t.Errorf("Expected no error but got %s", err)
+	}
+
+	if !cmp.Equal(rule, data) {
+		t.Errorf("Expected json to be unmarshalled to %v but got %v; diff %s", rule, data, cmp.Diff(rule, data))
+	}
+
+	client.VerifyWasCalledOnce().GetOne(rule.ID, "/rules")
+}
+
+func TestFailedGetOneRuleBecauseOfErrorFromRestClient(t *testing.T) {
+	client := NewMockRestClient(pegomock.WithT(t))
+	sut := NewRuleAPI(client)
+	ruleId := "test-rule-id"
+
+	pegomock.When(client.GetOne(ruleId, "/rules")).ThenReturn(nil, errors.New("error during test"))
+
+	_, err := sut.GetOne(ruleId)
+
+	if err == nil {
+		t.Errorf("Expected to get error")
+	}
+
+	client.VerifyWasCalledOnce().GetOne(ruleId, "/rules")
+}
+
+func TestFailedGetOneRuleBecauseOfInvalidJsonArray(t *testing.T) {
+	client := NewMockRestClient(pegomock.WithT(t))
+	sut := NewRuleAPI(client)
+	ruleId := "test-rule-id"
+
+	pegomock.When(client.GetOne(ruleId, "/rules")).ThenReturn([]byte("[{ \"invalid\" : \"data\" }]"), nil)
+
+	_, err := sut.GetOne(ruleId)
+
+	if err == nil {
+		t.Errorf("Expected to get error")
+	}
+
+	client.VerifyWasCalledOnce().GetOne(ruleId, "/rules")
+}
+
+func TestFailedGetOneRuleBecauseOfInvalidJsonObject(t *testing.T) {
+	client := NewMockRestClient(pegomock.WithT(t))
+	sut := NewRuleAPI(client)
+	ruleId := "test-rule-id"
+
+	pegomock.When(client.GetOne(ruleId, "/rules")).ThenReturn([]byte("{ \"invalid\" : \"data\" }"), nil)
+
+	_, err := sut.GetOne(ruleId)
+
+	if err == nil {
+		t.Errorf("Expected to get error")
+	}
+
+	client.VerifyWasCalledOnce().GetOne(ruleId, "/rules")
+}
+
+func TestFailedGetOneRuleBecauseOfNoJsonAsResponse(t *testing.T) {
+	client := NewMockRestClient(pegomock.WithT(t))
+	sut := NewRuleAPI(client)
+	ruleId := "test-rule-id"
+
+	pegomock.When(client.GetOne(ruleId, "/rules")).ThenReturn([]byte("Invalid Data"), nil)
+
+	_, err := sut.GetOne(ruleId)
+
+	if err == nil {
+		t.Errorf("Expected to get error")
+	}
+
+	client.VerifyWasCalledOnce().GetOne(ruleId, "/rules")
 }
 
 func TestSuccessfulGetAllRules(t *testing.T) {

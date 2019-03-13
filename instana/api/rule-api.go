@@ -72,11 +72,36 @@ func (resource *RuleAPI) DeleteByID(ruleID string) error {
 }
 
 //Upsert creates or updates a custom rule
-func (resource *RuleAPI) Upsert(rule Rule) error {
+func (resource *RuleAPI) Upsert(rule Rule) (Rule, error) {
 	if err := rule.Validate(); err != nil {
-		return err
+		return rule, err
 	}
-	return resource.client.Put(rule, resource.resourcePath)
+	data, err := resource.client.Put(rule, resource.resourcePath)
+	if err != nil {
+		return rule, err
+	}
+	return resource.validateResponseAndConvertToStruct(data)
+}
+
+//GetOne retrieves a single custom rule from Instana API by its ID
+func (resource *RuleAPI) GetOne(id string) (Rule, error) {
+	data, err := resource.client.GetOne(id, resource.resourcePath)
+	if err != nil {
+		return Rule{}, err
+	}
+	return resource.validateResponseAndConvertToStruct(data)
+}
+
+func (resource *RuleAPI) validateResponseAndConvertToStruct(data []byte) (Rule, error) {
+	rule := Rule{}
+	if err := json.Unmarshal(data, &rule); err != nil {
+		return rule, fmt.Errorf("failed to parse json; %s", err)
+	}
+
+	if err := rule.Validate(); err != nil {
+		return rule, err
+	}
+	return rule, nil
 }
 
 //GetAll returns all configured custom rules from Instana API

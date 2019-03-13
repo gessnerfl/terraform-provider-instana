@@ -1,9 +1,19 @@
 language: go
 go:
-  - "1.11.x"
-install:
-  - go get golang.org/x/lint/golint
+- 1.12.x
+os:
+- linux
+env:
+- GO111MODULE=on
 script:
-  - make
-notifications:
-  email: change
+- make all release
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: FIXME ADD key
+  file_glob: true
+  file: output/terraform-provider-instana*.zip
+  on:
+    tags: true
+    repo: gessnerfl/terraform-provider-instana

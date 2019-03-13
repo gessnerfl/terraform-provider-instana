@@ -37,6 +37,18 @@ func (client *RestClientImpl) GetAll(resourcePath string) ([]byte, error) {
 func (client *RestClientImpl) get(url string) ([]byte, error) {
 	log.Infof("Call GET %s", url)
 	resp, err := client.newResty().Get(url)
+	return client.verifyResponseAndReturnBodyAsBytes(resp, err)
+}
+
+//Put executes a HTTP PUT request to create or update the given resource
+func (client *RestClientImpl) Put(data InstanaDataObject, resourcePath string) ([]byte, error) {
+	url := client.buildResourceURL(resourcePath, data.GetID())
+	log.Infof("Call PUT %s", url)
+	resp, err := client.newResty().SetBody(data).Put(url)
+	return client.verifyResponseAndReturnBodyAsBytes(resp, err)
+}
+
+func (client *RestClientImpl) verifyResponseAndReturnBodyAsBytes(resp *resty.Response, err error) ([]byte, error) {
 	if err != nil {
 		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}
@@ -45,14 +57,6 @@ func (client *RestClientImpl) get(url string) ([]byte, error) {
 		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s", statusCode, resp.Status())
 	}
 	return resp.Body(), nil
-}
-
-//Put executes a HTTP PUT request to create or update the given resource
-func (client *RestClientImpl) Put(data InstanaDataObject, resourcePath string) error {
-	url := client.buildResourceURL(resourcePath, data.GetID())
-	log.Infof("Call PUT %s", url)
-	resp, err := client.newResty().SetBody(data).Put(url)
-	return client.processUpdateResponse(resp, err)
 }
 
 //Delete executes a HTTP DELETE request to delete the resource with the given ID

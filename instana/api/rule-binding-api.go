@@ -66,11 +66,36 @@ func (resource *RuleBindingAPI) DeleteByID(ruleBindingID string) error {
 }
 
 //Upsert creates or updates a rule binding
-func (resource *RuleBindingAPI) Upsert(binding RuleBinding) error {
+func (resource *RuleBindingAPI) Upsert(binding RuleBinding) (RuleBinding, error) {
 	if err := binding.Validate(); err != nil {
-		return err
+		return binding, err
 	}
-	return resource.client.Put(binding, resource.resourcePath)
+	data, err := resource.client.Put(binding, resource.resourcePath)
+	if err != nil {
+		return binding, err
+	}
+	return resource.validateResponseAndConvertToStruct(data)
+}
+
+//GetOne retrieves a single rule binding from Instana API by its ID
+func (resource *RuleBindingAPI) GetOne(id string) (RuleBinding, error) {
+	data, err := resource.client.GetOne(id, resource.resourcePath)
+	if err != nil {
+		return RuleBinding{}, err
+	}
+	return resource.validateResponseAndConvertToStruct(data)
+}
+
+func (resource *RuleBindingAPI) validateResponseAndConvertToStruct(data []byte) (RuleBinding, error) {
+	ruleBinding := RuleBinding{}
+	if err := json.Unmarshal(data, &ruleBinding); err != nil {
+		return ruleBinding, fmt.Errorf("failed to parse json; %s", err)
+	}
+
+	if err := ruleBinding.Validate(); err != nil {
+		return ruleBinding, err
+	}
+	return ruleBinding, nil
 }
 
 //GetAll returns all configured rule binding from Instana API

@@ -42,24 +42,24 @@ vendor:
 .PHONY: clean
 clean:
 	@rm -rf bin
-	@rm -rf _output
+	@rm -rf output
 
 .PHONY: release
 release: \
 	clean \
-	_output/plugin-linux-amd64.tar.gz \
-	_output/plugin-darwin-amd64.tar.gz \
-	_output/plugin-windows-amd64.tar.gz
+	output/plugin-linux-amd64.tar.gz \
+	output/plugin-darwin-amd64.tar.gz \
+	output/plugin-windows-amd64.tar.gz
 
-_output/plugin-%.tar.gz: NAME=terraform-provider-instana-$(VERSION)-$*
-_output/plugin-%.tar.gz: DEST=_output/$(NAME)
-_output/plugin-%.tar.gz: _output/%/terraform-provider-instana
+output/plugin-%.tar.gz: NAME=terraform-provider-instana-$(VERSION)-$*
+output/plugin-%.tar.gz: DEST=output/$(NAME)
+output/plugin-%.tar.gz: output/%/terraform-provider-instana
 	@mkdir -p $(DEST)
-	@cp _output/$*/terraform-provider-instana $(DEST)
-	@tar zcvf $(DEST).tar.gz -C _output $(NAME)
+	@cp output/$*/terraform-provider-instana $(DEST)
+	@tar zcvf $(DEST).tar.gz -C output $(NAME)
 
-_output/linux-amd64/terraform-provider-instana: GOARGS = GOOS=linux GOARCH=amd64
-_output/darwin-amd64/terraform-provider-instana: GOARGS = GOOS=darwin GOARCH=amd64
-_output/windows-amd64/terraform-provider-instana: GOARGS = GOOS=windows GOARCH=amd64
-_output/%/terraform-provider-instana:
+output/linux-amd64/terraform-provider-instana: GOARGS = GOOS=linux GOARCH=amd64
+output/darwin-amd64/terraform-provider-instana: GOARGS = GOOS=darwin GOARCH=amd64
+output/windows-amd64/terraform-provider-instana: GOARGS = GOOS=windows GOARCH=amd64
+output/%/terraform-provider-instana:
 	$(GOARGS) go build -o $@ github.com/gessnerfl/terraform-provider-instana

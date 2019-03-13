@@ -4,11 +4,10 @@
 package api_test
 
 import (
-	"reflect"
-	"time"
-
 	api "github.com/gessnerfl/terraform-provider-instana/instana/api"
 	pegomock "github.com/petergtz/pegomock"
+	"reflect"
+	"time"
 )
 
 type MockRestClient struct {
@@ -79,19 +78,23 @@ func (mock *MockRestClient) GetOne(_param0 string, _param1 string) ([]byte, erro
 	return ret0, ret1
 }
 
-func (mock *MockRestClient) Put(_param0 api.InstanaDataObject, _param1 string) error {
+func (mock *MockRestClient) Put(_param0 api.InstanaDataObject, _param1 string) ([]byte, error) {
 	if mock == nil {
 		panic("mock must not be nil. Use myMock := NewMockRestClient().")
 	}
 	params := []pegomock.Param{_param0, _param1}
-	result := pegomock.GetGenericMockFrom(mock).Invoke("Put", params, []reflect.Type{reflect.TypeOf((*error)(nil)).Elem()})
-	var ret0 error
+	result := pegomock.GetGenericMockFrom(mock).Invoke("Put", params, []reflect.Type{reflect.TypeOf((*[]byte)(nil)).Elem(), reflect.TypeOf((*error)(nil)).Elem()})
+	var ret0 []byte
+	var ret1 error
 	if len(result) != 0 {
 		if result[0] != nil {
-			ret0 = result[0].(error)
+			ret0 = result[0].([]byte)
+		}
+		if result[1] != nil {
+			ret1 = result[1].(error)
 		}
 	}
-	return ret0
+	return ret0, ret1
 }
 
 func (mock *MockRestClient) VerifyWasCalledOnce() *VerifierMockRestClient {
