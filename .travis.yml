@@ -5,6 +5,8 @@ os:
 - linux
 env:
 - GO111MODULE=on
+install:
+- go get golang.org/x/lint/golint
 script:
 - make all release
 deploy:
