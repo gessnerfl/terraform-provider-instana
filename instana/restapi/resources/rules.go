@@ -8,16 +8,16 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//NewRuleAPI constructs a new instance of RuleApi
-func NewRuleAPI(client restapi.RestClient) *RuleAPI {
-	return &RuleAPI{
+//NewRuleResource constructs a new instance of RuleResource
+func NewRuleResource(client restapi.RestClient) *RuleResource {
+	return &RuleResource{
 		client:       client,
 		resourcePath: "/rules",
 	}
 }
 
-//RuleAPI is the GO representation of the Rule API of Instana
-type RuleAPI struct {
+//RuleResource is the GO representation of the Rule API of Instana
+type RuleResource struct {
 	client       restapi.RestClient
 	resourcePath string
 }
@@ -64,17 +64,17 @@ func (rule Rule) Validate() error {
 }
 
 //Delete deletes a custom rule
-func (resource *RuleAPI) Delete(rule Rule) error {
+func (resource *RuleResource) Delete(rule Rule) error {
 	return resource.DeleteByID(rule.ID)
 }
 
 //DeleteByID deletes a custom rule by its ID
-func (resource *RuleAPI) DeleteByID(ruleID string) error {
+func (resource *RuleResource) DeleteByID(ruleID string) error {
 	return resource.client.Delete(ruleID, resource.resourcePath)
 }
 
 //Upsert creates or updates a custom rule
-func (resource *RuleAPI) Upsert(rule Rule) (Rule, error) {
+func (resource *RuleResource) Upsert(rule Rule) (Rule, error) {
 	if err := rule.Validate(); err != nil {
 		return rule, err
 	}
@@ -86,7 +86,7 @@ func (resource *RuleAPI) Upsert(rule Rule) (Rule, error) {
 }
 
 //GetOne retrieves a single custom rule from Instana API by its ID
-func (resource *RuleAPI) GetOne(id string) (Rule, error) {
+func (resource *RuleResource) GetOne(id string) (Rule, error) {
 	data, err := resource.client.GetOne(id, resource.resourcePath)
 	if err != nil {
 		return Rule{}, err
@@ -94,7 +94,7 @@ func (resource *RuleAPI) GetOne(id string) (Rule, error) {
 	return resource.validateResponseAndConvertToStruct(data)
 }
 
-func (resource *RuleAPI) validateResponseAndConvertToStruct(data []byte) (Rule, error) {
+func (resource *RuleResource) validateResponseAndConvertToStruct(data []byte) (Rule, error) {
 	rule := Rule{}
 	if err := json.Unmarshal(data, &rule); err != nil {
 		return rule, fmt.Errorf("failed to parse json; %s", err)
@@ -107,7 +107,7 @@ func (resource *RuleAPI) validateResponseAndConvertToStruct(data []byte) (Rule, 
 }
 
 //GetAll returns all configured custom rules from Instana API
-func (resource *RuleAPI) GetAll() ([]Rule, error) {
+func (resource *RuleResource) GetAll() ([]Rule, error) {
 	rules := make([]Rule, 0)
 
 	data, err := resource.client.GetAll(resource.resourcePath)

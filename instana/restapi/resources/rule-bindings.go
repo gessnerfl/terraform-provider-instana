@@ -8,16 +8,16 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//NewRuleBindingAPI constructs a new instance of RuleBindingAPI
-func NewRuleBindingAPI(client restapi.RestClient) *RuleBindingAPI {
-	return &RuleBindingAPI{
+//NewRuleBindingResource constructs a new instance of RuleBindingResource
+func NewRuleBindingResource(client restapi.RestClient) *RuleBindingResource {
+	return &RuleBindingResource{
 		client:       client,
 		resourcePath: "/ruleBindings",
 	}
 }
 
-//RuleBindingAPI is the GO representation of the rule binding API of the Instana
-type RuleBindingAPI struct {
+//RuleBindingResource is the GO representation of the rule binding API of the Instana
+type RuleBindingResource struct {
 	client       restapi.RestClient
 	resourcePath string
 }
@@ -58,17 +58,17 @@ func (binding RuleBinding) GetID() string {
 }
 
 //Delete deletes a rule binding
-func (resource *RuleBindingAPI) Delete(binding RuleBinding) error {
+func (resource *RuleBindingResource) Delete(binding RuleBinding) error {
 	return resource.DeleteByID(binding.ID)
 }
 
 //DeleteByID deletes a rule binding by its ID
-func (resource *RuleBindingAPI) DeleteByID(ruleBindingID string) error {
+func (resource *RuleBindingResource) DeleteByID(ruleBindingID string) error {
 	return resource.client.Delete(ruleBindingID, resource.resourcePath)
 }
 
 //Upsert creates or updates a rule binding
-func (resource *RuleBindingAPI) Upsert(binding RuleBinding) (RuleBinding, error) {
+func (resource *RuleBindingResource) Upsert(binding RuleBinding) (RuleBinding, error) {
 	if err := binding.Validate(); err != nil {
 		return binding, err
 	}
@@ -80,7 +80,7 @@ func (resource *RuleBindingAPI) Upsert(binding RuleBinding) (RuleBinding, error)
 }
 
 //GetOne retrieves a single rule binding from Instana API by its ID
-func (resource *RuleBindingAPI) GetOne(id string) (RuleBinding, error) {
+func (resource *RuleBindingResource) GetOne(id string) (RuleBinding, error) {
 	data, err := resource.client.GetOne(id, resource.resourcePath)
 	if err != nil {
 		return RuleBinding{}, err
@@ -88,7 +88,7 @@ func (resource *RuleBindingAPI) GetOne(id string) (RuleBinding, error) {
 	return resource.validateResponseAndConvertToStruct(data)
 }
 
-func (resource *RuleBindingAPI) validateResponseAndConvertToStruct(data []byte) (RuleBinding, error) {
+func (resource *RuleBindingResource) validateResponseAndConvertToStruct(data []byte) (RuleBinding, error) {
 	ruleBinding := RuleBinding{}
 	if err := json.Unmarshal(data, &ruleBinding); err != nil {
 		return ruleBinding, fmt.Errorf("failed to parse json; %s", err)
@@ -101,7 +101,7 @@ func (resource *RuleBindingAPI) validateResponseAndConvertToStruct(data []byte) 
 }
 
 //GetAll returns all configured rule binding from Instana API
-func (resource *RuleBindingAPI) GetAll() ([]RuleBinding, error) {
+func (resource *RuleBindingResource) GetAll() ([]RuleBinding, error) {
 	bindings := make([]RuleBinding, 0)
 
 	data, err := resource.client.GetAll(resource.resourcePath)

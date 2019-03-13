@@ -98,7 +98,7 @@ func TestSuccessfulDeleteOfRuleBindingByRuleBinding(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 
 	client.EXPECT().Delete(gomock.Eq("test-rule-binding-id-1"), gomock.Eq("/ruleBindings")).Return(nil)
@@ -115,7 +115,7 @@ func TestFailedDeleteOfRuleBindingByRuleBinding(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 
 	client.EXPECT().Delete(gomock.Eq("test-rule-binding-id-1"), gomock.Eq("/ruleBindings")).Return(errors.New("Error during test"))
@@ -132,7 +132,7 @@ func TestSuccessfulUpsertOfRuleBinding(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 	serializedJSON, _ := json.Marshal(ruleBinding)
 
@@ -154,7 +154,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleBinding(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding := RuleBinding{
 		Enabled:        false,
 		Triggering:     false,
@@ -180,7 +180,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidResponseMessage(t *testing.T) 
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 
 	client.EXPECT().Put(gomock.Eq(ruleBinding), gomock.Eq("/ruleBindings")).Return([]byte("invalid response"), nil)
@@ -197,7 +197,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleInResponse(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 
 	client.EXPECT().Put(gomock.Eq(ruleBinding), gomock.Eq("/ruleBindings")).Return([]byte("{ \"invalid\" : \"rule\" }"), nil)
@@ -214,7 +214,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfClientError(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 
 	client.EXPECT().Put(gomock.Eq(ruleBinding), gomock.Eq("/ruleBindings")).Return(nil, errors.New("Error during test"))
@@ -231,7 +231,7 @@ func TestSuccessfulGetOneRuleBinding(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 	serializedJSON, _ := json.Marshal(ruleBinding)
 
@@ -253,7 +253,7 @@ func TestFailedGetOneRuleBindingBecauseOfErrorFromRestClient(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBindingID := "test-rule-binding-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleBindingID), gomock.Eq("/ruleBindings")).Return(nil, errors.New("error during test"))
@@ -270,7 +270,7 @@ func TestFailedGetOneRuleBindingBecauseOfInvalidJsonArray(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBindingID := "test-rule-binding-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleBindingID), gomock.Eq("/ruleBindings")).Return([]byte("[{ \"invalid\" : \"data\" }]"), nil)
@@ -287,7 +287,7 @@ func TestFailedGetOneRuleBindingBecauseOfInvalidJsonObject(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBindingID := "test-rule-binding-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleBindingID), gomock.Eq("/ruleBindings")).Return([]byte("{ \"invalid\" : \"data\" }"), nil)
@@ -304,7 +304,7 @@ func TestFailedGetOneRuleBindingBecauseOfNoJsonAsResponse(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBindingID := "test-rule-binding-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleBindingID), gomock.Eq("/ruleBindings")).Return([]byte("Invalid Data"), nil)
@@ -321,7 +321,7 @@ func TestSuccessfulGetAllRuleBindings(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 	ruleBinding1 := makeTestRuleBindingWithCounter(1)
 	ruleBinding2 := makeTestRuleBindingWithCounter(2)
 	ruleBindings := []RuleBinding{ruleBinding1, ruleBinding2}
@@ -345,7 +345,7 @@ func TestFailedGetAllRuleBindingsWithErrorFromRestClient(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 
 	client.EXPECT().GetAll(gomock.Eq("/ruleBindings")).Return(nil, errors.New("error during test"))
 
@@ -361,7 +361,7 @@ func TestFailedGetAllRuleBindingsWithInvalidJsonArray(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 
 	client.EXPECT().GetAll(gomock.Eq("/ruleBindings")).Return([]byte("[{ \"invalid\" : \"data\" }]"), nil)
 
@@ -377,7 +377,7 @@ func TestFailedGetAllRuleBindingWithInvalidJsonObject(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 
 	client.EXPECT().GetAll(gomock.Eq("/ruleBindings")).Return([]byte("{ \"invalid\" : \"data\" }"), nil)
 
@@ -393,7 +393,7 @@ func TestFailedGetAllRuleBindingsWithNoJsonAsResponse(t *testing.T) {
 	defer ctrl.Finish()
 
 	client := mocks.NewMockRestClient(ctrl)
-	sut := NewRuleBindingAPI(client)
+	sut := NewRuleBindingResource(client)
 
 	client.EXPECT().GetAll(gomock.Eq("/ruleBindings")).Return([]byte("Invalid Data"), nil)
 

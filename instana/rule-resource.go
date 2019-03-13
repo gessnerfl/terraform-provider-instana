@@ -73,7 +73,7 @@ func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
 	if len(ruleID) == 0 {
 		return errors.New("ID of rule is missing")
 	}
-	rule, err := resources.NewRuleAPI(*client).GetOne(ruleID)
+	rule, err := resources.NewRuleResource(*client).GetOne(ruleID)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
@@ -88,7 +88,7 @@ func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
 func resourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*restapi.RestClient)
 	rule := createRuleFromResourceData(d)
-	updatedRule, err := resources.NewRuleAPI(*client).Upsert(rule)
+	updatedRule, err := resources.NewRuleResource(*client).Upsert(rule)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func resourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 func resourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*restapi.RestClient)
 	rule := createRuleFromResourceData(d)
-	err := resources.NewRuleAPI(*client).Delete(rule)
+	err := resources.NewRuleResource(*client).Delete(rule)
 	if err != nil {
 		return err
 	}

@@ -132,7 +132,7 @@ func TestSuccessfulDeleteOfRuleByRule(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule := makeTestRule()
 
 	client.EXPECT().Delete(gomock.Eq("test-rule-id-1"), gomock.Eq("/rules")).Return(nil)
@@ -149,7 +149,7 @@ func TestFailedDeleteOfRuleByRule(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule := makeTestRule()
 
 	client.EXPECT().Delete(gomock.Eq("test-rule-id-1"), gomock.Eq("/rules")).Return(errors.New("Error during test"))
@@ -166,7 +166,7 @@ func TestSuccessfulUpsertOfRule(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule := makeTestRule()
 	serializedJSON, _ := json.Marshal(rule)
 
@@ -188,7 +188,7 @@ func TestFailedUpsertOfRuleBecauseOfClientError(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule := makeTestRule()
 
 	client.EXPECT().Put(gomock.Eq(rule), gomock.Eq("/rules")).Return(nil, errors.New("Error during test"))
@@ -205,7 +205,7 @@ func TestFailedUpsertOfRuleBecauseOfInvalidResponseMessage(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule := makeTestRule()
 
 	client.EXPECT().Put(gomock.Eq(rule), gomock.Eq("/rules")).Return([]byte("invalid response"), nil)
@@ -222,7 +222,7 @@ func TestFailedUpsertOfRuleBecauseOfInvalidRuleInResponse(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule := makeTestRule()
 
 	client.EXPECT().Put(gomock.Eq(rule), gomock.Eq("/rules")).Return([]byte("{ \"invalid\" : \"rule\" }"), nil)
@@ -239,7 +239,7 @@ func TestFailedUpsertOfRuleBecauseOfInvalidRuleProvided(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule := Rule{
 		Name:              "Test Rule",
 		EntityType:        "test",
@@ -265,7 +265,7 @@ func TestSuccessfulGetOneRule(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule := makeTestRule()
 	serializedJSON, _ := json.Marshal(rule)
 
@@ -287,7 +287,7 @@ func TestFailedGetOneRuleBecauseOfErrorFromRestClient(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	ruleID := "test-rule-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleID), gomock.Eq("/rules")).Return(nil, errors.New("error during test"))
@@ -304,7 +304,7 @@ func TestFailedGetOneRuleBecauseOfInvalidJsonArray(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	ruleID := "test-rule-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleID), gomock.Eq("/rules")).Return([]byte("[{ \"invalid\" : \"data\" }]"), nil)
@@ -321,7 +321,7 @@ func TestFailedGetOneRuleBecauseOfInvalidJsonObject(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	ruleID := "test-rule-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleID), gomock.Eq("/rules")).Return([]byte("{ \"invalid\" : \"data\" }"), nil)
@@ -338,7 +338,7 @@ func TestFailedGetOneRuleBecauseOfNoJsonAsResponse(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	ruleID := "test-rule-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleID), gomock.Eq("/rules")).Return([]byte("Invalid Data"), nil)
@@ -355,7 +355,7 @@ func TestSuccessfulGetAllRules(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 	rule1 := makeTestRuleWithCounter(1)
 	rule2 := makeTestRuleWithCounter(2)
 	rules := []Rule{rule1, rule2}
@@ -379,7 +379,7 @@ func TestFailedGetAllRulesWithErrorFromRestClient(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 
 	client.EXPECT().GetAll(gomock.Eq("/rules")).Return(nil, errors.New("error during test"))
 
@@ -395,7 +395,7 @@ func TestFailedGetAllRulesWithInvalidJsonArray(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 
 	client.EXPECT().GetAll(gomock.Eq("/rules")).Return([]byte("[{ \"invalid\" : \"data\" }]"), nil)
 
@@ -411,7 +411,7 @@ func TestFailedGetAllRulesWithInvalidJsonObject(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 
 	client.EXPECT().GetAll(gomock.Eq("/rules")).Return([]byte("{ \"invalid\" : \"data\" }"), nil)
 
@@ -427,7 +427,7 @@ func TestFailedGetAllRulesWithNoJsonAsResponse(t *testing.T) {
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
 
-	sut := NewRuleAPI(client)
+	sut := NewRuleResource(client)
 
 	client.EXPECT().GetAll(gomock.Eq("/rules")).Return([]byte("Invalid Data"), nil)
 
