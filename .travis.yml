@@ -18,7 +18,7 @@ addons:
       - master
 
 script:
-- make all release
+- make all sonar release
 
 deploy:
   skip_cleanup: true
