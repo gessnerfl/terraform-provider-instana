@@ -24,7 +24,7 @@ deploy:
   skip_cleanup: true
   provider: releases
   api_key:
-    secure: FIXME ADD key
+    secure: "UA0A5ANtwrwdJgX8bzP25UNzpgtE5+BfAT4o0whSFe10W0PKmERjp2Imrt8TKszUgSbcq7UbDal9YNfnmmW1E/7mb12L5JZ/LJ5vB1B9XEqjqz04GOIsgQpjFxXGhBuKTXzVLh5JVcC4RUZSMnC/91KCHaYeoFmAARrl9zZC6wK6Ra6iMtbH0dCcZgaKOM6h+OA0d44nrSeXHg/0nbNBLtmwkVI3GCPydpKhuyjfCXfzLlnHKCJz09fhNZY8uh6GnYk3F0Tpd/8ZpHeqG1yRmHPT+DPDZ6Au9EpKbhI4KJgMNyyC+UogoFpeLY7w8v2JsV5qm4+T403tul/hhG35+2zPde/q00UwbERc3Q2g+wXjmlUCbS5N70td/67TejmxWEyEKHi2lS2WwXrNFz4uTVnJ1MUgSakA112z++7MLPeZ6leojTATs1oaziiAhFBdgbApz/JtgXjeVDHSp3Hd6nLqRyYczGMqh2c+DFDUlAQ2tovoCIlHOZHlq62JhIyxygaSFaqxqGBy3F3q429iDm6oWM6GrVPRXWoLIRbilvT8v1c9TzV4D8AqmHHscBiXoq15z+R+BEADYIxhs4fd3ISQBZ8u50Raxurh0Viv1Km2cgHw7XNDOkrjGm/bHoVITaT50JJ3xeDygI1Joi6X/SCRRAJdfaAYUCX97V7VuU4="
   file_glob: true
   file: output/terraform-provider-instana*.zip
   on:
