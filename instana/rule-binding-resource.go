@@ -26,13 +26,13 @@ func createResourceRuleBinding() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			fieldEnabled: &schema.Schema{
 				Type:     schema.TypeBool,
-				Required: true,
 				Default:  true,
+				Optional: true,
 			},
 			fieldTriggering: &schema.Schema{
 				Type:     schema.TypeBool,
-				Required: true,
 				Default:  false,
+				Optional: true,
 			},
 			fieldSeverity: &schema.Schema{
 				Type:     schema.TypeInt,

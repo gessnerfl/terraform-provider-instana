@@ -21,11 +21,11 @@ func TestValidRule(t *testing.T) {
 	}
 
 	if "test-rule-id" != rule.GetID() {
-		t.Errorf("Expected to get correct ID but got %s", rule.GetID())
+		t.Fatalf("Expected to get correct ID but got %s", rule.GetID())
 	}
 
 	if err := rule.Validate(); err != nil {
-		t.Errorf("Expected valid rule got validation error %s", err)
+		t.Fatalf("Expected valid rule got validation error %s", err)
 	}
 }
 
@@ -42,7 +42,7 @@ func TestInvalidRuleBecauseOfMissingId(t *testing.T) {
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
-		t.Errorf("Expected invalid rule because of missing ID")
+		t.Fatalf("Expected invalid rule because of missing ID")
 	}
 }
 
@@ -59,7 +59,7 @@ func TestInvalidRuleBecauseOfMissingName(t *testing.T) {
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "Name") {
-		t.Errorf("Expected invalid rule because of missing Name")
+		t.Fatalf("Expected invalid rule because of missing Name")
 	}
 }
 
@@ -76,7 +76,7 @@ func TestInvalidRuleBecauseOfMissingEntityType(t *testing.T) {
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "EntityType") {
-		t.Errorf("Expected invalid rule because of missing EntityType")
+		t.Fatalf("Expected invalid rule because of missing EntityType")
 	}
 }
 
@@ -93,7 +93,7 @@ func TestInvalidRuleBecauseOfMissingMetricName(t *testing.T) {
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "MetricName") {
-		t.Errorf("Expected invalid rule because of missing MetricName")
+		t.Fatalf("Expected invalid rule because of missing MetricName")
 	}
 }
 
@@ -110,7 +110,7 @@ func TestInvalidRuleBecauseOfMissingAggregation(t *testing.T) {
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "Aggregation") {
-		t.Errorf("Expected invalid rule because of missing Aggregation")
+		t.Fatalf("Expected invalid rule because of missing Aggregation")
 	}
 }
 
@@ -127,6 +127,6 @@ func TestInvalidRuleBecauseOfMissingConditionOperator(t *testing.T) {
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "ConditionOperator") {
-		t.Errorf("Expected invalid rule because of missing ConditionOperator")
+		t.Fatalf("Expected invalid rule because of missing ConditionOperator")
 	}
 }

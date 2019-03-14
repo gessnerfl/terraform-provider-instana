@@ -29,11 +29,11 @@ func TestSuccessfulGetOneRuleBinding(t *testing.T) {
 	data, err := sut.GetOne(ruleBinding.ID)
 
 	if err != nil {
-		t.Errorf("Expected no error but got %s", err)
+		t.Fatalf("Expected no error but got %s", err)
 	}
 
 	if !cmp.Equal(ruleBinding, data) {
-		t.Errorf("Expected json to be unmarshalled to %v but got %v; diff %s", ruleBinding, data, cmp.Diff(ruleBinding, data))
+		t.Fatalf("Expected json to be unmarshalled to %v but got %v; diff %s", ruleBinding, data, cmp.Diff(ruleBinding, data))
 	}
 }
 
@@ -50,7 +50,7 @@ func TestFailedGetOneRuleBindingBecauseOfErrorFromRestClient(t *testing.T) {
 	_, err := sut.GetOne(ruleBindingID)
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -67,7 +67,7 @@ func TestFailedGetOneRuleBindingBecauseOfInvalidJsonArray(t *testing.T) {
 	_, err := sut.GetOne(ruleBindingID)
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -84,7 +84,7 @@ func TestFailedGetOneRuleBindingBecauseOfInvalidJsonObject(t *testing.T) {
 	_, err := sut.GetOne(ruleBindingID)
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -101,7 +101,7 @@ func TestFailedGetOneRuleBindingBecauseOfNoJsonAsResponse(t *testing.T) {
 	_, err := sut.GetOne(ruleBindingID)
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -121,11 +121,11 @@ func TestSuccessfulGetAllRuleBindings(t *testing.T) {
 	data, err := sut.GetAll()
 
 	if err != nil {
-		t.Errorf("Expected no error but got %s", err)
+		t.Fatalf("Expected no error but got %s", err)
 	}
 
 	if !cmp.Equal(ruleBindings, data) {
-		t.Errorf("Expected json to be unmarshalled to %v but got %v; diff %s", ruleBindings, data, cmp.Diff(ruleBindings, data))
+		t.Fatalf("Expected json to be unmarshalled to %v but got %v; diff %s", ruleBindings, data, cmp.Diff(ruleBindings, data))
 	}
 }
 
@@ -141,7 +141,7 @@ func TestFailedGetAllRuleBindingsWithErrorFromRestClient(t *testing.T) {
 	_, err := sut.GetAll()
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -157,7 +157,7 @@ func TestFailedGetAllRuleBindingsWithInvalidJsonArray(t *testing.T) {
 	_, err := sut.GetAll()
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -173,7 +173,7 @@ func TestFailedGetAllRuleBindingWithInvalidJsonObject(t *testing.T) {
 	_, err := sut.GetAll()
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -189,7 +189,7 @@ func TestFailedGetAllRuleBindingsWithNoJsonAsResponse(t *testing.T) {
 	_, err := sut.GetAll()
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -207,11 +207,11 @@ func TestSuccessfulUpsertOfRuleBinding(t *testing.T) {
 	result, err := sut.Upsert(ruleBinding)
 
 	if err != nil {
-		t.Errorf("Expected no error but got %s", err)
+		t.Fatalf("Expected no error but got %s", err)
 	}
 
 	if !cmp.Equal(ruleBinding, result) {
-		t.Errorf("Expected json to be unmarshalled to %v but got %v; diff %s", ruleBinding, result, cmp.Diff(ruleBinding, result))
+		t.Fatalf("Expected json to be unmarshalled to %v but got %v; diff %s", ruleBinding, result, cmp.Diff(ruleBinding, result))
 	}
 }
 
@@ -237,7 +237,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleBinding(t *testing.T) {
 	_, err := sut.Upsert(ruleBinding)
 
 	if err == nil {
-		t.Error("Expected to get error")
+		t.Fatal("Expected to get error")
 	}
 }
 
@@ -254,7 +254,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidResponseMessage(t *testing.T) 
 	_, err := sut.Upsert(ruleBinding)
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -271,7 +271,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleInResponse(t *testing.T) {
 	_, err := sut.Upsert(ruleBinding)
 
 	if err == nil {
-		t.Errorf("Expected to get error")
+		t.Fatalf("Expected to get error")
 	}
 }
 
@@ -288,7 +288,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfClientError(t *testing.T) {
 	_, err := sut.Upsert(ruleBinding)
 
 	if err == nil {
-		t.Error("Expected to get error")
+		t.Fatal("Expected to get error")
 	}
 }
 
@@ -305,7 +305,7 @@ func TestSuccessfulDeleteOfRuleBindingByRuleBinding(t *testing.T) {
 	err := sut.Delete(ruleBinding)
 
 	if err != nil {
-		t.Errorf("Expected no error got %s", err)
+		t.Fatalf("Expected no error got %s", err)
 	}
 }
 
@@ -322,7 +322,7 @@ func TestFailedDeleteOfRuleBindingByRuleBinding(t *testing.T) {
 	err := sut.Delete(ruleBinding)
 
 	if err == nil {
-		t.Error("Expected to get error")
+		t.Fatal("Expected to get error")
 	}
 }
 

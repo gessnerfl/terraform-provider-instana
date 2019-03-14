@@ -21,11 +21,11 @@ func TestValidRuleBinding(t *testing.T) {
 	}
 
 	if "test-id" != ruleBinding.GetID() {
-		t.Errorf("Expected to get correct ID but got %s", ruleBinding.GetID())
+		t.Fatalf("Expected to get correct ID but got %s", ruleBinding.GetID())
 	}
 
 	if err := ruleBinding.Validate(); err != nil {
-		t.Errorf("Expected valid rule binding got validation error %s", err)
+		t.Fatalf("Expected valid rule binding got validation error %s", err)
 	}
 }
 
@@ -42,7 +42,7 @@ func TestInvalidRuleBindingBecauseOfMissingId(t *testing.T) {
 	}
 
 	if err := ruleBinding.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
-		t.Errorf("Expected invalid rule binding because of missing ID")
+		t.Fatalf("Expected invalid rule binding because of missing ID")
 	}
 }
 
@@ -59,7 +59,7 @@ func TestInvalidRuleBindingBecauseOfMissingText(t *testing.T) {
 	}
 
 	if err := ruleBinding.Validate(); err == nil || !strings.Contains(err.Error(), "Text") {
-		t.Errorf("Expected invalid rule binding because of missing Text")
+		t.Fatalf("Expected invalid rule binding because of missing Text")
 	}
 }
 
@@ -76,7 +76,7 @@ func TestInvalidRuleBindingBecauseOfMissingDescription(t *testing.T) {
 	}
 
 	if err := ruleBinding.Validate(); err == nil || !strings.Contains(err.Error(), "Description") {
-		t.Errorf("Expected invalid rule binding because of missing Description")
+		t.Fatalf("Expected invalid rule binding because of missing Description")
 	}
 }
 
@@ -93,6 +93,6 @@ func TestInvalidRuleBindingBecauseOfMissingRuleIds(t *testing.T) {
 	}
 
 	if err := ruleBinding.Validate(); err == nil || !strings.Contains(err.Error(), "RuleIds") {
-		t.Errorf("Expected invalid rule binding because of missing RuleIds")
+		t.Fatalf("Expected invalid rule binding because of missing RuleIds")
 	}
 }
