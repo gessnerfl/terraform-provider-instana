@@ -19,7 +19,6 @@ addons:
 
 script:
 - make all release
-- sonar-scanner
 
 deploy:
   skip_cleanup: true

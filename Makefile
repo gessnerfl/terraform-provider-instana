@@ -44,6 +44,10 @@ clean:
 	@rm -rf bin
 	@rm -rf output
 
+.PHONY: sonar
+sonar:
+	@sonar-scanner -Dsonar.projectVersion=$(VERSION)
+
 .PHONY: release
 release: \
 	clean \
