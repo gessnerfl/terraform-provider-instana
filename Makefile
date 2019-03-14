@@ -8,6 +8,9 @@ VERSION=$(shell git describe --tags --match=v* --always --dirty)
 .PHONY: all
 all: build test vet lint fmt
 
+.PHONY: ci
+ci: build test_with_report vet_with_report lint_with_report fmt sonar release
+
 .PHONY: build
 build: clean bin/terraform-provider-instana
 
@@ -18,17 +21,32 @@ bin/terraform-provider-instana:
 test:
 	@go test ./... -cover
 
+.PHONY: test_with_report
+test_with_report:
+	@mkdir -p output
+	@go test ./... -cover -coverprofile=output/coverage.out -json > output/unit-test-report.json
+
 .PHONY: vet
 vet:
 	@go vet -all ./...
+
+.PHONY: vet_with_report
+vet_with_report:
+	@mkdir -p output
+	@go vet -all ./... 2> output/govet-report.out
 
 .PHONY: lint
 lint:
 	@golint -set_exit_status `go list ./...`
 
+.PHONY: lint_with_report
+lint_with_report:
+	@mkdir -p output
+	@golint -set_exit_status `go list ./...` > output/golint-report.out
+
 .PHONY: fmt
 fmt:
-	@test -z $$(go fmt ./...)
+	@test -z $$(go fmt ./...) 
 
 .PHONY: update
 update:
