@@ -2,100 +2,36 @@ package resources
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
 //NewRuleResource constructs a new instance of RuleResource
-func NewRuleResource(client restapi.RestClient) *RuleResource {
-	return &RuleResource{
+func NewRuleResource(client restapi.RestClient) restapi.RuleResource {
+	return &RuleResourceImpl{
 		client:       client,
 		resourcePath: "/rules",
 	}
 }
 
-//RuleResource is the GO representation of the Rule API of Instana
-type RuleResource struct {
+//RuleResourceImpl is the GO representation of the Rule Resource of Instana
+type RuleResourceImpl struct {
 	client       restapi.RestClient
 	resourcePath string
 }
 
-//Rule is the representation of a custom rule in Instana
-type Rule struct {
-	ID                string  `json:"id"`
-	Name              string  `json:"name"`
-	EntityType        string  `json:"entityType"`
-	MetricName        string  `json:"metricName"`
-	Rollup            int     `json:"rollup"`
-	Window            int     `json:"window"`
-	Aggregation       string  `json:"aggregation"`
-	ConditionOperator string  `json:"conditionOperator"`
-	ConditionValue    float64 `json:"conditionValue"`
-}
-
-//GetID implemention of the interface InstanaDataObject
-func (rule Rule) GetID() string {
-	return rule.ID
-}
-
-//Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (rule Rule) Validate() error {
-	if len(rule.ID) == 0 {
-		return errors.New("ID is missing")
-	}
-	if len(rule.Name) == 0 {
-		return errors.New("Name is missing")
-	}
-	if len(rule.EntityType) == 0 {
-		return errors.New("EntityType is missing")
-	}
-	if len(rule.MetricName) == 0 {
-		return errors.New("MetricName is missing")
-	}
-	if len(rule.Aggregation) == 0 {
-		return errors.New("Aggregation is missing")
-	}
-	if len(rule.ConditionOperator) == 0 {
-		return errors.New("ConditionOperator is missing")
-	}
-	return nil
-}
-
-//Delete deletes a custom rule
-func (resource *RuleResource) Delete(rule Rule) error {
-	return resource.DeleteByID(rule.ID)
-}
-
-//DeleteByID deletes a custom rule by its ID
-func (resource *RuleResource) DeleteByID(ruleID string) error {
-	return resource.client.Delete(ruleID, resource.resourcePath)
-}
-
-//Upsert creates or updates a custom rule
-func (resource *RuleResource) Upsert(rule Rule) (Rule, error) {
-	if err := rule.Validate(); err != nil {
-		return rule, err
-	}
-	data, err := resource.client.Put(rule, resource.resourcePath)
-	if err != nil {
-		return rule, err
-	}
-	return resource.validateResponseAndConvertToStruct(data)
-}
-
 //GetOne retrieves a single custom rule from Instana API by its ID
-func (resource *RuleResource) GetOne(id string) (Rule, error) {
+func (resource *RuleResourceImpl) GetOne(id string) (restapi.Rule, error) {
 	data, err := resource.client.GetOne(id, resource.resourcePath)
 	if err != nil {
-		return Rule{}, err
+		return restapi.Rule{}, err
 	}
 	return resource.validateResponseAndConvertToStruct(data)
 }
 
-func (resource *RuleResource) validateResponseAndConvertToStruct(data []byte) (Rule, error) {
-	rule := Rule{}
+func (resource *RuleResourceImpl) validateResponseAndConvertToStruct(data []byte) (restapi.Rule, error) {
+	rule := restapi.Rule{}
 	if err := json.Unmarshal(data, &rule); err != nil {
 		return rule, fmt.Errorf("failed to parse json; %s", err)
 	}
@@ -107,8 +43,8 @@ func (resource *RuleResource) validateResponseAndConvertToStruct(data []byte) (R
 }
 
 //GetAll returns all configured custom rules from Instana API
-func (resource *RuleResource) GetAll() ([]Rule, error) {
-	rules := make([]Rule, 0)
+func (resource *RuleResourceImpl) GetAll() ([]restapi.Rule, error) {
+	rules := make([]restapi.Rule, 0)
 
 	data, err := resource.client.GetAll(resource.resourcePath)
 	if err != nil {
@@ -120,13 +56,13 @@ func (resource *RuleResource) GetAll() ([]Rule, error) {
 	}
 
 	if err := validateAllRules(rules); err != nil {
-		return make([]Rule, 0), fmt.Errorf("Received invalid JSON message, %s", err)
+		return make([]restapi.Rule, 0), fmt.Errorf("Received invalid JSON message, %s", err)
 	}
 
 	return rules, nil
 }
 
-func validateAllRules(rules []Rule) error {
+func validateAllRules(rules []restapi.Rule) error {
 	for _, r := range rules {
 		err := r.Validate()
 		if err != nil {
@@ -134,4 +70,26 @@ func validateAllRules(rules []Rule) error {
 		}
 	}
 	return nil
+}
+
+//Upsert creates or updates a custom rule
+func (resource *RuleResourceImpl) Upsert(rule restapi.Rule) (restapi.Rule, error) {
+	if err := rule.Validate(); err != nil {
+		return rule, err
+	}
+	data, err := resource.client.Put(rule, resource.resourcePath)
+	if err != nil {
+		return rule, err
+	}
+	return resource.validateResponseAndConvertToStruct(data)
+}
+
+//Delete deletes a custom rule
+func (resource *RuleResourceImpl) Delete(rule restapi.Rule) error {
+	return resource.DeleteByID(rule.ID)
+}
+
+//DeleteByID deletes a custom rule by its ID
+func (resource *RuleResourceImpl) DeleteByID(ruleID string) error {
+	return resource.client.Delete(ruleID, resource.resourcePath)
 }

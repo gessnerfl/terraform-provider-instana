@@ -107,8 +107,8 @@ func resourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func createRuleFromResourceData(d *schema.ResourceData) resources.Rule {
-	return resources.Rule{
+func createRuleFromResourceData(d *schema.ResourceData) restapi.Rule {
+	return restapi.Rule{
 		ID:                d.Id(),
 		Name:              d.Get(fieldName).(string),
 		EntityType:        d.Get(fieldEntityType).(string),
@@ -121,7 +121,7 @@ func createRuleFromResourceData(d *schema.ResourceData) resources.Rule {
 	}
 }
 
-func updateRuleState(d *schema.ResourceData, rule resources.Rule) {
+func updateRuleState(d *schema.ResourceData, rule restapi.Rule) {
 	d.Set(fieldName, rule.Name)
 	d.Set(fieldEntityType, rule.EntityType)
 	d.Set(fieldMetricName, rule.MetricName)

@@ -13,3 +13,9 @@ type RestClient interface {
 	Put(data InstanaDataObject, resourcePath string) ([]byte, error)
 	Delete(resourceID string, resourceBasePath string) error
 }
+
+//InstanaAPI is the interface to all resources of the Instana Rest API
+type InstanaAPI interface {
+	Rules() RuleResource
+	//RuleBindings() RuleBindingResource
+}
