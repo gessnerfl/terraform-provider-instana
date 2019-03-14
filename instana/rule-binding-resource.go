@@ -112,8 +112,8 @@ func resourceRuleBindingDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func createRuleBindingFromResourceData(d *schema.ResourceData) resources.RuleBinding {
-	return resources.RuleBinding{
+func createRuleBindingFromResourceData(d *schema.ResourceData) restapi.RuleBinding {
+	return restapi.RuleBinding{
 		ID:             d.Id(),
 		Enabled:        d.Get(fieldEnabled).(bool),
 		Triggering:     d.Get(fieldTriggering).(bool),
@@ -126,7 +126,7 @@ func createRuleBindingFromResourceData(d *schema.ResourceData) resources.RuleBin
 	}
 }
 
-func updateRuleBindingState(d *schema.ResourceData, ruleBinding resources.RuleBinding) {
+func updateRuleBindingState(d *schema.ResourceData, ruleBinding restapi.RuleBinding) {
 	d.Set(fieldEnabled, ruleBinding.Enabled)
 	d.Set(fieldTriggering, ruleBinding.Triggering)
 	d.Set(fieldSeverity, ruleBinding.Severity)

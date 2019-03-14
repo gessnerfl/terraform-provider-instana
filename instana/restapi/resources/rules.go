@@ -55,14 +55,14 @@ func (resource *RuleResourceImpl) GetAll() ([]restapi.Rule, error) {
 		return rules, fmt.Errorf("failed to parse json; %s", err)
 	}
 
-	if err := validateAllRules(rules); err != nil {
+	if err := resource.validateAllRules(rules); err != nil {
 		return make([]restapi.Rule, 0), fmt.Errorf("Received invalid JSON message, %s", err)
 	}
 
 	return rules, nil
 }
 
-func validateAllRules(rules []restapi.Rule) error {
+func (resource *RuleResourceImpl) validateAllRules(rules []restapi.Rule) error {
 	for _, r := range rules {
 		err := r.Validate()
 		if err != nil {

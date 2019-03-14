@@ -2,7 +2,7 @@ package restapi
 
 import "errors"
 
-//RuleResource represents the REST resource of a Rule at Instana
+//RuleResource represents the REST resource of custom rules at Instana
 type RuleResource interface {
 	GetOne(id string) (Rule, error)
 	GetAll() ([]Rule, error)
