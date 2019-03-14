@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/instana/restapi/resources"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -68,12 +67,12 @@ func resourceRuleCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*restapi.RestClient)
+	instanaAPI := meta.(restapi.InstanaAPI)
 	ruleID := d.Id()
 	if len(ruleID) == 0 {
 		return errors.New("ID of rule is missing")
 	}
-	rule, err := resources.NewRuleResource(*client).GetOne(ruleID)
+	rule, err := instanaAPI.Rules().GetOne(ruleID)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
@@ -86,9 +85,9 @@ func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*restapi.RestClient)
+	instanaAPI := meta.(restapi.InstanaAPI)
 	rule := createRuleFromResourceData(d)
-	updatedRule, err := resources.NewRuleResource(*client).Upsert(rule)
+	updatedRule, err := instanaAPI.Rules().Upsert(rule)
 	if err != nil {
 		return err
 	}
@@ -97,9 +96,9 @@ func resourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*restapi.RestClient)
+	instanaAPI := meta.(restapi.InstanaAPI)
 	rule := createRuleFromResourceData(d)
-	err := resources.NewRuleResource(*client).Delete(rule)
+	err := instanaAPI.Rules().Delete(rule)
 	if err != nil {
 		return err
 	}

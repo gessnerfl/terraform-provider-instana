@@ -1,5 +1,7 @@
 package restapi
 
+import "errors"
+
 //InstanaDataObject is a marker interface for any data object provided by any resource of the Instana REST API
 type InstanaDataObject interface {
 	GetID() string
@@ -17,5 +19,8 @@ type RestClient interface {
 //InstanaAPI is the interface to all resources of the Instana Rest API
 type InstanaAPI interface {
 	Rules() RuleResource
-	//RuleBindings() RuleBindingResource
+	RuleBindings() RuleBindingResource
 }
+
+//ErrEntityNotFound error message which is returned when the entity cannot be found at the server
+var ErrEntityNotFound = errors.New("Failed to get resource from Instana API. 404 - Resource not found")

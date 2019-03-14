@@ -1,16 +1,16 @@
-package restapi
+package services
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/resty.v1"
 )
 
 //NewClient creates a new instance of the Instana REST API client
-func NewClient(apiToken string, host string) RestClient {
+func NewClient(apiToken string, host string) restapi.RestClient {
 	return &RestClientImpl{
 		apiToken: apiToken,
 		host:     host,
@@ -24,9 +24,6 @@ type RestClientImpl struct {
 }
 
 var emptyResponse = make([]byte, 0)
-
-//ErrEntityNotFound error message which is returned when the entity cannot be found at the server
-var ErrEntityNotFound = errors.New("Failed to get resource from Instana API. 404 - Resource not found")
 
 //GetOne request the resource with the given ID
 func (client *RestClientImpl) GetOne(id string, resourcePath string) ([]byte, error) {
@@ -46,7 +43,7 @@ func (client *RestClientImpl) get(url string) ([]byte, error) {
 	}
 	statusCode := resp.StatusCode()
 	if statusCode == 404 {
-		return emptyResponse, ErrEntityNotFound
+		return emptyResponse, restapi.ErrEntityNotFound
 	}
 	if statusCode < 200 || statusCode >= 300 {
 		return emptyResponse, fmt.Errorf("failed to send HTTP GET request to Instana API; status code = %d; status message = %s", statusCode, resp.Status())
@@ -55,7 +52,7 @@ func (client *RestClientImpl) get(url string) ([]byte, error) {
 }
 
 //Put executes a HTTP PUT request to create or update the given resource
-func (client *RestClientImpl) Put(data InstanaDataObject, resourcePath string) ([]byte, error) {
+func (client *RestClientImpl) Put(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, data.GetID())
 	log.Infof("Call PUT %s", url)
 	resp, err := client.newResty().SetBody(data).Put(url)
