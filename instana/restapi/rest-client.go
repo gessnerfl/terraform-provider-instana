@@ -42,14 +42,14 @@ func (client *RestClientImpl) get(url string) ([]byte, error) {
 	log.Infof("Call GET %s", url)
 	resp, err := client.newResty().Get(url)
 	if err != nil {
-		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
+		return emptyResponse, fmt.Errorf("failed to send HTTP GET request to Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}
 	statusCode := resp.StatusCode()
 	if statusCode == 404 {
 		return emptyResponse, ErrEntityNotFound
 	}
 	if statusCode < 200 || statusCode >= 300 {
-		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s", statusCode, resp.Status())
+		return emptyResponse, fmt.Errorf("failed to send HTTP GET request to Instana API; status code = %d; status message = %s", statusCode, resp.Status())
 	}
 	return resp.Body(), nil
 }
@@ -60,11 +60,11 @@ func (client *RestClientImpl) Put(data InstanaDataObject, resourcePath string) (
 	log.Infof("Call PUT %s", url)
 	resp, err := client.newResty().SetBody(data).Put(url)
 	if err != nil {
-		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
+		return emptyResponse, fmt.Errorf("failed to send HTTP PUT request to Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}
 	statusCode := resp.StatusCode()
 	if statusCode < 200 || statusCode >= 300 {
-		return emptyResponse, fmt.Errorf("failed to call Instana API; status code = %d; status message = %s", statusCode, resp.Status())
+		return emptyResponse, fmt.Errorf("failed to send HTTP PUT request to Instana API; status code = %d; status message = %s", statusCode, resp.Status())
 	}
 	return resp.Body(), nil
 }
@@ -74,16 +74,13 @@ func (client *RestClientImpl) Delete(resourceID string, resourceBasePath string)
 	url := client.buildResourceURL(resourceBasePath, resourceID)
 	log.Infof("Call DELETE %s", url)
 	resp, err := client.newResty().Delete(url)
-	return client.processUpdateResponse(resp, err)
-}
 
-func (client *RestClientImpl) processUpdateResponse(resp *resty.Response, err error) error {
 	if err != nil {
-		return fmt.Errorf("failed to call Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
+		return fmt.Errorf("failed to send HTTP DELETE request to Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}
 	statusCode := resp.StatusCode()
 	if statusCode < 200 || statusCode >= 300 {
-		return fmt.Errorf("failed to call Instana API; status code = %d; status message = %s", statusCode, resp.Status())
+		return fmt.Errorf("failed to send HTTP DELETE request to Instana API; status code = %d; status message = %s", statusCode, resp.Status())
 	}
 	return nil
 }
