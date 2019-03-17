@@ -40,41 +40,6 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 	validateSchemaOfTypeBoolWithDefault(SchemaFieldVerifyServerCertificate, true, schemaMap, t)
 }
 
-func validateRequiredSchemaOfTypeString(schemaField string, schemaMap map[string]*schema.Schema, t *testing.T) {
-	s := schemaMap[schemaField]
-	if s == nil {
-		t.Fatalf("Expected configuration for %s", schemaField)
-	}
-	if s.Type != schema.TypeString {
-		t.Fatalf("Expected %s to be of type string", schemaField)
-	}
-	if !s.Required {
-		t.Fatalf("Expected %s to be required", schemaField)
-	}
-	if len(s.Description) == 0 {
-		t.Fatalf("Expected description for schema of %s", schemaField)
-	}
-}
-
-func validateSchemaOfTypeBoolWithDefault(schemaField string, defaultValue bool, schemaMap map[string]*schema.Schema, t *testing.T) {
-	s := schemaMap[schemaField]
-	if s == nil {
-		t.Fatalf("Expected configuration for %s", schemaField)
-	}
-	if s.Type != schema.TypeBool {
-		t.Fatalf("Expected %s to be of type bool", schemaField)
-	}
-	if s.Required {
-		t.Fatalf("Expected %s to be optional", schemaField)
-	}
-	if len(s.Description) == 0 {
-		t.Fatalf("Expected description for schema of %s", schemaField)
-	}
-	if s.Default != defaultValue {
-		t.Fatalf("Expected default value %t", defaultValue)
-	}
-}
-
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
 	if len(resourceMap) != 2 {
 		t.Fatal("Expected two resources to be configured")

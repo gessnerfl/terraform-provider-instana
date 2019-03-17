@@ -52,7 +52,7 @@ func providerSchema() map[string]*schema.Schema {
 
 func providerResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		ResourceInstanaRule:        createResourceRule(),
+		ResourceInstanaRule:        CreateResourceRule(),
 		ResourceInstanaRuleBinding: createResourceRuleBinding(),
 	}
 }

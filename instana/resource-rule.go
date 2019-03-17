@@ -31,57 +31,68 @@ const FieldConditionOperator = "condition_operator"
 //FieldConditionValue constant value for the schema field condition_value
 const FieldConditionValue = "condition_value"
 
-func createResourceRule() *schema.Resource {
+//CreateResourceRule creates the resource definition for the resource instana_rule
+func CreateResourceRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceRuleCreate,
-		Read:   resourceRuleRead,
-		Update: resourceRuleUpdate,
-		Delete: resourceRuleDelete,
+		Create: ResourceRuleCreate,
+		Read:   ResourceRuleRead,
+		Update: ResourceRuleUpdate,
+		Delete: ResourceRuleDelete,
 
 		Schema: map[string]*schema.Schema{
 			FieldName: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of the rule",
 			},
 			FieldEntityType: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The entity type of the rule",
 			},
 			FieldMetricName: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The metric name of the rult",
 			},
 			FieldRollup: &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: false,
-				Optional: true,
+				Type:        schema.TypeInt,
+				Required:    false,
+				Optional:    true,
+				Description: "The rollup of the metric",
 			},
 			FieldWindow: &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:        schema.TypeInt,
+				Required:    true,
+				Description: "The time window where the condition has to be fulfilled",
 			},
 			FieldAggregation: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The aggregation type (e.g. sum, avg)",
 			},
 			FieldConditionOperator: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The aggregation operator (e.g >, <)",
 			},
 			FieldConditionValue: &schema.Schema{
-				Type:     schema.TypeFloat,
-				Required: true,
+				Type:        schema.TypeFloat,
+				Required:    true,
+				Description: "The expected aggregation value to fulfill the rule",
 			},
 		},
 	}
 }
 
-func resourceRuleCreate(d *schema.ResourceData, meta interface{}) error {
+//ResourceRuleCreate defines the create operation for the resource instana_rule
+func ResourceRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(RandomID())
-	return resourceRuleUpdate(d, meta)
+	return ResourceRuleUpdate(d, meta)
 }
 
-func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
+//ResourceRuleRead defines the read operation for the resource instana_rule
+func ResourceRuleRead(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	ruleID := d.Id()
 	if len(ruleID) == 0 {
@@ -99,7 +110,8 @@ func resourceRuleRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+//ResourceRuleUpdate defines the update operation for the resource instana_rule
+func ResourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	rule := createRuleFromResourceData(d)
 	updatedRule, err := instanaAPI.Rules().Upsert(rule)
@@ -110,7 +122,8 @@ func resourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
+//ResourceRuleDelete defines the delete operation for the resource instana_rule
+func ResourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	rule := createRuleFromResourceData(d)
 	err := instanaAPI.Rules().Delete(rule)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -35,7 +36,7 @@ resource "instana_rule" "example" {
 }
 `
 
-func TestRender(t *testing.T) {
+func TestCRUDWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPut, "/api/rules/{id}", testutils.EchoHandlerFunc)
@@ -81,4 +82,34 @@ func TestRender(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestResourceRuleDefinition(t *testing.T) {
+	resource := CreateResourceRule()
+
+	validateRuleResourceSchema(resource.Schema, t)
+
+	if resource.Create == nil {
+		t.Fatal("Create function expected")
+	}
+	if resource.Update == nil {
+		t.Fatal("Update function expected")
+	}
+	if resource.Read == nil {
+		t.Fatal("Read function expected")
+	}
+	if resource.Delete == nil {
+		t.Fatal("Delete function expected")
+	}
+}
+
+func validateRuleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
+	validateRequiredSchemaOfTypeString(FieldName, schemaMap, t)
+	validateRequiredSchemaOfTypeString(FieldEntityType, schemaMap, t)
+	validateRequiredSchemaOfTypeString(FieldMetricName, schemaMap, t)
+	validateOptionalSchemaOfTypeInt(FieldRollup, schemaMap, t)
+	validateRequiredSchemaOfTypeInt(FieldWindow, schemaMap, t)
+	validateRequiredSchemaOfTypeString(FieldAggregation, schemaMap, t)
+	validateRequiredSchemaOfTypeString(FieldConditionOperator, schemaMap, t)
+	validateRequiredSchemaOfTypeFloat(FieldConditionValue, schemaMap, t)
 }

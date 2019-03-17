@@ -1,0 +1,68 @@
+package instana_test
+
+import (
+	"testing"
+
+	"github.com/hashicorp/terraform/helper/schema"
+)
+
+func validateRequiredSchemaOfTypeString(schemaField string, schemaMap map[string]*schema.Schema, t *testing.T) {
+	validateRequiredSchemaOfType(schemaField, schemaMap, schema.TypeString, t)
+}
+
+func validateRequiredSchemaOfTypeInt(schemaField string, schemaMap map[string]*schema.Schema, t *testing.T) {
+	validateRequiredSchemaOfType(schemaField, schemaMap, schema.TypeInt, t)
+}
+
+func validateRequiredSchemaOfTypeFloat(schemaField string, schemaMap map[string]*schema.Schema, t *testing.T) {
+	validateRequiredSchemaOfType(schemaField, schemaMap, schema.TypeFloat, t)
+}
+
+func validateRequiredSchemaOfType(schemaField string, schemaMap map[string]*schema.Schema, dataType schema.ValueType, t *testing.T) {
+	s := schemaMap[schemaField]
+	if s == nil {
+		t.Fatalf("Expected configuration for %s", schemaField)
+	}
+	validateSchemaOfType(s, dataType, t)
+	if !s.Required {
+		t.Fatalf("Expected %s to be required", schemaField)
+	}
+}
+
+func validateOptionalSchemaOfTypeInt(schemaField string, schemaMap map[string]*schema.Schema, t *testing.T) {
+	validateOptionalSchemaOfType(schemaField, schemaMap, schema.TypeInt, t)
+}
+
+func validateOptionalSchemaOfType(schemaField string, schemaMap map[string]*schema.Schema, dataType schema.ValueType, t *testing.T) {
+	s := schemaMap[schemaField]
+	if s == nil {
+		t.Fatalf("Expected configuration for %s", schemaField)
+	}
+	validateSchemaOfType(s, dataType, t)
+	if !s.Optional {
+		t.Fatalf("Expected %s to be optional", schemaField)
+	}
+}
+
+func validateSchemaOfTypeBoolWithDefault(schemaField string, defaultValue bool, schemaMap map[string]*schema.Schema, t *testing.T) {
+	s := schemaMap[schemaField]
+	if s == nil {
+		t.Fatalf("Expected configuration for %s", schemaField)
+	}
+	validateSchemaOfType(s, schema.TypeBool, t)
+	if s.Required {
+		t.Fatalf("Expected %s to be optional", schemaField)
+	}
+	if s.Default != defaultValue {
+		t.Fatalf("Expected default value %t", defaultValue)
+	}
+}
+
+func validateSchemaOfType(s *schema.Schema, dataType schema.ValueType, t *testing.T) {
+	if s.Type != dataType {
+		t.Fatalf("Expected field to be of type %d", dataType)
+	}
+	if len(s.Description) == 0 {
+		t.Fatal("Expected description for schema")
+	}
+}
