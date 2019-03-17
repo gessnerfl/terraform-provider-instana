@@ -29,6 +29,10 @@ func validateRequiredSchemaOfType(schemaField string, schemaMap map[string]*sche
 	}
 }
 
+func validateOptionalSchemaOfTypeString(schemaField string, schemaMap map[string]*schema.Schema, t *testing.T) {
+	validateOptionalSchemaOfType(schemaField, schemaMap, schema.TypeString, t)
+}
+
 func validateOptionalSchemaOfTypeInt(schemaField string, schemaMap map[string]*schema.Schema, t *testing.T) {
 	validateOptionalSchemaOfType(schemaField, schemaMap, schema.TypeInt, t)
 }
@@ -64,5 +68,27 @@ func validateSchemaOfType(s *schema.Schema, dataType schema.ValueType, t *testin
 	}
 	if len(s.Description) == 0 {
 		t.Fatal("Expected description for schema")
+	}
+}
+
+func validateRequiredSchemaOfTypeListOfString(schemaField string, schemaMap map[string]*schema.Schema, t *testing.T) {
+	s := schemaMap[schemaField]
+	if s == nil {
+		t.Fatalf("Expected configuration for %s", schemaField)
+	}
+	if s.Type != schema.TypeList {
+		t.Fatal("Expected field to be of type list")
+	}
+	if s.Elem == nil {
+		t.Fatal("Expected list element to be defined")
+	}
+	if s.Elem.(schema.Schema).Type != schema.TypeString {
+		t.Fatal("Expected list element to be of type string")
+	}
+	if len(s.Description) == 0 {
+		t.Fatal("Expected description for schema")
+	}
+	if s.Required {
+		t.Fatalf("Expected %s to be optional", schemaField)
 	}
 }

@@ -7,29 +7,29 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-//FieldName constant value for the schema field name
-const FieldName = "name"
+//RuleFieldName constant value for the schema field name
+const RuleFieldName = "name"
 
-//FieldEntityType constant value for the schema field entity_type
-const FieldEntityType = "entity_type"
+//RuleFieldEntityType constant value for the schema field entity_type
+const RuleFieldEntityType = "entity_type"
 
-//FieldMetricName constant value for the schema field metric_name
-const FieldMetricName = "metric_name"
+//RuleFieldMetricName constant value for the schema field metric_name
+const RuleFieldMetricName = "metric_name"
 
-//FieldRollup constant value for the schema field rollup
-const FieldRollup = "rollup"
+//RuleFieldRollup constant value for the schema field rollup
+const RuleFieldRollup = "rollup"
 
-//FieldWindow constant value for the schema field window
-const FieldWindow = "window"
+//RuleFieldWindow constant value for the schema field window
+const RuleFieldWindow = "window"
 
-//FieldAggregation constant value for the schema field aggregation
-const FieldAggregation = "aggregation"
+//RuleFieldAggregation constant value for the schema field aggregation
+const RuleFieldAggregation = "aggregation"
 
-//FieldConditionOperator constant value for the schema field condition_operator
-const FieldConditionOperator = "condition_operator"
+//RuleFieldConditionOperator constant value for the schema field condition_operator
+const RuleFieldConditionOperator = "condition_operator"
 
-//FieldConditionValue constant value for the schema field condition_value
-const FieldConditionValue = "condition_value"
+//RuleFieldConditionValue constant value for the schema field condition_value
+const RuleFieldConditionValue = "condition_value"
 
 //CreateResourceRule creates the resource definition for the resource instana_rule
 func CreateResourceRule() *schema.Resource {
@@ -40,43 +40,43 @@ func CreateResourceRule() *schema.Resource {
 		Delete: ResourceRuleDelete,
 
 		Schema: map[string]*schema.Schema{
-			FieldName: &schema.Schema{
+			RuleFieldName: &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the rule",
 			},
-			FieldEntityType: &schema.Schema{
+			RuleFieldEntityType: &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The entity type of the rule",
 			},
-			FieldMetricName: &schema.Schema{
+			RuleFieldMetricName: &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The metric name of the rult",
 			},
-			FieldRollup: &schema.Schema{
+			RuleFieldRollup: &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    false,
 				Optional:    true,
 				Description: "The rollup of the metric",
 			},
-			FieldWindow: &schema.Schema{
+			RuleFieldWindow: &schema.Schema{
 				Type:        schema.TypeInt,
 				Required:    true,
 				Description: "The time window where the condition has to be fulfilled",
 			},
-			FieldAggregation: &schema.Schema{
+			RuleFieldAggregation: &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The aggregation type (e.g. sum, avg)",
 			},
-			FieldConditionOperator: &schema.Schema{
+			RuleFieldConditionOperator: &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The aggregation operator (e.g >, <)",
 			},
-			FieldConditionValue: &schema.Schema{
+			RuleFieldConditionValue: &schema.Schema{
 				Type:        schema.TypeFloat,
 				Required:    true,
 				Description: "The expected aggregation value to fulfill the rule",
@@ -137,26 +137,26 @@ func ResourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
 func createRuleFromResourceData(d *schema.ResourceData) restapi.Rule {
 	return restapi.Rule{
 		ID:                d.Id(),
-		Name:              d.Get(FieldName).(string),
-		EntityType:        d.Get(FieldEntityType).(string),
-		MetricName:        d.Get(FieldMetricName).(string),
-		Rollup:            d.Get(FieldRollup).(int),
-		Window:            d.Get(FieldWindow).(int),
-		Aggregation:       d.Get(FieldAggregation).(string),
-		ConditionOperator: d.Get(FieldConditionOperator).(string),
-		ConditionValue:    d.Get(FieldConditionValue).(float64),
+		Name:              d.Get(RuleFieldName).(string),
+		EntityType:        d.Get(RuleFieldEntityType).(string),
+		MetricName:        d.Get(RuleFieldMetricName).(string),
+		Rollup:            d.Get(RuleFieldRollup).(int),
+		Window:            d.Get(RuleFieldWindow).(int),
+		Aggregation:       d.Get(RuleFieldAggregation).(string),
+		ConditionOperator: d.Get(RuleFieldConditionOperator).(string),
+		ConditionValue:    d.Get(RuleFieldConditionValue).(float64),
 	}
 }
 
 func updateRuleState(d *schema.ResourceData, rule restapi.Rule) {
-	d.Set(FieldName, rule.Name)
-	d.Set(FieldEntityType, rule.EntityType)
-	d.Set(FieldMetricName, rule.MetricName)
-	d.Set(FieldRollup, rule.Rollup)
-	d.Set(FieldWindow, rule.Window)
-	d.Set(FieldAggregation, rule.Aggregation)
-	d.Set(FieldConditionOperator, rule.ConditionOperator)
-	d.Set(FieldConditionValue, rule.ConditionValue)
+	d.Set(RuleFieldName, rule.Name)
+	d.Set(RuleFieldEntityType, rule.EntityType)
+	d.Set(RuleFieldMetricName, rule.MetricName)
+	d.Set(RuleFieldRollup, rule.Rollup)
+	d.Set(RuleFieldWindow, rule.Window)
+	d.Set(RuleFieldAggregation, rule.Aggregation)
+	d.Set(RuleFieldConditionOperator, rule.ConditionOperator)
+	d.Set(RuleFieldConditionValue, rule.ConditionValue)
 
 	d.SetId(rule.ID)
 }

@@ -7,14 +7,29 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-const fieldEnabled = "enabled"
-const fieldTriggering = "triggering"
-const fieldSeverity = "severity"
-const fieldText = "text"
-const fieldDescription = "description"
-const fieldExpirationTime = "expiration_time"
-const fieldQuery = "query"
-const fieldRuleIds = "rule_ids"
+//RuleBindingFieldEnabled constant value for the schema field enabled
+const RuleBindingFieldEnabled = "enabled"
+
+//RuleBindingFieldTriggering constant value for the schema field triggering
+const RuleBindingFieldTriggering = "triggering"
+
+//RuleBindingFieldSeverity constant value for the schema field severity
+const RuleBindingFieldSeverity = "severity"
+
+//RuleBindingFieldText constant value for the schema field text
+const RuleBindingFieldText = "text"
+
+//RuleBindingFieldDescription constant value for the schema field description
+const RuleBindingFieldDescription = "description"
+
+//RuleBindingFieldExpirationTime constant value for the schema field expiration_time
+const RuleBindingFieldExpirationTime = "expiration_time"
+
+//RuleBindingFieldQuery constant value for the schema field query
+const RuleBindingFieldQuery = "query"
+
+//RuleBindingFieldRuleIds constant value for the schema field rule_ids
+const RuleBindingFieldRuleIds = "rule_ids"
 
 func createResourceRuleBinding() *schema.Resource {
 	return &schema.Resource{
@@ -24,39 +39,39 @@ func createResourceRuleBinding() *schema.Resource {
 		Delete: resourceRuleBindingDelete,
 
 		Schema: map[string]*schema.Schema{
-			fieldEnabled: &schema.Schema{
+			RuleBindingFieldEnabled: &schema.Schema{
 				Type:     schema.TypeBool,
 				Default:  true,
 				Optional: true,
 			},
-			fieldTriggering: &schema.Schema{
+			RuleBindingFieldTriggering: &schema.Schema{
 				Type:     schema.TypeBool,
 				Default:  false,
 				Optional: true,
 			},
-			fieldSeverity: &schema.Schema{
+			RuleBindingFieldSeverity: &schema.Schema{
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			fieldText: &schema.Schema{
+			RuleBindingFieldText: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			fieldDescription: &schema.Schema{
+			RuleBindingFieldDescription: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			fieldExpirationTime: &schema.Schema{
+			RuleBindingFieldExpirationTime: &schema.Schema{
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			fieldQuery: &schema.Schema{
+			RuleBindingFieldQuery: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: false,
 				Optional: true,
 			},
-			fieldRuleIds: &schema.Schema{
-				Type:     schema.TypeSet,
+			RuleBindingFieldRuleIds: &schema.Schema{
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -114,26 +129,36 @@ func resourceRuleBindingDelete(d *schema.ResourceData, meta interface{}) error {
 func createRuleBindingFromResourceData(d *schema.ResourceData) restapi.RuleBinding {
 	return restapi.RuleBinding{
 		ID:             d.Id(),
-		Enabled:        d.Get(fieldEnabled).(bool),
-		Triggering:     d.Get(fieldTriggering).(bool),
-		Severity:       d.Get(fieldSeverity).(int),
-		Text:           d.Get(fieldText).(string),
-		Description:    d.Get(fieldDescription).(string),
-		ExpirationTime: d.Get(fieldExpirationTime).(int),
-		Query:          d.Get(fieldQuery).(string),
-		RuleIds:        d.Get(fieldRuleIds).([]string),
+		Enabled:        d.Get(RuleBindingFieldEnabled).(bool),
+		Triggering:     d.Get(RuleBindingFieldTriggering).(bool),
+		Severity:       d.Get(RuleBindingFieldSeverity).(int),
+		Text:           d.Get(RuleBindingFieldText).(string),
+		Description:    d.Get(RuleBindingFieldDescription).(string),
+		ExpirationTime: d.Get(RuleBindingFieldExpirationTime).(int),
+		Query:          d.Get(RuleBindingFieldQuery).(string),
+		RuleIds:        ReadStringArrayPtrFromResource(d, RuleBindingFieldRuleIds),
 	}
 }
 
+func schemaSetToStringSlice(s interface{}) []string {
+	vL := []string{}
+
+	for _, v := range s.(*schema.Set).List() {
+		vL = append(vL, v.(string))
+	}
+
+	return vL
+}
+
 func updateRuleBindingState(d *schema.ResourceData, ruleBinding restapi.RuleBinding) {
-	d.Set(fieldEnabled, ruleBinding.Enabled)
-	d.Set(fieldTriggering, ruleBinding.Triggering)
-	d.Set(fieldSeverity, ruleBinding.Severity)
-	d.Set(fieldText, ruleBinding.Text)
-	d.Set(fieldDescription, ruleBinding.Description)
-	d.Set(fieldExpirationTime, ruleBinding.ExpirationTime)
-	d.Set(fieldQuery, ruleBinding.Query)
-	d.Set(fieldRuleIds, ruleBinding.RuleIds)
+	d.Set(RuleBindingFieldEnabled, ruleBinding.Enabled)
+	d.Set(RuleBindingFieldTriggering, ruleBinding.Triggering)
+	d.Set(RuleBindingFieldSeverity, ruleBinding.Severity)
+	d.Set(RuleBindingFieldText, ruleBinding.Text)
+	d.Set(RuleBindingFieldDescription, ruleBinding.Description)
+	d.Set(RuleBindingFieldExpirationTime, ruleBinding.ExpirationTime)
+	d.Set(RuleBindingFieldQuery, ruleBinding.Query)
+	d.Set(RuleBindingFieldRuleIds, ruleBinding.RuleIds)
 
 	d.SetId(ruleBinding.ID)
 }

@@ -14,11 +14,11 @@ import (
 	testutils "github.com/gessnerfl/terraform-provider-instana/test-utils"
 )
 
-var testProviders = map[string]terraform.ResourceProvider{
+var testRuleProviders = map[string]terraform.ResourceProvider{
 	"instana": Provider(),
 }
 
-const resourceDefinition = `
+const resourceRuleDefinition = `
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:8080"
@@ -36,7 +36,7 @@ resource "instana_rule" "example" {
 }
 `
 
-func TestCRUDWithMockServer(t *testing.T) {
+func TestCRUDOfRuleResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPut, "/api/rules/{id}", testutils.EchoHandlerFunc)
@@ -64,20 +64,20 @@ func TestCRUDWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		Providers: testRuleProviders,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: resourceDefinition,
+				Config: resourceRuleDefinition,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("instana_rule.example", "id"),
-					resource.TestCheckResourceAttr("instana_rule.example", FieldName, "name"),
-					resource.TestCheckResourceAttr("instana_rule.example", FieldEntityType, "entity_type"),
-					resource.TestCheckResourceAttr("instana_rule.example", FieldMetricName, "metric_name"),
-					resource.TestCheckResourceAttr("instana_rule.example", FieldRollup, "100"),
-					resource.TestCheckResourceAttr("instana_rule.example", FieldWindow, "20000"),
-					resource.TestCheckResourceAttr("instana_rule.example", FieldAggregation, "sum"),
-					resource.TestCheckResourceAttr("instana_rule.example", FieldConditionOperator, ">"),
-					resource.TestCheckResourceAttr("instana_rule.example", FieldConditionValue, "1.1"),
+					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldName, "name"),
+					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldEntityType, "entity_type"),
+					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldMetricName, "metric_name"),
+					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldRollup, "100"),
+					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldWindow, "20000"),
+					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldAggregation, "sum"),
+					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldConditionOperator, ">"),
+					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldConditionValue, "1.1"),
 				),
 			},
 		},
@@ -104,12 +104,12 @@ func TestResourceRuleDefinition(t *testing.T) {
 }
 
 func validateRuleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	validateRequiredSchemaOfTypeString(FieldName, schemaMap, t)
-	validateRequiredSchemaOfTypeString(FieldEntityType, schemaMap, t)
-	validateRequiredSchemaOfTypeString(FieldMetricName, schemaMap, t)
-	validateOptionalSchemaOfTypeInt(FieldRollup, schemaMap, t)
-	validateRequiredSchemaOfTypeInt(FieldWindow, schemaMap, t)
-	validateRequiredSchemaOfTypeString(FieldAggregation, schemaMap, t)
-	validateRequiredSchemaOfTypeString(FieldConditionOperator, schemaMap, t)
-	validateRequiredSchemaOfTypeFloat(FieldConditionValue, schemaMap, t)
+	validateRequiredSchemaOfTypeString(RuleFieldName, schemaMap, t)
+	validateRequiredSchemaOfTypeString(RuleFieldEntityType, schemaMap, t)
+	validateRequiredSchemaOfTypeString(RuleFieldMetricName, schemaMap, t)
+	validateOptionalSchemaOfTypeInt(RuleFieldRollup, schemaMap, t)
+	validateRequiredSchemaOfTypeInt(RuleFieldWindow, schemaMap, t)
+	validateRequiredSchemaOfTypeString(RuleFieldAggregation, schemaMap, t)
+	validateRequiredSchemaOfTypeString(RuleFieldConditionOperator, schemaMap, t)
+	validateRequiredSchemaOfTypeFloat(RuleFieldConditionValue, schemaMap, t)
 }
