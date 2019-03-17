@@ -1,6 +1,7 @@
 package services
 
 import (
+	"crypto/tls"
 	"fmt"
 	"strings"
 
@@ -10,17 +11,24 @@ import (
 )
 
 //NewClient creates a new instance of the Instana REST API client
-func NewClient(apiToken string, host string) restapi.RestClient {
+func NewClient(apiToken string, host string, validateServerCertificate bool) restapi.RestClient {
+	restyClient := resty.New()
+	if !validateServerCertificate {
+		restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	}
+
 	return &RestClientImpl{
-		apiToken: apiToken,
-		host:     host,
+		apiToken:    apiToken,
+		host:        host,
+		restyClient: restyClient,
 	}
 }
 
 //RestClientImpl is a helper class to interact with Instana REST API
 type RestClientImpl struct {
-	apiToken string
-	host     string
+	apiToken    string
+	host        string
+	restyClient *resty.Client
 }
 
 var emptyResponse = make([]byte, 0)
@@ -37,7 +45,7 @@ func (client *RestClientImpl) GetAll(resourcePath string) ([]byte, error) {
 
 func (client *RestClientImpl) get(url string) ([]byte, error) {
 	log.Infof("Call GET %s", url)
-	resp, err := client.newResty().Get(url)
+	resp, err := client.createRequest().Get(url)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("failed to send HTTP GET request to Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}
@@ -55,7 +63,7 @@ func (client *RestClientImpl) get(url string) ([]byte, error) {
 func (client *RestClientImpl) Put(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, data.GetID())
 	log.Infof("Call PUT %s", url)
-	resp, err := client.newResty().SetBody(data).Put(url)
+	resp, err := client.createRequest().SetBody(data).Put(url)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("failed to send HTTP PUT request to Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}
@@ -70,7 +78,7 @@ func (client *RestClientImpl) Put(data restapi.InstanaDataObject, resourcePath s
 func (client *RestClientImpl) Delete(resourceID string, resourceBasePath string) error {
 	url := client.buildResourceURL(resourceBasePath, resourceID)
 	log.Infof("Call DELETE %s", url)
-	resp, err := client.newResty().Delete(url)
+	resp, err := client.createRequest().Delete(url)
 
 	if err != nil {
 		return fmt.Errorf("failed to send HTTP DELETE request to Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
@@ -82,8 +90,8 @@ func (client *RestClientImpl) Delete(resourceID string, resourceBasePath string)
 	return nil
 }
 
-func (client *RestClientImpl) newResty() *resty.Request {
-	return resty.R().SetHeader("Accept", "application/json").SetHeader("Authorization", fmt.Sprintf("apiToken %s", client.apiToken))
+func (client *RestClientImpl) createRequest() *resty.Request {
+	return client.restyClient.R().SetHeader("Accept", "application/json").SetHeader("Authorization", fmt.Sprintf("apiToken %s", client.apiToken))
 }
 
 func (client *RestClientImpl) buildResourceURL(resourceBasePath string, id string) string {

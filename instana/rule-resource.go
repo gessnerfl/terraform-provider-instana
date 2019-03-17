@@ -7,14 +7,29 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-const fieldName = "name"
-const fieldEntityType = "entity_type"
-const fieldMetricName = "metric_name"
-const fieldRollup = "rollup"
-const fieldWindow = "window"
-const fieldAggregation = "aggregation"
-const fieldConditionOperator = "condition_operator"
-const fieldConditionValue = "condition_value"
+//FieldName constant value for the schema field name
+const FieldName = "name"
+
+//FieldEntityType constant value for the schema field entity_type
+const FieldEntityType = "entity_type"
+
+//FieldMetricName constant value for the schema field metric_name
+const FieldMetricName = "metric_name"
+
+//FieldRollup constant value for the schema field rollup
+const FieldRollup = "rollup"
+
+//FieldWindow constant value for the schema field window
+const FieldWindow = "window"
+
+//FieldAggregation constant value for the schema field aggregation
+const FieldAggregation = "aggregation"
+
+//FieldConditionOperator constant value for the schema field condition_operator
+const FieldConditionOperator = "condition_operator"
+
+//FieldConditionValue constant value for the schema field condition_value
+const FieldConditionValue = "condition_value"
 
 func createResourceRule() *schema.Resource {
 	return &schema.Resource{
@@ -24,36 +39,36 @@ func createResourceRule() *schema.Resource {
 		Delete: resourceRuleDelete,
 
 		Schema: map[string]*schema.Schema{
-			fieldName: &schema.Schema{
+			FieldName: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			fieldEntityType: &schema.Schema{
+			FieldEntityType: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			fieldMetricName: &schema.Schema{
+			FieldMetricName: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			fieldRollup: &schema.Schema{
+			FieldRollup: &schema.Schema{
 				Type:     schema.TypeInt,
 				Required: false,
 				Optional: true,
 			},
-			fieldWindow: &schema.Schema{
+			FieldWindow: &schema.Schema{
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			fieldAggregation: &schema.Schema{
+			FieldAggregation: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			fieldConditionOperator: &schema.Schema{
+			FieldConditionOperator: &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			fieldConditionValue: &schema.Schema{
+			FieldConditionValue: &schema.Schema{
 				Type:     schema.TypeFloat,
 				Required: true,
 			},
@@ -109,26 +124,26 @@ func resourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
 func createRuleFromResourceData(d *schema.ResourceData) restapi.Rule {
 	return restapi.Rule{
 		ID:                d.Id(),
-		Name:              d.Get(fieldName).(string),
-		EntityType:        d.Get(fieldEntityType).(string),
-		MetricName:        d.Get(fieldMetricName).(string),
-		Rollup:            d.Get(fieldRollup).(int),
-		Window:            d.Get(fieldWindow).(int),
-		Aggregation:       d.Get(fieldAggregation).(string),
-		ConditionOperator: d.Get(fieldConditionOperator).(string),
-		ConditionValue:    d.Get(fieldConditionValue).(float64),
+		Name:              d.Get(FieldName).(string),
+		EntityType:        d.Get(FieldEntityType).(string),
+		MetricName:        d.Get(FieldMetricName).(string),
+		Rollup:            d.Get(FieldRollup).(int),
+		Window:            d.Get(FieldWindow).(int),
+		Aggregation:       d.Get(FieldAggregation).(string),
+		ConditionOperator: d.Get(FieldConditionOperator).(string),
+		ConditionValue:    d.Get(FieldConditionValue).(float64),
 	}
 }
 
 func updateRuleState(d *schema.ResourceData, rule restapi.Rule) {
-	d.Set(fieldName, rule.Name)
-	d.Set(fieldEntityType, rule.EntityType)
-	d.Set(fieldMetricName, rule.MetricName)
-	d.Set(fieldRollup, rule.Rollup)
-	d.Set(fieldWindow, rule.Window)
-	d.Set(fieldAggregation, rule.Aggregation)
-	d.Set(fieldConditionOperator, rule.ConditionOperator)
-	d.Set(fieldConditionValue, rule.ConditionValue)
+	d.Set(FieldName, rule.Name)
+	d.Set(FieldEntityType, rule.EntityType)
+	d.Set(FieldMetricName, rule.MetricName)
+	d.Set(FieldRollup, rule.Rollup)
+	d.Set(FieldWindow, rule.Window)
+	d.Set(FieldAggregation, rule.Aggregation)
+	d.Set(FieldConditionOperator, rule.ConditionOperator)
+	d.Set(FieldConditionValue, rule.ConditionValue)
 
 	d.SetId(rule.ID)
 }
