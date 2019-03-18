@@ -3,6 +3,7 @@ package instana_test
 import (
 	"testing"
 
+	"github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -91,4 +92,24 @@ func validateRequiredSchemaOfTypeListOfString(schemaField string, schemaMap map[
 	if s.Required {
 		t.Fatalf("Expected %s to be optional", schemaField)
 	}
+}
+
+func createEmptyRuleResourceData(t *testing.T) *schema.ResourceData {
+	data := make(map[string]interface{})
+	return createRuleResourceData(t, data)
+}
+
+func createRuleResourceData(t *testing.T, data map[string]interface{}) *schema.ResourceData {
+	schemaMap := instana.CreateResourceRule().Schema
+	return schema.TestResourceDataRaw(t, schemaMap, data)
+}
+
+func createEmptyRuleBindingResourceData(t *testing.T) *schema.ResourceData {
+	data := make(map[string]interface{})
+	return createRuleBindingResourceData(t, data)
+}
+
+func createRuleBindingResourceData(t *testing.T, data map[string]interface{}) *schema.ResourceData {
+	schemaMap := instana.CreateResourceRuleBinding().Schema
+	return schema.TestResourceDataRaw(t, schemaMap, data)
 }

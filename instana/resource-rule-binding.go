@@ -31,7 +31,8 @@ const RuleBindingFieldQuery = "query"
 //RuleBindingFieldRuleIds constant value for the schema field rule_ids
 const RuleBindingFieldRuleIds = "rule_ids"
 
-func createResourceRuleBinding() *schema.Resource {
+//CreateResourceRuleBinding creates the resource definition for the instana api endpoint for Rule Bindings
+func CreateResourceRuleBinding() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceRuleBindingCreate,
 		Read:   resourceRuleBindingRead,
@@ -136,7 +137,7 @@ func createRuleBindingFromResourceData(d *schema.ResourceData) restapi.RuleBindi
 		Description:    d.Get(RuleBindingFieldDescription).(string),
 		ExpirationTime: d.Get(RuleBindingFieldExpirationTime).(int),
 		Query:          d.Get(RuleBindingFieldQuery).(string),
-		RuleIds:        ReadStringArrayPtrFromResource(d, RuleBindingFieldRuleIds),
+		RuleIds:        ReadStringArrayParameterFromResource(d, RuleBindingFieldRuleIds),
 	}
 }
 

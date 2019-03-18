@@ -11,8 +11,8 @@ func RandomID() string {
 	return xid.String()
 }
 
-//ReadStringArrayPtrFromResource reads a string array property from a resource
-func ReadStringArrayPtrFromResource(d *schema.ResourceData, key string) []string {
+//ReadStringArrayParameterFromResource reads a string array parameter from a resource
+func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []string {
 
 	if attr, ok := d.GetOk(key); ok {
 		var array []string
