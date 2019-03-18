@@ -120,43 +120,6 @@ func validateRuleBindingResourceSchema(schemaMap map[string]*schema.Schema, t *t
 	validateRequiredSchemaOfTypeListOfString(RuleBindingFieldRuleIds, schemaMap, t)
 }
 
-const baseTestDataJson = `
-{
-	id: "id",
-	severity: 5,
-	text: "text",
-	description: "description",
-	expirationTime: 1234,
-	ruleIds: ["test-rule-id-1","test-rule-id-2"]
-}
-`
-
-const testDataWithQueryJson = `
-{
-	id: "id",
-	severity: 5,
-	text: "text",
-	description: "description",
-	expirationTime: 1234,
-	query: "query",
-	ruleIds: ["test-rule-id-1","test-rule-id-2"]
-}
-`
-
-const fullTestDataJson = `
-{
-	id: "id",
-	enabled: true,
-	triggering: true,
-	severity: 5,
-	text: "text",
-	description: "description",
-	expirationTime: 1234,
-	query: "query",
-	ruleIds: ["test-rule-id-1","test-rule-id-2"]
-}
-`
-
 func TestShouldSuccessfullyReadRuleBindingFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
 	expectedModel := createBaseTestRuleBindingModel()
 	testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel, t)
@@ -376,26 +339,13 @@ func createBaseTestRuleBindingModel() restapi.RuleBinding {
 }
 
 func createFullTestRuleBindingData() map[string]interface{} {
-	data := createBaseTestRuleBindingData()
+	data := make(map[string]interface{})
 	data[RuleBindingFieldEnabled] = true
 	data[RuleBindingFieldTriggering] = true
-	data[RuleBindingFieldQuery] = "query"
-	return data
-}
-
-func createTestRuleBindingDataWithQuery() map[string]interface{} {
-	data := createBaseTestRuleBindingData()
-	data[RuleBindingFieldQuery] = "query"
-	return data
-}
-
-func createBaseTestRuleBindingData() map[string]interface{} {
-	data := make(map[string]interface{})
-
-	data[RuleBindingFieldSeverity] = 5
 	data[RuleBindingFieldText] = "text"
 	data[RuleBindingFieldDescription] = "description"
 	data[RuleBindingFieldExpirationTime] = 1234
+	data[RuleBindingFieldQuery] = "query"
 	data[RuleBindingFieldRuleIds] = []string{"test-rule-id-1", "test-rule-id-2"}
 	return data
 }
