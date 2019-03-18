@@ -9,7 +9,7 @@ VERSION=$(shell git describe --tags --match=v* --always --dirty)
 all: build test vet lint fmt
 
 .PHONY: ci
-ci: build test_with_report vet_with_report lint_with_report fmt sonar release
+ci: build test_with_report vet_with_report lint_with_report fmt release
 
 .PHONY: build
 build: clean bin/terraform-provider-instana
