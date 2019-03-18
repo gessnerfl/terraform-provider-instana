@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"testing"
@@ -11,7 +12,11 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
 	testutils "github.com/gessnerfl/terraform-provider-instana/test-utils"
+	"github.com/golang/mock/gomock"
+	"github.com/google/go-cmp/cmp"
 )
 
 var testRuleBindingProviders = map[string]terraform.ResourceProvider{
@@ -113,4 +118,284 @@ func validateRuleBindingResourceSchema(schemaMap map[string]*schema.Schema, t *t
 	validateRequiredSchemaOfTypeInt(RuleBindingFieldExpirationTime, schemaMap, t)
 	validateOptionalSchemaOfTypeString(RuleBindingFieldQuery, schemaMap, t)
 	validateRequiredSchemaOfTypeListOfString(RuleBindingFieldRuleIds, schemaMap, t)
+}
+
+const baseTestDataJson = `
+{
+	id: "id",
+	severity: 5,
+	text: "text",
+	description: "description",
+	expirationTime: 1234,
+	ruleIds: ["test-rule-id-1","test-rule-id-2"]
+}
+`
+
+const testDataWithQueryJson = `
+{
+	id: "id",
+	severity: 5,
+	text: "text",
+	description: "description",
+	expirationTime: 1234,
+	query: "query",
+	ruleIds: ["test-rule-id-1","test-rule-id-2"]
+}
+`
+
+const fullTestDataJson = `
+{
+	id: "id",
+	enabled: true,
+	triggering: true,
+	severity: 5,
+	text: "text",
+	description: "description",
+	expirationTime: 1234,
+	query: "query",
+	ruleIds: ["test-rule-id-1","test-rule-id-2"]
+}
+`
+
+func TestShouldSuccessfullyReadRuleBindingFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
+	expectedModel := createBaseTestRuleBindingModel()
+	testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel, t)
+}
+
+func TestShouldSuccessfullyReadRuleBindingFromInstanaAPIWhenFullDataIsReturned(t *testing.T) {
+	expectedModel := createFullTestRuleBindingModel()
+	testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel, t)
+}
+
+func TestShouldSuccessfullyReadRuleBindingFromInstanaAPIWhenBaseDataWithQueryIsReturned(t *testing.T) {
+	expectedModel := createTestRuleBindingModelWithQuery()
+	testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel, t)
+}
+
+func testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel restapi.RuleBinding, t *testing.T) {
+	resourceData := createEmptyRuleBindingResourceData(t)
+	ruleBindingID := "rule-binding-id"
+	resourceData.SetId(ruleBindingID)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRuleBindingApi := mocks.NewMockRuleBindingResource(ctrl)
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	mockInstanaAPI.EXPECT().RuleBindings().Return(mockRuleBindingApi).Times(1)
+	mockRuleBindingApi.EXPECT().GetOne(gomock.Eq(ruleBindingID)).Return(expectedModel, nil).Times(1)
+
+	err := ReadRuleBinding(resourceData, mockInstanaAPI)
+
+	if err != nil {
+		t.Fatalf("Expected no error to be returned, %s", err)
+	}
+	verifyModelAppliedToResource(expectedModel, resourceData, t)
+}
+
+func TestShouldFailToReadRuleBindingFromInstanaAPIWhenIDIsMissing(t *testing.T) {
+	resourceData := createEmptyRuleBindingResourceData(t)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	err := ReadRuleBinding(resourceData, mockInstanaAPI)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "ID of rule binding") {
+		t.Fatal("Expected error to occur because of missing id")
+	}
+}
+
+func TestShouldFailToReadRuleBindingFromInstanaAPIAndDeleteResourceWhenBindingDoesNotExist(t *testing.T) {
+	resourceData := createEmptyRuleBindingResourceData(t)
+	ruleBindingID := "rule-binding-id"
+	resourceData.SetId(ruleBindingID)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRuleBindingApi := mocks.NewMockRuleBindingResource(ctrl)
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	mockInstanaAPI.EXPECT().RuleBindings().Return(mockRuleBindingApi).Times(1)
+	mockRuleBindingApi.EXPECT().GetOne(gomock.Eq(ruleBindingID)).Return(restapi.RuleBinding{}, restapi.ErrEntityNotFound).Times(1)
+
+	err := ReadRuleBinding(resourceData, mockInstanaAPI)
+
+	if err != nil {
+		t.Fatalf("Expected no error to be returned, %s", err)
+	}
+	if len(resourceData.Id()) > 0 {
+		t.Fatal("Expected ID to be cleaned to destroy resource")
+	}
+}
+
+func TestShouldCreateRuleBindingThroughInstanaAPI(t *testing.T) {
+	data := createFullTestRuleBindingData()
+	resourceData := createRuleBindingResourceData(t, data)
+	expectedModel := createFullTestRuleBindingModel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRuleBindingApi := mocks.NewMockRuleBindingResource(ctrl)
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	mockInstanaAPI.EXPECT().RuleBindings().Return(mockRuleBindingApi).Times(1)
+	mockRuleBindingApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.RuleBinding{})).Return(expectedModel, nil).Times(1)
+
+	err := CreateRuleBinding(resourceData, mockInstanaAPI)
+
+	if err != nil {
+		t.Fatalf("Expected no error to be returned, %s", err)
+	}
+	verifyModelAppliedToResource(expectedModel, resourceData, t)
+}
+
+func TestShouldReturnErrorWhenCreateRuleBindingFailsThroughInstanaAPI(t *testing.T) {
+	data := createFullTestRuleBindingData()
+	resourceData := createRuleBindingResourceData(t, data)
+	expectedError := errors.New("test")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRuleBindingApi := mocks.NewMockRuleBindingResource(ctrl)
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	mockInstanaAPI.EXPECT().RuleBindings().Return(mockRuleBindingApi).Times(1)
+	mockRuleBindingApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.RuleBinding{})).Return(restapi.RuleBinding{}, expectedError).Times(1)
+
+	err := CreateRuleBinding(resourceData, mockInstanaAPI)
+
+	if err == nil || expectedError != err {
+		t.Fatal("Expected definned error to be returned")
+	}
+}
+
+func TestShouldDeleteRuleBindingThroughInstanaAPI(t *testing.T) {
+	id := "test-id"
+	data := createFullTestRuleBindingData()
+	resourceData := createRuleBindingResourceData(t, data)
+	resourceData.SetId(id)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRuleBindingApi := mocks.NewMockRuleBindingResource(ctrl)
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	mockInstanaAPI.EXPECT().RuleBindings().Return(mockRuleBindingApi).Times(1)
+	mockRuleBindingApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
+
+	err := DeleteRuleBinding(resourceData, mockInstanaAPI)
+
+	if err != nil {
+		t.Fatalf("Expected no error to be returned, %s", err)
+	}
+	if len(resourceData.Id()) > 0 {
+		t.Fatal("Expected ID to be cleaned to destroy resource")
+	}
+}
+
+func TestShouldReturnErrorWhenDeleteRuleBindingFailsThroughInstanaAPI(t *testing.T) {
+	id := "test-id"
+	data := createFullTestRuleBindingData()
+	resourceData := createRuleBindingResourceData(t, data)
+	resourceData.SetId(id)
+	expectedError := errors.New("test")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRuleBindingApi := mocks.NewMockRuleBindingResource(ctrl)
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	mockInstanaAPI.EXPECT().RuleBindings().Return(mockRuleBindingApi).Times(1)
+	mockRuleBindingApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
+
+	err := DeleteRuleBinding(resourceData, mockInstanaAPI)
+
+	if err == nil || err != expectedError {
+		t.Fatal("Expected error to be returned")
+	}
+	if len(resourceData.Id()) == 0 {
+		t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
+	}
+}
+
+func verifyModelAppliedToResource(model restapi.RuleBinding, resourceData *schema.ResourceData, t *testing.T) {
+	if model.ID != resourceData.Id() {
+		t.Fatal("Expected ID to be identical")
+	}
+	if model.Enabled != resourceData.Get(RuleBindingFieldEnabled).(bool) {
+		t.Fatal("Expected Enabled to be identical")
+	}
+	if model.Triggering != resourceData.Get(RuleBindingFieldTriggering).(bool) {
+		t.Fatal("Expected Triggering to be identical")
+	}
+	if model.Severity != resourceData.Get(RuleBindingFieldSeverity).(int) {
+		t.Fatal("Expected Severity to be identical")
+	}
+	if model.Text != resourceData.Get(RuleBindingFieldText).(string) {
+		t.Fatal("Expected Text to be identical")
+	}
+	if model.Description != resourceData.Get(RuleBindingFieldDescription).(string) {
+		t.Fatal("Expected Description to be identical")
+	}
+	if model.ExpirationTime != resourceData.Get(RuleBindingFieldExpirationTime).(int) {
+		t.Fatal("Expected ExpirationTime to be identical")
+	}
+	if model.Query != resourceData.Get(RuleBindingFieldQuery).(string) {
+		t.Fatal("Expected Query to be identical")
+	}
+	if !cmp.Equal(model.RuleIds, ReadStringArrayParameterFromResource(resourceData, RuleBindingFieldRuleIds)) {
+		t.Fatal("Expected RuleIds to be identical")
+	}
+}
+
+func createFullTestRuleBindingModel() restapi.RuleBinding {
+	data := createBaseTestRuleBindingModel()
+	data.Enabled = true
+	data.Triggering = true
+	data.Query = "query"
+	return data
+}
+
+func createTestRuleBindingModelWithQuery() restapi.RuleBinding {
+	data := createBaseTestRuleBindingModel()
+	data.Query = "query"
+	return data
+}
+
+func createBaseTestRuleBindingModel() restapi.RuleBinding {
+	return restapi.RuleBinding{
+		ID:             "id",
+		Severity:       5,
+		Text:           "text",
+		Description:    "description",
+		ExpirationTime: 1234,
+		RuleIds:        []string{"test-rule-id-1", "test-rule-id-2"},
+	}
+}
+
+func createFullTestRuleBindingData() map[string]interface{} {
+	data := createBaseTestRuleBindingData()
+	data[RuleBindingFieldEnabled] = true
+	data[RuleBindingFieldTriggering] = true
+	data[RuleBindingFieldQuery] = "query"
+	return data
+}
+
+func createTestRuleBindingDataWithQuery() map[string]interface{} {
+	data := createBaseTestRuleBindingData()
+	data[RuleBindingFieldQuery] = "query"
+	return data
+}
+
+func createBaseTestRuleBindingData() map[string]interface{} {
+	data := make(map[string]interface{})
+
+	data[RuleBindingFieldSeverity] = 5
+	data[RuleBindingFieldText] = "text"
+	data[RuleBindingFieldDescription] = "description"
+	data[RuleBindingFieldExpirationTime] = 1234
+	data[RuleBindingFieldRuleIds] = []string{"test-rule-id-1", "test-rule-id-2"}
+	return data
 }

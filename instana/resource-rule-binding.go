@@ -34,10 +34,10 @@ const RuleBindingFieldRuleIds = "rule_ids"
 //CreateResourceRuleBinding creates the resource definition for the instana api endpoint for Rule Bindings
 func CreateResourceRuleBinding() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceRuleBindingCreate,
-		Read:   resourceRuleBindingRead,
-		Update: resourceRuleBindingUpdate,
-		Delete: resourceRuleBindingDelete,
+		Read:   ReadRuleBinding,
+		Create: CreateRuleBinding,
+		Update: UpdateRuleBinding,
+		Delete: DeleteRuleBinding,
 
 		Schema: map[string]*schema.Schema{
 			RuleBindingFieldEnabled: &schema.Schema{
@@ -82,12 +82,8 @@ func CreateResourceRuleBinding() *schema.Resource {
 	}
 }
 
-func resourceRuleBindingCreate(d *schema.ResourceData, meta interface{}) error {
-	d.SetId(RandomID())
-	return resourceRuleBindingUpdate(d, meta)
-}
-
-func resourceRuleBindingRead(d *schema.ResourceData, meta interface{}) error {
+//ReadRuleBinding reads the rule binding with the given id from the Instana API and updates the resource state.
+func ReadRuleBinding(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	ruleBindingID := d.Id()
 	if len(ruleBindingID) == 0 {
@@ -105,7 +101,14 @@ func resourceRuleBindingRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceRuleBindingUpdate(d *schema.ResourceData, meta interface{}) error {
+//CreateRuleBinding creates the configured rule binding through the Instana API and updates the resource state.
+func CreateRuleBinding(d *schema.ResourceData, meta interface{}) error {
+	d.SetId(RandomID())
+	return UpdateRuleBinding(d, meta)
+}
+
+//UpdateRuleBinding updates the configured rule binding through the Instana API and updates the resource state.
+func UpdateRuleBinding(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	ruleBinding := createRuleBindingFromResourceData(d)
 	updatedRuleBinding, err := instanaAPI.RuleBindings().Upsert(ruleBinding)
@@ -116,10 +119,11 @@ func resourceRuleBindingUpdate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceRuleBindingDelete(d *schema.ResourceData, meta interface{}) error {
+//DeleteRuleBinding deletes the configured rule binding through the Instana API and deletes the resource state.
+func DeleteRuleBinding(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	ruleBinding := createRuleBindingFromResourceData(d)
-	err := instanaAPI.RuleBindings().Delete(ruleBinding)
+	err := instanaAPI.RuleBindings().DeleteByID(ruleBinding.ID)
 	if err != nil {
 		return err
 	}
