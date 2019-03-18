@@ -15,37 +15,45 @@ ci: build test_with_report vet_with_report lint_with_report fmt sonar release
 build: clean bin/terraform-provider-instana
 
 bin/terraform-provider-instana:
+	@echo "+++++++++++  Run GO Build +++++++++++ "
 	@go build -o $@ github.com/gessnerfl/terraform-provider-instana
 
 .PHONY: test
 test:
+	@echo "+++++++++++  Run GO Test +++++++++++ "
 	@go test ./... -cover
 
 .PHONY: test_with_report
 test_with_report:
+	@echo "+++++++++++  Run GO Test (with report) +++++++++++ "
 	@mkdir -p output
 	@go test ./... -cover -coverprofile=output/coverage.out -json > output/unit-test-report.json
 
 .PHONY: vet
 vet:
+	@echo "+++++++++++  Run GO VET +++++++++++ "
 	@go vet -all ./...
 
 .PHONY: vet_with_report
 vet_with_report:
+	@echo "+++++++++++  Run GO VET (with report) +++++++++++ "
 	@mkdir -p output
 	@go vet -all ./... 2> output/govet-report.out
 
 .PHONY: lint
 lint:
+	@echo "+++++++++++  Run GO Lint +++++++++++ "
 	@golint -set_exit_status `go list ./...`
 
 .PHONY: lint_with_report
 lint_with_report:
+	@echo "+++++++++++  Run GO Lint (with report) +++++++++++ "
 	@mkdir -p output
 	@golint -set_exit_status `go list ./...` > output/golint-report.out
 
 .PHONY: fmt
 fmt:
+	@echo "+++++++++++  Run GO FMT +++++++++++ "
 	@test -z $$(go fmt ./...) 
 
 .PHONY: update
@@ -59,11 +67,13 @@ vendor:
 
 .PHONY: clean
 clean:
+	@echo "+++++++++++  Clean up project +++++++++++ "
 	@rm -rf bin
 	@rm -rf output
 
 .PHONY: sonar
 sonar:
+	@echo "+++++++++++  Run Sonar Scanner +++++++++++ "
 	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION)
 
 .PHONY: release
@@ -84,4 +94,5 @@ output/linux-amd64/terraform-provider-instana: GOARGS = GOOS=linux GOARCH=amd64
 output/darwin-amd64/terraform-provider-instana: GOARGS = GOOS=darwin GOARCH=amd64
 output/windows-amd64/terraform-provider-instana: GOARGS = GOOS=windows GOARCH=amd64
 output/%/terraform-provider-instana:
+	@echo "+++++++++++ Build Release $@ +++++++++++ "
 	$(GOARGS) go build -o $@ github.com/gessnerfl/terraform-provider-instana
