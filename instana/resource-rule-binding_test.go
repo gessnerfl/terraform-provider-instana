@@ -153,7 +153,7 @@ func testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel restapi.R
 	if err != nil {
 		t.Fatalf("Expected no error to be returned, %s", err)
 	}
-	verifyModelAppliedToResource(expectedModel, resourceData, t)
+	verifyRuleBindingModelAppliedToResource(expectedModel, resourceData, t)
 }
 
 func TestShouldFailToReadRuleBindingFromInstanaAPIWhenIDIsMissing(t *testing.T) {
@@ -211,7 +211,7 @@ func TestShouldCreateRuleBindingThroughInstanaAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error to be returned, %s", err)
 	}
-	verifyModelAppliedToResource(expectedModel, resourceData, t)
+	verifyRuleBindingModelAppliedToResource(expectedModel, resourceData, t)
 }
 
 func TestShouldReturnErrorWhenCreateRuleBindingFailsThroughInstanaAPI(t *testing.T) {
@@ -283,7 +283,7 @@ func TestShouldReturnErrorWhenDeleteRuleBindingFailsThroughInstanaAPI(t *testing
 	}
 }
 
-func verifyModelAppliedToResource(model restapi.RuleBinding, resourceData *schema.ResourceData, t *testing.T) {
+func verifyRuleBindingModelAppliedToResource(model restapi.RuleBinding, resourceData *schema.ResourceData, t *testing.T) {
 	if model.ID != resourceData.Id() {
 		t.Fatal("Expected ID to be identical")
 	}

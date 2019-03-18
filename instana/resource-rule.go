@@ -34,10 +34,10 @@ const RuleFieldConditionValue = "condition_value"
 //CreateResourceRule creates the resource definition for the resource instana_rule
 func CreateResourceRule() *schema.Resource {
 	return &schema.Resource{
-		Create: ResourceRuleCreate,
-		Read:   ResourceRuleRead,
-		Update: ResourceRuleUpdate,
-		Delete: ResourceRuleDelete,
+		Create: CreateRule,
+		Read:   ReadRule,
+		Update: UpdateRule,
+		Delete: DeleteRule,
 
 		Schema: map[string]*schema.Schema{
 			RuleFieldName: &schema.Schema{
@@ -85,14 +85,14 @@ func CreateResourceRule() *schema.Resource {
 	}
 }
 
-//ResourceRuleCreate defines the create operation for the resource instana_rule
-func ResourceRuleCreate(d *schema.ResourceData, meta interface{}) error {
+//CreateRule defines the create operation for the resource instana_rule
+func CreateRule(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(RandomID())
-	return ResourceRuleUpdate(d, meta)
+	return UpdateRule(d, meta)
 }
 
-//ResourceRuleRead defines the read operation for the resource instana_rule
-func ResourceRuleRead(d *schema.ResourceData, meta interface{}) error {
+//ReadRule defines the read operation for the resource instana_rule
+func ReadRule(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	ruleID := d.Id()
 	if len(ruleID) == 0 {
@@ -110,8 +110,8 @@ func ResourceRuleRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-//ResourceRuleUpdate defines the update operation for the resource instana_rule
-func ResourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
+//UpdateRule defines the update operation for the resource instana_rule
+func UpdateRule(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	rule := createRuleFromResourceData(d)
 	updatedRule, err := instanaAPI.Rules().Upsert(rule)
@@ -122,11 +122,11 @@ func ResourceRuleUpdate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-//ResourceRuleDelete defines the delete operation for the resource instana_rule
-func ResourceRuleDelete(d *schema.ResourceData, meta interface{}) error {
+//DeleteRule defines the delete operation for the resource instana_rule
+func DeleteRule(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
 	rule := createRuleFromResourceData(d)
-	err := instanaAPI.Rules().Delete(rule)
+	err := instanaAPI.Rules().DeleteByID(rule.ID)
 	if err != nil {
 		return err
 	}
