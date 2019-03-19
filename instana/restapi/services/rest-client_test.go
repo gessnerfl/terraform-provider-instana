@@ -39,6 +39,16 @@ func TestShouldReturnErrorMessageForGetOneRequestWhenStatusIsNotASuccessStatusAn
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
 }
 
+func TestShouldReturnNotFoundErrorMessageForGetOneRequestWhenStatusIsNotEnityNotFound(t *testing.T) {
+	httpServer := setupAndStartHttpServer(http.MethodGet, fullPathWithID, http.StatusNotFound)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	data, err := restClient.GetOne(testID, testPath)
+
+	verifyNotFoundResponse(data, err, t)
+}
+
 func TestShouldReturnDataForSuccessfulGetAllRequest(t *testing.T) {
 	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, fullPathWithoutID)
 	defer httpServer.Close()
@@ -58,6 +68,16 @@ func TestShouldReturnErrorMessageForGetAllRequestWhenStatusIsNotASuccessStatusAn
 	_, err := restClient.GetAll(testPath)
 
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
+}
+
+func TestShouldReturnNotFoundErrorMessageForGetAllRequestWhenStatusIsNotEnityNotFound(t *testing.T) {
+	httpServer := setupAndStartHttpServer(http.MethodGet, fullPathWithoutID, http.StatusNotFound)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	data, err := restClient.GetAll(testPath)
+
+	verifyNotFoundResponse(data, err, t)
 }
 
 func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
@@ -137,6 +157,16 @@ func setupAndStartHttpServer(httpMethod string, fullPath string, statusCode int)
 
 func createSut(httpServer *testutils.TestHTTPServer) restapi.RestClient {
 	return NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+}
+
+func verifyNotFoundResponse(data []byte, err error, t *testing.T) {
+	if err != restapi.ErrEntityNotFound {
+		t.Fatal("Expected error entity not found")
+	}
+
+	if data == nil || len(data) != 0 {
+		t.Fatal("Expected empty data response")
+	}
 }
 
 func verifySuccessfullGetOrPut(response []byte, err error, t *testing.T) {
