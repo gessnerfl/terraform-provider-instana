@@ -32,12 +32,11 @@ func TestValidConfigurationOfProvider(t *testing.T) {
 }
 
 func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	if len(schemaMap) != 3 {
+	if len(schemaMap) != 2 {
 		t.Fatal("Expected three configuration options for provider")
 	}
 	validateRequiredSchemaOfTypeString(SchemaFieldAPIToken, schemaMap, t)
 	validateRequiredSchemaOfTypeString(SchemaFieldEndpoint, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(SchemaFieldVerifyServerCertificate, true, schemaMap, t)
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {

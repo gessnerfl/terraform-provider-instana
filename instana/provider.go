@@ -11,9 +11,6 @@ const SchemaFieldAPIToken = "api_token"
 //SchemaFieldEndpoint the name of the provider configuration option for the instana endpoint
 const SchemaFieldEndpoint = "endpoint"
 
-//SchemaFieldVerifyServerCertificate activates/deactivates TLS server certificate validation
-const SchemaFieldVerifyServerCertificate = "verify_server_certificate"
-
 //ResourceInstanaRule the name of the terraform-provider-instana resource to manage rules
 const ResourceInstanaRule = "instana_rule"
 
@@ -41,12 +38,6 @@ func providerSchema() map[string]*schema.Schema {
 			Required:    true,
 			Description: "The DNS Name of the Instana Endpoint (eg. saas-eu-west-1.instana.io)",
 		},
-		SchemaFieldVerifyServerCertificate: &schema.Schema{
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Default:     true,
-			Description: "Verify server certificate",
-		},
 	}
 }
 
@@ -60,7 +51,6 @@ func providerResources() map[string]*schema.Resource {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	apiToken := d.Get(SchemaFieldAPIToken).(string)
 	endpoint := d.Get(SchemaFieldEndpoint).(string)
-	validateServerCertificate := d.Get(SchemaFieldVerifyServerCertificate).(bool)
-	instanaAPI := services.NewInstanaAPI(apiToken, endpoint, validateServerCertificate)
+	instanaAPI := services.NewInstanaAPI(apiToken, endpoint)
 	return instanaAPI, nil
 }

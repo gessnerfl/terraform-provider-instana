@@ -1,7 +1,6 @@
 package services
 
 import (
-	"crypto/tls"
 	"fmt"
 	"strings"
 
@@ -11,11 +10,8 @@ import (
 )
 
 //NewClient creates a new instance of the Instana REST API client
-func NewClient(apiToken string, host string, validateServerCertificate bool) restapi.RestClient {
+func NewClient(apiToken string, host string) restapi.RestClient {
 	restyClient := resty.New()
-	if !validateServerCertificate {
-		restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
-	}
 
 	return &RestClientImpl{
 		apiToken:    apiToken,

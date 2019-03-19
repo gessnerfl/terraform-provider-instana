@@ -4,8 +4,8 @@ import "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 import "github.com/gessnerfl/terraform-provider-instana/instana/restapi/resources"
 
 //NewInstanaAPI creates a new instance of the instana API
-func NewInstanaAPI(apiToken string, endpoint string, validateServerCertificate bool) restapi.InstanaAPI {
-	client := NewClient(apiToken, endpoint, validateServerCertificate)
+func NewInstanaAPI(apiToken string, endpoint string) restapi.InstanaAPI {
+	client := NewClient(apiToken, endpoint)
 	return &baseInstanaAPI{client: client}
 }
 
