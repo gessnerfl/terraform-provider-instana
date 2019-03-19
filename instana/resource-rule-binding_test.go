@@ -41,12 +41,15 @@ resource "instana_rule_binding" "example" {
 }
 `
 
+const ruleBindingApiPath = "/api/ruleBindings/{id}"
+const testRuleBindingDefinition = "instana_rule_binding.example"
+
 func TestCRUDOfRuleBindingResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, "/api/ruleBindings/{id}", testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, "/api/ruleBindings/{id}", testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, "/api/ruleBindings/{id}", func(w http.ResponseWriter, r *http.Request) {
+	httpServer.AddRoute(http.MethodPut, ruleBindingApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodDelete, ruleBindingApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodGet, ruleBindingApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		json := strings.ReplaceAll(`
 		{
@@ -74,16 +77,16 @@ func TestCRUDOfRuleBindingResourceWithMockServer(t *testing.T) {
 			resource.TestStep{
 				Config: resourceRuleBindingDefinition,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("instana_rule_binding.example", "id"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldEnabled, "true"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldTriggering, "true"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldSeverity, "5"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldText, "text"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldDescription, "description"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldExpirationTime, "60000"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldQuery, "query"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldRuleIds+".0", "rule-id-1"),
-					resource.TestCheckResourceAttr("instana_rule_binding.example", RuleBindingFieldRuleIds+".1", "rule-id-2"),
+					resource.TestCheckResourceAttrSet(testRuleBindingDefinition, "id"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldEnabled, "true"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldTriggering, "true"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldSeverity, "5"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldText, "text"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldDescription, "description"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldExpirationTime, "60000"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldQuery, "query"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldRuleIds+".0", "rule-id-1"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldRuleIds+".1", "rule-id-2"),
 				),
 			},
 		},

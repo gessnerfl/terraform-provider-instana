@@ -40,12 +40,15 @@ resource "instana_rule" "example" {
 }
 `
 
+const ruleApiPath = "/api/rules/{id}"
+const testRuleDefinition = "instana_rule.example"
+
 func TestCRUDOfRuleResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, "/api/rules/{id}", testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, "/api/rules/{id}", testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, "/api/rules/{id}", func(w http.ResponseWriter, r *http.Request) {
+	httpServer.AddRoute(http.MethodPut, ruleApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodDelete, ruleApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodGet, ruleApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		json := strings.ReplaceAll(`
 		{
@@ -73,15 +76,15 @@ func TestCRUDOfRuleResourceWithMockServer(t *testing.T) {
 			resource.TestStep{
 				Config: resourceRuleDefinition,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("instana_rule.example", "id"),
-					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldName, "name"),
-					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldEntityType, "entity_type"),
-					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldMetricName, "metric_name"),
-					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldRollup, "100"),
-					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldWindow, "20000"),
-					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldAggregation, "sum"),
-					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldConditionOperator, ">"),
-					resource.TestCheckResourceAttr("instana_rule.example", RuleFieldConditionValue, "1.1"),
+					resource.TestCheckResourceAttrSet(testRuleDefinition, "id"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldName, "name"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldEntityType, "entity_type"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldMetricName, "metric_name"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldRollup, "100"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldWindow, "20000"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldAggregation, "sum"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldConditionOperator, ">"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldConditionValue, "1.1"),
 				),
 			},
 		},
