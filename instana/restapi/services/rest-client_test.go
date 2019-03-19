@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/services"
 	testutils "github.com/gessnerfl/terraform-provider-instana/test-utils"
 )
@@ -14,12 +15,14 @@ import (
 const testPath = "/test"
 const testID = "test-1234"
 const testData = "testData"
+const fullPathWithoutID = "/api" + testPath
+const fullPathWithID = "/api" + testPath + "/" + testID
 
 func TestShouldReturnDataForSuccessfulGetOneRequest(t *testing.T) {
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, "/api"+testPath+"/"+testID)
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, fullPathWithID)
 	defer httpServer.Close()
 
-	restClient := NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	restClient := createSut(httpServer)
 	response, err := restClient.GetOne(testID, testPath)
 
 	verifySuccessfullGetOrPut(response, err, t)
@@ -27,20 +30,20 @@ func TestShouldReturnDataForSuccessfulGetOneRequest(t *testing.T) {
 
 func TestShouldReturnErrorMessageForGetOneRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodGet, "/api"+testPath+"/"+testID, statusCode)
+	httpServer := setupAndStartHttpServer(http.MethodGet, fullPathWithID, statusCode)
 	defer httpServer.Close()
 
-	restClient := NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	restClient := createSut(httpServer)
 	_, err := restClient.GetOne(testID, testPath)
 
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
 }
 
 func TestShouldReturnDataForSuccessfulGetAllRequest(t *testing.T) {
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, "/api"+testPath)
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, fullPathWithoutID)
 	defer httpServer.Close()
 
-	restClient := NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	restClient := createSut(httpServer)
 	response, err := restClient.GetAll(testPath)
 
 	verifySuccessfullGetOrPut(response, err, t)
@@ -48,20 +51,20 @@ func TestShouldReturnDataForSuccessfulGetAllRequest(t *testing.T) {
 
 func TestShouldReturnErrorMessageForGetAllRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodGet, "/api"+testPath, statusCode)
+	httpServer := setupAndStartHttpServer(http.MethodGet, fullPathWithoutID, statusCode)
 	defer httpServer.Close()
 
-	restClient := NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	restClient := createSut(httpServer)
 	_, err := restClient.GetAll(testPath)
 
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
 }
 
 func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPut, "/api"+testPath+"/"+testID)
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPut, fullPathWithID)
 	defer httpServer.Close()
 
-	restClient := NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	restClient := createSut(httpServer)
 	response, err := restClient.Put(testDataObject{id: testID}, testPath)
 
 	verifySuccessfullGetOrPut(response, err, t)
@@ -69,10 +72,10 @@ func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
 
 func TestShouldReturnErrorMessageForPutRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodPut, "/api"+testPath+"/"+testID, statusCode)
+	httpServer := setupAndStartHttpServer(http.MethodPut, fullPathWithID, statusCode)
 	defer httpServer.Close()
 
-	restClient := NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	restClient := createSut(httpServer)
 	_, err := restClient.Put(testDataObject{id: testID}, testPath)
 
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
@@ -94,10 +97,10 @@ func (tdo testDataObject) Validate() error {
 
 func TestShouldReturnNothingForSuccessfulDeleteRequest(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodDelete, "/api"+testPath+"/"+testID)
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodDelete, fullPathWithID)
 	defer httpServer.Close()
 
-	restClient := NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	restClient := createSut(httpServer)
 	err := restClient.Delete(testID, testPath)
 
 	if err != nil {
@@ -107,10 +110,10 @@ func TestShouldReturnNothingForSuccessfulDeleteRequest(t *testing.T) {
 
 func TestShouldReturnErrorMessageForDeleteRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodDelete, "/api"+testPath+"/"+testID, statusCode)
+	httpServer := setupAndStartHttpServer(http.MethodDelete, fullPathWithID, statusCode)
 	defer httpServer.Close()
 
-	restClient := NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	restClient := createSut(httpServer)
 	err := restClient.Delete(testID, testPath)
 
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
@@ -130,6 +133,10 @@ func setupAndStartHttpServer(httpMethod string, fullPath string, statusCode int)
 	})
 	httpServer.Start()
 	return httpServer
+}
+
+func createSut(httpServer *testutils.TestHTTPServer) restapi.RestClient {
+	return NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
 }
 
 func verifySuccessfullGetOrPut(response []byte, err error, t *testing.T) {
