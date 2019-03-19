@@ -145,16 +145,6 @@ func createRuleBindingFromResourceData(d *schema.ResourceData) restapi.RuleBindi
 	}
 }
 
-func schemaSetToStringSlice(s interface{}) []string {
-	vL := []string{}
-
-	for _, v := range s.(*schema.Set).List() {
-		vL = append(vL, v.(string))
-	}
-
-	return vL
-}
-
 func updateRuleBindingState(d *schema.ResourceData, ruleBinding restapi.RuleBinding) {
 	d.Set(RuleBindingFieldEnabled, ruleBinding.Enabled)
 	d.Set(RuleBindingFieldTriggering, ruleBinding.Triggering)

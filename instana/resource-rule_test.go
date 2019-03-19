@@ -186,6 +186,30 @@ func TestShouldFailToReadRuleFromInstanaAPIAndDeleteResourceWhenBindingDoesNotEx
 	}
 }
 
+func TestShouldFailToReadRuleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
+	resourceData := createEmptyRuleResourceData(t)
+	ruleID := "rule-id"
+	resourceData.SetId(ruleID)
+	expectedError := errors.New("test")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRuleApi := mocks.NewMockRuleResource(ctrl)
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	mockInstanaAPI.EXPECT().Rules().Return(mockRuleApi).Times(1)
+	mockRuleApi.EXPECT().GetOne(gomock.Eq(ruleID)).Return(restapi.Rule{}, expectedError).Times(1)
+
+	err := ReadRule(resourceData, mockInstanaAPI)
+
+	if err == nil || err != expectedError {
+		t.Fatal("Expected error should be returned")
+	}
+	if len(resourceData.Id()) == 0 {
+		t.Fatal("Expected ID should still be set")
+	}
+}
+
 func TestShouldCreateRuleThroughInstanaAPI(t *testing.T) {
 	data := createFullTestRuleData()
 	resourceData := createRuleResourceData(t, data)
