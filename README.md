@@ -11,7 +11,7 @@ Terraform provider implementation for Instana REST API
 
 ```
 provider "instana" {
-  api_token = "secure-äapi-token"  
+  api_token = "secure-api-token"  
   endpoint = "<mytenant>-<myorg>.instana.io"
 }
 ```
