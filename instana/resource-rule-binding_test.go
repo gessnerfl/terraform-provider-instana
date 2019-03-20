@@ -41,7 +41,7 @@ resource "instana_rule_binding" "example" {
 }
 `
 
-const ruleBindingApiPath = "/api/events/settings/rule-bindings/{id}"
+const ruleBindingApiPath = restapi.RuleBindingsResourcePath + "/{id}"
 const testRuleBindingDefinition = "instana_rule_binding.example"
 
 func TestCRUDOfRuleBindingResourceWithMockServer(t *testing.T) {

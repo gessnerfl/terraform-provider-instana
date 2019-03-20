@@ -100,9 +100,5 @@ func (client *RestClientImpl) buildResourceURL(resourceBasePath string, id strin
 }
 
 func (client *RestClientImpl) buildURL(resourcePath string) string {
-	apiPath := "api"
-	if !strings.HasPrefix(resourcePath, "/") {
-		apiPath = apiPath + "/"
-	}
-	return fmt.Sprintf("https://%s/%s%s", client.host, apiPath, resourcePath)
+	return fmt.Sprintf("https://%s%s", client.host, resourcePath)
 }

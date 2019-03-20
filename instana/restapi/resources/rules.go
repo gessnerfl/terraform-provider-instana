@@ -11,7 +11,7 @@ import (
 func NewRuleResource(client restapi.RestClient) restapi.RuleResource {
 	return &RuleResourceImpl{
 		client:       client,
-		resourcePath: "/events/settings/rules",
+		resourcePath: restapi.RulesResourcePath,
 	}
 }
 
