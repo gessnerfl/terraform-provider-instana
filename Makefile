@@ -3,13 +3,11 @@ export CGO_ENABLED:=0
 export GO111MODULE=on
 #export GOFLAGS=-mod=vendor
 
-VERSION=$(shell git describe --tags --match=v* --always --dirty)
-
 .PHONY: all
 all: build test vet lint fmt
 
 .PHONY: ci
-ci: build test_with_report vet_with_report lint_with_report fmt sonar release
+ci: build test_with_report vet_with_report lint_with_report fmt release
 
 .PHONY: build
 build: clean bin/terraform-provider-instana
