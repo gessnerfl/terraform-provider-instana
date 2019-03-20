@@ -28,6 +28,8 @@ test_with_report:
 	@echo "+++++++++++  Run GO Test (with report) +++++++++++ "
 	@mkdir -p output
 	@go test ./... -cover -coverprofile=output/coverage.out -json > output/unit-test-report.json
+	@echo "Result:"
+	@cat output/unit-test-report.json
 
 .PHONY: vet
 vet:

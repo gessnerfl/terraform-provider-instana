@@ -3,6 +3,7 @@ package instana_test
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -22,10 +23,10 @@ var testRuleProviders = map[string]terraform.ResourceProvider{
 	"instana": Provider(),
 }
 
-const resourceRuleDefinition = `
+const resourceRuleDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:8080"
+  endpoint = "localhost:{{PORT}}"
 }
 
 resource "instana_rule" "example" {
@@ -40,7 +41,7 @@ resource "instana_rule" "example" {
 }
 `
 
-const ruleApiPath = "/api/rules/{id}"
+const ruleApiPath = restapi.RulesResourcePath + "/{id}"
 const testRuleDefinition = "instana_rule.example"
 
 func TestCRUDOfRuleResourceWithMockServer(t *testing.T) {
@@ -69,6 +70,8 @@ func TestCRUDOfRuleResourceWithMockServer(t *testing.T) {
 	})
 	httpServer.Start()
 	defer httpServer.Close()
+
+	resourceRuleDefinition := strings.ReplaceAll(resourceRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testRuleProviders,

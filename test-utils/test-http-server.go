@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -35,24 +36,39 @@ func healthFunc(w http.ResponseWriter, r *http.Request) {
 	r.Write(bytes.NewBufferString("OK"))
 }
 
-//NewTestHTTPServer create and starts a new TestHTTPServer on port 8080
+//NewTestHTTPServer create and starts a new TestHTTPServer on random port
 func NewTestHTTPServer() *TestHTTPServer {
 	router := mux.NewRouter()
 	router.HandleFunc(healthPath, healthFunc)
 	return &TestHTTPServer{
 		router: router,
+		port:   RandomPort(),
 	}
+}
+
+//MinPortNumber the minimum port number used by the http test server
+const MinPortNumber = 50000
+
+//MaxPortNumber the maximum port number used by the http test server
+const MaxPortNumber = 59000
+
+//RandomPort creates a random port between 50000 and 59000
+func RandomPort() int {
+	randomSource := rand.NewSource(time.Now().UnixNano())
+	random := rand.New(randomSource)
+	return random.Intn(MaxPortNumber-MinPortNumber) + MinPortNumber
 }
 
 //TestHTTPServer simple helper to mock an http server for testing.
 type TestHTTPServer struct {
 	router     *mux.Router
+	port       int
 	httpServer *http.Server
 }
 
 //GetPort returns the dynamic server port
 func (server *TestHTTPServer) GetPort() int {
-	return 8080
+	return server.port
 }
 
 //AddRoute adds a new route. Routes can only be added before the server was started
@@ -62,14 +78,16 @@ func (server *TestHTTPServer) AddRoute(method string, path string, handlerFunc h
 
 //Start starts the http service with the configured routes
 func (server *TestHTTPServer) Start() {
+	binding := fmt.Sprintf(":%d", server.port)
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    binding,
 		Handler: server.router,
 	}
 	go func() {
 		rootFolder, err := GetRootFolder()
 		if err != nil {
-			panic(err)
+			log.Fatalf("Failed to get root folder of project: %s", err)
+			return
 		}
 		certFile := fmt.Sprintf("%s/test-utils/test-server.pem", rootFolder)
 		keyFile := fmt.Sprintf("%s/test-utils/test-server.key", rootFolder)

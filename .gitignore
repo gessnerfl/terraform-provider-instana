@@ -1,3 +1,5 @@
 bin/
 output/
 *.test
+
+rest-playground.http

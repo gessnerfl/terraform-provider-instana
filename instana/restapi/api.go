@@ -2,6 +2,21 @@ package restapi
 
 import "errors"
 
+//InstanaAPIBasePath path to Instana RESTful API
+const InstanaAPIBasePath = "/api"
+
+//EventsBasePath path to Events resource of Instana RESTful API
+const EventsBasePath = InstanaAPIBasePath + "/events"
+
+//EventSettingsBasePath path to Event Settings resource of Instana RESTful API
+const EventSettingsBasePath = EventsBasePath + "/settings"
+
+//RulesResourcePath path to Rule resource of Instana RESTful API
+const RulesResourcePath = EventSettingsBasePath + "/rules"
+
+//RuleBindingsResourcePath path to Rule Binding resource of Instana RESTful API
+const RuleBindingsResourcePath = EventSettingsBasePath + "/rule-bindings"
+
 //InstanaDataObject is a marker interface for any data object provided by any resource of the Instana REST API
 type InstanaDataObject interface {
 	GetID() string

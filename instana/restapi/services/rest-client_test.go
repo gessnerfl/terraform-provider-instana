@@ -15,11 +15,10 @@ import (
 const testPath = "/test"
 const testID = "test-1234"
 const testData = "testData"
-const fullPathWithoutID = "/api" + testPath
-const fullPathWithID = "/api" + testPath + "/" + testID
+const testPathWithID = testPath + "/" + testID
 
 func TestShouldReturnDataForSuccessfulGetOneRequest(t *testing.T) {
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, fullPathWithID)
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, testPathWithID)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -30,7 +29,7 @@ func TestShouldReturnDataForSuccessfulGetOneRequest(t *testing.T) {
 
 func TestShouldReturnErrorMessageForGetOneRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodGet, fullPathWithID, statusCode)
+	httpServer := setupAndStartHttpServer(http.MethodGet, testPathWithID, statusCode)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -40,7 +39,7 @@ func TestShouldReturnErrorMessageForGetOneRequestWhenStatusIsNotASuccessStatusAn
 }
 
 func TestShouldReturnNotFoundErrorMessageForGetOneRequestWhenStatusIsNotEnityNotFound(t *testing.T) {
-	httpServer := setupAndStartHttpServer(http.MethodGet, fullPathWithID, http.StatusNotFound)
+	httpServer := setupAndStartHttpServer(http.MethodGet, testPathWithID, http.StatusNotFound)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -50,7 +49,7 @@ func TestShouldReturnNotFoundErrorMessageForGetOneRequestWhenStatusIsNotEnityNot
 }
 
 func TestShouldReturnDataForSuccessfulGetAllRequest(t *testing.T) {
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, fullPathWithoutID)
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, testPath)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -61,7 +60,7 @@ func TestShouldReturnDataForSuccessfulGetAllRequest(t *testing.T) {
 
 func TestShouldReturnErrorMessageForGetAllRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodGet, fullPathWithoutID, statusCode)
+	httpServer := setupAndStartHttpServer(http.MethodGet, testPath, statusCode)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -71,7 +70,7 @@ func TestShouldReturnErrorMessageForGetAllRequestWhenStatusIsNotASuccessStatusAn
 }
 
 func TestShouldReturnNotFoundErrorMessageForGetAllRequestWhenStatusIsNotEnityNotFound(t *testing.T) {
-	httpServer := setupAndStartHttpServer(http.MethodGet, fullPathWithoutID, http.StatusNotFound)
+	httpServer := setupAndStartHttpServer(http.MethodGet, testPath, http.StatusNotFound)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -81,7 +80,7 @@ func TestShouldReturnNotFoundErrorMessageForGetAllRequestWhenStatusIsNotEnityNot
 }
 
 func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPut, fullPathWithID)
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPut, testPathWithID)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -92,7 +91,7 @@ func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
 
 func TestShouldReturnErrorMessageForPutRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodPut, fullPathWithID, statusCode)
+	httpServer := setupAndStartHttpServer(http.MethodPut, testPathWithID, statusCode)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -117,7 +116,7 @@ func (tdo testDataObject) Validate() error {
 
 func TestShouldReturnNothingForSuccessfulDeleteRequest(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodDelete, fullPathWithID)
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodDelete, testPathWithID)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
@@ -130,7 +129,7 @@ func TestShouldReturnNothingForSuccessfulDeleteRequest(t *testing.T) {
 
 func TestShouldReturnErrorMessageForDeleteRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodDelete, fullPathWithID, statusCode)
+	httpServer := setupAndStartHttpServer(http.MethodDelete, testPathWithID, statusCode)
 	defer httpServer.Close()
 
 	restClient := createSut(httpServer)
