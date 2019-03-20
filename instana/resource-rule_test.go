@@ -40,7 +40,7 @@ resource "instana_rule" "example" {
 }
 `
 
-const ruleApiPath = "/api/rules/{id}"
+const ruleApiPath = "/api/events/settings/rules/{id}"
 const testRuleDefinition = "instana_rule.example"
 
 func TestCRUDOfRuleResourceWithMockServer(t *testing.T) {

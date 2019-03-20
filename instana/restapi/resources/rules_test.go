@@ -13,7 +13,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-const rulePath = "/rules"
+const rulePath = "/events/settings/rules"
 
 func TestSuccessfulGetOneRule(t *testing.T) {
 	ctrl := gomock.NewController(t)

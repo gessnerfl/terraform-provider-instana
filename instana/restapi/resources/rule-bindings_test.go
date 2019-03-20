@@ -13,7 +13,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-const bindingRulePath = "/ruleBindings"
+const bindingRulePath = "/events/settings/rule-bindings"
 
 func TestSuccessfulGetOneRuleBinding(t *testing.T) {
 	ctrl := gomock.NewController(t)
