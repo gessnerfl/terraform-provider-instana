@@ -21,13 +21,13 @@ bin/terraform-provider-instana:
 .PHONY: test
 test:
 	@echo "+++++++++++  Run GO Test +++++++++++ "
-	@go test ./... -cover
+	@go test ./... -cover -v
 
 .PHONY: test_with_report
 test_with_report:
 	@echo "+++++++++++  Run GO Test (with report) +++++++++++ "
 	@mkdir -p output
-	@go test ./... -cover -coverprofile=output/coverage.out -json > output/unit-test-report.json
+	@go test ./... -cover -v -coverprofile=output/coverage.out -json > output/unit-test-report.json
 
 .PHONY: vet
 vet:
