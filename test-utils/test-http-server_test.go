@@ -39,3 +39,11 @@ func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing
 		t.Fatalf("Expected to get '%s' but got '%s'", testString, responseString)
 	}
 }
+
+func TestShouldCreateRandomPortNumber(t *testing.T) {
+	result := testutils.RandomPort()
+
+	if result < testutils.MinPortNumber || result > testutils.MaxPortNumber {
+		t.Fatalf("Expected port number between %d and %d but got %d", testutils.MinPortNumber, testutils.MaxPortNumber, result)
+	}
+}

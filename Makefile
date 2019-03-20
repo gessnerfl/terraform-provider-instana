@@ -9,7 +9,7 @@ VERSION=$(shell git describe --tags --match=v* --always --dirty)
 all: build test vet lint fmt
 
 .PHONY: ci
-ci: build test_with_report vet_with_report lint_with_report fmt release
+ci: build test_with_report vet_with_report lint_with_report fmt sonar release
 
 .PHONY: build
 build: clean bin/terraform-provider-instana
@@ -21,13 +21,13 @@ bin/terraform-provider-instana:
 .PHONY: test
 test:
 	@echo "+++++++++++  Run GO Test +++++++++++ "
-	@go test ./... -cover -v
+	@go test ./... -cover
 
 .PHONY: test_with_report
 test_with_report:
 	@echo "+++++++++++  Run GO Test (with report) +++++++++++ "
 	@mkdir -p output
-	@go test ./... -cover -v -coverprofile=output/coverage.out -json > output/unit-test-report.json
+	@go test ./... -cover -coverprofile=output/coverage.out -json > output/unit-test-report.json
 	@echo "Result:"
 	@cat output/unit-test-report.json
 
