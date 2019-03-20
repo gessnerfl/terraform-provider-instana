@@ -28,6 +28,8 @@ test_with_report:
 	@echo "+++++++++++  Run GO Test (with report) +++++++++++ "
 	@mkdir -p output
 	@go test ./... -cover -v -coverprofile=output/coverage.out -json > output/unit-test-report.json
+	@echo "Result:"
+	@cat output/unit-test-report.json
 
 .PHONY: vet
 vet:
@@ -39,6 +41,8 @@ vet_with_report:
 	@echo "+++++++++++  Run GO VET (with report) +++++++++++ "
 	@mkdir -p output
 	@go vet -all ./... 2> output/govet-report.out
+	@echo "Result:"
+	@cat output/govet-report.json
 
 .PHONY: lint
 lint:
@@ -50,6 +54,8 @@ lint_with_report:
 	@echo "+++++++++++  Run GO Lint (with report) +++++++++++ "
 	@mkdir -p output
 	@golint -set_exit_status `go list ./...` > output/golint-report.out
+	@echo "Result:"
+	@cat output/golint-report.json
 
 .PHONY: fmt
 fmt:
