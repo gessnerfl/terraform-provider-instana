@@ -18,7 +18,6 @@ addons:
       - master
 
 script:
-- EXPORT VERSION=$(shell git describe --tags --match=v* --always --dirty)
 - make ci
 - make sonar
 

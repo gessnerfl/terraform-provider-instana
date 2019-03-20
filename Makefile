@@ -3,6 +3,8 @@ export CGO_ENABLED:=0
 export GO111MODULE=on
 #export GOFLAGS=-mod=vendor
 
+VERSION=$(shell git describe --tags --match=v* --always --dirty)
+
 .PHONY: all
 all: build test vet lint fmt
 
