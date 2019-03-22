@@ -18,7 +18,12 @@ func (api baseInstanaAPI) Rules() restapi.RuleResource {
 	return resources.NewRuleResource(api.client)
 }
 
-//Rules implementation of InstanaAPI interface
+//RuleBindings implementation of InstanaAPI interface
 func (api baseInstanaAPI) RuleBindings() restapi.RuleBindingResource {
 	return resources.NewRuleBindingResource(api.client)
+}
+
+//UserRoles implementation of InstanaAPI interface
+func (api baseInstanaAPI) UserRoles() restapi.UserRoleResource {
+	return resources.NewUserRoleResource(api.client)
 }

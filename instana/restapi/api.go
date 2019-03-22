@@ -17,6 +17,12 @@ const RulesResourcePath = EventSettingsBasePath + "/rules"
 //RuleBindingsResourcePath path to Rule Binding resource of Instana RESTful API
 const RuleBindingsResourcePath = EventSettingsBasePath + "/rule-bindings"
 
+//SettingsBasePath path to Event Settings resource of Instana RESTful API
+const SettingsBasePath = InstanaAPIBasePath + "/settings"
+
+//UserRolesResourcePath path to User Role resource of Instana RESTful API
+const UserRolesResourcePath = SettingsBasePath + "/roles"
+
 //InstanaDataObject is a marker interface for any data object provided by any resource of the Instana REST API
 type InstanaDataObject interface {
 	GetID() string
@@ -35,6 +41,7 @@ type RestClient interface {
 type InstanaAPI interface {
 	Rules() RuleResource
 	RuleBindings() RuleBindingResource
+	UserRoles() UserRoleResource
 }
 
 //ErrEntityNotFound error message which is returned when the entity cannot be found at the server

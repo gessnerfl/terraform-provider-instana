@@ -21,4 +21,10 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 			t.Fatal("Expected instance of RuleBindingResource to be returned")
 		}
 	})
+	t.Run("Should return UserRoleResource instance", func(t *testing.T) {
+		userRoleResource := api.UserRoles()
+		if userRoleResource == nil {
+			t.Fatal("Expected instance of UserRoleResource to be returned")
+		}
+	})
 }

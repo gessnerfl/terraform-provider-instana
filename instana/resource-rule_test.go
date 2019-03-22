@@ -169,7 +169,7 @@ func TestShouldFailToReadRuleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
 	}
 }
 
-func TestShouldFailToReadRuleFromInstanaAPIAndDeleteResourceWhenBindingDoesNotExist(t *testing.T) {
+func TestShouldFailToReadRuleFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist(t *testing.T) {
 	resourceData := createEmptyRuleResourceData(t)
 	ruleID := "rule-id"
 	resourceData.SetId(ruleID)
