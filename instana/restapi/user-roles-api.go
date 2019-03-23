@@ -1,0 +1,51 @@
+package restapi
+
+import "errors"
+
+//UserRoleResource represents the REST resource of user role at Instana
+type UserRoleResource interface {
+	GetOne(id string) (UserRole, error)
+	GetAll() ([]UserRole, error)
+	Upsert(role UserRole) (UserRole, error)
+	Delete(role UserRole) error
+	DeleteByID(roleID string) error
+}
+
+//UserRole is the representation of a user role in Instana
+type UserRole struct {
+	ID                                string `json:"id"`
+	Name                              string `json:"name"`
+	ImplicitViewFilter                string `json:"implicitViewFilter"`
+	CanConfigureServiceMapping        bool   `json:"canConfigureServiceMapping"`
+	CanConfigureEumApplications       bool   `json:"canConfigureEumApplications"`
+	CanConfigureUsers                 bool   `json:"canConfigureUsers"`
+	CanInstallNewAgents               bool   `json:"canInstallNewAgents"`
+	CanSeeUsageInformation            bool   `json:"canSeeUsageInformation"`
+	CanConfigureIntegrations          bool   `json:"canConfigureIntegrations"`
+	CanSeeOnPremiseLicenseInformation bool   `json:"canSeeOnPremLicenseInformation"`
+	CanConfigureRoles                 bool   `json:"canConfigureRoles"`
+	CanConfigureCustomAlerts          bool   `json:"canConfigureCustomAlerts"`
+	CanConfigureAPITokens             bool   `json:"canConfigureApiTokens"`
+	CanConfigureAgentRunMode          bool   `json:"canConfigureAgentRunMode"`
+	CanViewAuditLog                   bool   `json:"canViewAuditLog"`
+	CanConfigureObjectives            bool   `json:"canConfigureObjectives"`
+	CanConfigureAgents                bool   `json:"canConfigureAgents"`
+	CanConfigureAuthenticationMethods bool   `json:"canConfigureAuthenticationMethods"`
+	CanConfigureApplications          bool   `json:"canConfigureApplications"`
+}
+
+//GetID implemention of the interface InstanaDataObject
+func (r UserRole) GetID() string {
+	return r.ID
+}
+
+//Validate implementation of the interface InstanaDataObject to verify if data object is correct
+func (r UserRole) Validate() error {
+	if len(r.ID) == 0 {
+		return errors.New("ID is missing")
+	}
+	if len(r.Name) == 0 {
+		return errors.New("Name is missing")
+	}
+	return nil
+}

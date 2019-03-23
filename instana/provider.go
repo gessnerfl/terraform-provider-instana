@@ -17,6 +17,9 @@ const ResourceInstanaRule = "instana_rule"
 //ResourceInstanaRuleBinding the name of the terraform-provider-instana resource to manage rule bindings
 const ResourceInstanaRuleBinding = "instana_rule_binding"
 
+//ResourceInstanaUserRole the name of the terraform-provider-instana resource to manage user roles
+const ResourceInstanaUserRole = "instana_user_role"
+
 //Provider interface implementation of hashicorp terraform provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
@@ -45,6 +48,7 @@ func providerResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		ResourceInstanaRule:        CreateResourceRule(),
 		ResourceInstanaRuleBinding: CreateResourceRuleBinding(),
+		ResourceInstanaUserRole:    CreateResourceUserRole(),
 	}
 }
 

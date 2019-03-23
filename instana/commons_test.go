@@ -113,3 +113,13 @@ func createRuleBindingResourceData(t *testing.T, data map[string]interface{}) *s
 	schemaMap := instana.CreateResourceRuleBinding().Schema
 	return schema.TestResourceDataRaw(t, schemaMap, data)
 }
+
+func createEmptyUserRoleResourceData(t *testing.T) *schema.ResourceData {
+	data := make(map[string]interface{})
+	return createUserRoleResourceData(t, data)
+}
+
+func createUserRoleResourceData(t *testing.T, data map[string]interface{}) *schema.ResourceData {
+	schemaMap := instana.CreateResourceUserRole().Schema
+	return schema.TestResourceDataRaw(t, schemaMap, data)
+}

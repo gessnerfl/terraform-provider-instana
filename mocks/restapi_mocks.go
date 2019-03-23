@@ -193,3 +193,17 @@ func (mr *MockInstanaAPIMockRecorder) Rules() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rules", reflect.TypeOf((*MockInstanaAPI)(nil).Rules))
 }
+
+// UserRoles mocks base method
+func (m *MockInstanaAPI) UserRoles() restapi.UserRoleResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UserRoles")
+	ret0, _ := ret[0].(restapi.UserRoleResource)
+	return ret0
+}
+
+// UserRoles indicates an expected call of UserRoles
+func (mr *MockInstanaAPIMockRecorder) UserRoles() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserRoles", reflect.TypeOf((*MockInstanaAPI)(nil).UserRoles))
+}

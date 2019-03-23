@@ -53,7 +53,7 @@ func CreateResourceRule() *schema.Resource {
 			RuleFieldMetricName: &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The metric name of the rult",
+				Description: "The metric name of the rule",
 			},
 			RuleFieldRollup: &schema.Schema{
 				Type:        schema.TypeInt,
