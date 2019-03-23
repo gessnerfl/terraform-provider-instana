@@ -53,6 +53,8 @@ API Documentation: <https://instana.github.io/openapi/#tag/Event-Settings>
 Management of custom rules.
 API Documentation: <https://instana.github.io/openapi/#operation/getRule>
 
+The ID of the resource which is also used as unique identifier in Instana is auto generated!
+
 ```hcl
 resource "instana_rule" "example" {
   name = "name"
@@ -70,6 +72,8 @@ resource "instana_rule" "example" {
 
 Management of Rule Bindings. Rule bindings represent incident configurations.
 API Documentation: <https://instana.github.io/openapi/#operation/getRuleBinding>
+
+The ID of the resource which is also used as unique identifier in Instana is auto generated!
 
 ```hcl
 resource "instana_rule_binding" "example" {
@@ -90,6 +94,8 @@ resource "instana_rule_binding" "example" {
 
 Management of user roles.
 API Documentation: <https://instana.github.io/openapi/#operation/getRole>
+
+The ID of the resource which is also used as unique identifier in Instana is auto generated!
 
 ```hcl
 resource "instana_user_role" "example" {
