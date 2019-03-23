@@ -18,7 +18,9 @@ provider "instana" {
 
 ## Resources
 
-### Rules
+### Event Settings
+
+#### Rules
 
 ```
 resource "instana_rule" "example" {
@@ -33,7 +35,7 @@ resource "instana_rule" "example" {
 }
 ```
 
-### Rule Bindings
+#### Rule Bindings
 
 ```
 resource "instana_rule_binding" "example" {
@@ -45,6 +47,33 @@ resource "instana_rule_binding" "example" {
   expiration_time = 60000
   query = "query"
   rule_ids = [ "rule-id-1", "rule-id-2" ]
+}
+```
+
+### Settings
+
+#### User Roles
+
+```
+resource "instana_user_role" "example" {
+  name = "name"
+  implicit_view_filter = "view filter"
+  can_configure_service_mapping = true
+  can_configure_eum_applications = true
+  can_configure_users = true
+  can_install_new_agents = true
+  can_see_usage_information = true
+  can_configure_integrations = true
+  can_see_on_premise_license_information = true
+  can_configure_roles = true
+  can_configure_custom_alerts = true
+  can_configure_api_tokens = true
+  can_configure_agent_run_mode = true
+  can_view_audit_log = true
+  can_configure_objectives = true
+  can_configure_agents = true
+  can_configure_authentication_methods = true
+  can_configure_applications = true
 }
 ```
 
