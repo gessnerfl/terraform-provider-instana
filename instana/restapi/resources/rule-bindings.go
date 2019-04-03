@@ -42,26 +42,6 @@ func (resource *RuleBindingResourceImpl) validateResponseAndConvertToStruct(data
 	return ruleBinding, nil
 }
 
-//GetAll returns all configured rule binding from Instana API
-func (resource *RuleBindingResourceImpl) GetAll() ([]restapi.RuleBinding, error) {
-	bindings := make([]restapi.RuleBinding, 0)
-
-	data, err := resource.client.GetAll(resource.resourcePath)
-	if err != nil {
-		return bindings, err
-	}
-
-	if err := json.Unmarshal(data, &bindings); err != nil {
-		return bindings, fmt.Errorf("failed to parse json; %s", err)
-	}
-
-	if err := resource.validateAllRuleBindings(bindings); err != nil {
-		return make([]restapi.RuleBinding, 0), fmt.Errorf("Received invalid JSON message, %s", err)
-	}
-
-	return bindings, nil
-}
-
 func (resource *RuleBindingResourceImpl) validateAllRuleBindings(bindings []restapi.RuleBinding) error {
 	for _, b := range bindings {
 		err := b.Validate()

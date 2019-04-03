@@ -5,7 +5,6 @@ import "errors"
 //UserRoleResource represents the REST resource of user role at Instana
 type UserRoleResource interface {
 	GetOne(id string) (UserRole, error)
-	GetAll() ([]UserRole, error)
 	Upsert(role UserRole) (UserRole, error)
 	Delete(role UserRole) error
 	DeleteByID(roleID string) error

@@ -5,7 +5,6 @@ import "errors"
 //RuleResource represents the REST resource of custom rules at Instana
 type RuleResource interface {
 	GetOne(id string) (Rule, error)
-	GetAll() ([]Rule, error)
 	Upsert(rule Rule) (Rule, error)
 	Delete(rule Rule) error
 	DeleteByID(ruleID string) error

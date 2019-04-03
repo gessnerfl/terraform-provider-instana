@@ -49,21 +49,6 @@ func (mr *MockRuleResourceMockRecorder) GetOne(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockRuleResource)(nil).GetOne), id)
 }
 
-// GetAll mocks base method
-func (m *MockRuleResource) GetAll() ([]x.Rule, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
-	ret0, _ := ret[0].([]x.Rule)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll
-func (mr *MockRuleResourceMockRecorder) GetAll() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRuleResource)(nil).GetAll))
-}
-
 // Upsert mocks base method
 func (m *MockRuleResource) Upsert(rule x.Rule) (x.Rule, error) {
 	m.ctrl.T.Helper()

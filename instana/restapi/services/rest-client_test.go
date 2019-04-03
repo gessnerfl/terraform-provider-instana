@@ -48,37 +48,6 @@ func TestShouldReturnNotFoundErrorMessageForGetOneRequestWhenStatusIsNotEnityNot
 	verifyNotFoundResponse(data, err, t)
 }
 
-func TestShouldReturnDataForSuccessfulGetAllRequest(t *testing.T) {
-	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, testPath)
-	defer httpServer.Close()
-
-	restClient := createSut(httpServer)
-	response, err := restClient.GetAll(testPath)
-
-	verifySuccessfullGetOrPut(response, err, t)
-}
-
-func TestShouldReturnErrorMessageForGetAllRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
-	statusCode := http.StatusBadRequest
-	httpServer := setupAndStartHttpServer(http.MethodGet, testPath, statusCode)
-	defer httpServer.Close()
-
-	restClient := createSut(httpServer)
-	_, err := restClient.GetAll(testPath)
-
-	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
-}
-
-func TestShouldReturnNotFoundErrorMessageForGetAllRequestWhenStatusIsNotEnityNotFound(t *testing.T) {
-	httpServer := setupAndStartHttpServer(http.MethodGet, testPath, http.StatusNotFound)
-	defer httpServer.Close()
-
-	restClient := createSut(httpServer)
-	data, err := restClient.GetAll(testPath)
-
-	verifyNotFoundResponse(data, err, t)
-}
-
 func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
 	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPut, testPathWithID)
 	defer httpServer.Close()

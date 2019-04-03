@@ -42,26 +42,6 @@ func (resource *UserRoleResourceImpl) validateResponseAndConvertToStruct(data []
 	return userRole, nil
 }
 
-//GetAll returns all configured user roles from Instana API
-func (resource *UserRoleResourceImpl) GetAll() ([]restapi.UserRole, error) {
-	userRoles := make([]restapi.UserRole, 0)
-
-	data, err := resource.client.GetAll(resource.resourcePath)
-	if err != nil {
-		return userRoles, err
-	}
-
-	if err := json.Unmarshal(data, &userRoles); err != nil {
-		return userRoles, fmt.Errorf("failed to parse json; %s", err)
-	}
-
-	if err := resource.validateAllUserRoles(userRoles); err != nil {
-		return make([]restapi.UserRole, 0), fmt.Errorf("Received invalid JSON message, %s", err)
-	}
-
-	return userRoles, nil
-}
-
 func (resource *UserRoleResourceImpl) validateAllUserRoles(userRoles []restapi.UserRole) error {
 	for _, r := range userRoles {
 		err := r.Validate()

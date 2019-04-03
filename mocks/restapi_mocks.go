@@ -47,21 +47,6 @@ func (mr *MockRestClientMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRestClient)(nil).Delete), arg0, arg1)
 }
 
-// GetAll mocks base method
-func (m *MockRestClient) GetAll(arg0 string) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll", arg0)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll
-func (mr *MockRestClientMockRecorder) GetAll(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRestClient)(nil).GetAll), arg0)
-}
-
 // GetOne mocks base method
 func (m *MockRestClient) GetOne(arg0, arg1 string) ([]byte, error) {
 	m.ctrl.T.Helper()

@@ -31,15 +31,7 @@ var emptyResponse = make([]byte, 0)
 
 //GetOne request the resource with the given ID
 func (client *RestClientImpl) GetOne(id string, resourcePath string) ([]byte, error) {
-	return client.get(client.buildResourceURL(resourcePath, id))
-}
-
-//GetAll requests all objects of the given resource
-func (client *RestClientImpl) GetAll(resourcePath string) ([]byte, error) {
-	return client.get(client.buildURL(resourcePath))
-}
-
-func (client *RestClientImpl) get(url string) ([]byte, error) {
+	url := client.buildResourceURL(resourcePath, id)
 	log.Infof("Call GET %s", url)
 	resp, err := client.createRequest().Get(url)
 	if err != nil {

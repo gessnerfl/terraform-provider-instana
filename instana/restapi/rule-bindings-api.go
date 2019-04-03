@@ -5,7 +5,6 @@ import "errors"
 //RuleBindingResource represents the REST resource of  rule bindings at Instana
 type RuleBindingResource interface {
 	GetOne(id string) (RuleBinding, error)
-	GetAll() ([]RuleBinding, error)
 	Upsert(rule RuleBinding) (RuleBinding, error)
 	Delete(rule RuleBinding) error
 	DeleteByID(ruleID string) error

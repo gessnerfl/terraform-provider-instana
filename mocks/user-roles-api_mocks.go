@@ -5,9 +5,10 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	restapi "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockUserRoleResource is a mock of UserRoleResource interface
@@ -59,21 +60,6 @@ func (m *MockUserRoleResource) DeleteByID(arg0 string) error {
 func (mr *MockUserRoleResourceMockRecorder) DeleteByID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockUserRoleResource)(nil).DeleteByID), arg0)
-}
-
-// GetAll mocks base method
-func (m *MockUserRoleResource) GetAll() ([]restapi.UserRole, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAll")
-	ret0, _ := ret[0].([]restapi.UserRole)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetAll indicates an expected call of GetAll
-func (mr *MockUserRoleResourceMockRecorder) GetAll() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockUserRoleResource)(nil).GetAll))
 }
 
 // GetOne mocks base method

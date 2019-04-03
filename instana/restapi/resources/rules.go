@@ -42,26 +42,6 @@ func (resource *RuleResourceImpl) validateResponseAndConvertToStruct(data []byte
 	return rule, nil
 }
 
-//GetAll returns all configured custom rules from Instana API
-func (resource *RuleResourceImpl) GetAll() ([]restapi.Rule, error) {
-	rules := make([]restapi.Rule, 0)
-
-	data, err := resource.client.GetAll(resource.resourcePath)
-	if err != nil {
-		return rules, err
-	}
-
-	if err := json.Unmarshal(data, &rules); err != nil {
-		return rules, fmt.Errorf("failed to parse json; %s", err)
-	}
-
-	if err := resource.validateAllRules(rules); err != nil {
-		return make([]restapi.Rule, 0), fmt.Errorf("Received invalid JSON message, %s", err)
-	}
-
-	return rules, nil
-}
-
 func (resource *RuleResourceImpl) validateAllRules(rules []restapi.Rule) error {
 	for _, r := range rules {
 		err := r.Validate()
