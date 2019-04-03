@@ -79,7 +79,7 @@ The ID of the resource which is also used as unique identifier in Instana is aut
 resource "instana_rule_binding" "example" {
   enabled = true
   triggering = true
-  severity = 5
+  severity = warning
   text = "text"
   description = "description"
   expiration_time = 60000

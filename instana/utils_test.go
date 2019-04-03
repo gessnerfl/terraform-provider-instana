@@ -38,3 +38,67 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T
 		t.Fatal("Expected result to be nil as no data is provided")
 	}
 }
+
+func TestShouldReturnStringRepresentationOfSeverityWarning(t *testing.T) {
+	testShouldReturnStringRepresentationOfSeverity(SeverityWarning, t)
+}
+
+func TestShouldReturnStringRepresentationOfSeverityCritical(t *testing.T) {
+	testShouldReturnStringRepresentationOfSeverity(SeverityCritical, t)
+}
+
+func testShouldReturnStringRepresentationOfSeverity(severity Severity, t *testing.T) {
+	result, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity.GetAPIRepresentation())
+
+	if err != nil {
+		t.Fatalf("Expected no error but got %s", err)
+	}
+
+	if result != severity.GetTerraformRepresentation() {
+		t.Fatal("Expected to get proper terraform representation")
+	}
+}
+
+func TestShouldFailToConvertStringRepresentationForSeverityWhenIntValueIsNotValid(t *testing.T) {
+	result, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(1)
+
+	if err == nil {
+		t.Fatal("Expected error")
+	}
+
+	if result != "INVALID" {
+		t.Fatal("Expected to get INVALID string")
+	}
+}
+
+func TestShouldReturnIntRepresentationOfSeverityWarning(t *testing.T) {
+	testShouldReturnIntRepresentationOfSeverity(SeverityWarning, t)
+}
+
+func TestShouldReturnIntRepresentationOfSeverityCritical(t *testing.T) {
+	testShouldReturnIntRepresentationOfSeverity(SeverityCritical, t)
+}
+
+func testShouldReturnIntRepresentationOfSeverity(severity Severity, t *testing.T) {
+	result, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity.GetTerraformRepresentation())
+
+	if err != nil {
+		t.Fatalf("Expected no error but got %s", err)
+	}
+
+	if result != severity.GetAPIRepresentation() {
+		t.Fatal("Expected to get proper terraform representation")
+	}
+}
+
+func TestShouldFailToConvertIntRepresentationForSeverityWhenStringValueIsNotValid(t *testing.T) {
+	result, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation("foo")
+
+	if err == nil {
+		t.Fatal("Expected error")
+	}
+
+	if result != -1 {
+		t.Fatal("Expected to get -1")
+	}
+}

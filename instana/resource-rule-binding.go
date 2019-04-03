@@ -5,6 +5,7 @@ import (
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 //RuleBindingFieldEnabled constant value for the schema field enabled
@@ -41,35 +42,43 @@ func CreateResourceRuleBinding() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			RuleBindingFieldEnabled: &schema.Schema{
-				Type:     schema.TypeBool,
-				Default:  true,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Default:     true,
+				Optional:    true,
+				Description: "Configures if the rule binding is enabled or not",
 			},
 			RuleBindingFieldTriggering: &schema.Schema{
-				Type:     schema.TypeBool,
-				Default:  false,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Default:     false,
+				Optional:    true,
+				Description: "Configures the issue should trigger an incident",
 			},
 			RuleBindingFieldSeverity: &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{SeverityWarning.terraformRepresentation, SeverityCritical.terraformRepresentation}, false),
+				Description:  "Configures the severity of the issue",
 			},
 			RuleBindingFieldText: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Configures the title of the rule binding",
 			},
 			RuleBindingFieldDescription: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Configures the description text of the rule binding",
 			},
 			RuleBindingFieldExpirationTime: &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:        schema.TypeInt,
+				Required:    true,
+				Description: "Configures the expiration time (grace period) to wait before the issue is closed",
 			},
 			RuleBindingFieldQuery: &schema.Schema{
-				Type:     schema.TypeString,
-				Required: false,
-				Optional: true,
+				Type:        schema.TypeString,
+				Required:    false,
+				Optional:    true,
+				Description: "Configures the dynamic focus query for the rule binding",
 			},
 			RuleBindingFieldRuleIds: &schema.Schema{
 				Type:     schema.TypeList,
@@ -77,6 +86,7 @@ func CreateResourceRuleBinding() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Description: "Configures the list of rule ids which should be considered by the rule binding",
 			},
 		},
 	}
@@ -97,8 +107,7 @@ func ReadRuleBinding(d *schema.ResourceData, meta interface{}) error {
 		}
 		return err
 	}
-	updateRuleBindingState(d, ruleBinding)
-	return nil
+	return updateRuleBindingState(d, ruleBinding)
 }
 
 //CreateRuleBinding creates the configured rule binding through the Instana API and updates the resource state.
@@ -110,20 +119,25 @@ func CreateRuleBinding(d *schema.ResourceData, meta interface{}) error {
 //UpdateRuleBinding updates the configured rule binding through the Instana API and updates the resource state.
 func UpdateRuleBinding(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
-	ruleBinding := createRuleBindingFromResourceData(d)
+	ruleBinding, err := createRuleBindingFromResourceData(d)
+	if err != nil {
+		return err
+	}
 	updatedRuleBinding, err := instanaAPI.RuleBindings().Upsert(ruleBinding)
 	if err != nil {
 		return err
 	}
-	updateRuleBindingState(d, updatedRuleBinding)
-	return nil
+	return updateRuleBindingState(d, updatedRuleBinding)
 }
 
 //DeleteRuleBinding deletes the configured rule binding through the Instana API and deletes the resource state.
 func DeleteRuleBinding(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
-	ruleBinding := createRuleBindingFromResourceData(d)
-	err := instanaAPI.RuleBindings().DeleteByID(ruleBinding.ID)
+	ruleBinding, err := createRuleBindingFromResourceData(d)
+	if err != nil {
+		return err
+	}
+	err = instanaAPI.RuleBindings().DeleteByID(ruleBinding.ID)
 	if err != nil {
 		return err
 	}
@@ -131,24 +145,34 @@ func DeleteRuleBinding(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func createRuleBindingFromResourceData(d *schema.ResourceData) restapi.RuleBinding {
+func createRuleBindingFromResourceData(d *schema.ResourceData) (restapi.RuleBinding, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(RuleBindingFieldSeverity).(string))
+	if err != nil {
+		return restapi.RuleBinding{}, err
+	}
+
 	return restapi.RuleBinding{
 		ID:             d.Id(),
 		Enabled:        d.Get(RuleBindingFieldEnabled).(bool),
 		Triggering:     d.Get(RuleBindingFieldTriggering).(bool),
-		Severity:       d.Get(RuleBindingFieldSeverity).(int),
+		Severity:       severity,
 		Text:           d.Get(RuleBindingFieldText).(string),
 		Description:    d.Get(RuleBindingFieldDescription).(string),
 		ExpirationTime: d.Get(RuleBindingFieldExpirationTime).(int),
 		Query:          d.Get(RuleBindingFieldQuery).(string),
 		RuleIds:        ReadStringArrayParameterFromResource(d, RuleBindingFieldRuleIds),
-	}
+	}, nil
 }
 
-func updateRuleBindingState(d *schema.ResourceData, ruleBinding restapi.RuleBinding) {
+func updateRuleBindingState(d *schema.ResourceData, ruleBinding restapi.RuleBinding) error {
+	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleBinding.Severity)
+	if err != nil {
+		return err
+	}
+
 	d.Set(RuleBindingFieldEnabled, ruleBinding.Enabled)
 	d.Set(RuleBindingFieldTriggering, ruleBinding.Triggering)
-	d.Set(RuleBindingFieldSeverity, ruleBinding.Severity)
+	d.Set(RuleBindingFieldSeverity, severity)
 	d.Set(RuleBindingFieldText, ruleBinding.Text)
 	d.Set(RuleBindingFieldDescription, ruleBinding.Description)
 	d.Set(RuleBindingFieldExpirationTime, ruleBinding.ExpirationTime)
@@ -156,4 +180,5 @@ func updateRuleBindingState(d *schema.ResourceData, ruleBinding restapi.RuleBind
 	d.Set(RuleBindingFieldRuleIds, ruleBinding.RuleIds)
 
 	d.SetId(ruleBinding.ID)
+	return nil
 }

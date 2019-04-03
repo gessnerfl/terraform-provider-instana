@@ -1,6 +1,8 @@
 package instana
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/rs/xid"
 )
@@ -26,4 +28,26 @@ func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []
 	}
 
 	return nil
+}
+
+//ConvertSeverityFromInstanaAPIToTerraformRepresentation converts the integer representation of the Instana API to the string representation of the Terraform provider
+func ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity int) (string, error) {
+	if severity == SeverityWarning.apiRepresentation {
+		return SeverityWarning.terraformRepresentation, nil
+	} else if severity == SeverityCritical.apiRepresentation {
+		return SeverityCritical.terraformRepresentation, nil
+	} else {
+		return "INVALID", fmt.Errorf("%d is not a valid severity", severity)
+	}
+}
+
+//ConvertSeverityFromTerraformToInstanaAPIRepresentation converts the string representation of the Terraform to the int representation of the Instana API provider
+func ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity string) (int, error) {
+	if severity == SeverityWarning.terraformRepresentation {
+		return SeverityWarning.apiRepresentation, nil
+	} else if severity == SeverityCritical.terraformRepresentation {
+		return SeverityCritical.apiRepresentation, nil
+	} else {
+		return -1, fmt.Errorf("%s is not a valid severity", severity)
+	}
 }

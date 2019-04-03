@@ -83,14 +83,14 @@ func validateRequiredSchemaOfTypeListOfString(schemaField string, schemaMap map[
 	if s.Elem == nil {
 		t.Fatal("Expected list element to be defined")
 	}
-	if s.Elem.(schema.Schema).Type != schema.TypeString {
+	if s.Elem.(*schema.Schema).Type != schema.TypeString {
 		t.Fatal("Expected list element to be of type string")
 	}
 	if len(s.Description) == 0 {
 		t.Fatal("Expected description for schema")
 	}
-	if s.Required {
-		t.Fatalf("Expected %s to be optional", schemaField)
+	if !s.Required {
+		t.Fatalf("Expected %s to be required", schemaField)
 	}
 }
 
