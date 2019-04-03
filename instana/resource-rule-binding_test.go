@@ -27,13 +27,13 @@ var testRuleBindingProviders = map[string]terraform.ResourceProvider{
 const resourceRuleBindingDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:{{port}}"
 }
 
 resource "instana_rule_binding" "example" {
   enabled = true
   triggering = true
-  severity = 5
+  severity = "{{severity}}"
   text = "text"
   description = "description"
   expiration_time = 60000
@@ -45,26 +45,34 @@ resource "instana_rule_binding" "example" {
 const ruleBindingApiPath = restapi.RuleBindingsResourcePath + "/{id}"
 const testRuleBindingDefinition = "instana_rule_binding.example"
 
-func TestCRUDOfRuleBindingResourceWithMockServer(t *testing.T) {
+func TestCRUDOfRuleBindingResourceOfSeverityCriticalWithMockServer(t *testing.T) {
+	testCRUDOfRuleBindingResourceWithMockServer(SeverityCritical, t)
+}
+
+func TestCRUDOfRuleBindingResourceOfSeverityWarningWithMockServer(t *testing.T) {
+	testCRUDOfRuleBindingResourceWithMockServer(SeverityWarning, t)
+}
+
+func testCRUDOfRuleBindingResourceWithMockServer(severity Severity, t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPut, ruleBindingApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodDelete, ruleBindingApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, ruleBindingApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		json := strings.ReplaceAll(`
+		json := strings.ReplaceAll(strings.ReplaceAll(`
 		{
 			"id" : "{{id}}",
 			"enabled" : true,
 			"triggering" : true,
-			"severity" : 5,
+			"severity" : {{severity}},
 			"text" : "text",
 			"description" : "description",
 			"expirationTime" : 60000,
 			"query" : "query",
 			"ruleIds" : [ "rule-id-1", "rule-id-2" ]
 		}
-		`, "{{id}}", vars["id"])
+		`, "{{id}}", vars["id"]), "{{severity}}", strconv.Itoa(severity.GetAPIRepresentation()))
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -72,7 +80,7 @@ func TestCRUDOfRuleBindingResourceWithMockServer(t *testing.T) {
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceRuleBindingDefinition := strings.ReplaceAll(resourceRuleBindingDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
+	resourceRuleBindingDefinition := strings.ReplaceAll(strings.ReplaceAll(resourceRuleBindingDefinitionTemplate, "{{port}}", strconv.Itoa(httpServer.GetPort())), "{{severity}}", severity.GetTerraformRepresentation())
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testRuleBindingProviders,
@@ -83,7 +91,7 @@ func TestCRUDOfRuleBindingResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testRuleBindingDefinition, "id"),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldEnabled, "true"),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldTriggering, "true"),
-					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldSeverity, "5"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldSeverity, severity.GetTerraformRepresentation()),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldText, "text"),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldDescription, "description"),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldExpirationTime, "60000"),
@@ -97,9 +105,9 @@ func TestCRUDOfRuleBindingResourceWithMockServer(t *testing.T) {
 }
 
 func TestResourceRuleBindingDefinition(t *testing.T) {
-	resource := CreateResourceRule()
+	resource := CreateResourceRuleBinding()
 
-	validateRuleResourceSchema(resource.Schema, t)
+	validateRuleBindingResourceSchema(resource.Schema, t)
 
 	if resource.Create == nil {
 		t.Fatal("Create function expected")
@@ -118,7 +126,7 @@ func TestResourceRuleBindingDefinition(t *testing.T) {
 func validateRuleBindingResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 	validateSchemaOfTypeBoolWithDefault(RuleBindingFieldEnabled, true, schemaMap, t)
 	validateSchemaOfTypeBoolWithDefault(RuleBindingFieldTriggering, false, schemaMap, t)
-	validateOptionalSchemaOfTypeInt(RuleBindingFieldSeverity, schemaMap, t)
+	validateRequiredSchemaOfTypeString(RuleBindingFieldSeverity, schemaMap, t)
 	validateRequiredSchemaOfTypeString(RuleBindingFieldText, schemaMap, t)
 	validateRequiredSchemaOfTypeString(RuleBindingFieldDescription, schemaMap, t)
 	validateRequiredSchemaOfTypeInt(RuleBindingFieldExpirationTime, schemaMap, t)
@@ -173,6 +181,28 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIWhenIDIsMissing(t *testing.T) 
 
 	if err == nil || !strings.HasPrefix(err.Error(), "ID of rule binding") {
 		t.Fatal("Expected error to occur because of missing id")
+	}
+}
+
+func TestShouldFailToReadRuleBindingFromInstanaAPIWhenSeverityCannotBeMapped(t *testing.T) {
+	modelData := createFullTestRuleBindingModel()
+	modelData.Severity = 1
+	resourceData := createEmptyRuleBindingResourceData(t)
+	ruleBindingID := "rule-binding-id"
+	resourceData.SetId(ruleBindingID)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRuleBindingApi := mocks.NewMockRuleBindingResource(ctrl)
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	mockInstanaAPI.EXPECT().RuleBindings().Return(mockRuleBindingApi).Times(1)
+	mockRuleBindingApi.EXPECT().GetOne(gomock.Eq(ruleBindingID)).Return(modelData, nil).Times(1)
+
+	err := ReadRuleBinding(resourceData, mockInstanaAPI)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "1 is not a valid severity") {
+		t.Fatal("Expected error to occur because of invalid severity")
 	}
 }
 
@@ -264,6 +294,22 @@ func TestShouldReturnErrorWhenCreateRuleBindingFailsThroughInstanaAPI(t *testing
 	}
 }
 
+func TestShouldFailToCreateRuleBindingThroughInstanaAPIWhenSeverityCannotBeMappedToRepresentationOfInstanaAPI(t *testing.T) {
+	data := createFullTestRuleBindingData()
+	data[RuleBindingFieldSeverity] = "INVALID_SEVERITY"
+	resourceData := createRuleBindingResourceData(t, data)
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+
+	err := CreateRuleBinding(resourceData, mockInstanaAPI)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "INVALID_SEVERITY is not a valid severity") {
+		t.Fatal("Expected error to occur because of invalid severity")
+	}
+}
+
 func TestShouldDeleteRuleBindingThroughInstanaAPI(t *testing.T) {
 	id := "test-id"
 	data := createFullTestRuleBindingData()
@@ -323,7 +369,11 @@ func verifyRuleBindingModelAppliedToResource(model restapi.RuleBinding, resource
 	if model.Triggering != resourceData.Get(RuleBindingFieldTriggering).(bool) {
 		t.Fatal("Expected Triggering to be identical")
 	}
-	if model.Severity != resourceData.Get(RuleBindingFieldSeverity).(int) {
+	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(model.Severity)
+	if err != nil {
+		t.Fatalf("Expected convertion of severity to be successful but got '%s'", err)
+	}
+	if severity != resourceData.Get(RuleBindingFieldSeverity).(string) {
 		t.Fatal("Expected Severity to be identical")
 	}
 	if model.Text != resourceData.Get(RuleBindingFieldText).(string) {
@@ -375,6 +425,7 @@ func createFullTestRuleBindingData() map[string]interface{} {
 	data[RuleBindingFieldText] = "text"
 	data[RuleBindingFieldDescription] = "description"
 	data[RuleBindingFieldExpirationTime] = 1234
+	data[RuleBindingFieldSeverity] = SeverityWarning.GetTerraformRepresentation()
 	data[RuleBindingFieldQuery] = "query"
 	data[RuleBindingFieldRuleIds] = []string{"test-rule-id-1", "test-rule-id-2"}
 	return data

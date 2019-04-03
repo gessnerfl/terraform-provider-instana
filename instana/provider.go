@@ -20,6 +20,24 @@ const ResourceInstanaRuleBinding = "instana_rule_binding"
 //ResourceInstanaUserRole the name of the terraform-provider-instana resource to manage user roles
 const ResourceInstanaUserRole = "instana_user_role"
 
+//Severity representation of the severity in both worlds Instana API and Terraform Provider
+type Severity struct {
+	apiRepresentation       int
+	terraformRepresentation string
+}
+
+//GetAPIRepresentation returns the integer representation of the Instana API
+func (s Severity) GetAPIRepresentation() int { return s.apiRepresentation }
+
+//GetTerraformRepresentation returns the string representation of the Terraform Provider
+func (s Severity) GetTerraformRepresentation() string { return s.terraformRepresentation }
+
+//SeverityCritical representation of the critical severity
+var SeverityCritical = Severity{apiRepresentation: 10, terraformRepresentation: "critical"}
+
+//SeverityWarning representation of the warning severity
+var SeverityWarning = Severity{apiRepresentation: 5, terraformRepresentation: "warning"}
+
 //Provider interface implementation of hashicorp terraform provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
