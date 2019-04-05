@@ -5,6 +5,7 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -35,8 +36,9 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 	if len(schemaMap) != 2 {
 		t.Fatal("Expected three configuration options for provider")
 	}
-	validateRequiredSchemaOfTypeString(SchemaFieldAPIToken, schemaMap, t)
-	validateRequiredSchemaOfTypeString(SchemaFieldEndpoint, schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldAPIToken)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldEndpoint)
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {

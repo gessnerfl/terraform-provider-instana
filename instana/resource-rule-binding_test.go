@@ -14,8 +14,8 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
-	testutils "github.com/gessnerfl/terraform-provider-instana/test-utils"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )
@@ -124,14 +124,15 @@ func TestResourceRuleBindingDefinition(t *testing.T) {
 }
 
 func validateRuleBindingResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	validateSchemaOfTypeBoolWithDefault(RuleBindingFieldEnabled, true, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(RuleBindingFieldTriggering, false, schemaMap, t)
-	validateRequiredSchemaOfTypeString(RuleBindingFieldSeverity, schemaMap, t)
-	validateRequiredSchemaOfTypeString(RuleBindingFieldText, schemaMap, t)
-	validateRequiredSchemaOfTypeString(RuleBindingFieldDescription, schemaMap, t)
-	validateRequiredSchemaOfTypeInt(RuleBindingFieldExpirationTime, schemaMap, t)
-	validateOptionalSchemaOfTypeString(RuleBindingFieldQuery, schemaMap, t)
-	validateRequiredSchemaOfTypeListOfString(RuleBindingFieldRuleIds, schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(RuleBindingFieldEnabled, true)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(RuleBindingFieldTriggering, false)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleBindingFieldSeverity)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleBindingFieldText)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleBindingFieldDescription)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(RuleBindingFieldExpirationTime)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(RuleBindingFieldQuery)
+	schemaAssert.AssertSChemaIsRequiredAndOfTypeListOfStrings(RuleBindingFieldRuleIds)
 }
 
 func TestShouldSuccessfullyReadRuleBindingFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
@@ -150,7 +151,7 @@ func TestShouldSuccessfullyReadRuleBindingFromInstanaAPIWhenBaseDataWithQueryIsR
 }
 
 func testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel restapi.RuleBinding, t *testing.T) {
-	resourceData := createEmptyRuleBindingResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
 	ruleBindingID := "rule-binding-id"
 	resourceData.SetId(ruleBindingID)
 
@@ -171,7 +172,7 @@ func testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel restapi.R
 }
 
 func TestShouldFailToReadRuleBindingFromInstanaAPIWhenIDIsMissing(t *testing.T) {
-	resourceData := createEmptyRuleBindingResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -187,7 +188,7 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIWhenIDIsMissing(t *testing.T) 
 func TestShouldFailToReadRuleBindingFromInstanaAPIWhenSeverityCannotBeMapped(t *testing.T) {
 	modelData := createFullTestRuleBindingModel()
 	modelData.Severity = 1
-	resourceData := createEmptyRuleBindingResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
 	ruleBindingID := "rule-binding-id"
 	resourceData.SetId(ruleBindingID)
 
@@ -207,7 +208,7 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIWhenSeverityCannotBeMapped(t *
 }
 
 func TestShouldFailToReadRuleBindingFromInstanaAPIAndDeleteResourceWhenBindingDoesNotExist(t *testing.T) {
-	resourceData := createEmptyRuleBindingResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
 	ruleBindingID := "rule-binding-id"
 	resourceData.SetId(ruleBindingID)
 
@@ -230,7 +231,7 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIAndDeleteResourceWhenBindingDo
 }
 
 func TestShouldFailToReadRuleBindingFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	resourceData := createEmptyRuleBindingResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
 	ruleBindingID := "rule-binding-id"
 	resourceData.SetId(ruleBindingID)
 	expectedError := errors.New("test")
@@ -255,7 +256,7 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIAndReturnErrorWhenAPICallFails
 
 func TestShouldCreateRuleBindingThroughInstanaAPI(t *testing.T) {
 	data := createFullTestRuleBindingData()
-	resourceData := createRuleBindingResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleBindingResourceData(data)
 	expectedModel := createFullTestRuleBindingModel()
 
 	ctrl := gomock.NewController(t)
@@ -276,7 +277,7 @@ func TestShouldCreateRuleBindingThroughInstanaAPI(t *testing.T) {
 
 func TestShouldReturnErrorWhenCreateRuleBindingFailsThroughInstanaAPI(t *testing.T) {
 	data := createFullTestRuleBindingData()
-	resourceData := createRuleBindingResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleBindingResourceData(data)
 	expectedError := errors.New("test")
 
 	ctrl := gomock.NewController(t)
@@ -297,7 +298,7 @@ func TestShouldReturnErrorWhenCreateRuleBindingFailsThroughInstanaAPI(t *testing
 func TestShouldFailToCreateRuleBindingThroughInstanaAPIWhenSeverityCannotBeMappedToRepresentationOfInstanaAPI(t *testing.T) {
 	data := createFullTestRuleBindingData()
 	data[RuleBindingFieldSeverity] = "INVALID_SEVERITY"
-	resourceData := createRuleBindingResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleBindingResourceData(data)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -313,7 +314,7 @@ func TestShouldFailToCreateRuleBindingThroughInstanaAPIWhenSeverityCannotBeMappe
 func TestShouldDeleteRuleBindingThroughInstanaAPI(t *testing.T) {
 	id := "test-id"
 	data := createFullTestRuleBindingData()
-	resourceData := createRuleBindingResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleBindingResourceData(data)
 	resourceData.SetId(id)
 
 	ctrl := gomock.NewController(t)
@@ -337,7 +338,7 @@ func TestShouldDeleteRuleBindingThroughInstanaAPI(t *testing.T) {
 func TestShouldReturnErrorWhenDeleteRuleBindingFailsThroughInstanaAPI(t *testing.T) {
 	id := "test-id"
 	data := createFullTestRuleBindingData()
-	resourceData := createRuleBindingResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleBindingResourceData(data)
 	resourceData.SetId(id)
 	expectedError := errors.New("test")
 

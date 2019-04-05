@@ -9,7 +9,7 @@ import (
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/services"
-	testutils "github.com/gessnerfl/terraform-provider-instana/test-utils"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
 const testPath = "/test"

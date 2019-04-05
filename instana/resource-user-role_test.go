@@ -15,8 +15,8 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
-	testutils "github.com/gessnerfl/terraform-provider-instana/test-utils"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
 var testUserRoleProviders = map[string]terraform.ResourceProvider{
@@ -144,24 +144,25 @@ func TestResourceUserRoleDefinition(t *testing.T) {
 }
 
 func validateUserRoleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	validateRequiredSchemaOfTypeString(UserRoleFieldName, schemaMap, t)
-	validateOptionalSchemaOfTypeString(UserRoleFieldImplicitViewFilter, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureServiceMapping, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureEumApplications, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureUsers, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanInstallNewAgents, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanSeeUsageInformation, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureIntegrations, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanSeeOnPremiseLicenseInformation, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureRoles, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureCustomAlerts, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureAPITokens, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureAgentRunMode, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanViewAuditLog, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureObjectives, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureAgents, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureAuthenticationMethods, false, schemaMap, t)
-	validateSchemaOfTypeBoolWithDefault(UserRoleFieldCanConfigureApplications, false, schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(UserRoleFieldName)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(UserRoleFieldImplicitViewFilter)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureServiceMapping, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureEumApplications, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureUsers, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanInstallNewAgents, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanSeeUsageInformation, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureIntegrations, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanSeeOnPremiseLicenseInformation, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureRoles, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureCustomAlerts, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureAPITokens, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureAgentRunMode, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanViewAuditLog, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureObjectives, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureAgents, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureAuthenticationMethods, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureApplications, false)
 
 }
 
@@ -176,7 +177,7 @@ func TestShouldSuccessfullyReadUserRoleFromInstanaAPIWhenFullDataIsReturned(t *t
 }
 
 func testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel restapi.UserRole, t *testing.T) {
-	resourceData := createEmptyUserRoleResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
 	userRoleID := "user-role-id"
 	resourceData.SetId(userRoleID)
 
@@ -197,7 +198,7 @@ func testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel restapi.User
 }
 
 func TestShouldFailToReadUserRoleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
-	resourceData := createEmptyUserRoleResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -211,7 +212,7 @@ func TestShouldFailToReadUserRoleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
 }
 
 func TestShouldFailToReadUserRoleFromInstanaAPIAndDeleteResourceWhenUserRoleDoesNotExist(t *testing.T) {
-	resourceData := createEmptyUserRoleResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
 	userRoleID := "user-role-id"
 	resourceData.SetId(userRoleID)
 
@@ -234,7 +235,7 @@ func TestShouldFailToReadUserRoleFromInstanaAPIAndDeleteResourceWhenUserRoleDoes
 }
 
 func TestShouldFailToReadUserRoleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	resourceData := createEmptyUserRoleResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
 	userRoleID := "user-role-id"
 	resourceData.SetId(userRoleID)
 	expectedError := errors.New("test")
@@ -259,7 +260,7 @@ func TestShouldFailToReadUserRoleFromInstanaAPIAndReturnErrorWhenAPICallFails(t 
 
 func TestShouldCreateUserRoleThroughInstanaAPI(t *testing.T) {
 	data := createFullTestUserRoleData()
-	resourceData := createUserRoleResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateUserRoleResourceData(data)
 	expectedModel := createFullTestUserRoleModel()
 
 	ctrl := gomock.NewController(t)
@@ -280,7 +281,7 @@ func TestShouldCreateUserRoleThroughInstanaAPI(t *testing.T) {
 
 func TestShouldReturnErrorWhenCreateUserRoleFailsThroughInstanaAPI(t *testing.T) {
 	data := createFullTestUserRoleData()
-	resourceData := createUserRoleResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateUserRoleResourceData(data)
 	expectedError := errors.New("test")
 
 	ctrl := gomock.NewController(t)
@@ -301,7 +302,7 @@ func TestShouldReturnErrorWhenCreateUserRoleFailsThroughInstanaAPI(t *testing.T)
 func TestShouldDeleteUserRoleThroughInstanaAPI(t *testing.T) {
 	id := "test-id"
 	data := createFullTestUserRoleData()
-	resourceData := createUserRoleResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateUserRoleResourceData(data)
 	resourceData.SetId(id)
 
 	ctrl := gomock.NewController(t)
@@ -325,7 +326,7 @@ func TestShouldDeleteUserRoleThroughInstanaAPI(t *testing.T) {
 func TestShouldReturnErrorWhenDeleteUserRoleFailsThroughInstanaAPI(t *testing.T) {
 	id := "test-id"
 	data := createFullTestUserRoleData()
-	resourceData := createUserRoleResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateUserRoleResourceData(data)
 	resourceData.SetId(id)
 	expectedError := errors.New("test")
 

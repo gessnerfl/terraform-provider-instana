@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	testutils "github.com/gessnerfl/terraform-provider-instana/test-utils"
+	testutils "github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
 func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing.T) {

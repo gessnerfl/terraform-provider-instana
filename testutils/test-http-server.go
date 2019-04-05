@@ -89,8 +89,8 @@ func (server *TestHTTPServer) Start() {
 			log.Fatalf("Failed to get root folder of project: %s", err)
 			return
 		}
-		certFile := fmt.Sprintf("%s/test-utils/test-server.pem", rootFolder)
-		keyFile := fmt.Sprintf("%s/test-utils/test-server.key", rootFolder)
+		certFile := fmt.Sprintf("%s/testutils/test-server.pem", rootFolder)
+		keyFile := fmt.Sprintf("%s/testutils/test-server.key", rootFolder)
 		if err := srv.ListenAndServeTLS(certFile, keyFile); err != http.ErrServerClosed {
 			log.Fatalf("ListenAndServeTLS(): %s", err)
 		}
