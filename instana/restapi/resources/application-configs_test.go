@@ -125,6 +125,42 @@ func TestSuccessfulUpsertOfApplicationConfig(t *testing.T) {
 	}
 }
 
+func TestSuccessfulUpsertOfComplexApplicationConfig(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	client := mocks.NewMockRestClient(ctrl)
+	sut := NewApplicationConfigResource(client)
+
+	applicationConfig := restapi.ApplicationConfig{
+		ID:    "id",
+		Label: "label",
+		MatchSpecification: restapi.NewBinaryOperator(
+			restapi.NewBinaryOperator(
+				restapi.NewTagMatcherExpression("key1", "EQUAL", "value1"),
+				"OR",
+				restapi.NewTagMatcherExpression("key2", "NOT_EMPTY", ""),
+			),
+			"AND",
+			restapi.NewTagMatcherExpression("key3", "NOT_EQUAL", "value3"),
+		),
+		Scope: "scope",
+	}
+	serializedJSON, _ := json.Marshal(applicationConfig)
+
+	client.EXPECT().Put(gomock.Eq(applicationConfig), gomock.Eq(restapi.ApplicationConfigsResourcePath)).Return(serializedJSON, nil)
+
+	result, err := sut.Upsert(applicationConfig)
+
+	if err != nil {
+		t.Fatalf("Expected no error but got %s", err)
+	}
+
+	if !cmp.Equal(applicationConfig, result) {
+		t.Fatalf("Expected json to be unmarshalled to %v but got %v; diff %s", applicationConfig, result, cmp.Diff(applicationConfig, result))
+	}
+}
+
 func TestFailedUpsertOfApplicationConfigBecauseOfInvalidApplicationConfig(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

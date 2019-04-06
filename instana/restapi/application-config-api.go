@@ -28,7 +28,7 @@ type MatchExpression interface {
 
 //NewBinaryOperator creates and new binary operator MatchExpression
 func NewBinaryOperator(left MatchExpression, conjunction string, right MatchExpression) MatchExpression {
-	return binaryOperator{
+	return BinaryOperator{
 		Dtype:       BinaryOperatorExpressionType,
 		Left:        left,
 		Right:       right,
@@ -37,16 +37,16 @@ func NewBinaryOperator(left MatchExpression, conjunction string, right MatchExpr
 }
 
 //BinaryOperator is the representation of a binary operator expression in Instana
-type binaryOperator struct {
+type BinaryOperator struct {
 	Dtype       MatchExpressionType `json:"type"`
-	Left        MatchExpression     `json:"left"`
-	Right       MatchExpression     `json:"right"`
+	Left        interface{}         `json:"left"`
+	Right       interface{}         `json:"right"`
 	Conjunction string              `json:"conjunction"`
 }
 
 //NewTagMatcherExpression creates and new tag matcher MatchExpression
 func NewTagMatcherExpression(key string, operator string, value string) MatchExpression {
-	return tagMatcherExpression{
+	return TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
 		Operator: operator,
@@ -55,7 +55,7 @@ func NewTagMatcherExpression(key string, operator string, value string) MatchExp
 }
 
 //TagMatcherExpression is the representation of a tag matcher expression in Instana
-type tagMatcherExpression struct {
+type TagMatcherExpression struct {
 	Dtype    MatchExpressionType `json:"type"`
 	Key      string              `json:"key"`
 	Operator string              `json:"operator"`
@@ -64,10 +64,10 @@ type tagMatcherExpression struct {
 
 //ApplicationConfig is the representation of a application perspective configuration in Instana
 type ApplicationConfig struct {
-	ID                 string          `json:"id"`
-	Label              string          `json:"label"`
-	MatchSpecification MatchExpression `json:"matchSpecification"`
-	Scope              string          `json:"scope"`
+	ID                 string      `json:"id"`
+	Label              string      `json:"label"`
+	MatchSpecification interface{} `json:"matchSpecification"`
+	Scope              string      `json:"scope"`
 }
 
 //GetID implemention of the interface InstanaDataObject
@@ -87,7 +87,7 @@ func (a ApplicationConfig) Validate() error {
 		return errors.New("MatchSpecification is missing")
 	}
 
-	if err := a.MatchSpecification.Validate(); err != nil {
+	if err := a.MatchSpecification.(MatchExpression).Validate(); err != nil {
 		return err
 	}
 
@@ -97,17 +97,17 @@ func (a ApplicationConfig) Validate() error {
 	return nil
 }
 
-//GetType implemention of the interface MatchExpression for binaryOperator
-func (b binaryOperator) GetType() MatchExpressionType {
+//GetType implemention of the interface MatchExpression for BinaryOperator
+func (b BinaryOperator) GetType() MatchExpressionType {
 	return b.Dtype
 }
 
-//Validate implemention of the interface MatchExpression for binaryOperator
-func (b binaryOperator) Validate() error {
+//Validate implemention of the interface MatchExpression for BinaryOperator
+func (b BinaryOperator) Validate() error {
 	if b.Left == nil {
 		return errors.New("Left expression is missing")
 	}
-	if err := b.Left.Validate(); err != nil {
+	if err := b.Left.(MatchExpression).Validate(); err != nil {
 		return err
 	}
 
@@ -118,19 +118,19 @@ func (b binaryOperator) Validate() error {
 	if b.Right == nil {
 		return errors.New("Right expression is missing")
 	}
-	if err := b.Right.Validate(); err != nil {
+	if err := b.Right.(MatchExpression).Validate(); err != nil {
 		return err
 	}
 	return nil
 }
 
-//GetType implemention of the interface MatchExpression for tagMatcherExpression
-func (t tagMatcherExpression) GetType() MatchExpressionType {
+//GetType implemention of the interface MatchExpression for TagMatcherExpression
+func (t TagMatcherExpression) GetType() MatchExpressionType {
 	return t.Dtype
 }
 
-//Validate implemention of the interface MatchExpression for tagMatcherExpression
-func (t tagMatcherExpression) Validate() error {
+//Validate implemention of the interface MatchExpression for TagMatcherExpression
+func (t TagMatcherExpression) Validate() error {
 	if len(t.Key) == 0 {
 		return errors.New("Key of tag expression is missing")
 	}

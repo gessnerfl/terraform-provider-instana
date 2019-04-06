@@ -2,6 +2,7 @@ package resources
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -31,8 +32,8 @@ func (resource *ApplicationConfigResourceImpl) GetOne(id string) (restapi.Applic
 }
 
 func (resource *ApplicationConfigResourceImpl) validateResponseAndConvertToStruct(data []byte) (restapi.ApplicationConfig, error) {
-	applicationConfig := restapi.ApplicationConfig{}
-	if err := json.Unmarshal(data, &applicationConfig); err != nil {
+	applicationConfig, err := resource.unmarshalApplicationConfig(data)
+	if err != nil {
 		return applicationConfig, fmt.Errorf("failed to parse json; %s", err)
 	}
 
@@ -40,6 +41,81 @@ func (resource *ApplicationConfigResourceImpl) validateResponseAndConvertToStruc
 		return applicationConfig, err
 	}
 	return applicationConfig, nil
+}
+
+func (resource *ApplicationConfigResourceImpl) unmarshalApplicationConfig(data []byte) (restapi.ApplicationConfig, error) {
+	var matchExpression json.RawMessage
+	temp := restapi.ApplicationConfig{
+		MatchSpecification: &matchExpression,
+	}
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return restapi.ApplicationConfig{}, err
+	}
+	matchSpecification, err := resource.unmarshalMatchSpecification(matchExpression)
+	if err != nil {
+		return restapi.ApplicationConfig{}, err
+	}
+	return restapi.ApplicationConfig{
+		ID:                 temp.ID,
+		Label:              temp.Label,
+		MatchSpecification: matchSpecification,
+		Scope:              temp.Scope,
+	}, nil
+}
+
+func (resource *ApplicationConfigResourceImpl) unmarshalMatchSpecification(raw json.RawMessage) (restapi.MatchExpression, error) {
+	temp := struct {
+		Dtype restapi.MatchExpressionType `json:"type"`
+	}{}
+
+	if err := json.Unmarshal(raw, &temp); err != nil {
+		return nil, err
+	}
+
+	if temp.Dtype == restapi.BinaryOperatorExpressionType {
+		return resource.unmarshalBinaryOperator(raw)
+	} else if temp.Dtype == restapi.LeafExpressionType {
+		return resource.unmarshalTagMatcherExpression(raw)
+	} else {
+		return nil, errors.New("invalid expression type")
+	}
+}
+
+func (resource *ApplicationConfigResourceImpl) unmarshalBinaryOperator(raw json.RawMessage) (restapi.BinaryOperator, error) {
+	var leftRaw json.RawMessage
+	var rightRaw json.RawMessage
+	temp := restapi.BinaryOperator{
+		Left:  &leftRaw,
+		Right: &rightRaw,
+	}
+
+	if err := json.Unmarshal(raw, &temp); err != nil {
+		return restapi.BinaryOperator{}, err
+	}
+
+	left, err := resource.unmarshalMatchSpecification(leftRaw)
+	if err != nil {
+		return restapi.BinaryOperator{}, err
+	}
+
+	right, err := resource.unmarshalMatchSpecification(rightRaw)
+	if err != nil {
+		return restapi.BinaryOperator{}, err
+	}
+	return restapi.BinaryOperator{
+		Dtype:       temp.Dtype,
+		Left:        left,
+		Right:       right,
+		Conjunction: temp.Conjunction,
+	}, nil
+}
+
+func (resource *ApplicationConfigResourceImpl) unmarshalTagMatcherExpression(raw json.RawMessage) (restapi.TagMatcherExpression, error) {
+	data := restapi.TagMatcherExpression{}
+	if err := json.Unmarshal(raw, &data); err != nil {
+		return restapi.TagMatcherExpression{}, err
+	}
+	return data, nil
 }
 
 func (resource *ApplicationConfigResourceImpl) validateAllApplicationConfigs(bindings []restapi.ApplicationConfig) error {
