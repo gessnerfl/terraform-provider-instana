@@ -7,29 +7,24 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-//RuleFieldName constant value for the schema field name
-const RuleFieldName = "name"
-
-//RuleFieldEntityType constant value for the schema field entity_type
-const RuleFieldEntityType = "entity_type"
-
-//RuleFieldMetricName constant value for the schema field metric_name
-const RuleFieldMetricName = "metric_name"
-
-//RuleFieldRollup constant value for the schema field rollup
-const RuleFieldRollup = "rollup"
-
-//RuleFieldWindow constant value for the schema field window
-const RuleFieldWindow = "window"
-
-//RuleFieldAggregation constant value for the schema field aggregation
-const RuleFieldAggregation = "aggregation"
-
-//RuleFieldConditionOperator constant value for the schema field condition_operator
-const RuleFieldConditionOperator = "condition_operator"
-
-//RuleFieldConditionValue constant value for the schema field condition_value
-const RuleFieldConditionValue = "condition_value"
+const (
+	//RuleFieldName constant value for the schema field name
+	RuleFieldName = "name"
+	//RuleFieldEntityType constant value for the schema field entity_type
+	RuleFieldEntityType = "entity_type"
+	//RuleFieldMetricName constant value for the schema field metric_name
+	RuleFieldMetricName = "metric_name"
+	//RuleFieldRollup constant value for the schema field rollup
+	RuleFieldRollup = "rollup"
+	//RuleFieldWindow constant value for the schema field window
+	RuleFieldWindow = "window"
+	//RuleFieldAggregation constant value for the schema field aggregation
+	RuleFieldAggregation = "aggregation"
+	//RuleFieldConditionOperator constant value for the schema field condition_operator
+	RuleFieldConditionOperator = "condition_operator"
+	//RuleFieldConditionValue constant value for the schema field condition_value
+	RuleFieldConditionValue = "condition_value"
+)
 
 //CreateResourceRule creates the resource definition for the resource instana_rule
 func CreateResourceRule() *schema.Resource {

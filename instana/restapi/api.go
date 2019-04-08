@@ -50,6 +50,7 @@ type InstanaAPI interface {
 	Rules() RuleResource
 	RuleBindings() RuleBindingResource
 	UserRoles() UserRoleResource
+	ApplicationConfigs() ApplicationConfigResource
 }
 
 //ErrEntityNotFound error message which is returned when the entity cannot be found at the server
