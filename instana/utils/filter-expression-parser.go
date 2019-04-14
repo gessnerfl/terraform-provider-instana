@@ -17,6 +17,24 @@ func (b *Boolean) Capture(values []string) error {
 	return nil
 }
 
+//Operator Custom type for and kind of operator
+type Operator string
+
+//Capture captures the string representation of an operator from the given string. Interface of participle
+func (c *Operator) Capture(values []string) error {
+	*c = Operator(strings.ToUpper(values[0]))
+	return nil
+}
+
+//Function Custom type for a function
+type Function string
+
+//Capture captures the string representation of a function from the given slice of strings. Interface of participle
+func (c *Function) Capture(values []string) error {
+	*c = Function(strings.ToUpper(strings.Join(values, " ")))
+	return nil
+}
+
 //ExpressionRenderer interface definition for all types of the Filter expression to render the corresponding value
 type ExpressionRenderer interface {
 	Render() string
@@ -35,13 +53,13 @@ func (e *FilterExpression) Render() string {
 //LogicalOrExpression representation of a logical OR or as a wrapper for a, LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalOrExpression struct {
 	Left     *LogicalAndExpression `parser:"  @@"`
-	Operator string                `parser:"( @\"OR\""`
+	Operator *Operator             `parser:"( @\"OR\""`
 	Right    *LogicalOrExpression  `parser:"  @@ )?"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *LogicalOrExpression) Render() string {
-	if "OR" == strings.ToUpper(e.Operator) {
+	if e.Operator != nil {
 		return fmt.Sprintf("%s OR %s", e.Left.Render(), e.Right.Render())
 	}
 	return e.Left.Render()
@@ -50,13 +68,13 @@ func (e *LogicalOrExpression) Render() string {
 //LogicalAndExpression representation of a logical AND or as a wrapper for a PrimaryExpression only. The wrapping is required to handle precedence.
 type LogicalAndExpression struct {
 	Left     *PrimaryExpression    `parser:"  @@"`
-	Operator string                `parser:"( @\"AND\""`
+	Operator *Operator             `parser:"( @\"AND\""`
 	Right    *LogicalAndExpression `parser:"  @@ )?"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *LogicalAndExpression) Render() string {
-	if "AND" == strings.ToUpper(e.Operator) {
+	if e.Operator != nil {
 		return fmt.Sprintf("%s AND %s", e.Left.Render(), e.Right.Render())
 	}
 	return e.Left.Render()
@@ -78,35 +96,25 @@ func (e *PrimaryExpression) Render() string {
 
 //ComparisionExpression representation of a comparision expression. Supported types: EQ (Equals), NE (Not Equal), CO (Contains), NC (Not Contain)
 type ComparisionExpression struct {
-	Key      string `parser:"@Ident"`
-	Operator string `parser:"@( \"EQ\" | \"NE\" | \"CO\" | \"NC\" )"`
-	Value    *Value `parser:"@@"`
+	Key      string   `parser:"@Ident"`
+	Operator Operator `parser:"@( \"EQ\" | \"NE\" | \"CO\" | \"NC\" )"`
+	Value    *Value   `parser:"@@"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *ComparisionExpression) Render() string {
-	return fmt.Sprintf("%s %s %s", e.Key, strings.ToUpper(e.Operator), e.Value.Render())
+	return fmt.Sprintf("%s %s %s", e.Key, e.Operator, e.Value.Render())
 }
 
 //UnaryExpression representation of a unary expression representing a function
 type UnaryExpression struct {
-	Key      string `parser:"@Ident"`
-	Function string `parser:"@( \"IS\" \"EMPTY\" | \"NOT\" \"EMPTY\" )"`
+	Key      string   `parser:"@Ident"`
+	Function Function `parser:"@( \"IS\" \"EMPTY\" | \"NOT\" \"EMPTY\" )"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *UnaryExpression) Render() string {
-	return fmt.Sprintf("%s %s", e.Key, e.formatFunctionName())
-}
-
-func (e *UnaryExpression) formatFunctionName() string {
-	if strings.ToUpper(e.Function) == "NOTEMPTY" {
-		return "NOT EMPTY"
-	}
-	if strings.ToUpper(e.Function) == "ISEMPTY" {
-		return "IS EMPTY"
-	}
-	return "<unknown function>"
+	return fmt.Sprintf("%s %s", e.Key, e.Function)
 }
 
 //Value representation of a term of an expression
@@ -122,9 +130,9 @@ func (e *Value) Render() string {
 		return fmt.Sprintf("%t", *e.Boolean)
 	}
 	if e.Number != nil {
-		return fmt.Sprintf("%f", *e.Number)
+		return fmt.Sprintf("%.3f", *e.Number)
 	}
-	return *e.String
+	return fmt.Sprintf("'%s'", *e.String)
 }
 
 var (
