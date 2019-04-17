@@ -118,16 +118,6 @@ func (resource *ApplicationConfigResourceImpl) unmarshalTagMatcherExpression(raw
 	return data, nil
 }
 
-func (resource *ApplicationConfigResourceImpl) validateAllApplicationConfigs(bindings []restapi.ApplicationConfig) error {
-	for _, b := range bindings {
-		err := b.Validate()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 //Upsert creates or updates a application config
 func (resource *ApplicationConfigResourceImpl) Upsert(binding restapi.ApplicationConfig) (restapi.ApplicationConfig, error) {
 	if err := binding.Validate(); err != nil {

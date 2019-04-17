@@ -27,4 +27,10 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 			t.Fatal("Expected instance of UserRoleResource to be returned")
 		}
 	})
+	t.Run("Should return ApplicationConfigResource instance", func(t *testing.T) {
+		applicationConfigResource := api.ApplicationConfigs()
+		if applicationConfigResource == nil {
+			t.Fatal("Expected instance of ApplicationConfigResource to be returned")
+		}
+	})
 }
