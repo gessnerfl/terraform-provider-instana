@@ -1,7 +1,6 @@
 package filterexpression
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -31,18 +30,17 @@ func (m *mapperImpl) FromAPIModel(input restapi.MatchExpression) (*FilterExpress
 	}
 	if expr.or != nil {
 		return &FilterExpression{Expression: expr.or}, nil
-	} else if expr.and != nil {
-		return &FilterExpression{Expression: &LogicalOrExpression{Left: expr.and}}, nil
-	} else if expr.primary != nil {
-		return &FilterExpression{
-			Expression: &LogicalOrExpression{
-				Left: &LogicalAndExpression{
-					Left: expr.primary,
-				},
-			},
-		}, nil
 	}
-	return nil, errors.New("expected exactly one expression to be returned")
+	if expr.and != nil {
+		return &FilterExpression{Expression: &LogicalOrExpression{Left: expr.and}}, nil
+	}
+	return &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: expr.primary,
+			},
+		},
+	}, nil
 }
 
 func (m *mapperImpl) mapExpression(input restapi.MatchExpression) (*expressionHandle, error) {
@@ -78,7 +76,7 @@ func (m *mapperImpl) mapBinaryOperator(operator *restapi.BinaryOperator) (*expre
 	if operator.Conjunction == "OR" {
 		return m.mapLogicalOr(left, right)
 	}
-	return nil, fmt.Errorf("Invalid conjunction operator %s", operator.Conjunction)
+	return nil, fmt.Errorf("invalid conjunction operator %s", operator.Conjunction)
 
 }
 

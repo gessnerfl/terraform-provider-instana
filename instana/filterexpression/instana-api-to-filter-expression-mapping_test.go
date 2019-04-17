@@ -427,6 +427,47 @@ func TestShouldFailToMapLogicalOrWhenLeftIsOrExpression(t *testing.T) {
 	}
 }
 
+func TestShouldFailToMapBinaryExpressionWhenConjunctionTypeIsNotValid(t *testing.T) {
+	key := "key"
+	primaryExpression := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
+	input := restapi.NewBinaryOperator(primaryExpression, "FOO", primaryExpression)
+
+	mapper := NewMapper()
+	_, err := mapper.FromAPIModel(input)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "invalid conjunction operator") {
+		t.Fatal("Expected to get invalid match expression error")
+	}
+}
+
+func TestShouldReturnMappingErrorIfLeftSideOfConjunctionIsNotValid(t *testing.T) {
+	key := "key"
+	primaryExpressionLeft := restapi.NewUnaryOperationExpression(key, "INVALID")
+	primaryExpressionRight := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
+	input := restapi.NewBinaryOperator(primaryExpressionLeft, "OR", primaryExpressionRight)
+
+	mapper := NewMapper()
+	_, err := mapper.FromAPIModel(input)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "invalid unary operation") {
+		t.Fatal("Expected to get invalid logical AND error")
+	}
+}
+
+func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T) {
+	key := "key"
+	primaryExpressionLeft := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
+	primaryExpressionRight := restapi.NewUnaryOperationExpression(key, "INVALID")
+	input := restapi.NewBinaryOperator(primaryExpressionLeft, "OR", primaryExpressionRight)
+
+	mapper := NewMapper()
+	_, err := mapper.FromAPIModel(input)
+
+	if err == nil || !strings.HasPrefix(err.Error(), "invalid unary operation") {
+		t.Fatal("Expected to get invalid logical AND error")
+	}
+}
+
 func runParsingTest(input restapi.MatchExpression, expectedResult *FilterExpression, t *testing.T) {
 	mapper := NewMapper()
 	result, err := mapper.FromAPIModel(input)

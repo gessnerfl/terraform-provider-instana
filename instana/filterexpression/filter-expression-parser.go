@@ -8,15 +8,6 @@ import (
 	"github.com/alecthomas/participle/lexer"
 )
 
-//Boolean custom type to represent a boolean value
-type Boolean bool
-
-//Capture captures a boolean value from the given string representation. Interface of participle
-func (b *Boolean) Capture(values []string) error {
-	*b = "TRUE" == strings.ToUpper(values[0])
-	return nil
-}
-
 //Operator Custom type for and kind of operator
 type Operator string
 
