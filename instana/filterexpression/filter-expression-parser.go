@@ -26,12 +26,12 @@ func (c *Operator) Capture(values []string) error {
 	return nil
 }
 
-//Function Custom type for a function
-type Function string
+//UnaryOperator Custom type for a unary operations
+type UnaryOperator string
 
-//Capture captures the string representation of a function from the given slice of strings. Interface of participle
-func (c *Function) Capture(values []string) error {
-	*c = Function(strings.ToUpper(strings.Join(values, " ")))
+//Capture captures the string representation of a unary operation from the given slice of strings. Interface of participle
+func (c *UnaryOperator) Capture(values []string) error {
+	*c = UnaryOperator(strings.ToUpper(strings.Join(values, " ")))
 	return nil
 }
 
@@ -89,8 +89,8 @@ func (e *LogicalAndExpression) Render() string {
 
 //PrimaryExpression wrapper for either a comparision or a unary expression
 type PrimaryExpression struct {
-	Comparision     *ComparisionExpression `parser:"  @@"`
-	UnaryExpression *UnaryExpression       `parser:"| @@"`
+	Comparision    *ComparisionExpression    `parser:"  @@"`
+	UnaryOperation *UnaryOperationExpression `parser:"| @@"`
 }
 
 //Render implementation of ExpressionRenderer.Render
@@ -98,7 +98,7 @@ func (e *PrimaryExpression) Render() string {
 	if e.Comparision != nil {
 		return e.Comparision.Render()
 	}
-	return e.UnaryExpression.Render()
+	return e.UnaryOperation.Render()
 }
 
 //ComparisionExpression representation of a comparision expression. Supported types: EQ (Equals), NE (Not Equal), CO (Contains), NC (Not Contain)
@@ -113,15 +113,15 @@ func (e *ComparisionExpression) Render() string {
 	return fmt.Sprintf("%s %s '%s'", e.Key, e.Operator, e.Value)
 }
 
-//UnaryExpression representation of a unary expression representing a function
-type UnaryExpression struct {
-	Key      string   `parser:"@Ident"`
-	Function Function `parser:"@( \"IS\" (\"EMPTY\" | \"BLANK\")  | \"NOT\" (\"EMPTY\" | \"BLANK\") )"`
+//UnaryOperationExpression representation of a unary expression representing a unary operator
+type UnaryOperationExpression struct {
+	Key      string        `parser:"@Ident"`
+	Operator UnaryOperator `parser:"@( \"IS\" (\"EMPTY\" | \"BLANK\")  | \"NOT\" (\"EMPTY\" | \"BLANK\") )"`
 }
 
 //Render implementation of ExpressionRenderer.Render
-func (e *UnaryExpression) Render() string {
-	return fmt.Sprintf("%s %s", e.Key, e.Function)
+func (e *UnaryOperationExpression) Render() string {
+	return fmt.Sprintf("%s %s", e.Key, e.Operator)
 }
 
 var (

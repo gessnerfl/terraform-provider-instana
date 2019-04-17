@@ -15,12 +15,12 @@ var OperatorMappingInstanaAPIToFilterExpression = map[string]Operator{
 	"NOT_CONTAIN": Operator("NC"),
 }
 
-//FunctionMappingInstanaAPIToFilterExpression map defining the mapping of the function names of unary operations from instana API to the representation of the Filter Expression
-var FunctionMappingInstanaAPIToFilterExpression = map[string]Function{
-	"IS_EMPTY":  Function("IS EMPTY"),
-	"NOT_EMPTY": Function("NOT EMPTY"),
-	"IS_BLANK":  Function("IS BLANK"),
-	"NOT_BLANK": Function("NOT BLANK"),
+//UnaryOperatorMappingInstanaAPIToFilterExpression map defining the mapping of the unary operator names from instana API to the representation of the Filter Expression
+var UnaryOperatorMappingInstanaAPIToFilterExpression = map[string]UnaryOperator{
+	"IS_EMPTY":  UnaryOperator("IS EMPTY"),
+	"NOT_EMPTY": UnaryOperator("NOT EMPTY"),
+	"IS_BLANK":  UnaryOperator("IS BLANK"),
+	"NOT_BLANK": UnaryOperator("NOT BLANK"),
 }
 
 //FromAPIModel Implementation of the mapping from the Instana API model to the filter expression model
@@ -84,54 +84,49 @@ func (m *mapperImpl) mapBinaryOperator(operator *restapi.BinaryOperator) (*expre
 
 func (m *mapperImpl) mapLogicalOr(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
 	if left.or != nil {
-		return nil, fmt.Errorf("invalid logical or expression: logical or is not allowed for the left side")
-	}
-
-	if left.and == nil && left.primary == nil {
-		return nil, errors.New("invalid logical or expression: left side of logical or is not defined")
-	}
-
-	if right.or == nil && right.and == nil && right.primary == nil {
-		return nil, errors.New("invalid logical or expression: right side of logical or is not defined")
+		return nil, fmt.Errorf("invalid logical or expression: logical or is not allowed for left side")
 	}
 
 	operator := Operator("OR")
-	orExpression := LogicalOrExpression{Operator: &operator}
+	return &expressionHandle{
+		or: &LogicalOrExpression{
+			Left:     m.mapLeftOfLogicalOr(left),
+			Operator: &operator,
+			Right:    m.mapRightOfLogicalOr(right),
+		},
+	}, nil
+}
 
+func (m *mapperImpl) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAndExpression {
 	if left.and != nil {
-		orExpression.Left = left.and
-	} else {
-		orExpression.Left = &LogicalAndExpression{
-			Left: left.primary,
-		}
+		return left.and
 	}
+	return &LogicalAndExpression{
+		Left: left.primary,
+	}
+}
 
+func (m *mapperImpl) mapRightOfLogicalOr(right *expressionHandle) *LogicalOrExpression {
 	if right.or != nil {
-		orExpression.Right = right.or
+		return right.or
 	} else if right.and != nil {
-		orExpression.Right = &LogicalOrExpression{Left: left.and}
+		return &LogicalOrExpression{Left: right.and}
 	} else {
-		orExpression.Right = &LogicalOrExpression{Left: &LogicalAndExpression{Left: right.primary}}
+		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: right.primary}}
 	}
-
-	return &expressionHandle{or: &orExpression}, nil
 }
 
 func (m *mapperImpl) mapLogicalAnd(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
 	if left.or != nil {
-		return nil, fmt.Errorf("invalid logical and expression: logical or is not allowed for the left side")
+		return nil, fmt.Errorf("invalid logical and expression: logical or is not allowed for left side")
 	}
 
 	if right.or != nil {
-		return nil, fmt.Errorf("invalid logical and expression: logical or is not allowed for the right side")
+		return nil, fmt.Errorf("invalid logical and expression: logical or is not allowed for right side")
 	}
 
 	if left.and != nil {
 		return nil, fmt.Errorf("invalid logical and expression: logical and is not allowed for left side")
-	}
-
-	if left.primary == nil {
-		return nil, errors.New("invalid logical and expression: left side of logical and is not defined")
 	}
 
 	operator := Operator("AND")
@@ -145,17 +140,13 @@ func (m *mapperImpl) mapLogicalAnd(left *expressionHandle, right *expressionHand
 		}, nil
 	}
 
-	if right.primary != nil {
-		return &expressionHandle{
-			and: &LogicalAndExpression{
-				Left:     left.primary,
-				Operator: &operator,
-				Right:    &LogicalAndExpression{Left: right.primary},
-			},
-		}, nil
-	}
-
-	return nil, errors.New("invalid logical and expression: right side of logical and is not defined")
+	return &expressionHandle{
+		and: &LogicalAndExpression{
+			Left:     left.primary,
+			Operator: &operator,
+			Right:    &LogicalAndExpression{Left: right.primary},
+		},
+	}, nil
 }
 
 func (m *mapperImpl) mapPrimaryExpression(matcher *restapi.TagMatcherExpression) (*PrimaryExpression, error) {
@@ -173,14 +164,14 @@ func (m *mapperImpl) mapPrimaryExpression(matcher *restapi.TagMatcherExpression)
 		}, nil
 	}
 
-	function, err := m.mapFunction(matcher.Operator)
+	unaryOperator, err := m.mapUnaryOperator(matcher.Operator)
 	if err != nil {
 		return nil, err
 	}
 	return &PrimaryExpression{
-		UnaryExpression: &UnaryExpression{
+		UnaryOperation: &UnaryOperationExpression{
 			Key:      matcher.Key,
-			Function: function,
+			Operator: unaryOperator,
 		},
 	}, nil
 }
@@ -188,15 +179,15 @@ func (m *mapperImpl) mapPrimaryExpression(matcher *restapi.TagMatcherExpression)
 func (m *mapperImpl) mapOperator(apiName string) (Operator, error) {
 	value := OperatorMappingInstanaAPIToFilterExpression[apiName]
 	if value == "" {
-		return value, fmt.Errorf("invalid operation: operation %s not supported", apiName)
+		return value, fmt.Errorf("invalid operation: operation '%s' not supported", apiName)
 	}
 	return value, nil
 }
 
-func (m *mapperImpl) mapFunction(apiName string) (Function, error) {
-	value := FunctionMappingInstanaAPIToFilterExpression[apiName]
+func (m *mapperImpl) mapUnaryOperator(apiName string) (UnaryOperator, error) {
+	value := UnaryOperatorMappingInstanaAPIToFilterExpression[apiName]
 	if value == "" {
-		return value, fmt.Errorf("invalid operation: operation %s not supported", apiName)
+		return value, fmt.Errorf("invalid unary operation: unary operator '%s' not supported", apiName)
 	}
 	return value, nil
 }

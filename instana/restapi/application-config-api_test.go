@@ -11,7 +11,7 @@ func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
 	config := ApplicationConfig{
 		ID:                 "id",
 		Label:              "label",
-		MatchSpecification: NewTagMatcherExpression("key", "EQUALS", "value"),
+		MatchSpecification: NewComparisionExpression("key", "EQUALS", "value"),
 		Scope:              "scope",
 	}
 
@@ -24,7 +24,7 @@ func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
 			Label:              "label",
-			MatchSpecification: NewTagMatcherExpression("key", "EQUALS", "value"),
+			MatchSpecification: NewComparisionExpression("key", "EQUALS", "value"),
 			Scope:              "scope",
 		}
 
@@ -37,7 +37,7 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
 			ID:                 "id",
-			MatchSpecification: NewTagMatcherExpression("key", "EQUALS", "value"),
+			MatchSpecification: NewComparisionExpression("key", "EQUALS", "value"),
 			Scope:              "scope",
 		}
 
@@ -63,7 +63,7 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t
 	config := ApplicationConfig{
 		ID:                 "id",
 		Label:              "label",
-		MatchSpecification: NewTagMatcherExpression("", "EQUALS", "value"),
+		MatchSpecification: NewComparisionExpression("", "EQUALS", "value"),
 		Scope:              "scope",
 	}
 
@@ -77,7 +77,7 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 		ApplicationConfig{
 			ID:                 "id",
 			Label:              "label",
-			MatchSpecification: NewTagMatcherExpression("key", "EQUALS", "value"),
+			MatchSpecification: NewComparisionExpression("key", "EQUALS", "value"),
 		}
 
 	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "Scope") {
@@ -86,8 +86,8 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 }
 
 func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
-	left := NewTagMatcherExpression("keyLeft", "EQUALS", "valueLeft")
-	right := NewTagMatcherExpression("keyRight", "EQUALS", "valueRight")
+	left := NewComparisionExpression("keyLeft", "EQUALS", "valueLeft")
+	right := NewComparisionExpression("keyRight", "EQUALS", "valueRight")
 
 	exp := NewBinaryOperator(left, "AND", right)
 
@@ -97,7 +97,7 @@ func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsMissing(t *testing.T) {
-	right := NewTagMatcherExpression("keyRight", "EQUALS", "valueRight")
+	right := NewComparisionExpression("keyRight", "EQUALS", "valueRight")
 
 	exp := NewBinaryOperator(nil, "AND", right)
 
@@ -107,8 +107,8 @@ func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsMissing(t *testin
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testing.T) {
-	left := NewTagMatcherExpression("", "EQUALS", "valueLeft")
-	right := NewTagMatcherExpression("keyRight", "EQUALS", "valueRight")
+	left := NewComparisionExpression("", "EQUALS", "valueLeft")
+	right := NewComparisionExpression("keyRight", "EQUALS", "valueRight")
 
 	exp := NewBinaryOperator(left, "AND", right)
 
@@ -118,7 +118,7 @@ func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testi
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testing.T) {
-	left := NewTagMatcherExpression("keyLeft", "EQUALS", "valueLeft")
+	left := NewComparisionExpression("keyLeft", "EQUALS", "valueLeft")
 
 	exp := NewBinaryOperator(left, "AND", nil)
 
@@ -128,8 +128,8 @@ func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testi
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *testing.T) {
-	left := NewTagMatcherExpression("keyLeft", "EQUALS", "valueLeft")
-	right := NewTagMatcherExpression("", "EQUALS", "valueRight")
+	left := NewComparisionExpression("keyLeft", "EQUALS", "valueLeft")
+	right := NewComparisionExpression("", "EQUALS", "valueRight")
 
 	exp := NewBinaryOperator(left, "AND", right)
 
@@ -139,8 +139,8 @@ func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *test
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsMissing(t *testing.T) {
-	left := NewTagMatcherExpression("keyLeft", "EQUALS", "valueLeft")
-	right := NewTagMatcherExpression("keyRight", "EQUALS", "valueRight")
+	left := NewComparisionExpression("keyLeft", "EQUALS", "valueLeft")
+	right := NewComparisionExpression("keyRight", "EQUALS", "valueRight")
 
 	exp := NewBinaryOperator(left, "", right)
 

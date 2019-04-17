@@ -44,13 +44,22 @@ type BinaryOperator struct {
 	Conjunction string              `json:"conjunction"`
 }
 
-//NewTagMatcherExpression creates and new tag matcher MatchExpression
-func NewTagMatcherExpression(key string, operator string, value string) MatchExpression {
+//NewComparisionExpression creates and new tag matcher expression for a comparision
+func NewComparisionExpression(key string, operator string, value string) MatchExpression {
 	return TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
 		Operator: operator,
 		Value:    &value,
+	}
+}
+
+//NewUnaryOperationExpression creates and new tag matcher expression for a unary operation
+func NewUnaryOperationExpression(key string, operator string) MatchExpression {
+	return TagMatcherExpression{
+		Dtype:    LeafExpressionType,
+		Key:      key,
+		Operator: operator,
 	}
 }
 

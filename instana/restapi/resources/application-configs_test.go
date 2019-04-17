@@ -137,12 +137,12 @@ func TestSuccessfulUpsertOfComplexApplicationConfig(t *testing.T) {
 		Label: "label",
 		MatchSpecification: restapi.NewBinaryOperator(
 			restapi.NewBinaryOperator(
-				restapi.NewTagMatcherExpression("key1", "EQUAL", "value1"),
+				restapi.NewComparisionExpression("key1", "EQUAL", "value1"),
 				"OR",
-				restapi.NewTagMatcherExpression("key2", "NOT_EMPTY", ""),
+				restapi.NewUnaryOperationExpression("key2", "NOT_EMPTY"),
 			),
 			"AND",
-			restapi.NewTagMatcherExpression("key3", "NOT_EQUAL", "value3"),
+			restapi.NewComparisionExpression("key3", "NOT_EQUAL", "value3"),
 		),
 		Scope: "scope",
 	}
@@ -169,7 +169,7 @@ func TestFailedUpsertOfApplicationConfigBecauseOfInvalidApplicationConfig(t *tes
 	sut := NewApplicationConfigResource(client)
 	applicationConfig := restapi.ApplicationConfig{
 		Label:              "Label",
-		MatchSpecification: restapi.NewTagMatcherExpression("key", "EQUAL", "value"),
+		MatchSpecification: restapi.NewComparisionExpression("key", "EQUAL", "value"),
 		Scope:              "scope",
 	}
 
@@ -277,7 +277,7 @@ func makeTestApplicationConfigWithCounter(counter int) restapi.ApplicationConfig
 	return restapi.ApplicationConfig{
 		ID:                 id,
 		Label:              label,
-		MatchSpecification: restapi.NewTagMatcherExpression("key", "EQUAL", "value"),
+		MatchSpecification: restapi.NewComparisionExpression("key", "EQUAL", "value"),
 		Scope:              "scope",
 	}
 }

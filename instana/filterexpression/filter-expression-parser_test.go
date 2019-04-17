@@ -45,9 +45,9 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 						Operator: &logicalAnd,
 						Right: &LogicalAndExpression{
 							Left: &PrimaryExpression{
-								UnaryExpression: &UnaryExpression{
+								UnaryOperation: &UnaryOperationExpression{
 									Key:      "span.name",
-									Function: "NOT EMPTY",
+									Operator: "NOT EMPTY",
 								},
 							},
 						},
@@ -130,9 +130,9 @@ func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
-					UnaryExpression: &UnaryExpression{
+					UnaryOperation: &UnaryOperationExpression{
 						Key:      "entity.name",
-						Function: "NOT EMPTY",
+						Operator: "NOT EMPTY",
 					},
 				},
 			},
@@ -309,13 +309,13 @@ func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testin
 	}
 }
 
-func TestShouldRenderUnaryExpressionOnPrimaryExpressionWhenUnaryExpressionIsSet(t *testing.T) {
+func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperationIsSet(t *testing.T) {
 	expectedResult := "foo IS EMPTY"
 
 	sut := PrimaryExpression{
-		UnaryExpression: &UnaryExpression{
+		UnaryOperation: &UnaryOperationExpression{
 			Key:      "foo",
-			Function: "IS EMPTY",
+			Operator: "IS EMPTY",
 		},
 	}
 
