@@ -4,6 +4,7 @@ export GO111MODULE=on
 #export GOFLAGS=-mod=vendor
 
 VERSION=$(shell git describe --tags --match=v* --always --dirty)
+SONAR_TARGET_BRANCH=$( if )
 
 .PHONY: all
 all: build test vet lint fmt
@@ -75,8 +76,20 @@ clean:
 
 .PHONY: sonar
 sonar:
-	@echo "+++++++++++  Run Sonar Scanner +++++++++++ "
-	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION)
+	@echo "+++++++++++  Run Sonar Scanner +++++++++++ "	
+ifdef TRAVIS_TAG
+	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION) -Dsonar.branch.name=master
+endif
+
+ifeq (${TRAVIS_BRANCH}, "master")
+	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION) -Dsonar.branch.name=master
+endif
+
+ifdef TRAVIS_PULL_REQUEST_BRANCH
+	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION) -Dsonar.branch.name=$(TRAVIS_PULL_REQUEST_BRANCH) -Dsonar.branch.target=$(TRAVIS_BRANCH)
+else
+	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION) -Dsonar.branch.name=$(TRAVIS_BRANCH) -Dsonar.branch.target=master
+endif
 
 .PHONY: release
 release: \

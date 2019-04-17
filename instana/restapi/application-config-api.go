@@ -50,7 +50,7 @@ func NewTagMatcherExpression(key string, operator string, value string) MatchExp
 		Dtype:    LeafExpressionType,
 		Key:      key,
 		Operator: operator,
-		Value:    value,
+		Value:    &value,
 	}
 }
 
@@ -59,7 +59,7 @@ type TagMatcherExpression struct {
 	Dtype    MatchExpressionType `json:"type"`
 	Key      string              `json:"key"`
 	Operator string              `json:"operator"`
-	Value    string              `json:"value"`
+	Value    *string             `json:"value"`
 }
 
 //ApplicationConfig is the representation of a application perspective configuration in Instana
@@ -136,11 +136,6 @@ func (t TagMatcherExpression) Validate() error {
 	}
 	if len(t.Operator) == 0 {
 		return errors.New("Operator of tag expression is missing")
-	}
-	if t.Operator != "NOT_EMPTY" {
-		if len(t.Value) == 0 {
-			return errors.New("Value of tag expression is missing")
-		}
 	}
 	return nil
 }

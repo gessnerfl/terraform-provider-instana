@@ -1,19 +1,15 @@
-package utils_test
+package filterexpression_test
 
 import (
 	"testing"
 
-	. "github.com/gessnerfl/terraform-provider-instana/instana/utils"
+	. "github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
-	expression := "entity.name CO 'foo'OR entity.kind EQ 2.34 AND entity.type EQ true AND span.name NOT EMPTY OR span.id NE  1234"
+	expression := "entity.name CO 'foo bar' OR entity.kind EQ '2.34' AND entity.type EQ 'true' AND span.name NOT EMPTY OR span.id NE  '1234'"
 
-	foo := "foo"
-	decNum := 2.34
-	intNum := float64(1234)
-	isTrue := Boolean(true)
 	logicalAnd := Operator("AND")
 	logicalOr := Operator("OR")
 	expectedResult := &FilterExpression{
@@ -23,7 +19,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
 						Operator: "CO",
-						Value:    &Value{String: &foo},
+						Value:    "foo bar",
 					},
 				},
 			},
@@ -34,7 +30,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 						Comparision: &ComparisionExpression{
 							Key:      "entity.kind",
 							Operator: "EQ",
-							Value:    &Value{Number: &decNum},
+							Value:    "2.34",
 						},
 					},
 					Operator: &logicalAnd,
@@ -43,7 +39,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 							Comparision: &ComparisionExpression{
 								Key:      "entity.type",
 								Operator: "EQ",
-								Value:    &Value{Boolean: &isTrue},
+								Value:    "true",
 							},
 						},
 						Operator: &logicalAnd,
@@ -64,7 +60,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 							Comparision: &ComparisionExpression{
 								Key:      "span.id",
 								Operator: "NE",
-								Value:    &Value{Number: &intNum},
+								Value:    "1234",
 							},
 						},
 					},
@@ -79,8 +75,6 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 	expression := "entity.name co 'foo' and entity.type EQ 'bar'"
 
-	foo := "foo"
-	bar := "bar"
 	logicalAnd := Operator("AND")
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
@@ -89,7 +83,7 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
 						Operator: "CO",
-						Value:    &Value{String: &foo},
+						Value:    "foo",
 					},
 				},
 				Operator: &logicalAnd,
@@ -98,7 +92,7 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 						Comparision: &ComparisionExpression{
 							Key:      "entity.type",
 							Operator: "EQ",
-							Value:    &Value{String: &bar},
+							Value:    "bar",
 						},
 					},
 				},
@@ -112,7 +106,6 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
 	expression := "entity.name eQ 'foo'"
 
-	foo := "foo"
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
@@ -120,7 +113,7 @@ func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
 						Operator: "EQ",
-						Value:    &Value{String: &foo},
+						Value:    "foo",
 					},
 				},
 			},
@@ -150,7 +143,7 @@ func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
 }
 
 func shouldSuccessfullyParseExpression(input string, expectedResult *FilterExpression, t *testing.T) {
-	sut := NewFilterExpressionParser()
+	sut := NewParser()
 	result, err := sut.Parse(input)
 
 	if err != nil {
@@ -163,9 +156,9 @@ func shouldSuccessfullyParseExpression(input string, expectedResult *FilterExpre
 }
 
 func TestShouldFailToParseInvalidExpression(t *testing.T) {
-	expression := "Foo bla 'bar'"
+	expression := "Foo invalidToken 'bar'"
 
-	sut := NewFilterExpressionParser()
+	sut := NewParser()
 	_, err := sut.Parse(expression)
 
 	if err == nil {
@@ -174,10 +167,10 @@ func TestShouldFailToParseInvalidExpression(t *testing.T) {
 }
 
 func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
-	expression := "entity.name co 'foo' OR entity.kind EQ 2.34    and  entity.type EQ TRUE  AND span.name  NOT empTy   OR span.id  NE  1234"
-	normalizedExpression := "entity.name CO 'foo' OR entity.kind EQ 2.340 AND entity.type EQ true AND span.name NOT EMPTY OR span.id NE 1234.000"
+	expression := "entity.name co 'foo' OR entity.kind EQ '2.34'    and  entity.type EQ 'true'  AND span.name  NOT empTy   OR span.id  NE  '1234'"
+	normalizedExpression := "entity.name CO 'foo' OR entity.kind EQ '2.34' AND entity.type EQ 'true' AND span.name NOT EMPTY OR span.id NE '1234'"
 
-	sut := NewFilterExpressionParser()
+	sut := NewParser()
 	result, err := sut.Parse(expression)
 
 	if err != nil {
@@ -192,7 +185,6 @@ func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
 
 func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 	expectedResult := "foo EQ 'bar' OR foo CO 'bar'"
-	bar := "bar"
 
 	logicalOr := Operator("OR")
 	sut := LogicalOrExpression{
@@ -201,9 +193,7 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
 					Operator: "EQ",
-					Value: &Value{
-						String: &bar,
-					},
+					Value:    "bar",
 				},
 			},
 		},
@@ -214,9 +204,7 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 					Comparision: &ComparisionExpression{
 						Key:      "foo",
 						Operator: "CO",
-						Value: &Value{
-							String: &bar,
-						},
+						Value:    "bar",
 					},
 				},
 			},
@@ -232,7 +220,6 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 
 func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIsSet(t *testing.T) {
 	expectedResult := "foo EQ 'bar'"
-	bar := "bar"
 
 	sut := LogicalOrExpression{
 		Left: &LogicalAndExpression{
@@ -240,9 +227,7 @@ func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIs
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
 					Operator: "EQ",
-					Value: &Value{
-						String: &bar,
-					},
+					Value:    "bar",
 				},
 			},
 		},
@@ -257,7 +242,6 @@ func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIs
 
 func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 	expectedResult := "foo EQ 'bar' AND foo CO 'bar'"
-	bar := "bar"
 
 	logicalAnd := Operator("AND")
 	sut := LogicalAndExpression{
@@ -265,9 +249,7 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 			Comparision: &ComparisionExpression{
 				Key:      "foo",
 				Operator: "EQ",
-				Value: &Value{
-					String: &bar,
-				},
+				Value:    "bar",
 			},
 		},
 		Operator: &logicalAnd,
@@ -276,9 +258,7 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
 					Operator: "CO",
-					Value: &Value{
-						String: &bar,
-					},
+					Value:    "bar",
 				},
 			},
 		},
@@ -293,16 +273,13 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 
 func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *testing.T) {
 	expectedResult := "foo EQ 'bar'"
-	bar := "bar"
 
 	sut := LogicalAndExpression{
 		Left: &PrimaryExpression{
 			Comparision: &ComparisionExpression{
 				Key:      "foo",
 				Operator: "EQ",
-				Value: &Value{
-					String: &bar,
-				},
+				Value:    "bar",
 			},
 		},
 	}
@@ -316,15 +293,12 @@ func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *t
 
 func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testing.T) {
 	expectedResult := "foo EQ 'bar'"
-	bar := "bar"
 
 	sut := PrimaryExpression{
 		Comparision: &ComparisionExpression{
 			Key:      "foo",
 			Operator: "EQ",
-			Value: &Value{
-				String: &bar,
-			},
+			Value:    "bar",
 		},
 	}
 
@@ -343,66 +317,6 @@ func TestShouldRenderUnaryExpressionOnPrimaryExpressionWhenUnaryExpressionIsSet(
 			Key:      "foo",
 			Function: "IS EMPTY",
 		},
-	}
-
-	rendered := sut.Render()
-
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
-	}
-}
-
-func TestShouldRenderValueWhenStringIsSet(t *testing.T) {
-	expectedResult := "'foo'"
-
-	value := "foo"
-	sut := Value{
-		String: &value,
-	}
-
-	rendered := sut.Render()
-
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
-	}
-}
-
-func TestShouldRenderValueWhenDecimalNumberIsSet(t *testing.T) {
-	expectedResult := "1.230"
-
-	value := 1.23
-	sut := Value{
-		Number: &value,
-	}
-
-	rendered := sut.Render()
-
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
-	}
-}
-
-func TestShouldRenderValueWhenIntegerNumberIsSet(t *testing.T) {
-	expectedResult := "123.000"
-
-	value := float64(123)
-	sut := Value{
-		Number: &value,
-	}
-
-	rendered := sut.Render()
-
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
-	}
-}
-
-func TestShouldRenderValueWhenBooleanIsSet(t *testing.T) {
-	expectedResult := "true"
-
-	boolTrue := Boolean(true)
-	sut := Value{
-		Boolean: &boolTrue,
 	}
 
 	rendered := sut.Render()

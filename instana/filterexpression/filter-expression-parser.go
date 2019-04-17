@@ -1,4 +1,4 @@
-package utils
+package filterexpression
 
 import (
 	"fmt"
@@ -50,6 +50,13 @@ func (e *FilterExpression) Render() string {
 	return e.Expression.Render()
 }
 
+//Conjunction represents a logical and or a logical or conjunction
+type Conjunction interface {
+	GetLeft() Conjunction
+	GetOperator() Operator
+	GetRight() Conjunction
+}
+
 //LogicalOrExpression representation of a logical OR or as a wrapper for a, LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalOrExpression struct {
 	Left     *LogicalAndExpression `parser:"  @@"`
@@ -98,18 +105,18 @@ func (e *PrimaryExpression) Render() string {
 type ComparisionExpression struct {
 	Key      string   `parser:"@Ident"`
 	Operator Operator `parser:"@( \"EQ\" | \"NE\" | \"CO\" | \"NC\" )"`
-	Value    *Value   `parser:"@@"`
+	Value    string   `parser:"@String"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *ComparisionExpression) Render() string {
-	return fmt.Sprintf("%s %s %s", e.Key, e.Operator, e.Value.Render())
+	return fmt.Sprintf("%s %s '%s'", e.Key, e.Operator, e.Value)
 }
 
 //UnaryExpression representation of a unary expression representing a function
 type UnaryExpression struct {
 	Key      string   `parser:"@Ident"`
-	Function Function `parser:"@( \"IS\" \"EMPTY\" | \"NOT\" \"EMPTY\" )"`
+	Function Function `parser:"@( \"IS\" (\"EMPTY\" | \"BLANK\")  | \"NOT\" (\"EMPTY\" | \"BLANK\") )"`
 }
 
 //Render implementation of ExpressionRenderer.Render
@@ -117,27 +124,9 @@ func (e *UnaryExpression) Render() string {
 	return fmt.Sprintf("%s %s", e.Key, e.Function)
 }
 
-//Value representation of a term of an expression
-type Value struct {
-	String  *string  `parser:"  @String"`
-	Number  *float64 `parser:"| @Number"`
-	Boolean *Boolean `parser:"| @(\"TRUE\" | \"FALSE\")"`
-}
-
-//Render implementation of ExpressionRenderer.Render
-func (e *Value) Render() string {
-	if e.Boolean != nil {
-		return fmt.Sprintf("%t", *e.Boolean)
-	}
-	if e.Number != nil {
-		return fmt.Sprintf("%.3f", *e.Number)
-	}
-	return fmt.Sprintf("'%s'", *e.String)
-}
-
 var (
 	filterLexer = lexer.Must(lexer.Regexp(`(\s+)` +
-		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS|NOT|EMPTY|EQ|NE|CO|NC)` +
+		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS|NOT|EMPTY|BLANK|EQ|NE|CO|NC)` +
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_]*)` +
 		`|(?P<Number>[-+]?\d+(\.\d+)?)` +
 		`|(?P<String>'[^']*'|"[^"]*")` +
@@ -151,20 +140,20 @@ var (
 	)
 )
 
-//NewFilterExpressionParser creates a new instance of a FilterExpressionParser
-func NewFilterExpressionParser() FilterExpressionParser {
-	return new(filterExpressionParserImpl)
+//NewParser creates a new instance of a Parser
+func NewParser() Parser {
+	return new(parserImpl)
 }
 
-//FilterExpressionParser interface for working with Dynamic Focus filters of instana
-type FilterExpressionParser interface {
+//Parser interface for working with Dynamic Focus filters of instana
+type Parser interface {
 	Parse(expression string) (*FilterExpression, error)
 }
 
-type filterExpressionParserImpl struct{}
+type parserImpl struct{}
 
-//Parse implementation of the parsing of the FilterExpressionParser
-func (f *filterExpressionParserImpl) Parse(expression string) (*FilterExpression, error) {
+//Parse implementation of the parsing of the Parser
+func (f *parserImpl) Parse(expression string) (*FilterExpression, error) {
 	parsedExpression := &FilterExpression{}
 	err := filterParser.ParseString(expression, parsedExpression)
 	if err != nil {
