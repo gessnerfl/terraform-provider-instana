@@ -21,6 +21,8 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsRequiredAndTypeFloat(fieldName string)
 	//AssertSchemaIsOptionalAndOfTypeString checks if the given schema field is optional and of type string
 	AssertSchemaIsOptionalAndOfTypeString(fieldName string)
+	//AssertSchemaIsOptionalAndOfTypeStringWithDefault checks if the given schema field is optional and of type string and has the given default value
+	AssertSchemaIsOptionalAndOfTypeStringWithDefault(fieldName string, defaultValue string)
 	//AssertSchemaIsOptionalAndOfTypeInt checks if the given schema field is optional and of type int
 	AssertSchemaIsOptionalAndOfTypeInt(fieldName string)
 	//AssertSchemaIsOfTypeBooleanWithDefault checks if the given schema field is an optional boolean field with an expected default value
@@ -59,6 +61,14 @@ func (inst *terraformSchemaAssertImpl) assertSchemaIsRequiredAndType(schemaField
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeString(schemaField string) {
 	inst.assertSchemaIsOptionalAndOfType(schemaField, schema.TypeString)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeStringWithDefault(schemaField string, defaultValue string) {
+	inst.assertSchemaIsOptionalAndOfType(schemaField, schema.TypeString)
+	s := inst.schemaMap[schemaField]
+	if s.Default != defaultValue {
+		inst.t.Fatalf("Expected default value %s", defaultValue)
+	}
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeInt(schemaField string) {

@@ -19,6 +19,8 @@ type TestHelper interface {
 	CreateRuleBindingResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyUserRoleResourceData() *schema.ResourceData
 	CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData
+	CreateEmptyApplicationConfigResourceData() *schema.ResourceData
+	CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData
 }
 
 type testHelperImpl struct {
@@ -52,5 +54,15 @@ func (inst *testHelperImpl) CreateEmptyUserRoleResourceData() *schema.ResourceDa
 
 func (inst *testHelperImpl) CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData {
 	schemaMap := CreateResourceUserRole().Schema
+	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
+}
+
+func (inst *testHelperImpl) CreateEmptyApplicationConfigResourceData() *schema.ResourceData {
+	data := make(map[string]interface{})
+	return inst.CreateApplicationConfigResourceData(data)
+}
+
+func (inst *testHelperImpl) CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData {
+	schemaMap := CreateResourceApplicationConfig().Schema
 	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }

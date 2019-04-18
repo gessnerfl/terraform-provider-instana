@@ -57,6 +57,7 @@ func CreateResourceApplicationConfig() *schema.Resource {
 			ApplicationConfigFieldScope: &schema.Schema{
 				Type:         schema.TypeString,
 				Required:     false,
+				Optional:     true,
 				Default:      ApplicationConfigScopeIncludeNoDownstream,
 				ValidateFunc: validation.StringInSlice([]string{ApplicationConfigScopeIncludeNoDownstream, ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging, ApplicationConfigScopeIncludeAllDownstream}, false),
 				Description:  "The scope of the application config",
