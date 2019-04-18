@@ -1,6 +1,9 @@
 package restapi
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 //MatchExpressionType type for MatchExpression discriminator type
 type MatchExpressionType string
@@ -11,6 +14,15 @@ const (
 	//LeafExpressionType discriminator type for leaf operations
 	LeafExpressionType MatchExpressionType = "LEAF"
 )
+
+//SupportedComparisionOperators list of supported comparision operators of Instana API
+var SupportedComparisionOperators = []string{"EQUALS", "NOT_EQUAL", "CONTAINS", "NOT_CONTAIN"}
+
+//SupportedUnaryOperatorExpressionOperators list of supported unary expression operators of Instana API
+var SupportedUnaryOperatorExpressionOperators = []string{"IS_EMPTY", "NOT_EMPTY", "IS_BLANK", "NOT_BLANK"}
+
+//SupportedConjunctions list of supported binary expression operators of Instana API
+var SupportedConjunctions = []string{"AND", "OR"}
 
 //ApplicationConfigResource represents the REST resource of application perspective configuration at Instana
 type ApplicationConfigResource interface {
@@ -87,13 +99,13 @@ func (a ApplicationConfig) GetID() string {
 //Validate implemention of the interface InstanaDataObject for ApplicationConfig
 func (a ApplicationConfig) Validate() error {
 	if len(a.ID) == 0 {
-		return errors.New("ID is missing")
+		return errors.New("id is missing")
 	}
 	if len(a.Label) == 0 {
-		return errors.New("Label is missing")
+		return errors.New("label is missing")
 	}
 	if a.MatchSpecification == nil {
-		return errors.New("MatchSpecification is missing")
+		return errors.New("match specification is missing")
 	}
 
 	if err := a.MatchSpecification.(MatchExpression).Validate(); err != nil {
@@ -101,7 +113,7 @@ func (a ApplicationConfig) Validate() error {
 	}
 
 	if len(a.Scope) == 0 {
-		return errors.New("Scope is missing")
+		return errors.New("scope is missing")
 	}
 	return nil
 }
@@ -114,18 +126,22 @@ func (b BinaryOperator) GetType() MatchExpressionType {
 //Validate implemention of the interface MatchExpression for BinaryOperator
 func (b BinaryOperator) Validate() error {
 	if b.Left == nil {
-		return errors.New("Left expression is missing")
+		return errors.New("left expression is missing")
 	}
 	if err := b.Left.(MatchExpression).Validate(); err != nil {
 		return err
 	}
 
 	if len(b.Conjunction) == 0 {
-		return errors.New("Conjunction of expressions is missing")
+		return errors.New("conjunction of expressions is missing")
+	}
+
+	if !IsSupportedConjunction(b.Conjunction) {
+		return fmt.Errorf("conjunction of type '%s' is not supported", b.Conjunction)
 	}
 
 	if b.Right == nil {
-		return errors.New("Right expression is missing")
+		return errors.New("right expression is missing")
 	}
 	if err := b.Right.(MatchExpression).Validate(); err != nil {
 		return err
@@ -141,10 +157,47 @@ func (t TagMatcherExpression) GetType() MatchExpressionType {
 //Validate implemention of the interface MatchExpression for TagMatcherExpression
 func (t TagMatcherExpression) Validate() error {
 	if len(t.Key) == 0 {
-		return errors.New("Key of tag expression is missing")
+		return errors.New("key of tag expression is missing")
 	}
 	if len(t.Operator) == 0 {
-		return errors.New("Operator of tag expression is missing")
+		return errors.New("operator of tag expression is missing")
 	}
+
+	if IsSupportedComparision(t.Operator) {
+		if t.Value == nil || len(*t.Value) == 0 {
+			return errors.New("value missing for comparision expression")
+		}
+	} else if IsSupportedUnaryOperatorExpression(t.Operator) {
+		if t.Value != nil {
+			return errors.New("value not allowed for unary operator expression")
+		}
+	} else {
+		return fmt.Errorf("operator of tag expression is not supported")
+	}
+
 	return nil
+}
+
+//IsSupportedComparision returns true if the provided operator is a valid comparision type
+func IsSupportedComparision(operator string) bool {
+	return isInSlice(SupportedComparisionOperators, operator)
+}
+
+//IsSupportedUnaryOperatorExpression returns true if the provided operator is a valid unary operator type
+func IsSupportedUnaryOperatorExpression(operator string) bool {
+	return isInSlice(SupportedUnaryOperatorExpressionOperators, operator)
+}
+
+//IsSupportedConjunction returns true if the provided operator is a valid conjunction type
+func IsSupportedConjunction(operator string) bool {
+	return isInSlice(SupportedConjunctions, operator)
+}
+
+func isInSlice(allOperators []string, operator string) bool {
+	for _, v := range allOperators {
+		if v == operator {
+			return true
+		}
+	}
+	return false
 }
