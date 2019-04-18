@@ -17,15 +17,6 @@ func (c *Operator) Capture(values []string) error {
 	return nil
 }
 
-//UnaryOperator Custom type for a unary operations
-type UnaryOperator string
-
-//Capture captures the string representation of a unary operation from the given slice of strings. Interface of participle
-func (c *UnaryOperator) Capture(values []string) error {
-	*c = UnaryOperator(strings.ToUpper(strings.Join(values, " ")))
-	return nil
-}
-
 //ExpressionRenderer interface definition for all types of the Filter expression to render the corresponding value
 type ExpressionRenderer interface {
 	Render() string
@@ -96,10 +87,10 @@ func (e *PrimaryExpression) Render() string {
 	return e.UnaryOperation.Render()
 }
 
-//ComparisionExpression representation of a comparision expression. Supported types: EQ (Equals), NE (Not Equal), CO (Contains), NC (Not Contain)
+//ComparisionExpression representation of a comparision expression. Supported types: EQUALS (Equals), NOT_EQUAL (Not Equal), CONTAINS (Contains), NOT_CONTAIN (Not Contain)
 type ComparisionExpression struct {
 	Key      string   `parser:"@Ident"`
-	Operator Operator `parser:"@( \"EQ\" | \"NE\" | \"CO\" | \"NC\" )"`
+	Operator Operator `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" )"`
 	Value    string   `parser:"@String"`
 }
 
@@ -110,8 +101,8 @@ func (e *ComparisionExpression) Render() string {
 
 //UnaryOperationExpression representation of a unary expression representing a unary operator
 type UnaryOperationExpression struct {
-	Key      string        `parser:"@Ident"`
-	Operator UnaryOperator `parser:"@( \"IS\" (\"EMPTY\" | \"BLANK\")  | \"NOT\" (\"EMPTY\" | \"BLANK\") )"`
+	Key      string   `parser:"@Ident"`
+	Operator Operator `parser:"@( \"IS_EMPTY\" | \"IS_BLANK\"  | \"NOT_EMPTY\" | \"NOT_BLANK\" )"`
 }
 
 //Render implementation of ExpressionRenderer.Render
@@ -121,11 +112,11 @@ func (e *UnaryOperationExpression) Render() string {
 
 var (
 	filterLexer = lexer.Must(lexer.Regexp(`(\s+)` +
-		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS|NOT|EMPTY|BLANK|EQ|NE|CO|NC)` +
+		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN)` +
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_]*)` +
 		`|(?P<Number>[-+]?\d+(\.\d+)?)` +
 		`|(?P<String>'[^']*'|"[^"]*")` +
-		`|(?P<Operators>EQ|NE|CO|NC|[()])`,
+		`|(?P<Operators>EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|[()])`,
 	))
 	filterParser = participle.MustBuild(
 		&FilterExpression{},

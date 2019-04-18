@@ -12,19 +12,19 @@ import (
 )
 
 func TestShouldMapValidOperatorsOfTagExpression(t *testing.T) {
-	for k, v := range OperatorMappingInstanaAPIToFilterExpression {
-		t.Run(fmt.Sprintf("test mapping of %s t %s", k, v), testMappingOfOperatorsOfTagExpression(k, v))
+	for _, v := range restapi.SupportedComparisionOperators {
+		t.Run(fmt.Sprintf("test mapping of %s", v), testMappingOfOperatorsOfTagExpression(v))
 	}
 }
 
-func testMappingOfOperatorsOfTagExpression(apiOperatorName string, filterExprOperatorName Operator) func(t *testing.T) {
+func testMappingOfOperatorsOfTagExpression(operatorName string) func(t *testing.T) {
 	return func(t *testing.T) {
 		key := "key"
 		value := "value"
 		input := restapi.TagMatcherExpression{
 			Dtype:    restapi.LeafExpressionType,
 			Key:      key,
-			Operator: apiOperatorName,
+			Operator: operatorName,
 			Value:    &value,
 		}
 
@@ -34,7 +34,7 @@ func testMappingOfOperatorsOfTagExpression(apiOperatorName string, filterExprOpe
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
 							Key:      key,
-							Operator: filterExprOperatorName,
+							Operator: Operator(operatorName),
 							Value:    value,
 						},
 					},
@@ -59,24 +59,24 @@ func TestShouldFailMapToMapComparisionWhenOperatorOfTagExpressionIsNotValid(t *t
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid operation") {
+	if err == nil || !strings.HasPrefix(err.Error(), "invalid operator") || !strings.Contains(err.Error(), "comparision") {
 		t.Fatal("Expected to get invalid operation error")
 	}
 }
 
 func TestShouldMapValidUnaryOperationsOfTagExpression(t *testing.T) {
-	for k, v := range UnaryOperatorMappingInstanaAPIToFilterExpression {
-		t.Run(fmt.Sprintf("test mapping of %s t %s", k, v), testMappingOfUnaryOperationOfTagExpression(k, v))
+	for _, v := range restapi.SupportedUnaryOperatorExpressionOperators {
+		t.Run(fmt.Sprintf("test mapping of %s ", v), testMappingOfUnaryOperationOfTagExpression(v))
 	}
 }
 
-func testMappingOfUnaryOperationOfTagExpression(apiOperatorName string, filterExprOperatorName UnaryOperator) func(t *testing.T) {
+func testMappingOfUnaryOperationOfTagExpression(operatorName string) func(t *testing.T) {
 	return func(t *testing.T) {
 		key := "key"
 		input := restapi.TagMatcherExpression{
 			Dtype:    restapi.LeafExpressionType,
 			Key:      key,
-			Operator: apiOperatorName,
+			Operator: operatorName,
 		}
 
 		expectedResult := &FilterExpression{
@@ -85,7 +85,7 @@ func testMappingOfUnaryOperationOfTagExpression(apiOperatorName string, filterEx
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
 							Key:      key,
-							Operator: filterExprOperatorName,
+							Operator: Operator(operatorName),
 						},
 					},
 				},
@@ -107,7 +107,7 @@ func TestShouldFailMapToMapUnaryOperationWhenOperatorOfTagExpressionIsNotValid(t
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid unary operation") {
+	if err == nil || !strings.HasPrefix(err.Error(), "invalid operator") || !strings.Contains(err.Error(), "unary operator") {
 		t.Fatal("Expected to get invalid unary operation error")
 	}
 }
@@ -129,7 +129,7 @@ func TestShouldFailMapToMapExpressionWhenTypeIsMissing(t *testing.T) {
 
 func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
 	key := "key"
-	operator := UnaryOperator("IS EMPTY")
+	operator := Operator("IS_EMPTY")
 	and := Operator("AND")
 	primaryExpression := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
 	input := restapi.NewBinaryOperator(primaryExpression, "AND", primaryExpression)
@@ -161,7 +161,7 @@ func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
 
 func TestShouldMapLogicalAndWhenLeftIsAPrimaryExpressionAndRightIsAnotherAndExpression(t *testing.T) {
 	key := "key"
-	operator := UnaryOperator("IS EMPTY")
+	operator := Operator("IS_EMPTY")
 	and := Operator("AND")
 	primaryExpression := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
 	nestedAnd := restapi.NewBinaryOperator(primaryExpression, "AND", primaryExpression)
@@ -245,7 +245,7 @@ func TestShouldFailToMapLogicalAndWhenLeftIsAndExpression(t *testing.T) {
 
 func TestShouldMapLogiclOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T) {
 	key := "key"
-	operator := UnaryOperator("IS EMPTY")
+	operator := Operator("IS_EMPTY")
 	or := Operator("OR")
 	primaryExpression := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
 	input := restapi.NewBinaryOperator(primaryExpression, "OR", primaryExpression)
@@ -279,7 +279,7 @@ func TestShouldMapLogiclOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T) 
 
 func TestShouldMapLogiclOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpression(t *testing.T) {
 	key := "key"
-	operator := UnaryOperator("IS EMPTY")
+	operator := Operator("IS_EMPTY")
 	or := Operator("OR")
 	and := Operator("AND")
 	primaryExpression := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
@@ -324,7 +324,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpressi
 
 func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogicalOr(t *testing.T) {
 	key := "key"
-	operator := UnaryOperator("IS EMPTY")
+	operator := Operator("IS_EMPTY")
 	or := Operator("OR")
 	primaryExpression := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
 	nestedOr := restapi.NewBinaryOperator(primaryExpression, "OR", primaryExpression)
@@ -370,7 +370,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 
 func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogicalAnd(t *testing.T) {
 	key := "key"
-	operator := UnaryOperator("IS EMPTY")
+	operator := Operator("IS_EMPTY")
 	or := Operator("OR")
 	and := Operator("AND")
 	primaryExpression := restapi.NewUnaryOperationExpression(key, "IS_EMPTY")
@@ -449,7 +449,7 @@ func TestShouldReturnMappingErrorIfLeftSideOfConjunctionIsNotValid(t *testing.T)
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid unary operation") {
+	if err == nil || !strings.HasPrefix(err.Error(), "invalid operator") || !strings.Contains(err.Error(), "unary operator") {
 		t.Fatal("Expected to get invalid logical AND error")
 	}
 }
@@ -463,7 +463,7 @@ func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid unary operation") {
+	if err == nil || !strings.HasPrefix(err.Error(), "invalid operator") || !strings.Contains(err.Error(), "unary operator") {
 		t.Fatal("Expected to get invalid logical AND error")
 	}
 }

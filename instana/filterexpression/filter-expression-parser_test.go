@@ -8,7 +8,7 @@ import (
 )
 
 func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
-	expression := "entity.name CO 'foo bar' OR entity.kind EQ '2.34' AND entity.type EQ 'true' AND span.name NOT EMPTY OR ( span.id NE  '1234' OR span.id NE '6789' )"
+	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS '2.34' AND entity.type EQUALS 'true' AND span.name NOT_EMPTY OR ( span.id NOT_EQUAL  '1234' OR span.id NOT_EQUAL '6789' )"
 
 	logicalAnd := Operator("AND")
 	logicalOr := Operator("OR")
@@ -18,7 +18,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
-						Operator: "CO",
+						Operator: "CONTAINS",
 						Value:    "foo bar",
 					},
 				},
@@ -29,7 +29,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
 							Key:      "entity.kind",
-							Operator: "EQ",
+							Operator: "EQUALS",
 							Value:    "2.34",
 						},
 					},
@@ -38,7 +38,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 						Left: &PrimaryExpression{
 							Comparision: &ComparisionExpression{
 								Key:      "entity.type",
-								Operator: "EQ",
+								Operator: "EQUALS",
 								Value:    "true",
 							},
 						},
@@ -47,7 +47,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 							Left: &PrimaryExpression{
 								UnaryOperation: &UnaryOperationExpression{
 									Key:      "span.name",
-									Operator: "NOT EMPTY",
+									Operator: "NOT_EMPTY",
 								},
 							},
 						},
@@ -62,7 +62,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 									Left: &PrimaryExpression{
 										Comparision: &ComparisionExpression{
 											Key:      "span.id",
-											Operator: "NE",
+											Operator: "NOT_EQUAL",
 											Value:    "1234",
 										},
 									},
@@ -73,7 +73,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 										Left: &PrimaryExpression{
 											Comparision: &ComparisionExpression{
 												Key:      "span.id",
-												Operator: "NE",
+												Operator: "NOT_EQUAL",
 												Value:    "6789",
 											},
 										},
@@ -91,7 +91,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 }
 
 func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
-	expression := "entity.name co 'foo' and entity.type EQ 'bar'"
+	expression := "entity.name CONTAINS 'foo' and entity.type EQUALS 'bar'"
 
 	logicalAnd := Operator("AND")
 	expectedResult := &FilterExpression{
@@ -100,7 +100,7 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
-						Operator: "CO",
+						Operator: "CONTAINS",
 						Value:    "foo",
 					},
 				},
@@ -109,7 +109,7 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
 							Key:      "entity.type",
-							Operator: "EQ",
+							Operator: "EQUALS",
 							Value:    "bar",
 						},
 					},
@@ -122,7 +122,7 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 }
 
 func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
-	expression := "entity.name eQ 'foo'"
+	expression := "entity.name EQUALS 'foo'"
 
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
@@ -130,7 +130,7 @@ func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
-						Operator: "EQ",
+						Operator: "EQUALS",
 						Value:    "foo",
 					},
 				},
@@ -142,7 +142,7 @@ func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
 }
 
 func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
-	expression := "entity.name Not EmptY"
+	expression := "entity.name NOT_EMPTY"
 
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
@@ -150,7 +150,7 @@ func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
 						Key:      "entity.name",
-						Operator: "NOT EMPTY",
+						Operator: "NOT_EMPTY",
 					},
 				},
 			},
@@ -185,8 +185,8 @@ func TestShouldFailToParseInvalidExpression(t *testing.T) {
 }
 
 func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
-	expression := "entity.name co 'foo' OR entity.kind EQ '2.34'    and  entity.type EQ 'true'  AND span.name  NOT empTy   OR span.id  NE  '1234'"
-	normalizedExpression := "entity.name CO 'foo' OR entity.kind EQ '2.34' AND entity.type EQ 'true' AND span.name NOT EMPTY OR span.id NE '1234'"
+	expression := "entity.name CONTAINS 'foo' OR entity.kind EQUALS '2.34'    and  entity.type EQUALS 'true'  AND span.name  NOT_EMPTY   OR span.id  NOT_EQUAL  '1234'"
+	normalizedExpression := "entity.name CONTAINS 'foo' OR entity.kind EQUALS '2.34' AND entity.type EQUALS 'true' AND span.name NOT_EMPTY OR span.id NOT_EQUAL '1234'"
 
 	sut := NewParser()
 	result, err := sut.Parse(expression)
@@ -202,7 +202,7 @@ func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
 }
 
 func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
-	expectedResult := "foo EQ 'bar' OR foo CO 'bar'"
+	expectedResult := "foo EQUALS 'bar' OR foo CONTAINS 'bar'"
 
 	logicalOr := Operator("OR")
 	sut := LogicalOrExpression{
@@ -210,7 +210,7 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 			Left: &PrimaryExpression{
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
-					Operator: "EQ",
+					Operator: "EQUALS",
 					Value:    "bar",
 				},
 			},
@@ -221,7 +221,7 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
 						Key:      "foo",
-						Operator: "CO",
+						Operator: "CONTAINS",
 						Value:    "bar",
 					},
 				},
@@ -237,14 +237,14 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 }
 
 func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIsSet(t *testing.T) {
-	expectedResult := "foo EQ 'bar'"
+	expectedResult := "foo EQUALS 'bar'"
 
 	sut := LogicalOrExpression{
 		Left: &LogicalAndExpression{
 			Left: &PrimaryExpression{
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
-					Operator: "EQ",
+					Operator: "EQUALS",
 					Value:    "bar",
 				},
 			},
@@ -259,14 +259,14 @@ func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIs
 }
 
 func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
-	expectedResult := "foo EQ 'bar' AND foo CO 'bar'"
+	expectedResult := "foo EQUALS 'bar' AND foo CONTAINS 'bar'"
 
 	logicalAnd := Operator("AND")
 	sut := LogicalAndExpression{
 		Left: &PrimaryExpression{
 			Comparision: &ComparisionExpression{
 				Key:      "foo",
-				Operator: "EQ",
+				Operator: "EQUALS",
 				Value:    "bar",
 			},
 		},
@@ -275,7 +275,7 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 			Left: &PrimaryExpression{
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
-					Operator: "CO",
+					Operator: "CONTAINS",
 					Value:    "bar",
 				},
 			},
@@ -290,13 +290,13 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 }
 
 func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *testing.T) {
-	expectedResult := "foo EQ 'bar'"
+	expectedResult := "foo EQUALS 'bar'"
 
 	sut := LogicalAndExpression{
 		Left: &PrimaryExpression{
 			Comparision: &ComparisionExpression{
 				Key:      "foo",
-				Operator: "EQ",
+				Operator: "EQUALS",
 				Value:    "bar",
 			},
 		},
@@ -310,12 +310,12 @@ func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *t
 }
 
 func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testing.T) {
-	expectedResult := "foo EQ 'bar'"
+	expectedResult := "foo EQUALS 'bar'"
 
 	sut := PrimaryExpression{
 		Comparision: &ComparisionExpression{
 			Key:      "foo",
-			Operator: "EQ",
+			Operator: "EQUALS",
 			Value:    "bar",
 		},
 	}
@@ -328,12 +328,12 @@ func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testin
 }
 
 func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperationIsSet(t *testing.T) {
-	expectedResult := "foo IS EMPTY"
+	expectedResult := "foo IS_EMPTY"
 
 	sut := PrimaryExpression{
 		UnaryOperation: &UnaryOperationExpression{
 			Key:      "foo",
-			Operator: "IS EMPTY",
+			Operator: "IS_EMPTY",
 		},
 	}
 
@@ -345,7 +345,7 @@ func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperati
 }
 
 func TestShouldRenderSubExpression(t *testing.T) {
-	expectedResult := "foo IS EMPTY AND ( a EQ 'b' OR a EQ 'c' )"
+	expectedResult := "foo IS_EMPTY AND ( a EQUALS 'b' OR a EQUALS 'c' )"
 
 	logicalOr := Operator("OR")
 	logicalAnd := Operator("AND")
@@ -353,7 +353,7 @@ func TestShouldRenderSubExpression(t *testing.T) {
 		Left: &PrimaryExpression{
 			UnaryOperation: &UnaryOperationExpression{
 				Key:      "foo",
-				Operator: "IS EMPTY",
+				Operator: "IS_EMPTY",
 			},
 		},
 		Operator: &logicalAnd,
@@ -364,7 +364,7 @@ func TestShouldRenderSubExpression(t *testing.T) {
 						Left: &PrimaryExpression{
 							Comparision: &ComparisionExpression{
 								Key:      "a",
-								Operator: "EQ",
+								Operator: "EQUALS",
 								Value:    "b",
 							},
 						},
@@ -375,7 +375,7 @@ func TestShouldRenderSubExpression(t *testing.T) {
 							Left: &PrimaryExpression{
 								Comparision: &ComparisionExpression{
 									Key:      "a",
-									Operator: "EQ",
+									Operator: "EQUALS",
 									Value:    "c",
 								},
 							},

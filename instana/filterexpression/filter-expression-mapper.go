@@ -12,13 +12,8 @@ func NewMapper() Mapper {
 //Mapper interface of the filter expression mapper
 type Mapper interface {
 	FromAPIModel(input restapi.MatchExpression) (*FilterExpression, error)
-	ToAPIModel(input *FilterExpression) (*restapi.MatchExpression, error)
+	ToAPIModel(input *FilterExpression) restapi.MatchExpression
 }
 
 //struct for the filter expression mapper implementation
 type mapperImpl struct{}
-
-//ToAPIModel Implementation of the mapping form filter expression model to the Instana API model
-func (m *mapperImpl) ToAPIModel(input *FilterExpression) (*restapi.MatchExpression, error) {
-	return nil, nil
-}

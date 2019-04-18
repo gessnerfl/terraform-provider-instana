@@ -6,25 +6,9 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//OperatorMappingInstanaAPIToFilterExpression map defining the mapping of the operators from instana API to the representation of the Filter Expression
-var OperatorMappingInstanaAPIToFilterExpression = map[string]Operator{
-	"EQUALS":      Operator("EQ"),
-	"NOT_EQUAL":   Operator("NE"),
-	"CONTAINS":    Operator("CO"),
-	"NOT_CONTAIN": Operator("NC"),
-}
-
-//UnaryOperatorMappingInstanaAPIToFilterExpression map defining the mapping of the unary operator names from instana API to the representation of the Filter Expression
-var UnaryOperatorMappingInstanaAPIToFilterExpression = map[string]UnaryOperator{
-	"IS_EMPTY":  UnaryOperator("IS EMPTY"),
-	"NOT_EMPTY": UnaryOperator("NOT EMPTY"),
-	"IS_BLANK":  UnaryOperator("IS BLANK"),
-	"NOT_BLANK": UnaryOperator("NOT BLANK"),
-}
-
 //FromAPIModel Implementation of the mapping from the Instana API model to the filter expression model
 func (m *mapperImpl) FromAPIModel(input restapi.MatchExpression) (*FilterExpression, error) {
-	expr, err := m.mapExpression(input)
+	expr, err := m.mapExpressionFromAPIModel(input)
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +27,13 @@ func (m *mapperImpl) FromAPIModel(input restapi.MatchExpression) (*FilterExpress
 	}, nil
 }
 
-func (m *mapperImpl) mapExpression(input restapi.MatchExpression) (*expressionHandle, error) {
+func (m *mapperImpl) mapExpressionFromAPIModel(input restapi.MatchExpression) (*expressionHandle, error) {
 	if input.GetType() == restapi.BinaryOperatorExpressionType {
 		binaryOp := input.(restapi.BinaryOperator)
-		return m.mapBinaryOperator(&binaryOp)
+		return m.mapBinaryOperatorFromAPIModel(&binaryOp)
 	} else if input.GetType() == restapi.LeafExpressionType {
 		tagMatcher := input.(restapi.TagMatcherExpression)
-		primaryExpression, err := m.mapPrimaryExpression(&tagMatcher)
+		primaryExpression, err := m.mapPrimaryExpressionFromAPIModel(&tagMatcher)
 		if err != nil {
 			return nil, err
 		}
@@ -60,27 +44,27 @@ func (m *mapperImpl) mapExpression(input restapi.MatchExpression) (*expressionHa
 	return nil, fmt.Errorf("unsupported match expression of type %s", input.GetType())
 }
 
-func (m *mapperImpl) mapBinaryOperator(operator *restapi.BinaryOperator) (*expressionHandle, error) {
-	left, err := m.mapExpression(operator.Left.(restapi.MatchExpression))
+func (m *mapperImpl) mapBinaryOperatorFromAPIModel(operator *restapi.BinaryOperator) (*expressionHandle, error) {
+	left, err := m.mapExpressionFromAPIModel(operator.Left.(restapi.MatchExpression))
 	if err != nil {
 		return nil, err
 	}
-	right, err := m.mapExpression(operator.Right.(restapi.MatchExpression))
+	right, err := m.mapExpressionFromAPIModel(operator.Right.(restapi.MatchExpression))
 	if err != nil {
 		return nil, err
 	}
 
 	if operator.Conjunction == "AND" {
-		return m.mapLogicalAnd(left, right)
+		return m.mapLogicalAndFromAPIModel(left, right)
 	}
 	if operator.Conjunction == "OR" {
-		return m.mapLogicalOr(left, right)
+		return m.mapLogicalOrFromAPIModel(left, right)
 	}
 	return nil, fmt.Errorf("invalid conjunction operator %s", operator.Conjunction)
 
 }
 
-func (m *mapperImpl) mapLogicalOr(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
+func (m *mapperImpl) mapLogicalOrFromAPIModel(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
 	if left.or != nil {
 		return nil, fmt.Errorf("invalid logical or expression: logical or is not allowed for left side")
 	}
@@ -88,14 +72,14 @@ func (m *mapperImpl) mapLogicalOr(left *expressionHandle, right *expressionHandl
 	operator := Operator("OR")
 	return &expressionHandle{
 		or: &LogicalOrExpression{
-			Left:     m.mapLeftOfLogicalOr(left),
+			Left:     m.mapLeftOfLogicalOrFromAPIModel(left),
 			Operator: &operator,
-			Right:    m.mapRightOfLogicalOr(right),
+			Right:    m.mapRightOfLogicalOrFromAPIModel(right),
 		},
 	}, nil
 }
 
-func (m *mapperImpl) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAndExpression {
+func (m *mapperImpl) mapLeftOfLogicalOrFromAPIModel(left *expressionHandle) *LogicalAndExpression {
 	if left.and != nil {
 		return left.and
 	}
@@ -104,7 +88,7 @@ func (m *mapperImpl) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAndExpre
 	}
 }
 
-func (m *mapperImpl) mapRightOfLogicalOr(right *expressionHandle) *LogicalOrExpression {
+func (m *mapperImpl) mapRightOfLogicalOrFromAPIModel(right *expressionHandle) *LogicalOrExpression {
 	if right.or != nil {
 		return right.or
 	} else if right.and != nil {
@@ -114,7 +98,7 @@ func (m *mapperImpl) mapRightOfLogicalOr(right *expressionHandle) *LogicalOrExpr
 	}
 }
 
-func (m *mapperImpl) mapLogicalAnd(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
+func (m *mapperImpl) mapLogicalAndFromAPIModel(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
 	if left.or != nil {
 		return nil, fmt.Errorf("invalid logical and expression: logical or is not allowed for left side")
 	}
@@ -147,47 +131,28 @@ func (m *mapperImpl) mapLogicalAnd(left *expressionHandle, right *expressionHand
 	}, nil
 }
 
-func (m *mapperImpl) mapPrimaryExpression(matcher *restapi.TagMatcherExpression) (*PrimaryExpression, error) {
+func (m *mapperImpl) mapPrimaryExpressionFromAPIModel(matcher *restapi.TagMatcherExpression) (*PrimaryExpression, error) {
 	if matcher.Value != nil {
-		operator, err := m.mapOperator(matcher.Operator)
-		if err != nil {
-			return nil, err
+		if !restapi.IsSupportedComparision(matcher.Operator) {
+			return nil, fmt.Errorf("invalid operator: %s is not a supported comparision operator", matcher.Operator)
 		}
 		return &PrimaryExpression{
 			Comparision: &ComparisionExpression{
 				Key:      matcher.Key,
-				Operator: operator,
+				Operator: Operator(matcher.Operator),
 				Value:    *matcher.Value,
 			},
 		}, nil
 	}
-
-	unaryOperator, err := m.mapUnaryOperator(matcher.Operator)
-	if err != nil {
-		return nil, err
+	if !restapi.IsSupportedUnaryOperatorExpression(matcher.Operator) {
+		return nil, fmt.Errorf("invalid operator: %s is not a supported unary operator", matcher.Operator)
 	}
 	return &PrimaryExpression{
 		UnaryOperation: &UnaryOperationExpression{
 			Key:      matcher.Key,
-			Operator: unaryOperator,
+			Operator: Operator(matcher.Operator),
 		},
 	}, nil
-}
-
-func (m *mapperImpl) mapOperator(apiName string) (Operator, error) {
-	value := OperatorMappingInstanaAPIToFilterExpression[apiName]
-	if value == "" {
-		return value, fmt.Errorf("invalid operation: operation '%s' not supported", apiName)
-	}
-	return value, nil
-}
-
-func (m *mapperImpl) mapUnaryOperator(apiName string) (UnaryOperator, error) {
-	value := UnaryOperatorMappingInstanaAPIToFilterExpression[apiName]
-	if value == "" {
-		return value, fmt.Errorf("invalid unary operation: unary operator '%s' not supported", apiName)
-	}
-	return value, nil
 }
 
 type expressionHandle struct {
