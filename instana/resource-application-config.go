@@ -3,6 +3,7 @@ package instana
 import (
 	"errors"
 
+	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -90,27 +91,31 @@ func ReadApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 		}
 		return err
 	}
-	updateApplicationConfigState(d, applicationConfig)
-	return nil
+	return updateApplicationConfigState(d, applicationConfig)
 }
 
 //UpdateApplicationConfig defines the update operation for the resource instana_application_config
 func UpdateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
-	applicationConfig := createApplicationConfigFromResourceData(d)
+	applicationConfig, err := createApplicationConfigFromResourceData(d)
+	if err != nil {
+		return err
+	}
 	updatedApplicationConfig, err := instanaAPI.ApplicationConfigs().Upsert(applicationConfig)
 	if err != nil {
 		return err
 	}
-	updateApplicationConfigState(d, updatedApplicationConfig)
-	return nil
+	return updateApplicationConfigState(d, updatedApplicationConfig)
 }
 
 //DeleteApplicationConfig defines the delete operation for the resource instana_application_config
 func DeleteApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	instanaAPI := meta.(restapi.InstanaAPI)
-	applicationConfig := createApplicationConfigFromResourceData(d)
-	err := instanaAPI.ApplicationConfigs().DeleteByID(applicationConfig.ID)
+	applicationConfig, err := createApplicationConfigFromResourceData(d)
+	if err != nil {
+		return err
+	}
+	err = instanaAPI.ApplicationConfigs().DeleteByID(applicationConfig.ID)
 	if err != nil {
 		return err
 	}
@@ -118,19 +123,49 @@ func DeleteApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func createApplicationConfigFromResourceData(d *schema.ResourceData) restapi.ApplicationConfig {
+func createApplicationConfigFromResourceData(d *schema.ResourceData) (restapi.ApplicationConfig, error) {
+	matchSpecification, err := convertExpressionStringToAPIModel(d.Get(ApplicationConfigFieldMatchSpecification).(string))
+	if err != nil {
+		return restapi.ApplicationConfig{}, err
+	}
 	return restapi.ApplicationConfig{
 		ID:                 d.Id(),
 		Label:              d.Get(ApplicationConfigFieldLabel).(string),
 		Scope:              d.Get(ApplicationConfigFieldScope).(string),
-		MatchSpecification: d.Get(ApplicationConfigFieldMatchSpecification).(string),
-	}
+		MatchSpecification: matchSpecification,
+	}, nil
 }
 
-func updateApplicationConfigState(d *schema.ResourceData, applicationConfig restapi.ApplicationConfig) {
+func convertExpressionStringToAPIModel(input string) (restapi.MatchExpression, error) {
+	parser := filterexpression.NewParser()
+	expr, err := parser.Parse(input)
+	if err != nil {
+		return nil, err
+	}
+
+	mapper := filterexpression.NewMapper()
+	return mapper.ToAPIModel(expr), nil
+}
+
+func updateApplicationConfigState(d *schema.ResourceData, applicationConfig restapi.ApplicationConfig) error {
+	normalizedExpressionString, err := convertAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
+	if err != nil {
+		return err
+	}
+
 	d.Set(ApplicationConfigFieldLabel, applicationConfig.Label)
 	d.Set(ApplicationConfigFieldScope, applicationConfig.Scope)
-	d.Set(ApplicationConfigFieldMatchSpecification, applicationConfig.MatchSpecification)
+	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 
 	d.SetId(applicationConfig.ID)
+	return nil
+}
+
+func convertAPIModelToNormalizedStringRepresentation(input restapi.MatchExpression) (string, error) {
+	mapper := filterexpression.NewMapper()
+	expr, err := mapper.FromAPIModel(input)
+	if err != nil {
+		return "", err
+	}
+	return expr.Render(), nil
 }
