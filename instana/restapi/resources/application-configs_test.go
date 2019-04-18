@@ -35,7 +35,7 @@ func TestSuccessfulGetOneApplicationConfig(t *testing.T) {
 	}
 }
 
-func TestFailedGetOneApplicationConfigBecauseOfErrorFromRestClient(t *testing.T) {
+func TestFailedGetOneApplicationConfigWhenRestClientReturnsError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -52,7 +52,7 @@ func TestFailedGetOneApplicationConfigBecauseOfErrorFromRestClient(t *testing.T)
 	}
 }
 
-func TestFailedGetOneApplicationConfigBecauseOfInvalidJsonArray(t *testing.T) {
+func TestFailedGetOneApplicationConfigWhenResponseContainsInvalidJsonArray(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -69,7 +69,7 @@ func TestFailedGetOneApplicationConfigBecauseOfInvalidJsonArray(t *testing.T) {
 	}
 }
 
-func TestFailedGetOneApplicationConfigBecauseOfInvalidJsonObject(t *testing.T) {
+func TestFailedGetOneApplicationConfigWhenResponseContainsInvalidJsonObject(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -86,7 +86,7 @@ func TestFailedGetOneApplicationConfigBecauseOfInvalidJsonObject(t *testing.T) {
 	}
 }
 
-func TestFailedGetOneApplicationConfigBecauseOfNoJsonAsResponse(t *testing.T) {
+func TestFailedGetOneApplicationConfigWhenResponseContainsNoJsonAsResponse(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -97,6 +97,89 @@ func TestFailedGetOneApplicationConfigBecauseOfNoJsonAsResponse(t *testing.T) {
 	client.EXPECT().GetOne(gomock.Eq(applicationConfigID), gomock.Eq(restapi.ApplicationConfigsResourcePath)).Return([]byte("Invalid Data"), nil)
 
 	_, err := sut.GetOne(applicationConfigID)
+
+	if err == nil {
+		t.Fatalf("Expected to get error")
+	}
+}
+
+func TestFailedGetOneApplicationConfigWhenExpressionTypeIsNotSupported(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	client := mocks.NewMockRestClient(ctrl)
+	sut := NewApplicationConfigResource(client)
+	//config is invalid because there is no DType for the match specification.
+	applicationConfig := restapi.ApplicationConfig{
+		ID:    "id",
+		Label: "label",
+		MatchSpecification: restapi.TagMatcherExpression{
+			Key:      "foo",
+			Operator: "NOT_EMPTY",
+		},
+		Scope: "scope",
+	}
+	serializedJSON, _ := json.Marshal(applicationConfig)
+
+	client.EXPECT().GetOne(gomock.Eq(applicationConfig.ID), gomock.Eq(restapi.ApplicationConfigsResourcePath)).Return(serializedJSON, nil)
+
+	_, err := sut.GetOne(applicationConfig.GetID())
+
+	if err == nil {
+		t.Fatalf("Expected to get error")
+	}
+}
+
+func TestFailedGetOneApplicationConfigWhenLeftSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	client := mocks.NewMockRestClient(ctrl)
+	sut := NewApplicationConfigResource(client)
+	left := restapi.TagMatcherExpression{
+		Key:      "foo",
+		Operator: "NOT_EMPTY",
+	}
+	right := restapi.NewUnaryOperationExpression("foo", "IS_EMPTY")
+	applicationConfig := restapi.ApplicationConfig{
+		ID:                 "id",
+		Label:              "label",
+		MatchSpecification: restapi.NewBinaryOperator(left, "OR", right),
+		Scope:              "scope",
+	}
+	serializedJSON, _ := json.Marshal(applicationConfig)
+
+	client.EXPECT().GetOne(gomock.Eq(applicationConfig.ID), gomock.Eq(restapi.ApplicationConfigsResourcePath)).Return(serializedJSON, nil)
+
+	_, err := sut.GetOne(applicationConfig.GetID())
+
+	if err == nil {
+		t.Fatalf("Expected to get error")
+	}
+}
+
+func TestFailedGetOneApplicationConfigWhenRightSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	client := mocks.NewMockRestClient(ctrl)
+	sut := NewApplicationConfigResource(client)
+	left := restapi.NewUnaryOperationExpression("foo", "IS_EMPTY")
+	right := restapi.TagMatcherExpression{
+		Key:      "foo",
+		Operator: "NOT_EMPTY",
+	}
+	applicationConfig := restapi.ApplicationConfig{
+		ID:                 "id",
+		Label:              "label",
+		MatchSpecification: restapi.NewBinaryOperator(left, "OR", right),
+		Scope:              "scope",
+	}
+	serializedJSON, _ := json.Marshal(applicationConfig)
+
+	client.EXPECT().GetOne(gomock.Eq(applicationConfig.ID), gomock.Eq(restapi.ApplicationConfigsResourcePath)).Return(serializedJSON, nil)
+
+	_, err := sut.GetOne(applicationConfig.GetID())
 
 	if err == nil {
 		t.Fatalf("Expected to get error")
@@ -161,7 +244,7 @@ func TestSuccessfulUpsertOfComplexApplicationConfig(t *testing.T) {
 	}
 }
 
-func TestFailedUpsertOfApplicationConfigBecauseOfInvalidApplicationConfig(t *testing.T) {
+func TestFailedUpsertOfApplicationConfigWhenApplicationConfigIsInvalid(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -182,7 +265,7 @@ func TestFailedUpsertOfApplicationConfigBecauseOfInvalidApplicationConfig(t *tes
 	}
 }
 
-func TestFailedUpsertOfApplicationConfigBecauseOfInvalidResponseMessage(t *testing.T) {
+func TestFailedUpsertOfApplicationConfigWhenResponseMessageIsInvalid(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -199,7 +282,7 @@ func TestFailedUpsertOfApplicationConfigBecauseOfInvalidResponseMessage(t *testi
 	}
 }
 
-func TestFailedUpsertOfApplicationConfigBecauseOfInvalidApplicationConfigInResponse(t *testing.T) {
+func TestFailedUpsertOfApplicationConfigWhenApplicationConfigInResponseIsInvalid(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -216,7 +299,7 @@ func TestFailedUpsertOfApplicationConfigBecauseOfInvalidApplicationConfigInRespo
 	}
 }
 
-func TestFailedUpsertOfApplicationConfigBecauseOfClientError(t *testing.T) {
+func TestFailedUpsertOfApplicationConfigWhenClientReturnsError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
