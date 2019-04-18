@@ -114,58 +114,6 @@ func TestShouldMapLogicalOrExpression(t *testing.T) {
 	runTestCaseForMappingToAPI(expr, expectedResult, t)
 }
 
-func TestShouldMapSubExpression(t *testing.T) {
-	logicalOr := Operator("OR")
-	logicalAnd := Operator("AND")
-	expr := &FilterExpression{
-		Expression: &LogicalOrExpression{
-			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Key:      "foo",
-						Operator: "IS_EMPTY",
-					},
-				},
-				Operator: &logicalAnd,
-				Right: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						SubExpression: &LogicalOrExpression{
-							Left: &LogicalAndExpression{
-								Left: &PrimaryExpression{
-									Comparision: &ComparisionExpression{
-										Key:      "a",
-										Operator: "EQUALS",
-										Value:    "b",
-									},
-								},
-							},
-							Operator: &logicalOr,
-							Right: &LogicalOrExpression{
-								Left: &LogicalAndExpression{
-									Left: &PrimaryExpression{
-										Comparision: &ComparisionExpression{
-											Key:      "a",
-											Operator: "EQUALS",
-											Value:    "c",
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	primaryExpression1 := restapi.NewUnaryOperationExpression("foo", "IS_EMPTY")
-	primaryExpression2 := restapi.NewComparisionExpression("a", "EQUALS", "b")
-	primaryExpression3 := restapi.NewComparisionExpression("a", "EQUALS", "c")
-	nestedOr := restapi.NewBinaryOperator(primaryExpression2, "OR", primaryExpression3)
-	expectedResult := restapi.NewBinaryOperator(primaryExpression1, "AND", nestedOr)
-	runTestCaseForMappingToAPI(expr, expectedResult, t)
-}
-
 func runTestCaseForMappingToAPI(input *FilterExpression, expectedResult restapi.MatchExpression, t *testing.T) {
 	mapper := NewMapper()
 	result := mapper.ToAPIModel(input)

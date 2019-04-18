@@ -8,7 +8,7 @@ import (
 )
 
 func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
-	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS '2.34' AND entity.type EQUALS 'true' AND span.name NOT_EMPTY OR ( span.id NOT_EQUAL  '1234' OR span.id NOT_EQUAL '6789' )"
+	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS '2.34' AND entity.type EQUALS 'true' AND span.name NOT_EMPTY OR span.id NOT_EQUAL  '1234'"
 
 	logicalAnd := Operator("AND")
 	logicalOr := Operator("OR")
@@ -57,28 +57,10 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 				Right: &LogicalOrExpression{
 					Left: &LogicalAndExpression{
 						Left: &PrimaryExpression{
-							SubExpression: &LogicalOrExpression{
-								Left: &LogicalAndExpression{
-									Left: &PrimaryExpression{
-										Comparision: &ComparisionExpression{
-											Key:      "span.id",
-											Operator: "NOT_EQUAL",
-											Value:    "1234",
-										},
-									},
-								},
-								Operator: &logicalOr,
-								Right: &LogicalOrExpression{
-									Left: &LogicalAndExpression{
-										Left: &PrimaryExpression{
-											Comparision: &ComparisionExpression{
-												Key:      "span.id",
-												Operator: "NOT_EQUAL",
-												Value:    "6789",
-											},
-										},
-									},
-								},
+							Comparision: &ComparisionExpression{
+								Key:      "span.id",
+								Operator: "NOT_EQUAL",
+								Value:    "1234",
 							},
 						},
 					},
@@ -334,55 +316,6 @@ func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperati
 		UnaryOperation: &UnaryOperationExpression{
 			Key:      "foo",
 			Operator: "IS_EMPTY",
-		},
-	}
-
-	rendered := sut.Render()
-
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
-	}
-}
-
-func TestShouldRenderSubExpression(t *testing.T) {
-	expectedResult := "foo IS_EMPTY AND ( a EQUALS 'b' OR a EQUALS 'c' )"
-
-	logicalOr := Operator("OR")
-	logicalAnd := Operator("AND")
-	sut := &LogicalAndExpression{
-		Left: &PrimaryExpression{
-			UnaryOperation: &UnaryOperationExpression{
-				Key:      "foo",
-				Operator: "IS_EMPTY",
-			},
-		},
-		Operator: &logicalAnd,
-		Right: &LogicalAndExpression{
-			Left: &PrimaryExpression{
-				SubExpression: &LogicalOrExpression{
-					Left: &LogicalAndExpression{
-						Left: &PrimaryExpression{
-							Comparision: &ComparisionExpression{
-								Key:      "a",
-								Operator: "EQUALS",
-								Value:    "b",
-							},
-						},
-					},
-					Operator: &logicalOr,
-					Right: &LogicalOrExpression{
-						Left: &LogicalAndExpression{
-							Left: &PrimaryExpression{
-								Comparision: &ComparisionExpression{
-									Key:      "a",
-									Operator: "EQUALS",
-									Value:    "c",
-								},
-							},
-						},
-					},
-				},
-			},
 		},
 	}
 

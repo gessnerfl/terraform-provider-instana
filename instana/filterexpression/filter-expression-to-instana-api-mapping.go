@@ -26,9 +26,6 @@ func (m *mapperImpl) mapLogicalAndToAPIModel(input *LogicalAndExpression) restap
 }
 
 func (m *mapperImpl) mapPrimaryExpressionToAPIModel(input *PrimaryExpression) restapi.MatchExpression {
-	if input.SubExpression != nil {
-		return m.mapSubExpressionToAPIModel(input.SubExpression)
-	}
 	if input.UnaryOperation != nil {
 		return m.mapUnaryOperatorExpressionToAPIModel(input.UnaryOperation)
 	}
@@ -41,8 +38,4 @@ func (m *mapperImpl) mapUnaryOperatorExpressionToAPIModel(input *UnaryOperationE
 
 func (m *mapperImpl) mapComparisionExpressionToAPIModel(input *ComparisionExpression) restapi.MatchExpression {
 	return restapi.NewComparisionExpression(input.Key, string(input.Operator), input.Value)
-}
-
-func (m *mapperImpl) mapSubExpressionToAPIModel(input *LogicalOrExpression) restapi.MatchExpression {
-	return m.mapLogicalOrToAPIModel(input)
 }

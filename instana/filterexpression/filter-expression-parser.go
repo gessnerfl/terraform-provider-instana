@@ -73,16 +73,12 @@ func (e *LogicalAndExpression) Render() string {
 type PrimaryExpression struct {
 	Comparision    *ComparisionExpression    `parser:"  @@"`
 	UnaryOperation *UnaryOperationExpression `parser:"| @@"`
-	SubExpression  *LogicalOrExpression      `parser:"| \"(\" @@ \")\""`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *PrimaryExpression) Render() string {
 	if e.Comparision != nil {
 		return e.Comparision.Render()
-	}
-	if e.SubExpression != nil {
-		return fmt.Sprintf("( %s )", e.SubExpression.Render())
 	}
 	return e.UnaryOperation.Render()
 }
@@ -116,7 +112,7 @@ var (
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_]*)` +
 		`|(?P<Number>[-+]?\d+(\.\d+)?)` +
 		`|(?P<String>'[^']*'|"[^"]*")` +
-		`|(?P<Operators>EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|[()])`,
+		`|(?P<Operators>EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK)`,
 	))
 	filterParser = participle.MustBuild(
 		&FilterExpression{},
