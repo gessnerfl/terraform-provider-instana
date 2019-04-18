@@ -137,7 +137,7 @@ func TestSuccessfulUpsertOfComplexApplicationConfig(t *testing.T) {
 		Label: "label",
 		MatchSpecification: restapi.NewBinaryOperator(
 			restapi.NewBinaryOperator(
-				restapi.NewComparisionExpression("key1", "EQUAL", "value1"),
+				restapi.NewComparisionExpression("key1", "EQUALS", "value1"),
 				"OR",
 				restapi.NewUnaryOperationExpression("key2", "NOT_EMPTY"),
 			),
@@ -277,7 +277,7 @@ func makeTestApplicationConfigWithCounter(counter int) restapi.ApplicationConfig
 	return restapi.ApplicationConfig{
 		ID:                 id,
 		Label:              label,
-		MatchSpecification: restapi.NewComparisionExpression("key", "EQUAL", "value"),
+		MatchSpecification: restapi.NewComparisionExpression("key", "EQUALS", "value"),
 		Scope:              "scope",
 	}
 }
