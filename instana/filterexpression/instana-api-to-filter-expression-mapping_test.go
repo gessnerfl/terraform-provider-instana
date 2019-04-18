@@ -42,7 +42,7 @@ func testMappingOfOperatorsOfTagExpression(operatorName string) func(t *testing.
 			},
 		}
 
-		runParsingTest(input, expectedResult, t)
+		runTestCaseForMappingFromAPI(input, expectedResult, t)
 	}
 }
 
@@ -92,7 +92,7 @@ func testMappingOfUnaryOperationOfTagExpression(operatorName string) func(t *tes
 			},
 		}
 
-		runParsingTest(input, expectedResult, t)
+		runTestCaseForMappingFromAPI(input, expectedResult, t)
 	}
 }
 
@@ -156,7 +156,7 @@ func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
 		},
 	}
 
-	runParsingTest(input, expectedResult, t)
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
 func TestShouldMapLogicalAndWhenLeftIsAPrimaryExpressionAndRightIsAnotherAndExpression(t *testing.T) {
@@ -198,7 +198,7 @@ func TestShouldMapLogicalAndWhenLeftIsAPrimaryExpressionAndRightIsAnotherAndExpr
 		},
 	}
 
-	runParsingTest(input, expectedResult, t)
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
 func TestShouldFailToMapLogicalAndWhenLeftIsOrExpression(t *testing.T) {
@@ -274,7 +274,7 @@ func TestShouldMapLogiclOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T) 
 		},
 	}
 
-	runParsingTest(input, expectedResult, t)
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
 func TestShouldMapLogiclOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpression(t *testing.T) {
@@ -319,7 +319,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpressi
 		},
 	}
 
-	runParsingTest(input, expectedResult, t)
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
 func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogicalOr(t *testing.T) {
@@ -365,7 +365,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 		},
 	}
 
-	runParsingTest(input, expectedResult, t)
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
 func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogicalAnd(t *testing.T) {
@@ -410,7 +410,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 		},
 	}
 
-	runParsingTest(input, expectedResult, t)
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
 func TestShouldFailToMapLogicalOrWhenLeftIsOrExpression(t *testing.T) {
@@ -468,7 +468,7 @@ func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T
 	}
 }
 
-func runParsingTest(input restapi.MatchExpression, expectedResult *FilterExpression, t *testing.T) {
+func runTestCaseForMappingFromAPI(input restapi.MatchExpression, expectedResult *FilterExpression, t *testing.T) {
 	mapper := NewMapper()
 	result, err := mapper.FromAPIModel(input)
 
