@@ -8,7 +8,7 @@ import (
 )
 
 func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
-	expression := "entity.name CO 'foo bar' OR entity.kind EQ '2.34' AND entity.type EQ 'true' AND span.name NOT EMPTY OR span.id NE  '1234'"
+	expression := "entity.name CO 'foo bar' OR entity.kind EQ '2.34' AND entity.type EQ 'true' AND span.name NOT EMPTY OR ( span.id NE  '1234' OR span.id NE '6789' )"
 
 	logicalAnd := Operator("AND")
 	logicalOr := Operator("OR")
@@ -57,10 +57,28 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 				Right: &LogicalOrExpression{
 					Left: &LogicalAndExpression{
 						Left: &PrimaryExpression{
-							Comparision: &ComparisionExpression{
-								Key:      "span.id",
-								Operator: "NE",
-								Value:    "1234",
+							SubExpression: &LogicalOrExpression{
+								Left: &LogicalAndExpression{
+									Left: &PrimaryExpression{
+										Comparision: &ComparisionExpression{
+											Key:      "span.id",
+											Operator: "NE",
+											Value:    "1234",
+										},
+									},
+								},
+								Operator: &logicalOr,
+								Right: &LogicalOrExpression{
+									Left: &LogicalAndExpression{
+										Left: &PrimaryExpression{
+											Comparision: &ComparisionExpression{
+												Key:      "span.id",
+												Operator: "NE",
+												Value:    "6789",
+											},
+										},
+									},
+								},
 							},
 						},
 					},
@@ -316,6 +334,55 @@ func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperati
 		UnaryOperation: &UnaryOperationExpression{
 			Key:      "foo",
 			Operator: "IS EMPTY",
+		},
+	}
+
+	rendered := sut.Render()
+
+	if rendered != expectedResult {
+		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
+	}
+}
+
+func TestShouldRenderSubExpression(t *testing.T) {
+	expectedResult := "foo IS EMPTY AND ( a EQ 'b' OR a EQ 'c' )"
+
+	logicalOr := Operator("OR")
+	logicalAnd := Operator("AND")
+	sut := &LogicalAndExpression{
+		Left: &PrimaryExpression{
+			UnaryOperation: &UnaryOperationExpression{
+				Key:      "foo",
+				Operator: "IS EMPTY",
+			},
+		},
+		Operator: &logicalAnd,
+		Right: &LogicalAndExpression{
+			Left: &PrimaryExpression{
+				SubExpression: &LogicalOrExpression{
+					Left: &LogicalAndExpression{
+						Left: &PrimaryExpression{
+							Comparision: &ComparisionExpression{
+								Key:      "a",
+								Operator: "EQ",
+								Value:    "b",
+							},
+						},
+					},
+					Operator: &logicalOr,
+					Right: &LogicalOrExpression{
+						Left: &LogicalAndExpression{
+							Left: &PrimaryExpression{
+								Comparision: &ComparisionExpression{
+									Key:      "a",
+									Operator: "EQ",
+									Value:    "c",
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 
