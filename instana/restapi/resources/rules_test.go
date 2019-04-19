@@ -32,7 +32,7 @@ func TestSuccessfulGetOneRule(t *testing.T) {
 	}
 
 	if !cmp.Equal(rule, data) {
-		t.Fatalf("Expected json to be unmarshalled to %v but got %v; diff %s", rule, data, cmp.Diff(rule, data))
+		t.Fatalf(testutils.ExpectedUnmarshalledJSONWithStruct, rule, data, cmp.Diff(rule, data))
 	}
 }
 
@@ -49,7 +49,7 @@ func TestFailedGetOneRuleBecauseOfErrorFromRestClient(t *testing.T) {
 	_, err := sut.GetOne(ruleID)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -66,7 +66,7 @@ func TestFailedGetOneRuleBecauseOfInvalidJsonArray(t *testing.T) {
 	_, err := sut.GetOne(ruleID)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -83,7 +83,7 @@ func TestFailedGetOneRuleBecauseOfInvalidJsonObject(t *testing.T) {
 	_, err := sut.GetOne(ruleID)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -100,7 +100,7 @@ func TestFailedGetOneRuleBecauseOfNoJsonAsResponse(t *testing.T) {
 	_, err := sut.GetOne(ruleID)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -122,7 +122,7 @@ func TestSuccessfulUpsertOfRule(t *testing.T) {
 	}
 
 	if !cmp.Equal(rule, result) {
-		t.Fatalf("Expected json to be unmarshalled to %v but got %v; diff %s", rule, result, cmp.Diff(result, result))
+		t.Fatalf(testutils.ExpectedUnmarshalledJSONWithStruct, rule, result, cmp.Diff(result, result))
 	}
 }
 
@@ -139,7 +139,7 @@ func TestFailedUpsertOfRuleBecauseOfClientError(t *testing.T) {
 	_, err := sut.Upsert(rule)
 
 	if err == nil {
-		t.Fatal("Expected to get error")
+		t.Fatal(testutils.ExpectedError)
 	}
 }
 
@@ -156,7 +156,7 @@ func TestFailedUpsertOfRuleBecauseOfInvalidResponseMessage(t *testing.T) {
 	_, err := sut.Upsert(rule)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -173,7 +173,7 @@ func TestFailedUpsertOfRuleBecauseOfInvalidRuleInResponse(t *testing.T) {
 	_, err := sut.Upsert(rule)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -199,7 +199,7 @@ func TestFailedUpsertOfRuleBecauseOfInvalidRuleProvided(t *testing.T) {
 	_, err := sut.Upsert(rule)
 
 	if err == nil {
-		t.Fatal("Expected to get error")
+		t.Fatal(testutils.ExpectedError)
 	}
 }
 
@@ -233,7 +233,7 @@ func TestFailedDeleteOfRuleByRule(t *testing.T) {
 	err := sut.Delete(rule)
 
 	if err == nil {
-		t.Fatal("Expected to get error")
+		t.Fatal(testutils.ExpectedError)
 	}
 }
 

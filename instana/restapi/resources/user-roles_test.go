@@ -32,7 +32,7 @@ func TestSuccessfulGetOneUserRole(t *testing.T) {
 	}
 
 	if !cmp.Equal(userRole, data) {
-		t.Fatalf("Expected json to be unmarshalled to %v but got %v; diff %s", userRole, data, cmp.Diff(userRole, data))
+		t.Fatalf(testutils.ExpectedUnmarshalledJSONWithStruct, userRole, data, cmp.Diff(userRole, data))
 	}
 }
 
@@ -49,7 +49,7 @@ func TestFailedGetOneUserRoleBecauseOfErrorFromRestClient(t *testing.T) {
 	_, err := sut.GetOne(userRoleID)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -66,7 +66,7 @@ func TestFailedGetOneUserRoleBecauseOfInvalidJsonArray(t *testing.T) {
 	_, err := sut.GetOne(userRoleID)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -83,7 +83,7 @@ func TestFailedGetOneUserRoleBecauseOfInvalidJsonObject(t *testing.T) {
 	_, err := sut.GetOne(userRoleID)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -100,7 +100,7 @@ func TestFailedGetOneUserRoleBecauseResponseIsNotAValidJsonDocument(t *testing.T
 	_, err := sut.GetOne(userRoleID)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -122,7 +122,7 @@ func TestSuccessfulUpsertOfUserRole(t *testing.T) {
 	}
 
 	if !cmp.Equal(userRole, result) {
-		t.Fatalf("Expected json to be unmarshalled to %v but got %v; diff %s", userRole, result, cmp.Diff(result, result))
+		t.Fatalf(testutils.ExpectedUnmarshalledJSONWithStruct, userRole, result, cmp.Diff(result, result))
 	}
 }
 
@@ -139,7 +139,7 @@ func TestFailedUpsertOfUserRoleBecauseOfClientError(t *testing.T) {
 	_, err := sut.Upsert(userRole)
 
 	if err == nil {
-		t.Fatal("Expected to get error")
+		t.Fatal(testutils.ExpectedError)
 	}
 }
 
@@ -156,7 +156,7 @@ func TestFailedUpsertOfUserRoleBecauseOfInvalidResponseMessage(t *testing.T) {
 	_, err := sut.Upsert(userRole)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -173,7 +173,7 @@ func TestFailedUpsertOfUserRoleBecauseOfInvalidUserRoleInResponse(t *testing.T) 
 	_, err := sut.Upsert(userRole)
 
 	if err == nil {
-		t.Fatalf("Expected to get error")
+		t.Fatalf(testutils.ExpectedError)
 	}
 }
 
@@ -192,7 +192,7 @@ func TestFailedUpsertOfUserRoleBecauseOfInvalidUserRoleProvided(t *testing.T) {
 	_, err := sut.Upsert(userRole)
 
 	if err == nil {
-		t.Fatal("Expected to get error")
+		t.Fatal(testutils.ExpectedError)
 	}
 }
 
@@ -226,7 +226,7 @@ func TestFailedDeleteOfUserRoleByUserRole(t *testing.T) {
 	err := sut.Delete(userRole)
 
 	if err == nil {
-		t.Fatal("Expected to get error")
+		t.Fatal(testutils.ExpectedError)
 	}
 }
 
