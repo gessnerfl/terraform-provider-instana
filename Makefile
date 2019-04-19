@@ -82,7 +82,7 @@ ifdef TRAVIS_TAG
 endif
 
 ifeq (${TRAVIS_BRANCH}, "master")
-	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION) -Dsonar.branch.name=master
+	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION)
 endif
 
 ifdef TRAVIS_PULL_REQUEST_BRANCH
