@@ -86,7 +86,7 @@ ifeq (${TRAVIS_BRANCH}, "master")
 endif
 
 ifdef TRAVIS_PULL_REQUEST_BRANCH
-	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION) -Dsonar.branch.name=$(TRAVIS_PULL_REQUEST_BRANCH) -Dsonar.branch.target=$(TRAVIS_BRANCH)
+	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION) -Dsonar.pullrequest.key=$(TRAVIS_PULL_REQUEST) -Dsonar.pullrequest.branch=$(TRAVIS_PULL_REQUEST_BRANCH) -Dsonar.pullrequest.base=$(TRAVIS_BRANCH)
 else
 	@sonar-scanner -X -Dsonar.projectVersion=$(VERSION) -Dsonar.branch.name=$(TRAVIS_BRANCH) -Dsonar.branch.target=master
 endif
