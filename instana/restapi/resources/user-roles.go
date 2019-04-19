@@ -42,16 +42,6 @@ func (resource *UserRoleResourceImpl) validateResponseAndConvertToStruct(data []
 	return userRole, nil
 }
 
-func (resource *UserRoleResourceImpl) validateAllUserRoles(userRoles []restapi.UserRole) error {
-	for _, r := range userRoles {
-		err := r.Validate()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 //Upsert creates or updates a user role
 func (resource *UserRoleResourceImpl) Upsert(userRole restapi.UserRole) (restapi.UserRole, error) {
 	if err := userRole.Validate(); err != nil {

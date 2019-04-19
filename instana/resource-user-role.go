@@ -7,59 +7,44 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-//UserRoleFieldName constant value for the schema field name
-const UserRoleFieldName = "name"
-
-//UserRoleFieldImplicitViewFilter constant value for the schema field implicit_view_filter
-const UserRoleFieldImplicitViewFilter = "implicit_view_filter"
-
-//UserRoleFieldCanConfigureServiceMapping constant value for the schema field can_configure_service_mapping
-const UserRoleFieldCanConfigureServiceMapping = "can_configure_service_mapping"
-
-//UserRoleFieldCanConfigureEumApplications constant value for the schema field can_configure_eum_applications
-const UserRoleFieldCanConfigureEumApplications = "can_configure_eum_applications"
-
-//UserRoleFieldCanConfigureUsers constant value for the schema field can_configure_users
-const UserRoleFieldCanConfigureUsers = "can_configure_users"
-
-//UserRoleFieldCanInstallNewAgents constant value for the schema field can_install_new_agents
-const UserRoleFieldCanInstallNewAgents = "can_install_new_agents"
-
-//UserRoleFieldCanSeeUsageInformation constant value for the schema field can_see_usage_information
-const UserRoleFieldCanSeeUsageInformation = "can_see_usage_information"
-
-//UserRoleFieldCanConfigureIntegrations constant value for the schema field can_configure_integrations
-const UserRoleFieldCanConfigureIntegrations = "can_configure_integrations"
-
-//UserRoleFieldCanSeeOnPremiseLicenseInformation constant value for the schema field can_see_on_premise_license_information
-const UserRoleFieldCanSeeOnPremiseLicenseInformation = "can_see_on_premise_license_information"
-
-//UserRoleFieldCanConfigureRoles constant value for the schema field can_configure_roles
-const UserRoleFieldCanConfigureRoles = "can_configure_roles"
-
-//UserRoleFieldCanConfigureCustomAlerts constant value for the schema field can_configure_custom_alerts
-const UserRoleFieldCanConfigureCustomAlerts = "can_configure_custom_alerts"
-
-//UserRoleFieldCanConfigureAPITokens constant value for the schema field can_configure_api_tokens
-const UserRoleFieldCanConfigureAPITokens = "can_configure_api_tokens"
-
-//UserRoleFieldCanConfigureAgentRunMode constant value for the schema field can_configure_agent_run_mode
-const UserRoleFieldCanConfigureAgentRunMode = "can_configure_agent_run_mode"
-
-//UserRoleFieldCanViewAuditLog constant value for the schema field can_view_audit_log
-const UserRoleFieldCanViewAuditLog = "can_view_audit_log"
-
-//UserRoleFieldCanConfigureObjectives constant value for the schema field can_configure_objectives
-const UserRoleFieldCanConfigureObjectives = "can_configure_objectives"
-
-//UserRoleFieldCanConfigureAgents constant value for the schema field can_configure_agents
-const UserRoleFieldCanConfigureAgents = "can_configure_agents"
-
-//UserRoleFieldCanConfigureAuthenticationMethods constant value for the schema field can_configure_authentication_methods
-const UserRoleFieldCanConfigureAuthenticationMethods = "can_configure_authentication_methods"
-
-//UserRoleFieldCanConfigureApplications constant value for the schema field can_configure_applications
-const UserRoleFieldCanConfigureApplications = "can_configure_applications"
+const (
+	//UserRoleFieldName constant value for the schema field name
+	UserRoleFieldName = "name"
+	//UserRoleFieldImplicitViewFilter constant value for the schema field implicit_view_filter
+	UserRoleFieldImplicitViewFilter = "implicit_view_filter"
+	//UserRoleFieldCanConfigureServiceMapping constant value for the schema field can_configure_service_mapping
+	UserRoleFieldCanConfigureServiceMapping = "can_configure_service_mapping"
+	//UserRoleFieldCanConfigureEumApplications constant value for the schema field can_configure_eum_applications
+	UserRoleFieldCanConfigureEumApplications = "can_configure_eum_applications"
+	//UserRoleFieldCanConfigureUsers constant value for the schema field can_configure_users
+	UserRoleFieldCanConfigureUsers = "can_configure_users"
+	//UserRoleFieldCanInstallNewAgents constant value for the schema field can_install_new_agents
+	UserRoleFieldCanInstallNewAgents = "can_install_new_agents"
+	//UserRoleFieldCanSeeUsageInformation constant value for the schema field can_see_usage_information
+	UserRoleFieldCanSeeUsageInformation = "can_see_usage_information"
+	//UserRoleFieldCanConfigureIntegrations constant value for the schema field can_configure_integrations
+	UserRoleFieldCanConfigureIntegrations = "can_configure_integrations"
+	//UserRoleFieldCanSeeOnPremiseLicenseInformation constant value for the schema field can_see_on_premise_license_information
+	UserRoleFieldCanSeeOnPremiseLicenseInformation = "can_see_on_premise_license_information"
+	//UserRoleFieldCanConfigureRoles constant value for the schema field can_configure_roles
+	UserRoleFieldCanConfigureRoles = "can_configure_roles"
+	//UserRoleFieldCanConfigureCustomAlerts constant value for the schema field can_configure_custom_alerts
+	UserRoleFieldCanConfigureCustomAlerts = "can_configure_custom_alerts"
+	//UserRoleFieldCanConfigureAPITokens constant value for the schema field can_configure_api_tokens
+	UserRoleFieldCanConfigureAPITokens = "can_configure_api_tokens"
+	//UserRoleFieldCanConfigureAgentRunMode constant value for the schema field can_configure_agent_run_mode
+	UserRoleFieldCanConfigureAgentRunMode = "can_configure_agent_run_mode"
+	//UserRoleFieldCanViewAuditLog constant value for the schema field can_view_audit_log
+	UserRoleFieldCanViewAuditLog = "can_view_audit_log"
+	//UserRoleFieldCanConfigureObjectives constant value for the schema field can_configure_objectives
+	UserRoleFieldCanConfigureObjectives = "can_configure_objectives"
+	//UserRoleFieldCanConfigureAgents constant value for the schema field can_configure_agents
+	UserRoleFieldCanConfigureAgents = "can_configure_agents"
+	//UserRoleFieldCanConfigureAuthenticationMethods constant value for the schema field can_configure_authentication_methods
+	UserRoleFieldCanConfigureAuthenticationMethods = "can_configure_authentication_methods"
+	//UserRoleFieldCanConfigureApplications constant value for the schema field can_configure_applications
+	UserRoleFieldCanConfigureApplications = "can_configure_applications"
+)
 
 //CreateResourceUserRole creates the resource definition for the resource instana_user_role
 func CreateResourceUserRole() *schema.Resource {

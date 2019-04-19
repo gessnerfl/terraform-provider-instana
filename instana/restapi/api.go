@@ -23,6 +23,15 @@ const SettingsBasePath = InstanaAPIBasePath + "/settings"
 //UserRolesResourcePath path to User Role resource of Instana RESTful API
 const UserRolesResourcePath = SettingsBasePath + "/roles"
 
+//ApplicationMonitoringBasePath path to application monitoring resource of Instana RESTful API
+const ApplicationMonitoringBasePath = InstanaAPIBasePath + "/application-monitoring"
+
+//ApplicationMonitoringSettingsBasePath path to application monitoring settings resource of Instana RESTful API
+const ApplicationMonitoringSettingsBasePath = ApplicationMonitoringBasePath + "/settings"
+
+//ApplicationConfigsResourcePath path to application config resource of Instana RESTful API
+const ApplicationConfigsResourcePath = ApplicationMonitoringSettingsBasePath + "/application"
+
 //InstanaDataObject is a marker interface for any data object provided by any resource of the Instana REST API
 type InstanaDataObject interface {
 	GetID() string
@@ -41,6 +50,7 @@ type InstanaAPI interface {
 	Rules() RuleResource
 	RuleBindings() RuleBindingResource
 	UserRoles() UserRoleResource
+	ApplicationConfigs() ApplicationConfigResource
 }
 
 //ErrEntityNotFound error message which is returned when the entity cannot be found at the server

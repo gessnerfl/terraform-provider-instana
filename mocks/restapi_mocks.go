@@ -5,9 +5,10 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	restapi "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockRestClient is a mock of RestClient interface
@@ -191,4 +192,18 @@ func (m *MockInstanaAPI) UserRoles() restapi.UserRoleResource {
 func (mr *MockInstanaAPIMockRecorder) UserRoles() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserRoles", reflect.TypeOf((*MockInstanaAPI)(nil).UserRoles))
+}
+
+// ApplicationConfigs mocks base method
+func (m *MockInstanaAPI) ApplicationConfigs() restapi.ApplicationConfigResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApplicationConfigs")
+	ret0, _ := ret[0].(restapi.ApplicationConfigResource)
+	return ret0
+}
+
+// ApplicationConfigs indicates an expected call of ApplicationConfigs
+func (mr *MockInstanaAPIMockRecorder) ApplicationConfigs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplicationConfigs", reflect.TypeOf((*MockInstanaAPI)(nil).ApplicationConfigs))
 }

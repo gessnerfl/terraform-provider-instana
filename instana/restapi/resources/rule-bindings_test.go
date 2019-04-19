@@ -168,7 +168,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidResponseMessage(t *testing.T) 
 	}
 }
 
-func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleInResponse(t *testing.T) {
+func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleBindingInResponse(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -176,7 +176,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleInResponse(t *testing.T) {
 	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 
-	client.EXPECT().Put(gomock.Eq(ruleBinding), gomock.Eq(restapi.RuleBindingsResourcePath)).Return([]byte("{ \"invalid\" : \"rule\" }"), nil)
+	client.EXPECT().Put(gomock.Eq(ruleBinding), gomock.Eq(restapi.RuleBindingsResourcePath)).Return([]byte("{ \"invalid\" : \"rule binding\" }"), nil)
 
 	_, err := sut.Upsert(ruleBinding)
 

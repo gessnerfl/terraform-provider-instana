@@ -42,16 +42,6 @@ func (resource *RuleBindingResourceImpl) validateResponseAndConvertToStruct(data
 	return ruleBinding, nil
 }
 
-func (resource *RuleBindingResourceImpl) validateAllRuleBindings(bindings []restapi.RuleBinding) error {
-	for _, b := range bindings {
-		err := b.Validate()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 //Upsert creates or updates a rule binding
 func (resource *RuleBindingResourceImpl) Upsert(binding restapi.RuleBinding) (restapi.RuleBinding, error) {
 	if err := binding.Validate(); err != nil {

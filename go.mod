@@ -1,6 +1,9 @@
 module github.com/gessnerfl/terraform-provider-instana
 
 require (
+	github.com/alecthomas/kong v0.1.16
+	github.com/alecthomas/participle v0.2.1
+	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1
 	github.com/apparentlymart/go-cidr v1.0.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/golang/mock v1.2.0

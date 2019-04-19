@@ -42,16 +42,6 @@ func (resource *RuleResourceImpl) validateResponseAndConvertToStruct(data []byte
 	return rule, nil
 }
 
-func (resource *RuleResourceImpl) validateAllRules(rules []restapi.Rule) error {
-	for _, r := range rules {
-		err := r.Validate()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 //Upsert creates or updates a custom rule
 func (resource *RuleResourceImpl) Upsert(rule restapi.Rule) (restapi.Rule, error) {
 	if err := rule.Validate(); err != nil {

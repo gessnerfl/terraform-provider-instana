@@ -20,6 +20,9 @@ const ResourceInstanaRuleBinding = "instana_rule_binding"
 //ResourceInstanaUserRole the name of the terraform-provider-instana resource to manage user roles
 const ResourceInstanaUserRole = "instana_user_role"
 
+//ResourceInstanaApplicationConfig the name of the terraform-provider-instana resource to manage application config
+const ResourceInstanaApplicationConfig = "instana_application_config"
+
 //Severity representation of the severity in both worlds Instana API and Terraform Provider
 type Severity struct {
 	apiRepresentation       int
@@ -64,9 +67,10 @@ func providerSchema() map[string]*schema.Schema {
 
 func providerResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		ResourceInstanaRule:        CreateResourceRule(),
-		ResourceInstanaRuleBinding: CreateResourceRuleBinding(),
-		ResourceInstanaUserRole:    CreateResourceUserRole(),
+		ResourceInstanaRule:              CreateResourceRule(),
+		ResourceInstanaRuleBinding:       CreateResourceRuleBinding(),
+		ResourceInstanaUserRole:          CreateResourceUserRole(),
+		ResourceInstanaApplicationConfig: CreateResourceApplicationConfig(),
 	}
 }
 

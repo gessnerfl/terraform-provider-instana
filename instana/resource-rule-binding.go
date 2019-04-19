@@ -8,29 +8,24 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-//RuleBindingFieldEnabled constant value for the schema field enabled
-const RuleBindingFieldEnabled = "enabled"
-
-//RuleBindingFieldTriggering constant value for the schema field triggering
-const RuleBindingFieldTriggering = "triggering"
-
-//RuleBindingFieldSeverity constant value for the schema field severity
-const RuleBindingFieldSeverity = "severity"
-
-//RuleBindingFieldText constant value for the schema field text
-const RuleBindingFieldText = "text"
-
-//RuleBindingFieldDescription constant value for the schema field description
-const RuleBindingFieldDescription = "description"
-
-//RuleBindingFieldExpirationTime constant value for the schema field expiration_time
-const RuleBindingFieldExpirationTime = "expiration_time"
-
-//RuleBindingFieldQuery constant value for the schema field query
-const RuleBindingFieldQuery = "query"
-
-//RuleBindingFieldRuleIds constant value for the schema field rule_ids
-const RuleBindingFieldRuleIds = "rule_ids"
+const (
+	//RuleBindingFieldEnabled constant value for the schema field enabled
+	RuleBindingFieldEnabled = "enabled"
+	//RuleBindingFieldTriggering constant value for the schema field triggering
+	RuleBindingFieldTriggering = "triggering"
+	//RuleBindingFieldSeverity constant value for the schema field severity
+	RuleBindingFieldSeverity = "severity"
+	//RuleBindingFieldText constant value for the schema field text
+	RuleBindingFieldText = "text"
+	//RuleBindingFieldDescription constant value for the schema field description
+	RuleBindingFieldDescription = "description"
+	//RuleBindingFieldExpirationTime constant value for the schema field expiration_time
+	RuleBindingFieldExpirationTime = "expiration_time"
+	//RuleBindingFieldQuery constant value for the schema field query
+	RuleBindingFieldQuery = "query"
+	//RuleBindingFieldRuleIds constant value for the schema field rule_ids
+	RuleBindingFieldRuleIds = "rule_ids"
+)
 
 //CreateResourceRuleBinding creates the resource definition for the instana api endpoint for Rule Bindings
 func CreateResourceRuleBinding() *schema.Resource {

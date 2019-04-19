@@ -19,7 +19,7 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 	ruleIds := []string{"test1", "test2"}
 	data := make(map[string]interface{})
 	data[RuleBindingFieldRuleIds] = ruleIds
-	resourceData := createRuleBindingResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleBindingResourceData(data)
 	result := ReadStringArrayParameterFromResource(resourceData, RuleBindingFieldRuleIds)
 
 	if result == nil {
@@ -31,7 +31,7 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 }
 
 func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := createEmptyRuleBindingResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
 	result := ReadStringArrayParameterFromResource(resourceData, RuleBindingFieldRuleIds)
 
 	if result != nil {

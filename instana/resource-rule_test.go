@@ -15,8 +15,8 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
-	testutils "github.com/gessnerfl/terraform-provider-instana/test-utils"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
 var testRuleProviders = map[string]terraform.ResourceProvider{
@@ -114,14 +114,15 @@ func TestResourceRuleDefinition(t *testing.T) {
 }
 
 func validateRuleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	validateRequiredSchemaOfTypeString(RuleFieldName, schemaMap, t)
-	validateRequiredSchemaOfTypeString(RuleFieldEntityType, schemaMap, t)
-	validateRequiredSchemaOfTypeString(RuleFieldMetricName, schemaMap, t)
-	validateOptionalSchemaOfTypeInt(RuleFieldRollup, schemaMap, t)
-	validateRequiredSchemaOfTypeInt(RuleFieldWindow, schemaMap, t)
-	validateRequiredSchemaOfTypeString(RuleFieldAggregation, schemaMap, t)
-	validateRequiredSchemaOfTypeString(RuleFieldConditionOperator, schemaMap, t)
-	validateRequiredSchemaOfTypeFloat(RuleFieldConditionValue, schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleFieldName)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleFieldEntityType)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleFieldMetricName)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(RuleFieldRollup)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(RuleFieldWindow)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleFieldAggregation)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleFieldConditionOperator)
+	schemaAssert.AssertSchemaIsRequiredAndTypeFloat(RuleFieldConditionValue)
 }
 
 func TestShouldSuccessfullyReadRuleFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
@@ -135,7 +136,7 @@ func TestShouldSuccessfullyReadRuleFromInstanaAPIWhenBaseDataWithRollupIsReturne
 }
 
 func testShouldSuccessfullyReadRuleFromInstanaAPI(expectedModel restapi.Rule, t *testing.T) {
-	resourceData := createEmptyRuleResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleResourceData()
 	ruleID := "rule-id"
 	resourceData.SetId(ruleID)
 
@@ -156,7 +157,7 @@ func testShouldSuccessfullyReadRuleFromInstanaAPI(expectedModel restapi.Rule, t 
 }
 
 func TestShouldFailToReadRuleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
-	resourceData := createEmptyRuleResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleResourceData()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -170,7 +171,7 @@ func TestShouldFailToReadRuleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
 }
 
 func TestShouldFailToReadRuleFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist(t *testing.T) {
-	resourceData := createEmptyRuleResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleResourceData()
 	ruleID := "rule-id"
 	resourceData.SetId(ruleID)
 
@@ -193,7 +194,7 @@ func TestShouldFailToReadRuleFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist
 }
 
 func TestShouldFailToReadRuleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	resourceData := createEmptyRuleResourceData(t)
+	resourceData := NewTestHelper(t).CreateEmptyRuleResourceData()
 	ruleID := "rule-id"
 	resourceData.SetId(ruleID)
 	expectedError := errors.New("test")
@@ -218,7 +219,7 @@ func TestShouldFailToReadRuleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *tes
 
 func TestShouldCreateRuleThroughInstanaAPI(t *testing.T) {
 	data := createFullTestRuleData()
-	resourceData := createRuleResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleResourceData(data)
 	expectedModel := createTestRuleModelWithRollup()
 
 	ctrl := gomock.NewController(t)
@@ -239,7 +240,7 @@ func TestShouldCreateRuleThroughInstanaAPI(t *testing.T) {
 
 func TestShouldReturnErrorWhenCreateRuleFailsThroughInstanaAPI(t *testing.T) {
 	data := createFullTestRuleData()
-	resourceData := createRuleResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleResourceData(data)
 	expectedError := errors.New("test")
 
 	ctrl := gomock.NewController(t)
@@ -260,7 +261,7 @@ func TestShouldReturnErrorWhenCreateRuleFailsThroughInstanaAPI(t *testing.T) {
 func TestShouldDeleteRuleThroughInstanaAPI(t *testing.T) {
 	id := "test-id"
 	data := createFullTestRuleData()
-	resourceData := createRuleResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleResourceData(data)
 	resourceData.SetId(id)
 
 	ctrl := gomock.NewController(t)
@@ -284,7 +285,7 @@ func TestShouldDeleteRuleThroughInstanaAPI(t *testing.T) {
 func TestShouldReturnErrorWhenDeleteRuleFailsThroughInstanaAPI(t *testing.T) {
 	id := "test-id"
 	data := createFullTestRuleData()
-	resourceData := createRuleResourceData(t, data)
+	resourceData := NewTestHelper(t).CreateRuleResourceData(data)
 	resourceData.SetId(id)
 	expectedError := errors.New("test")
 
