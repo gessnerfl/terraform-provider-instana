@@ -9,6 +9,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/resources"
 	"github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )
@@ -27,7 +28,7 @@ func TestSuccessfulGetOneApplicationConfig(t *testing.T) {
 	data, err := sut.GetOne(applicationConfig.ID)
 
 	if err != nil {
-		t.Fatalf("Expected no error but got %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
 	if !cmp.Equal(applicationConfig, data) {
@@ -115,7 +116,7 @@ func TestFailedGetOneApplicationConfigWhenExpressionTypeIsNotSupported(t *testin
 		Label: "label",
 		MatchSpecification: restapi.TagMatcherExpression{
 			Key:      "foo",
-			Operator: "NOT_EMPTY",
+			Operator: restapi.NotEmptyOperator,
 		},
 		Scope: "scope",
 	}
@@ -138,13 +139,13 @@ func TestFailedGetOneApplicationConfigWhenLeftSideOfBinaryExpressionTypeIsNotVal
 	sut := NewApplicationConfigResource(client)
 	left := restapi.TagMatcherExpression{
 		Key:      "foo",
-		Operator: "NOT_EMPTY",
+		Operator: restapi.NotEmptyOperator,
 	}
-	right := restapi.NewUnaryOperationExpression("foo", "IS_EMPTY")
+	right := restapi.NewUnaryOperationExpression("foo", restapi.IsEmptyOperator)
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 "id",
 		Label:              "label",
-		MatchSpecification: restapi.NewBinaryOperator(left, "OR", right),
+		MatchSpecification: restapi.NewBinaryOperator(left, restapi.LogicalOr, right),
 		Scope:              "scope",
 	}
 	serializedJSON, _ := json.Marshal(applicationConfig)
@@ -164,15 +165,15 @@ func TestFailedGetOneApplicationConfigWhenRightSideOfBinaryExpressionTypeIsNotVa
 
 	client := mocks.NewMockRestClient(ctrl)
 	sut := NewApplicationConfigResource(client)
-	left := restapi.NewUnaryOperationExpression("foo", "IS_EMPTY")
+	left := restapi.NewUnaryOperationExpression("foo", restapi.IsEmptyOperator)
 	right := restapi.TagMatcherExpression{
 		Key:      "foo",
-		Operator: "NOT_EMPTY",
+		Operator: restapi.NotEmptyOperator,
 	}
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 "id",
 		Label:              "label",
-		MatchSpecification: restapi.NewBinaryOperator(left, "OR", right),
+		MatchSpecification: restapi.NewBinaryOperator(left, restapi.LogicalOr, right),
 		Scope:              "scope",
 	}
 	serializedJSON, _ := json.Marshal(applicationConfig)
@@ -200,7 +201,7 @@ func TestSuccessfulUpsertOfApplicationConfig(t *testing.T) {
 	result, err := sut.Upsert(applicationConfig)
 
 	if err != nil {
-		t.Fatalf("Expected no error but got %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
 	if !cmp.Equal(applicationConfig, result) {
@@ -220,12 +221,12 @@ func TestSuccessfulUpsertOfComplexApplicationConfig(t *testing.T) {
 		Label: "label",
 		MatchSpecification: restapi.NewBinaryOperator(
 			restapi.NewBinaryOperator(
-				restapi.NewComparisionExpression("key1", "EQUALS", "value1"),
-				"OR",
-				restapi.NewUnaryOperationExpression("key2", "NOT_EMPTY"),
+				restapi.NewComparisionExpression("key1", restapi.EqualsOperator, "value1"),
+				restapi.LogicalOr,
+				restapi.NewUnaryOperationExpression("key2", restapi.NotEmptyOperator),
 			),
-			"AND",
-			restapi.NewComparisionExpression("key3", "NOT_EQUAL", "value3"),
+			restapi.LogicalAnd,
+			restapi.NewComparisionExpression("key3", restapi.NotEqualOperator, "value3"),
 		),
 		Scope: "scope",
 	}
@@ -236,7 +237,7 @@ func TestSuccessfulUpsertOfComplexApplicationConfig(t *testing.T) {
 	result, err := sut.Upsert(applicationConfig)
 
 	if err != nil {
-		t.Fatalf("Expected no error but got %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
 	if !cmp.Equal(applicationConfig, result) {
@@ -360,7 +361,7 @@ func makeTestApplicationConfigWithCounter(counter int) restapi.ApplicationConfig
 	return restapi.ApplicationConfig{
 		ID:                 id,
 		Label:              label,
-		MatchSpecification: restapi.NewComparisionExpression("key", "EQUALS", "value"),
+		MatchSpecification: restapi.NewComparisionExpression("key", restapi.EqualsOperator, "value"),
 		Scope:              "scope",
 	}
 }

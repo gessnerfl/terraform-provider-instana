@@ -54,10 +54,10 @@ func (m *mapperImpl) mapBinaryOperatorFromAPIModel(operator *restapi.BinaryOpera
 		return nil, err
 	}
 
-	if operator.Conjunction == "AND" {
+	if operator.Conjunction == restapi.LogicalAnd {
 		return m.mapLogicalAndFromAPIModel(left, right)
 	}
-	if operator.Conjunction == "OR" {
+	if operator.Conjunction == restapi.LogicalOr {
 		return m.mapLogicalOrFromAPIModel(left, right)
 	}
 	return nil, fmt.Errorf("invalid conjunction operator %s", operator.Conjunction)
@@ -69,7 +69,7 @@ func (m *mapperImpl) mapLogicalOrFromAPIModel(left *expressionHandle, right *exp
 		return nil, fmt.Errorf("invalid logical or expression: logical or is not allowed for left side")
 	}
 
-	operator := Operator("OR")
+	operator := Operator(restapi.LogicalOr)
 	return &expressionHandle{
 		or: &LogicalOrExpression{
 			Left:     m.mapLeftOfLogicalOrFromAPIModel(left),
@@ -111,7 +111,7 @@ func (m *mapperImpl) mapLogicalAndFromAPIModel(left *expressionHandle, right *ex
 		return nil, fmt.Errorf("invalid logical and expression: logical and is not allowed for left side")
 	}
 
-	operator := Operator("AND")
+	operator := Operator(restapi.LogicalAnd)
 	if right.and != nil {
 		return &expressionHandle{
 			and: &LogicalAndExpression{

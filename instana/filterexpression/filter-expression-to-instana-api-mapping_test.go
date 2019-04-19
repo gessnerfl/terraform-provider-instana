@@ -15,7 +15,7 @@ func TestShouldMapSimpleComparisionToRepresentationOfInstanaAPI(t *testing.T) {
 	}
 }
 
-func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operatorName string) func(*testing.T) {
+func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operator restapi.MatcherOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expr := &FilterExpression{
 			Expression: &LogicalOrExpression{
@@ -23,7 +23,7 @@ func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operatorName str
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
 							Key:      "key",
-							Operator: Operator(operatorName),
+							Operator: Operator(operator),
 							Value:    "value",
 						},
 					},
@@ -31,7 +31,7 @@ func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operatorName str
 			},
 		}
 
-		expectedResult := restapi.NewComparisionExpression("key", operatorName, "value")
+		expectedResult := restapi.NewComparisionExpression("key", operator, "value")
 		runTestCaseForMappingToAPI(expr, expectedResult, t)
 	}
 }
@@ -42,7 +42,7 @@ func TestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(t *testing.T) {
 	}
 }
 
-func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName string) func(*testing.T) {
+func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName restapi.MatcherOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expr := &FilterExpression{
 			Expression: &LogicalOrExpression{
@@ -63,11 +63,11 @@ func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName s
 }
 
 func TestShouldMapLogicalAndExpression(t *testing.T) {
-	logicalAnd := Operator("AND")
+	logicalAnd := Operator(restapi.LogicalAnd)
 	primaryExpression := PrimaryExpression{
 		UnaryOperation: &UnaryOperationExpression{
 			Key:      "key",
-			Operator: Operator("IS_EMPTY"),
+			Operator: Operator(restapi.IsEmptyOperator),
 		},
 	}
 	expr := &FilterExpression{
@@ -82,17 +82,17 @@ func TestShouldMapLogicalAndExpression(t *testing.T) {
 		},
 	}
 
-	expectedPrimaryExpression := restapi.NewUnaryOperationExpression("key", "IS_EMPTY")
-	expectedResult := restapi.NewBinaryOperator(expectedPrimaryExpression, "AND", expectedPrimaryExpression)
+	expectedPrimaryExpression := restapi.NewUnaryOperationExpression("key", restapi.IsEmptyOperator)
+	expectedResult := restapi.NewBinaryOperator(expectedPrimaryExpression, restapi.LogicalAnd, expectedPrimaryExpression)
 	runTestCaseForMappingToAPI(expr, expectedResult, t)
 }
 
 func TestShouldMapLogicalOrExpression(t *testing.T) {
-	logicalOr := Operator("OR")
+	logicalOr := Operator(restapi.LogicalOr)
 	primaryExpression := PrimaryExpression{
 		UnaryOperation: &UnaryOperationExpression{
 			Key:      "key",
-			Operator: Operator("IS_EMPTY"),
+			Operator: Operator(restapi.IsEmptyOperator),
 		},
 	}
 	expr := &FilterExpression{
@@ -109,8 +109,8 @@ func TestShouldMapLogicalOrExpression(t *testing.T) {
 		},
 	}
 
-	expectedPrimaryExpression := restapi.NewUnaryOperationExpression("key", "IS_EMPTY")
-	expectedResult := restapi.NewBinaryOperator(expectedPrimaryExpression, "OR", expectedPrimaryExpression)
+	expectedPrimaryExpression := restapi.NewUnaryOperationExpression("key", restapi.IsEmptyOperator)
+	expectedResult := restapi.NewBinaryOperator(expectedPrimaryExpression, restapi.LogicalOr, expectedPrimaryExpression)
 	runTestCaseForMappingToAPI(expr, expectedResult, t)
 }
 

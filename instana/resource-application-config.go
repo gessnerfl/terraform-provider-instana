@@ -25,13 +25,6 @@ const (
 )
 
 const (
-	//ConjunctionAnd constant filed for logical AND conjunction
-	ConjunctionAnd = "AND"
-	//ConjunctionOr constatnt field for logical OR conjunction
-	ConjunctionOr = "OR"
-)
-
-const (
 	//ApplicationConfigFieldLabel const for the lable field of the application config
 	ApplicationConfigFieldLabel = "label"
 	//ApplicationConfigFieldScope const for the scope field of the application config

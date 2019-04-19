@@ -23,7 +23,7 @@ func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing
 
 	resp, err := http.Post(url, "test/plain", strings.NewReader(testString))
 	if err != nil {
-		t.Fatalf("Expected no error but got, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if resp.StatusCode != 200 {
 		t.Fatalf("Expected http status code 200 but got %d", resp.StatusCode)

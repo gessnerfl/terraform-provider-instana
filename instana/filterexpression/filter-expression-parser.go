@@ -8,12 +8,12 @@ import (
 	"github.com/alecthomas/participle/lexer"
 )
 
-//Operator Custom type for and kind of operator
+//Operator custom type for any kind of operator
 type Operator string
 
 //Capture captures the string representation of an operator from the given string. Interface of participle
-func (c *Operator) Capture(values []string) error {
-	*c = Operator(strings.ToUpper(values[0]))
+func (o *Operator) Capture(values []string) error {
+	*o = Operator(strings.ToUpper(values[0]))
 	return nil
 }
 

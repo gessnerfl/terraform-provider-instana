@@ -334,11 +334,11 @@ func createTestApplicationConfigModelWithRollup() restapi.ApplicationConfig {
 }
 
 func createBaseTestApplicationConfigModel() restapi.ApplicationConfig {
-	comparision1 := restapi.NewComparisionExpression("entity.name", "CONTAINS", "foo")
-	comparision2 := restapi.NewComparisionExpression("entity.type", "EQUALS", "mysql")
-	comparision3 := restapi.NewComparisionExpression("entity.type", "EQUALS", "elasticsearch")
-	logicalAnd := restapi.NewBinaryOperator(comparision1, "AND", comparision2)
-	logicalOr := restapi.NewBinaryOperator(logicalAnd, "OR", comparision3)
+	comparision1 := restapi.NewComparisionExpression("entity.name", restapi.ContainsOperator, "foo")
+	comparision2 := restapi.NewComparisionExpression("entity.type", restapi.EqualsOperator, "mysql")
+	comparision3 := restapi.NewComparisionExpression("entity.type", restapi.EqualsOperator, "elasticsearch")
+	logicalAnd := restapi.NewBinaryOperator(comparision1, restapi.LogicalAnd, comparision2)
+	logicalOr := restapi.NewBinaryOperator(logicalAnd, restapi.LogicalOr, comparision3)
 	return restapi.ApplicationConfig{
 		ID:                 "id",
 		Label:              "label",

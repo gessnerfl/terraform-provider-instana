@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/google/go-cmp/cmp"
 )
 
@@ -51,7 +52,7 @@ func testShouldReturnStringRepresentationOfSeverity(severity Severity, t *testin
 	result, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity.GetAPIRepresentation())
 
 	if err != nil {
-		t.Fatalf("Expected no error but got %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
 	if result != severity.GetTerraformRepresentation() {
@@ -83,7 +84,7 @@ func testShouldReturnIntRepresentationOfSeverity(severity Severity, t *testing.T
 	result, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity.GetTerraformRepresentation())
 
 	if err != nil {
-		t.Fatalf("Expected no error but got %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
 	if result != severity.GetAPIRepresentation() {

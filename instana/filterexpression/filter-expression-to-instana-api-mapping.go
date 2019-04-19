@@ -11,7 +11,7 @@ func (m *mapperImpl) mapLogicalOrToAPIModel(input *LogicalOrExpression) restapi.
 	left := m.mapLogicalAndToAPIModel(input.Left)
 	if input.Operator != nil {
 		right := m.mapLogicalOrToAPIModel(input.Right)
-		return restapi.NewBinaryOperator(left, "OR", right)
+		return restapi.NewBinaryOperator(left, restapi.LogicalOr, right)
 	}
 	return left
 }
@@ -20,7 +20,7 @@ func (m *mapperImpl) mapLogicalAndToAPIModel(input *LogicalAndExpression) restap
 	left := m.mapPrimaryExpressionToAPIModel(input.Left)
 	if input.Operator != nil {
 		right := m.mapLogicalAndToAPIModel(input.Right)
-		return restapi.NewBinaryOperator(left, "AND", right)
+		return restapi.NewBinaryOperator(left, restapi.LogicalAnd, right)
 	}
 	return left
 }
@@ -33,9 +33,9 @@ func (m *mapperImpl) mapPrimaryExpressionToAPIModel(input *PrimaryExpression) re
 }
 
 func (m *mapperImpl) mapUnaryOperatorExpressionToAPIModel(input *UnaryOperationExpression) restapi.MatchExpression {
-	return restapi.NewUnaryOperationExpression(input.Key, string(input.Operator))
+	return restapi.NewUnaryOperationExpression(input.Key, restapi.MatcherOperator(input.Operator))
 }
 
 func (m *mapperImpl) mapComparisionExpressionToAPIModel(input *ComparisionExpression) restapi.MatchExpression {
-	return restapi.NewComparisionExpression(input.Key, string(input.Operator), input.Value)
+	return restapi.NewComparisionExpression(input.Key, restapi.MatcherOperator(input.Operator), input.Value)
 }

@@ -15,14 +15,46 @@ const (
 	LeafExpressionType MatchExpressionType = "LEAF"
 )
 
+//ConjunctionType custom type for conjunctions
+type ConjunctionType string
+
+const (
+	//LogicalAnd constant for logical AND conjunction
+	LogicalAnd = ConjunctionType("AND")
+	//LogicalOr constant for logical OR conjunction
+	LogicalOr = ConjunctionType("OR")
+)
+
+//MatcherOperator custom type for tag matcher operators
+type MatcherOperator string
+
+const (
+	//EqualsOperator constant for the EQUALS operator
+	EqualsOperator = MatcherOperator("EQUALS")
+	//NotEqualOperator constant for the NOT_EQUAL operator
+	NotEqualOperator = MatcherOperator("NOT_EQUAL")
+	//ContainsOperator constant for the CONTAINS operator
+	ContainsOperator = MatcherOperator("CONTAINS")
+	//NotContainOperator constant for the NOT_CONTAIN operator
+	NotContainOperator = MatcherOperator("NOT_CONTAIN")
+	//IsEmptyOperator constant for the IS_EMPTY operator
+	IsEmptyOperator = MatcherOperator("IS_EMPTY")
+	//NotEmptyOperator constant for the NOT_EMPTY operator
+	NotEmptyOperator = MatcherOperator("NOT_EMPTY")
+	//IsBlankOperator constant for the IS_BLANK operator
+	IsBlankOperator = MatcherOperator("IS_BLANK")
+	//NotBalnkOperator constant for the NOT_BLANK operator
+	NotBalnkOperator = MatcherOperator("NOT_BLANK")
+)
+
 //SupportedComparisionOperators list of supported comparision operators of Instana API
-var SupportedComparisionOperators = []string{"EQUALS", "NOT_EQUAL", "CONTAINS", "NOT_CONTAIN"}
+var SupportedComparisionOperators = []MatcherOperator{EqualsOperator, NotEqualOperator, ContainsOperator, NotContainOperator}
 
 //SupportedUnaryOperatorExpressionOperators list of supported unary expression operators of Instana API
-var SupportedUnaryOperatorExpressionOperators = []string{"IS_EMPTY", "NOT_EMPTY", "IS_BLANK", "NOT_BLANK"}
+var SupportedUnaryOperatorExpressionOperators = []MatcherOperator{IsEmptyOperator, NotEmptyOperator, IsBlankOperator, NotBalnkOperator}
 
-//SupportedConjunctions list of supported binary expression operators of Instana API
-var SupportedConjunctions = []string{"AND", "OR"}
+//SupportedConjunctionTypes list of supported binary expression operators of Instana API
+var SupportedConjunctionTypes = []ConjunctionType{LogicalAnd, LogicalOr}
 
 //ApplicationConfigResource represents the REST resource of application perspective configuration at Instana
 type ApplicationConfigResource interface {
@@ -39,7 +71,7 @@ type MatchExpression interface {
 }
 
 //NewBinaryOperator creates and new binary operator MatchExpression
-func NewBinaryOperator(left MatchExpression, conjunction string, right MatchExpression) MatchExpression {
+func NewBinaryOperator(left MatchExpression, conjunction ConjunctionType, right MatchExpression) MatchExpression {
 	return BinaryOperator{
 		Dtype:       BinaryOperatorExpressionType,
 		Left:        left,
@@ -53,11 +85,11 @@ type BinaryOperator struct {
 	Dtype       MatchExpressionType `json:"type"`
 	Left        interface{}         `json:"left"`
 	Right       interface{}         `json:"right"`
-	Conjunction string              `json:"conjunction"`
+	Conjunction ConjunctionType     `json:"conjunction"`
 }
 
 //NewComparisionExpression creates and new tag matcher expression for a comparision
-func NewComparisionExpression(key string, operator string, value string) MatchExpression {
+func NewComparisionExpression(key string, operator MatcherOperator, value string) MatchExpression {
 	return TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
@@ -67,7 +99,7 @@ func NewComparisionExpression(key string, operator string, value string) MatchEx
 }
 
 //NewUnaryOperationExpression creates and new tag matcher expression for a unary operation
-func NewUnaryOperationExpression(key string, operator string) MatchExpression {
+func NewUnaryOperationExpression(key string, operator MatcherOperator) MatchExpression {
 	return TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
@@ -79,7 +111,7 @@ func NewUnaryOperationExpression(key string, operator string) MatchExpression {
 type TagMatcherExpression struct {
 	Dtype    MatchExpressionType `json:"type"`
 	Key      string              `json:"key"`
-	Operator string              `json:"operator"`
+	Operator MatcherOperator     `json:"operator"`
 	Value    *string             `json:"value"`
 }
 
@@ -136,7 +168,7 @@ func (b BinaryOperator) Validate() error {
 		return errors.New("conjunction of expressions is missing")
 	}
 
-	if !IsSupportedConjunction(b.Conjunction) {
+	if !IsSupportedConjunctionType(b.Conjunction) {
 		return fmt.Errorf("conjunction of type '%s' is not supported", b.Conjunction)
 	}
 
@@ -179,21 +211,30 @@ func (t TagMatcherExpression) Validate() error {
 }
 
 //IsSupportedComparision returns true if the provided operator is a valid comparision type
-func IsSupportedComparision(operator string) bool {
-	return isInSlice(SupportedComparisionOperators, operator)
+func IsSupportedComparision(operator MatcherOperator) bool {
+	return isInMatcherOperatorSlice(SupportedComparisionOperators, operator)
 }
 
 //IsSupportedUnaryOperatorExpression returns true if the provided operator is a valid unary operator type
-func IsSupportedUnaryOperatorExpression(operator string) bool {
-	return isInSlice(SupportedUnaryOperatorExpressionOperators, operator)
+func IsSupportedUnaryOperatorExpression(operator MatcherOperator) bool {
+	return isInMatcherOperatorSlice(SupportedUnaryOperatorExpressionOperators, operator)
 }
 
-//IsSupportedConjunction returns true if the provided operator is a valid conjunction type
-func IsSupportedConjunction(operator string) bool {
-	return isInSlice(SupportedConjunctions, operator)
+func isInMatcherOperatorSlice(allOperators []MatcherOperator, operator MatcherOperator) bool {
+	for _, v := range allOperators {
+		if v == operator {
+			return true
+		}
+	}
+	return false
 }
 
-func isInSlice(allOperators []string, operator string) bool {
+//IsSupportedConjunctionType returns true if the provided operator is a valid conjunction type
+func IsSupportedConjunctionType(operator ConjunctionType) bool {
+	return isInConjunctionTypeSlice(SupportedConjunctionTypes, operator)
+}
+
+func isInConjunctionTypeSlice(allOperators []ConjunctionType, operator ConjunctionType) bool {
 	for _, v := range allOperators {
 		if v == operator {
 			return true

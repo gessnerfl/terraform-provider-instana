@@ -69,7 +69,7 @@ func validateConfigureFunc(schemaMap map[string]*schema.Schema, configureFunc fu
 	result, err := configureFunc(resourceData)
 
 	if err != nil {
-		t.Fatalf("expected no error but got %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if _, ok := result.(restapi.InstanaAPI); ok == false {
 		t.Fatal("expected to get instance of InstanaAPI")

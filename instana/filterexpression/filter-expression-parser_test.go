@@ -3,22 +3,25 @@ package filterexpression_test
 import (
 	"testing"
 
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+
 	. "github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/google/go-cmp/cmp"
 )
 
 func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS '2.34' AND entity.type EQUALS 'true' AND span.name NOT_EMPTY OR span.id NOT_EQUAL  '1234'"
 
-	logicalAnd := Operator("AND")
-	logicalOr := Operator("OR")
+	logicalAnd := Operator(restapi.LogicalAnd)
+	logicalOr := Operator(restapi.LogicalOr)
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
-						Operator: "CONTAINS",
+						Operator: Operator(restapi.ContainsOperator),
 						Value:    "foo bar",
 					},
 				},
@@ -29,7 +32,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
 							Key:      "entity.kind",
-							Operator: "EQUALS",
+							Operator: Operator(restapi.EqualsOperator),
 							Value:    "2.34",
 						},
 					},
@@ -38,7 +41,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 						Left: &PrimaryExpression{
 							Comparision: &ComparisionExpression{
 								Key:      "entity.type",
-								Operator: "EQUALS",
+								Operator: Operator(restapi.EqualsOperator),
 								Value:    "true",
 							},
 						},
@@ -47,7 +50,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 							Left: &PrimaryExpression{
 								UnaryOperation: &UnaryOperationExpression{
 									Key:      "span.name",
-									Operator: "NOT_EMPTY",
+									Operator: Operator(restapi.NotEmptyOperator),
 								},
 							},
 						},
@@ -59,7 +62,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 						Left: &PrimaryExpression{
 							Comparision: &ComparisionExpression{
 								Key:      "span.id",
-								Operator: "NOT_EQUAL",
+								Operator: Operator(restapi.NotEqualOperator),
 								Value:    "1234",
 							},
 						},
@@ -75,14 +78,14 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 	expression := "entity.name CONTAINS 'foo' and entity.type EQUALS 'bar'"
 
-	logicalAnd := Operator("AND")
+	logicalAnd := Operator(restapi.LogicalAnd)
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
-						Operator: "CONTAINS",
+						Operator: Operator(restapi.ContainsOperator),
 						Value:    "foo",
 					},
 				},
@@ -91,7 +94,7 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
 							Key:      "entity.type",
-							Operator: "EQUALS",
+							Operator: Operator(restapi.EqualsOperator),
 							Value:    "bar",
 						},
 					},
@@ -112,7 +115,7 @@ func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
 						Key:      "entity.name",
-						Operator: "EQUALS",
+						Operator: Operator(restapi.EqualsOperator),
 						Value:    "foo",
 					},
 				},
@@ -132,7 +135,7 @@ func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
 						Key:      "entity.name",
-						Operator: "NOT_EMPTY",
+						Operator: Operator(restapi.NotEmptyOperator),
 					},
 				},
 			},
@@ -174,7 +177,7 @@ func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
 	result, err := sut.Parse(expression)
 
 	if err != nil {
-		t.Fatalf("Expected no error but got '%s'", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
 	rendered := result.Render()
@@ -186,13 +189,13 @@ func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
 func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 	expectedResult := "foo EQUALS 'bar' OR foo CONTAINS 'bar'"
 
-	logicalOr := Operator("OR")
+	logicalOr := Operator(restapi.LogicalOr)
 	sut := LogicalOrExpression{
 		Left: &LogicalAndExpression{
 			Left: &PrimaryExpression{
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
-					Operator: "EQUALS",
+					Operator: Operator(restapi.EqualsOperator),
 					Value:    "bar",
 				},
 			},
@@ -203,7 +206,7 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
 						Key:      "foo",
-						Operator: "CONTAINS",
+						Operator: Operator(restapi.ContainsOperator),
 						Value:    "bar",
 					},
 				},
@@ -226,7 +229,7 @@ func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIs
 			Left: &PrimaryExpression{
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
-					Operator: "EQUALS",
+					Operator: Operator(restapi.EqualsOperator),
 					Value:    "bar",
 				},
 			},
@@ -243,12 +246,12 @@ func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIs
 func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 	expectedResult := "foo EQUALS 'bar' AND foo CONTAINS 'bar'"
 
-	logicalAnd := Operator("AND")
+	logicalAnd := Operator(restapi.LogicalAnd)
 	sut := LogicalAndExpression{
 		Left: &PrimaryExpression{
 			Comparision: &ComparisionExpression{
 				Key:      "foo",
-				Operator: "EQUALS",
+				Operator: Operator(restapi.EqualsOperator),
 				Value:    "bar",
 			},
 		},
@@ -257,7 +260,7 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 			Left: &PrimaryExpression{
 				Comparision: &ComparisionExpression{
 					Key:      "foo",
-					Operator: "CONTAINS",
+					Operator: Operator(restapi.ContainsOperator),
 					Value:    "bar",
 				},
 			},
@@ -278,7 +281,7 @@ func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *t
 		Left: &PrimaryExpression{
 			Comparision: &ComparisionExpression{
 				Key:      "foo",
-				Operator: "EQUALS",
+				Operator: Operator(restapi.EqualsOperator),
 				Value:    "bar",
 			},
 		},
@@ -297,7 +300,7 @@ func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testin
 	sut := PrimaryExpression{
 		Comparision: &ComparisionExpression{
 			Key:      "foo",
-			Operator: "EQUALS",
+			Operator: Operator(restapi.EqualsOperator),
 			Value:    "bar",
 		},
 	}
@@ -315,7 +318,7 @@ func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperati
 	sut := PrimaryExpression{
 		UnaryOperation: &UnaryOperationExpression{
 			Key:      "foo",
-			Operator: "IS_EMPTY",
+			Operator: Operator(restapi.IsEmptyOperator),
 		},
 	}
 

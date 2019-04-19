@@ -9,6 +9,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/resources"
 	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 )
@@ -27,7 +28,7 @@ func TestSuccessfulGetOneRuleBinding(t *testing.T) {
 	data, err := sut.GetOne(ruleBinding.ID)
 
 	if err != nil {
-		t.Fatalf("Expected no error but got %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
 	if !cmp.Equal(ruleBinding, data) {
@@ -117,7 +118,7 @@ func TestSuccessfulUpsertOfRuleBinding(t *testing.T) {
 	result, err := sut.Upsert(ruleBinding)
 
 	if err != nil {
-		t.Fatalf("Expected no error but got %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
 	if !cmp.Equal(ruleBinding, result) {
