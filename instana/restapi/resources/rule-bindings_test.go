@@ -3,7 +3,6 @@ package resources_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -12,6 +11,14 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
+)
+
+const (
+	ruleBindingID          = "test-rule-binding-id"
+	ruleBindingText        = "test-text"
+	ruleBindingDescription = "test-rule-binding-description"
+	ruleBindingQuery       = "entity.type:jvm"
+	ruldBindingRuleID      = "rule-id-1"
 )
 
 func TestSuccessfulGetOneRuleBinding(t *testing.T) {
@@ -42,7 +49,6 @@ func TestFailedGetOneRuleBindingBecauseOfErrorFromRestClient(t *testing.T) {
 
 	client := mocks.NewMockRestClient(ctrl)
 	sut := NewRuleBindingResource(client)
-	ruleBindingID := "test-rule-binding-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleBindingID), gomock.Eq(restapi.RuleBindingsResourcePath)).Return(nil, errors.New("error during test"))
 
@@ -59,7 +65,6 @@ func TestFailedGetOneRuleBindingBecauseOfInvalidJsonArray(t *testing.T) {
 
 	client := mocks.NewMockRestClient(ctrl)
 	sut := NewRuleBindingResource(client)
-	ruleBindingID := "test-rule-binding-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleBindingID), gomock.Eq(restapi.RuleBindingsResourcePath)).Return([]byte("[{ \"invalid\" : \"data\" }]"), nil)
 
@@ -76,7 +81,6 @@ func TestFailedGetOneRuleBindingBecauseOfInvalidJsonObject(t *testing.T) {
 
 	client := mocks.NewMockRestClient(ctrl)
 	sut := NewRuleBindingResource(client)
-	ruleBindingID := "test-rule-binding-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleBindingID), gomock.Eq(restapi.RuleBindingsResourcePath)).Return([]byte("{ \"invalid\" : \"data\" }"), nil)
 
@@ -93,7 +97,6 @@ func TestFailedGetOneRuleBindingBecauseOfNoJsonAsResponse(t *testing.T) {
 
 	client := mocks.NewMockRestClient(ctrl)
 	sut := NewRuleBindingResource(client)
-	ruleBindingID := "test-rule-binding-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleBindingID), gomock.Eq(restapi.RuleBindingsResourcePath)).Return([]byte("Invalid Data"), nil)
 
@@ -136,11 +139,11 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleBinding(t *testing.T) {
 		Enabled:        false,
 		Triggering:     false,
 		Severity:       1,
-		Text:           "test-text",
-		Description:    "test-description",
+		Text:           ruleBindingText,
+		Description:    ruleBindingDescription,
 		ExpirationTime: 60000,
-		Query:          "entity.type:jvm",
-		RuleIds:        []string{"test-rule-id"},
+		Query:          ruleBindingQuery,
+		RuleIds:        []string{ruldBindingRuleID},
 	}
 
 	client.EXPECT().Put(gomock.Eq(ruleBinding), gomock.Eq(restapi.RuleBindingsResourcePath)).Times(0)
@@ -211,7 +214,7 @@ func TestSuccessfulDeleteOfRuleBindingByRuleBinding(t *testing.T) {
 	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 
-	client.EXPECT().Delete(gomock.Eq("test-rule-binding-id-1"), gomock.Eq(restapi.RuleBindingsResourcePath)).Return(nil)
+	client.EXPECT().Delete(gomock.Eq(ruleBindingID), gomock.Eq(restapi.RuleBindingsResourcePath)).Return(nil)
 
 	err := sut.Delete(ruleBinding)
 
@@ -228,7 +231,7 @@ func TestFailedDeleteOfRuleBindingByRuleBinding(t *testing.T) {
 	sut := NewRuleBindingResource(client)
 	ruleBinding := makeTestRuleBinding()
 
-	client.EXPECT().Delete(gomock.Eq("test-rule-binding-id-1"), gomock.Eq(restapi.RuleBindingsResourcePath)).Return(errors.New("Error during test"))
+	client.EXPECT().Delete(gomock.Eq(ruleBindingID), gomock.Eq(restapi.RuleBindingsResourcePath)).Return(errors.New("Error during test"))
 
 	err := sut.Delete(ruleBinding)
 
@@ -238,22 +241,15 @@ func TestFailedDeleteOfRuleBindingByRuleBinding(t *testing.T) {
 }
 
 func makeTestRuleBinding() restapi.RuleBinding {
-	return makeTestRuleBindingWithCounter(1)
-}
-
-func makeTestRuleBindingWithCounter(counter int) restapi.RuleBinding {
-	id := fmt.Sprintf("test-rule-binding-id-%d", counter)
-	text := fmt.Sprintf("Test Rule Binding Text %d", counter)
-	description := fmt.Sprintf("Test Rule Binding Description %d", counter)
 	return restapi.RuleBinding{
-		ID:             id,
+		ID:             ruleBindingID,
 		Enabled:        false,
 		Triggering:     false,
 		Severity:       1,
-		Text:           text,
-		Description:    description,
+		Text:           ruleBindingText,
+		Description:    ruleBindingDescription,
 		ExpirationTime: 60000,
-		Query:          "entity.type:jvm",
-		RuleIds:        []string{"test-rule-id"},
+		Query:          ruleBindingQuery,
+		RuleIds:        []string{ruldBindingRuleID},
 	}
 }

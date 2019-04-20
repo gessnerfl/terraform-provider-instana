@@ -10,19 +10,31 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
+const (
+	idFieldValue         = "id"
+	labelFieldValue      = "label"
+	scopeFieldValue      = "scope"
+	keyFieldValue        = "key"
+	valueFieldValue      = "value"
+	keyLeftFieldValue    = "keyLeft"
+	keyRightFieldValue   = "keyRight"
+	valueLeftFieldValue  = "valueLeft"
+	valueRightFieldValue = "valueRight"
+)
+
 func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
 	config := ApplicationConfig{
-		ID:                 "id",
-		Label:              "label",
-		MatchSpecification: NewComparisionExpression("key", EqualsOperator, "value"),
-		Scope:              "scope",
+		ID:                 idFieldValue,
+		Label:              labelFieldValue,
+		MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+		Scope:              scopeFieldValue,
 	}
 
 	if err := config.Validate(); err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 
-	if config.GetID() != "id" {
+	if config.GetID() != idFieldValue {
 		t.Fatal("Expected id to be valid")
 	}
 }
@@ -30,9 +42,9 @@ func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
 func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
-			Label:              "label",
-			MatchSpecification: NewComparisionExpression("key", EqualsOperator, "value"),
-			Scope:              "scope",
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              scopeFieldValue,
 		}
 
 	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "id") {
@@ -43,9 +55,9 @@ func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
 func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
-			ID:                 "id",
-			MatchSpecification: NewComparisionExpression("key", EqualsOperator, "value"),
-			Scope:              "scope",
+			ID:                 idFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              scopeFieldValue,
 		}
 
 	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "label") {
@@ -56,9 +68,9 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
-			ID:    "id",
-			Label: "label",
-			Scope: "scope",
+			ID:    idFieldValue,
+			Label: labelFieldValue,
+			Scope: scopeFieldValue,
 		}
 
 	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "match specification") {
@@ -68,10 +80,10 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t 
 
 func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t *testing.T) {
 	config := ApplicationConfig{
-		ID:                 "id",
-		Label:              "label",
-		MatchSpecification: NewComparisionExpression("", EqualsOperator, "value"),
-		Scope:              "scope",
+		ID:                 idFieldValue,
+		Label:              labelFieldValue,
+		MatchSpecification: NewComparisionExpression("", EqualsOperator, valueFieldValue),
+		Scope:              scopeFieldValue,
 	}
 
 	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "key") {
@@ -82,9 +94,9 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t
 func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
-			ID:                 "id",
-			Label:              "label",
-			MatchSpecification: NewComparisionExpression("key", EqualsOperator, "value"),
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
 		}
 
 	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "scope") {
@@ -100,8 +112,8 @@ func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
 
 func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator ConjunctionType) func(t *testing.T) {
 	return func(t *testing.T) {
-		left := NewComparisionExpression("keyLeft", EqualsOperator, "valueLeft")
-		right := NewComparisionExpression("keyRight", EqualsOperator, "valueRight")
+		left := NewComparisionExpression(keyLeftFieldValue, EqualsOperator, valueLeftFieldValue)
+		right := NewComparisionExpression(keyRightFieldValue, EqualsOperator, valueRightFieldValue)
 
 		exp := NewBinaryOperator(left, operator, right)
 
@@ -116,7 +128,7 @@ func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator Con
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsMissing(t *testing.T) {
-	right := NewComparisionExpression("keyRight", EqualsOperator, "valueRight")
+	right := NewComparisionExpression(keyRightFieldValue, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(nil, LogicalAnd, right)
 
@@ -126,8 +138,8 @@ func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsMissing(t *testin
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testing.T) {
-	left := NewComparisionExpression("", EqualsOperator, "valueLeft")
-	right := NewComparisionExpression("keyRight", EqualsOperator, "valueRight")
+	left := NewComparisionExpression("", EqualsOperator, valueLeftFieldValue)
+	right := NewComparisionExpression(keyRightFieldValue, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, right)
 
@@ -137,8 +149,8 @@ func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testi
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsNotValid(t *testing.T) {
-	left := NewComparisionExpression("leftKey", EqualsOperator, "valueLeft")
-	right := NewComparisionExpression("keyRight", EqualsOperator, "valueRight")
+	left := NewComparisionExpression("leftKey", EqualsOperator, valueLeftFieldValue)
+	right := NewComparisionExpression(keyRightFieldValue, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, "FOO", right)
 
@@ -148,7 +160,7 @@ func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsNotValid(t *testin
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testing.T) {
-	left := NewComparisionExpression("keyLeft", EqualsOperator, "valueLeft")
+	left := NewComparisionExpression(keyLeftFieldValue, EqualsOperator, valueLeftFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, nil)
 
@@ -158,8 +170,8 @@ func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testi
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *testing.T) {
-	left := NewComparisionExpression("keyLeft", EqualsOperator, "valueLeft")
-	right := NewComparisionExpression("", EqualsOperator, "valueRight")
+	left := NewComparisionExpression(keyLeftFieldValue, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisionExpression("", EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, right)
 
@@ -169,8 +181,8 @@ func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *test
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsMissing(t *testing.T) {
-	left := NewComparisionExpression("keyLeft", EqualsOperator, "valueLeft")
-	right := NewComparisionExpression("keyRight", EqualsOperator, "valueRight")
+	left := NewComparisionExpression(keyLeftFieldValue, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisionExpression(keyRightFieldValue, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, "", right)
 
@@ -187,7 +199,7 @@ func TestShouldCreateValidComparisionExpression(t *testing.T) {
 
 func createTestShouldCreateValidComparisionExpression(operator MatcherOperator) func(*testing.T) {
 	return func(t *testing.T) {
-		exp := NewComparisionExpression("key", operator, "value")
+		exp := NewComparisionExpression(keyFieldValue, operator, valueFieldValue)
 
 		if err := exp.Validate(); err != nil {
 			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -200,7 +212,7 @@ func createTestShouldCreateValidComparisionExpression(operator MatcherOperator) 
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenKeyIsMissing(t *testing.T) {
-	exp := NewComparisionExpression("", EqualsOperator, "value")
+	exp := NewComparisionExpression("", EqualsOperator, valueFieldValue)
 
 	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "key") {
 		t.Fatal("Expected invalid tag matcher expression because of missing key")
@@ -208,7 +220,7 @@ func TestShouldFailToValidateComparisionExpressionWhenKeyIsMissing(t *testing.T)
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsMissing(t *testing.T) {
-	exp := NewComparisionExpression("key", "", "value")
+	exp := NewComparisionExpression(keyFieldValue, "", valueFieldValue)
 
 	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "operator") {
 		t.Fatal("Expected invalid tag matcher expression because of missing operator")
@@ -216,7 +228,7 @@ func TestShouldFailToValidateComparisionExpressionWhenOperatorIsMissing(t *testi
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsNotValid(t *testing.T) {
-	exp := NewComparisionExpression("key", "FOO", "value")
+	exp := NewComparisionExpression(keyFieldValue, "FOO", valueFieldValue)
 
 	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "operator") {
 		t.Fatal("Expected invalid tag matcher expression because of missing operator")
@@ -224,7 +236,7 @@ func TestShouldFailToValidateComparisionExpressionWhenOperatorIsNotValid(t *test
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenValueIsMissing(t *testing.T) {
-	exp := NewComparisionExpression("key", EqualsOperator, "")
+	exp := NewComparisionExpression(keyFieldValue, EqualsOperator, "")
 
 	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "value") {
 		t.Fatal("Expected invalid tag matcher expression because of missing value")
@@ -239,7 +251,7 @@ func TestShouldCreateValidUnaryOperatorExpression(t *testing.T) {
 
 func createTestShouldCreateValidUnaryOperatorExpression(operator MatcherOperator) func(*testing.T) {
 	return func(t *testing.T) {
-		exp := NewUnaryOperationExpression("key", operator)
+		exp := NewUnaryOperationExpression(keyFieldValue, operator)
 
 		if err := exp.Validate(); err != nil {
 			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -260,7 +272,7 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenKeyIsMissing(t *testing.
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsMissing(t *testing.T) {
-	exp := NewUnaryOperationExpression("key", "")
+	exp := NewUnaryOperationExpression(keyFieldValue, "")
 
 	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "operator") {
 		t.Fatal("Expected invalid tag matcher expression because of missing operator")
@@ -268,7 +280,7 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsMissing(t *tes
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsNotValid(t *testing.T) {
-	exp := NewUnaryOperationExpression("key", "FOO")
+	exp := NewUnaryOperationExpression(keyFieldValue, "FOO")
 
 	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "operator") {
 		t.Fatal("Expected invalid tag matcher expression because of missing operator")
@@ -276,7 +288,7 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsNotValid(t *te
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenValueIsSet(t *testing.T) {
-	exp := NewComparisionExpression("key", IsEmptyOperator, "")
+	exp := NewComparisionExpression(keyFieldValue, IsEmptyOperator, "")
 
 	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "value") {
 		t.Fatal("Expected invalid tag matcher expression because of missing value")

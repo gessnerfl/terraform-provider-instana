@@ -8,8 +8,11 @@ const InstanaAPIBasePath = "/api"
 //EventsBasePath path to Events resource of Instana RESTful API
 const EventsBasePath = InstanaAPIBasePath + "/events"
 
+//settingsPathElement path element to settings
+const settingsPathElement = "/settings"
+
 //EventSettingsBasePath path to Event Settings resource of Instana RESTful API
-const EventSettingsBasePath = EventsBasePath + "/settings"
+const EventSettingsBasePath = EventsBasePath + settingsPathElement
 
 //RulesResourcePath path to Rule resource of Instana RESTful API
 const RulesResourcePath = EventSettingsBasePath + "/rules"
@@ -18,7 +21,7 @@ const RulesResourcePath = EventSettingsBasePath + "/rules"
 const RuleBindingsResourcePath = EventSettingsBasePath + "/rule-bindings"
 
 //SettingsBasePath path to Event Settings resource of Instana RESTful API
-const SettingsBasePath = InstanaAPIBasePath + "/settings"
+const SettingsBasePath = InstanaAPIBasePath + settingsPathElement
 
 //UserRolesResourcePath path to User Role resource of Instana RESTful API
 const UserRolesResourcePath = SettingsBasePath + "/roles"
@@ -27,7 +30,7 @@ const UserRolesResourcePath = SettingsBasePath + "/roles"
 const ApplicationMonitoringBasePath = InstanaAPIBasePath + "/application-monitoring"
 
 //ApplicationMonitoringSettingsBasePath path to application monitoring settings resource of Instana RESTful API
-const ApplicationMonitoringSettingsBasePath = ApplicationMonitoringBasePath + "/settings"
+const ApplicationMonitoringSettingsBasePath = ApplicationMonitoringBasePath + settingsPathElement
 
 //ApplicationConfigsResourcePath path to application config resource of Instana RESTful API
 const ApplicationConfigsResourcePath = ApplicationMonitoringSettingsBasePath + "/application"
