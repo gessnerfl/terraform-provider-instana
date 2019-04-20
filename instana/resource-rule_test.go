@@ -43,6 +43,12 @@ resource "instana_rule" "example" {
 
 const ruleApiPath = restapi.RulesResourcePath + "/{id}"
 const testRuleDefinition = "instana_rule.example"
+const ruleID = "rule-id"
+const metricNameFieldValue = "metric_name"
+const entityTypeFieldValue = "entity_type"
+const ruleNameFieldValue = "name"
+const aggregationFieldValue = "sum"
+const conditionOperatorFieldValue = ">"
 
 func TestCRUDOfRuleResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -80,13 +86,13 @@ func TestCRUDOfRuleResourceWithMockServer(t *testing.T) {
 				Config: resourceRuleDefinition,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testRuleDefinition, "id"),
-					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldName, "name"),
-					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldEntityType, "entity_type"),
-					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldMetricName, "metric_name"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldName, ruleNameFieldValue),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldEntityType, entityTypeFieldValue),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldMetricName, metricNameFieldValue),
 					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldRollup, "100"),
 					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldWindow, "20000"),
-					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldAggregation, "sum"),
-					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldConditionOperator, ">"),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldAggregation, aggregationFieldValue),
+					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldConditionOperator, conditionOperatorFieldValue),
 					resource.TestCheckResourceAttr(testRuleDefinition, RuleFieldConditionValue, "1.1"),
 				),
 			},
@@ -137,7 +143,6 @@ func TestShouldSuccessfullyReadRuleFromInstanaAPIWhenBaseDataWithRollupIsReturne
 
 func testShouldSuccessfullyReadRuleFromInstanaAPI(expectedModel restapi.Rule, t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyRuleResourceData()
-	ruleID := "rule-id"
 	resourceData.SetId(ruleID)
 
 	ctrl := gomock.NewController(t)
@@ -151,7 +156,7 @@ func testShouldSuccessfullyReadRuleFromInstanaAPI(expectedModel restapi.Rule, t 
 	err := ReadRule(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	verifyRuleModelAppliedToResource(expectedModel, resourceData, t)
 }
@@ -172,7 +177,6 @@ func TestShouldFailToReadRuleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
 
 func TestShouldFailToReadRuleFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyRuleResourceData()
-	ruleID := "rule-id"
 	resourceData.SetId(ruleID)
 
 	ctrl := gomock.NewController(t)
@@ -186,7 +190,7 @@ func TestShouldFailToReadRuleFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist
 	err := ReadRule(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if len(resourceData.Id()) > 0 {
 		t.Fatal("Expected ID to be cleaned to destroy resource")
@@ -195,7 +199,6 @@ func TestShouldFailToReadRuleFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist
 
 func TestShouldFailToReadRuleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyRuleResourceData()
-	ruleID := "rule-id"
 	resourceData.SetId(ruleID)
 	expectedError := errors.New("test")
 
@@ -233,7 +236,7 @@ func TestShouldCreateRuleThroughInstanaAPI(t *testing.T) {
 	err := CreateRule(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	verifyRuleModelAppliedToResource(expectedModel, resourceData, t)
 }
@@ -275,7 +278,7 @@ func TestShouldDeleteRuleThroughInstanaAPI(t *testing.T) {
 	err := DeleteRule(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if len(resourceData.Id()) > 0 {
 		t.Fatal("Expected ID to be cleaned to destroy resource")
@@ -346,25 +349,25 @@ func createTestRuleModelWithRollup() restapi.Rule {
 func createBaseTestRuleModel() restapi.Rule {
 	return restapi.Rule{
 		ID:                "id",
-		Name:              "name",
-		EntityType:        "entityType",
-		MetricName:        "metricName",
+		Name:              ruleNameFieldValue,
+		EntityType:        entityTypeFieldValue,
+		MetricName:        metricNameFieldValue,
 		Window:            9876,
-		Aggregation:       "sum",
-		ConditionOperator: ">",
+		Aggregation:       aggregationFieldValue,
+		ConditionOperator: conditionOperatorFieldValue,
 		ConditionValue:    1.1,
 	}
 }
 
 func createFullTestRuleData() map[string]interface{} {
 	data := make(map[string]interface{})
-	data[RuleFieldName] = "name"
-	data[RuleFieldEntityType] = "entityType"
-	data[RuleFieldMetricName] = "metricName"
+	data[RuleFieldName] = ruleNameFieldValue
+	data[RuleFieldEntityType] = entityTypeFieldValue
+	data[RuleFieldMetricName] = metricNameFieldValue
 	data[RuleFieldRollup] = 1234
 	data[RuleFieldWindow] = 9876
-	data[RuleFieldAggregation] = "sum"
-	data[RuleFieldConditionOperator] = ">"
+	data[RuleFieldAggregation] = aggregationFieldValue
+	data[RuleFieldConditionOperator] = conditionOperatorFieldValue
 	data[RuleFieldConditionValue] = 1.1
 	return data
 }

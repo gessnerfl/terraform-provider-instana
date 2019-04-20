@@ -42,8 +42,12 @@ resource "instana_rule_binding" "example" {
 }
 `
 
+const ruleBindingID = "rule-binding-id"
 const ruleBindingApiPath = restapi.RuleBindingsResourcePath + "/{id}"
 const testRuleBindingDefinition = "instana_rule_binding.example"
+
+const textFieldValue = "text"
+const descriptionFieldValue = "description"
 
 func TestCRUDOfRuleBindingResourceOfSeverityCriticalWithMockServer(t *testing.T) {
 	testCRUDOfRuleBindingResourceWithMockServer(SeverityCritical, t)
@@ -92,8 +96,8 @@ func testCRUDOfRuleBindingResourceWithMockServer(severity Severity, t *testing.T
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldEnabled, "true"),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldTriggering, "true"),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldSeverity, severity.GetTerraformRepresentation()),
-					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldText, "text"),
-					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldDescription, "description"),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldText, textFieldValue),
+					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldDescription, descriptionFieldValue),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldExpirationTime, "60000"),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldQuery, "query"),
 					resource.TestCheckResourceAttr(testRuleBindingDefinition, RuleBindingFieldRuleIds+".0", "rule-id-1"),
@@ -152,7 +156,6 @@ func TestShouldSuccessfullyReadRuleBindingFromInstanaAPIWhenBaseDataWithQueryIsR
 
 func testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel restapi.RuleBinding, t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
-	ruleBindingID := "rule-binding-id"
 	resourceData.SetId(ruleBindingID)
 
 	ctrl := gomock.NewController(t)
@@ -166,7 +169,7 @@ func testShouldSuccessfullyReadRuleBindingFromInstanaAPI(expectedModel restapi.R
 	err := ReadRuleBinding(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	verifyRuleBindingModelAppliedToResource(expectedModel, resourceData, t)
 }
@@ -189,7 +192,6 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIWhenSeverityCannotBeMapped(t *
 	modelData := createFullTestRuleBindingModel()
 	modelData.Severity = 1
 	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
-	ruleBindingID := "rule-binding-id"
 	resourceData.SetId(ruleBindingID)
 
 	ctrl := gomock.NewController(t)
@@ -209,7 +211,6 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIWhenSeverityCannotBeMapped(t *
 
 func TestShouldFailToReadRuleBindingFromInstanaAPIAndDeleteResourceWhenBindingDoesNotExist(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
-	ruleBindingID := "rule-binding-id"
 	resourceData.SetId(ruleBindingID)
 
 	ctrl := gomock.NewController(t)
@@ -223,7 +224,7 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIAndDeleteResourceWhenBindingDo
 	err := ReadRuleBinding(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if len(resourceData.Id()) > 0 {
 		t.Fatal("Expected ID to be cleaned to destroy resource")
@@ -232,7 +233,6 @@ func TestShouldFailToReadRuleBindingFromInstanaAPIAndDeleteResourceWhenBindingDo
 
 func TestShouldFailToReadRuleBindingFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
-	ruleBindingID := "rule-binding-id"
 	resourceData.SetId(ruleBindingID)
 	expectedError := errors.New("test")
 
@@ -270,7 +270,7 @@ func TestShouldCreateRuleBindingThroughInstanaAPI(t *testing.T) {
 	err := CreateRuleBinding(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	verifyRuleBindingModelAppliedToResource(expectedModel, resourceData, t)
 }
@@ -328,7 +328,7 @@ func TestShouldDeleteRuleBindingThroughInstanaAPI(t *testing.T) {
 	err := DeleteRuleBinding(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if len(resourceData.Id()) > 0 {
 		t.Fatal("Expected ID to be cleaned to destroy resource")
@@ -412,8 +412,8 @@ func createBaseTestRuleBindingModel() restapi.RuleBinding {
 	return restapi.RuleBinding{
 		ID:             "id",
 		Severity:       5,
-		Text:           "text",
-		Description:    "description",
+		Text:           textFieldValue,
+		Description:    descriptionFieldValue,
 		ExpirationTime: 1234,
 		RuleIds:        []string{"test-rule-id-1", "test-rule-id-2"},
 	}
@@ -423,8 +423,8 @@ func createFullTestRuleBindingData() map[string]interface{} {
 	data := make(map[string]interface{})
 	data[RuleBindingFieldEnabled] = true
 	data[RuleBindingFieldTriggering] = true
-	data[RuleBindingFieldText] = "text"
-	data[RuleBindingFieldDescription] = "description"
+	data[RuleBindingFieldText] = textFieldValue
+	data[RuleBindingFieldDescription] = descriptionFieldValue
 	data[RuleBindingFieldExpirationTime] = 1234
 	data[RuleBindingFieldSeverity] = SeverityWarning.GetTerraformRepresentation()
 	data[RuleBindingFieldQuery] = "query"

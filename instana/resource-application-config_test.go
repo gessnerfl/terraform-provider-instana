@@ -32,12 +32,14 @@ provider "instana" {
 resource "instana_application_config" "example" {
   label = "label"
   scope = "INCLUDE_ALL_DOWNSTREAM"
-  match_specification = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type EQUALS 'elasticsearch'"
+  match_specification = "{{MATCH_SPECIFICATION}}"
 }
 `
 
 const applicationConfigApiPath = restapi.ApplicationConfigsResourcePath + "/{id}"
 const testApplicationConfigDefinition = "instana_application_config.example"
+const defaultMatchSpecification = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type EQUALS 'elasticsearch'"
+const applicationConfigID = "application-config-id"
 
 func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -86,7 +88,11 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinition := strings.ReplaceAll(resourceApplicationConfigDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
+	resourceDefinition := strings.ReplaceAll(
+		strings.ReplaceAll(resourceApplicationConfigDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort())),
+		"{{MATCH_SPECIFICATION}}",
+		defaultMatchSpecification,
+	)
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testApplicationConfigProviders,
@@ -97,7 +103,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type EQUALS 'elasticsearch'"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
 				),
 			},
 		},
@@ -142,7 +148,6 @@ func TestShouldSuccessfullyReadApplicationConfigFromInstanaAPIWhenBaseDataWithSc
 
 func testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel restapi.ApplicationConfig, t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyApplicationConfigResourceData()
-	applicationConfigID := "application-config-id"
 	resourceData.SetId(applicationConfigID)
 
 	ctrl := gomock.NewController(t)
@@ -156,7 +161,7 @@ func testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel res
 	err := ReadApplicationConfig(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	verifyApplicationConfigModelAppliedToResource(expectedModel, resourceData, t)
 }
@@ -177,7 +182,6 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIWhenIDIsMissing(t *testi
 
 func TestShouldFailToReadApplicationConfigFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyApplicationConfigResourceData()
-	applicationConfigID := "application-config-id"
 	resourceData.SetId(applicationConfigID)
 
 	ctrl := gomock.NewController(t)
@@ -191,7 +195,7 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIAndDeleteResourceWhenRol
 	err := ReadApplicationConfig(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if len(resourceData.Id()) > 0 {
 		t.Fatal("Expected ID to be cleaned to destroy resource")
@@ -200,7 +204,6 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIAndDeleteResourceWhenRol
 
 func TestShouldFailToReadApplicationConfigFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyApplicationConfigResourceData()
-	applicationConfigID := "application-config-id"
 	resourceData.SetId(applicationConfigID)
 	expectedError := errors.New("test")
 
@@ -238,7 +241,7 @@ func TestShouldCreateApplicationConfigThroughInstanaAPI(t *testing.T) {
 	err := CreateApplicationConfig(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	verifyApplicationConfigModelAppliedToResource(expectedModel, resourceData, t)
 }
@@ -280,7 +283,7 @@ func TestShouldDeleteApplicationConfigThroughInstanaAPI(t *testing.T) {
 	err := DeleteApplicationConfig(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if len(resourceData.Id()) > 0 {
 		t.Fatal("Expected ID to be cleaned to destroy resource")
@@ -322,7 +325,7 @@ func verifyApplicationConfigModelAppliedToResource(model restapi.ApplicationConf
 	if model.Scope != resourceData.Get(ApplicationConfigFieldScope).(string) {
 		t.Fatal("Expected Scope to be identical")
 	}
-	if resourceData.Get(ApplicationConfigFieldMatchSpecification).(string) != "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type EQUALS 'elasticsearch'" {
+	if resourceData.Get(ApplicationConfigFieldMatchSpecification).(string) != defaultMatchSpecification {
 		t.Fatal("Expected MatchSpecification to be identical")
 	}
 }
@@ -350,6 +353,6 @@ func createFullTestApplicationConfigData() map[string]interface{} {
 	data := make(map[string]interface{})
 	data[ApplicationConfigFieldLabel] = "label"
 	data[ApplicationConfigFieldScope] = ApplicationConfigScopeIncludeNoDownstream
-	data[ApplicationConfigFieldMatchSpecification] = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type EQUALS 'elasticsearch'"
+	data[ApplicationConfigFieldMatchSpecification] = defaultMatchSpecification
 	return data
 }

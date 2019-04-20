@@ -53,6 +53,10 @@ resource "instana_user_role" "example" {
 
 const userRoleApiPath = restapi.UserRolesResourcePath + "/{id}"
 const testUserRoleDefinition = "instana_user_role.example"
+const valueTrue = "true"
+const userRoleID = "user-role-id"
+const viewFilterFieldValue = "view filter"
+const userRoleNameFieldValue = "name"
 
 func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -100,24 +104,24 @@ func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 				Config: resourceUserRoleDefinition,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testUserRoleDefinition, "id"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldName, "name"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldImplicitViewFilter, "view filter"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureServiceMapping, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureEumApplications, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureUsers, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanInstallNewAgents, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanSeeUsageInformation, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureIntegrations, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanSeeOnPremiseLicenseInformation, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureRoles, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureCustomAlerts, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureAPITokens, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureAgentRunMode, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanViewAuditLog, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureObjectives, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureAgents, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureAuthenticationMethods, "true"),
-					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureApplications, "true"),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldName, userRoleNameFieldValue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldImplicitViewFilter, viewFilterFieldValue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureServiceMapping, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureEumApplications, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureUsers, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanInstallNewAgents, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanSeeUsageInformation, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureIntegrations, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanSeeOnPremiseLicenseInformation, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureRoles, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureCustomAlerts, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureAPITokens, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureAgentRunMode, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanViewAuditLog, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureObjectives, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureAgents, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureAuthenticationMethods, valueTrue),
+					resource.TestCheckResourceAttr(testUserRoleDefinition, UserRoleFieldCanConfigureApplications, valueTrue),
 				),
 			},
 		},
@@ -178,7 +182,6 @@ func TestShouldSuccessfullyReadUserRoleFromInstanaAPIWhenFullDataIsReturned(t *t
 
 func testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel restapi.UserRole, t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
-	userRoleID := "user-role-id"
 	resourceData.SetId(userRoleID)
 
 	ctrl := gomock.NewController(t)
@@ -192,7 +195,7 @@ func testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel restapi.User
 	err := ReadUserRole(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	verifyUserRoleModelAppliedToResource(expectedModel, resourceData, t)
 }
@@ -213,7 +216,6 @@ func TestShouldFailToReadUserRoleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
 
 func TestShouldFailToReadUserRoleFromInstanaAPIAndDeleteResourceWhenUserRoleDoesNotExist(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
-	userRoleID := "user-role-id"
 	resourceData.SetId(userRoleID)
 
 	ctrl := gomock.NewController(t)
@@ -227,7 +229,7 @@ func TestShouldFailToReadUserRoleFromInstanaAPIAndDeleteResourceWhenUserRoleDoes
 	err := ReadUserRole(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if len(resourceData.Id()) > 0 {
 		t.Fatal("Expected ID to be cleaned to destroy resource")
@@ -236,7 +238,6 @@ func TestShouldFailToReadUserRoleFromInstanaAPIAndDeleteResourceWhenUserRoleDoes
 
 func TestShouldFailToReadUserRoleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
-	userRoleID := "user-role-id"
 	resourceData.SetId(userRoleID)
 	expectedError := errors.New("test")
 
@@ -274,7 +275,7 @@ func TestShouldCreateUserRoleThroughInstanaAPI(t *testing.T) {
 	err := CreateUserRole(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	verifyUserRoleModelAppliedToResource(expectedModel, resourceData, t)
 }
@@ -316,7 +317,7 @@ func TestShouldDeleteUserRoleThroughInstanaAPI(t *testing.T) {
 	err := DeleteUserRole(resourceData, mockInstanaAPI)
 
 	if err != nil {
-		t.Fatalf("Expected no error to be returned, %s", err)
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
 	if len(resourceData.Id()) > 0 {
 		t.Fatal("Expected ID to be cleaned to destroy resource")
@@ -407,7 +408,7 @@ func verifyUserRoleModelAppliedToResource(model restapi.UserRole, resourceData *
 
 func createFullTestUserRoleModel() restapi.UserRole {
 	data := createMinimalTestUserRoleModel()
-	data.ImplicitViewFilter = "view filter"
+	data.ImplicitViewFilter = viewFilterFieldValue
 	data.CanConfigureServiceMapping = true
 	data.CanConfigureEumApplications = true
 	data.CanConfigureUsers = true
@@ -430,14 +431,14 @@ func createFullTestUserRoleModel() restapi.UserRole {
 func createMinimalTestUserRoleModel() restapi.UserRole {
 	return restapi.UserRole{
 		ID:   "id",
-		Name: "name",
+		Name: userRoleNameFieldValue,
 	}
 }
 
 func createFullTestUserRoleData() map[string]interface{} {
 	data := make(map[string]interface{})
-	data[UserRoleFieldName] = "name"
-	data[UserRoleFieldImplicitViewFilter] = "view filter"
+	data[UserRoleFieldName] = userRoleNameFieldValue
+	data[UserRoleFieldImplicitViewFilter] = viewFilterFieldValue
 	data[UserRoleFieldCanConfigureServiceMapping] = true
 	data[UserRoleFieldCanConfigureEumApplications] = true
 	data[UserRoleFieldCanConfigureUsers] = true
