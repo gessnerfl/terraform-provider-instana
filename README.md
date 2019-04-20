@@ -44,6 +44,54 @@ In this section we will list all provided endpoints with the full list of availa
 resources of the Instana API are implemented by the terraform-provider-instana. Please open a ticket of provide a
 Pull Request when a resource or a configuration option is missing.
 
+#### Application Settings
+
+API Documentation: <https://instana.github.io/openapi/#tag/Application-Settings>
+
+##### Application Configuration
+
+Management of application configurations (definition of application perspectives).
+API Documentation: <https://instana.github.io/openapi/#operation/putApplicationConfig>
+
+The ID of the resource which is also used as unique identifier in Instana is auto generated!
+
+```hcl
+resource "instana_rule" "example" {
+  label = "label"
+  scope = "INCLUDE_ALL_DOWNSTREAM"
+  match_specification = "agent.tag.stage = 'test' OR aws.ec2.tag.stage = 'test' OR call.tag.stage = 'test'"
+}
+```
+
+For **scope** the following three options are allowed:
+
+* INCLUDE_ALL_DOWNSTREAM
+* INCLUDE_NO_DOWNSTREAM
+* INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+
+The **match_specification** defines which entities should be included into the application. It supports:
+
+* logical AND and/or logical OR conjunctions whereas AND has higher precedence then OR
+* comparisons EQUALS, NOT_EQUAL, CONTAINS, NOT_CONTAIN
+* unary operators IS_EMPTY, NOT_EMPTY, IS_BLANK, NOT_BLANK.
+
+The **match_specification** is defined by the following eBNF:
+
+```plain
+match_specification       := logical_or
+binary_operation          := logical_and OR logical_or | logical_and
+logical_and               := primary_expression AND logical_and | primary_expression
+primary_expression        := comparison | unary_operator_expression
+comparison                := key comparison_operator value
+comparison_operator       := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN
+unary_operator_expression := key unary_operator
+unary_operator            := IS_EMPTY | NOT_EMPTY | IS_BLANK | NOT_BLANK
+key                       := [a-zA-Z][\.a-zA-Z0-9]*
+value                     := "'" <string> "'"
+
+```
+
+
 #### Event Settings
 
 API Documentation: <https://instana.github.io/openapi/#tag/Event-Settings>
@@ -123,7 +171,7 @@ resource "instana_user_role" "example" {
 ## Implementation Details
 
  Mocking:
- Tests are colocated in the package next to the implementation. We use gomock (<https://github.com/golang/mock)> for mocking. To generate mocks you need to use the package options to create the mocks in the same package:
+ Tests are co-located in the package next to the implementation. We use gomock (<https://github.com/golang/mock)> for mocking. To generate mocks you need to use the package options to create the mocks in the same package:
 
 ```hcl
 mockgen -source=<source_file> -destination=mocks/<source_package>/<source_file_name>_mocks.go package=<source_package>_mocks -self_package=github.com/gessnerfl/terraform-provider-instana/<source_package>
