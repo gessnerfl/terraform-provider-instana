@@ -60,7 +60,7 @@ func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T)
 	}
 }
 
-func validateConfigureFunc(schemaMap map[string]*schema.Schema, configureFunc func(d *schema.ResourceData) (interface{}, error), t *testing.T) {
+func validateConfigureFunc(schemaMap map[string]*schema.Schema, configureFunc func(*schema.ResourceData) (interface{}, error), t *testing.T) {
 	data := make(map[string]interface{})
 	data[SchemaFieldAPIToken] = "api-token"
 	data[SchemaFieldEndpoint] = "instana.io"
@@ -71,7 +71,7 @@ func validateConfigureFunc(schemaMap map[string]*schema.Schema, configureFunc fu
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
 	}
-	if _, ok := result.(restapi.InstanaAPI); ok == false {
+	if _, ok := result.(restapi.InstanaAPI); !ok {
 		t.Fatal("expected to get instance of InstanaAPI")
 	}
 }

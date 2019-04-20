@@ -10,6 +10,18 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+const (
+	keyEntityName = "entity.name"
+	keyEntityKind = "entity.kind"
+	keyEntityType = "entity.type"
+
+	valueMyValue = "my value"
+
+	messageExpectedNormalizedExpression = "Expected normalized rendered result of comparision expression but got:  %s"
+
+	entityNameEqualsValueExpression = "entity.name EQUALS 'my value'"
+)
+
 func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS '2.34' AND entity.type EQUALS 'true' AND span.name NOT_EMPTY OR span.id NOT_EQUAL  '1234'"
 
@@ -20,7 +32,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
-						Key:      "entity.name",
+						Key:      keyEntityName,
 						Operator: Operator(restapi.ContainsOperator),
 						Value:    "foo bar",
 					},
@@ -31,7 +43,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
-							Key:      "entity.kind",
+							Key:      keyEntityKind,
 							Operator: Operator(restapi.EqualsOperator),
 							Value:    "2.34",
 						},
@@ -40,7 +52,7 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 					Right: &LogicalAndExpression{
 						Left: &PrimaryExpression{
 							Comparision: &ComparisionExpression{
-								Key:      "entity.type",
+								Key:      keyEntityType,
 								Operator: Operator(restapi.EqualsOperator),
 								Value:    "true",
 							},
@@ -84,7 +96,7 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
-						Key:      "entity.name",
+						Key:      keyEntityName,
 						Operator: Operator(restapi.ContainsOperator),
 						Value:    "foo",
 					},
@@ -93,7 +105,7 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 				Right: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
-							Key:      "entity.type",
+							Key:      keyEntityType,
 							Operator: Operator(restapi.EqualsOperator),
 							Value:    "bar",
 						},
@@ -114,7 +126,7 @@ func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparision: &ComparisionExpression{
-						Key:      "entity.name",
+						Key:      keyEntityName,
 						Operator: Operator(restapi.EqualsOperator),
 						Value:    "foo",
 					},
@@ -134,7 +146,7 @@ func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Key:      "entity.name",
+						Key:      keyEntityName,
 						Operator: Operator(restapi.NotEmptyOperator),
 					},
 				},
@@ -222,15 +234,13 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 }
 
 func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIsSet(t *testing.T) {
-	expectedResult := "foo EQUALS 'bar'"
-
 	sut := LogicalOrExpression{
 		Left: &LogicalAndExpression{
 			Left: &PrimaryExpression{
 				Comparision: &ComparisionExpression{
-					Key:      "foo",
+					Key:      keyEntityName,
 					Operator: Operator(restapi.EqualsOperator),
-					Value:    "bar",
+					Value:    valueMyValue,
 				},
 			},
 		},
@@ -238,8 +248,8 @@ func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIs
 
 	rendered := sut.Render()
 
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
+	if rendered != entityNameEqualsValueExpression {
+		t.Fatalf(messageExpectedNormalizedExpression, rendered)
 	}
 }
 
@@ -275,40 +285,36 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 }
 
 func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *testing.T) {
-	expectedResult := "foo EQUALS 'bar'"
-
 	sut := LogicalAndExpression{
 		Left: &PrimaryExpression{
 			Comparision: &ComparisionExpression{
-				Key:      "foo",
+				Key:      keyEntityName,
 				Operator: Operator(restapi.EqualsOperator),
-				Value:    "bar",
+				Value:    valueMyValue,
 			},
 		},
 	}
 
 	rendered := sut.Render()
 
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
+	if rendered != entityNameEqualsValueExpression {
+		t.Fatalf(messageExpectedNormalizedExpression, rendered)
 	}
 }
 
 func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testing.T) {
-	expectedResult := "foo EQUALS 'bar'"
-
 	sut := PrimaryExpression{
 		Comparision: &ComparisionExpression{
-			Key:      "foo",
+			Key:      keyEntityName,
 			Operator: Operator(restapi.EqualsOperator),
-			Value:    "bar",
+			Value:    valueMyValue,
 		},
 	}
 
 	rendered := sut.Render()
 
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
+	if rendered != entityNameEqualsValueExpression {
+		t.Fatalf(messageExpectedNormalizedExpression, rendered)
 	}
 }
 
@@ -325,6 +331,6 @@ func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperati
 	rendered := sut.Render()
 
 	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of comparision expression but got:  %s", rendered)
+		t.Fatalf(messageExpectedNormalizedExpression, rendered)
 	}
 }

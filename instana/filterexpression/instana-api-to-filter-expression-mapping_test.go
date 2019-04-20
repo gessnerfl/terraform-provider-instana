@@ -12,6 +12,16 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
+const (
+	invalidOperator = "invalid operator"
+	unaryOperator   = "unary operator"
+	comparision     = "comparision"
+
+	messageExpectedToGetInvalidLogicalAndError  = "Expected to get invalid logical AND error"
+	messageExpectedToGetInvalidLogicalOrError   = "Expected to get invalid logical OR error"
+	messageExpectedToGetInvalidConjunctionError = "Expected to get invalid conjunction error"
+)
+
 func TestShouldMapValidOperatorsOfTagExpression(t *testing.T) {
 	for _, v := range restapi.SupportedComparisionOperators {
 		t.Run(fmt.Sprintf("test mapping of %s", v), testMappingOfOperatorsOfTagExpression(v))
@@ -60,7 +70,7 @@ func TestShouldFailMapToMapComparisionWhenOperatorOfTagExpressionIsNotValid(t *t
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid operator") || !strings.Contains(err.Error(), "comparision") {
+	if err == nil || !strings.HasPrefix(err.Error(), invalidOperator) || !strings.Contains(err.Error(), comparision) {
 		t.Fatal("Expected to get invalid operation error")
 	}
 }
@@ -108,7 +118,7 @@ func TestShouldFailMapToMapUnaryOperationWhenOperatorOfTagExpressionIsNotValid(t
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid operator") || !strings.Contains(err.Error(), "unary operator") {
+	if err == nil || !strings.HasPrefix(err.Error(), invalidOperator) || !strings.Contains(err.Error(), unaryOperator) {
 		t.Fatal("Expected to get invalid unary operation error")
 	}
 }
@@ -212,7 +222,7 @@ func TestShouldFailToMapLogicalAndWhenLeftIsOrExpression(t *testing.T) {
 	_, err := mapper.FromAPIModel(input)
 
 	if err == nil || !strings.Contains(err.Error(), "logical or is not allowed for left side") {
-		t.Fatal("Expected to get invalid logical AND error")
+		t.Fatal(messageExpectedToGetInvalidLogicalAndError)
 	}
 }
 
@@ -226,7 +236,7 @@ func TestShouldFailToMapLogicalAndWhenRightIsOrExpression(t *testing.T) {
 	_, err := mapper.FromAPIModel(input)
 
 	if err == nil || !strings.Contains(err.Error(), "logical or is not allowed for right side") {
-		t.Fatal("Expected to get invalid logical AND error")
+		t.Fatal(messageExpectedToGetInvalidLogicalAndError)
 	}
 }
 
@@ -240,7 +250,7 @@ func TestShouldFailToMapLogicalAndWhenLeftIsAndExpression(t *testing.T) {
 	_, err := mapper.FromAPIModel(input)
 
 	if err == nil || !strings.Contains(err.Error(), "logical and is not allowed for left side") {
-		t.Fatal("Expected to get invalid logical AND error")
+		t.Fatal(messageExpectedToGetInvalidLogicalAndError)
 	}
 }
 
@@ -424,7 +434,7 @@ func TestShouldFailToMapLogicalOrWhenLeftIsOrExpression(t *testing.T) {
 	_, err := mapper.FromAPIModel(input)
 
 	if err == nil || !strings.Contains(err.Error(), "logical or is not allowed for left side") {
-		t.Fatal("Expected to get invalid logical AND error")
+		t.Fatal(messageExpectedToGetInvalidLogicalOrError)
 	}
 }
 
@@ -450,8 +460,8 @@ func TestShouldReturnMappingErrorIfLeftSideOfConjunctionIsNotValid(t *testing.T)
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid operator") || !strings.Contains(err.Error(), "unary operator") {
-		t.Fatal("Expected to get invalid logical AND error")
+	if err == nil || !strings.HasPrefix(err.Error(), invalidOperator) || !strings.Contains(err.Error(), unaryOperator) {
+		t.Fatal(messageExpectedToGetInvalidConjunctionError)
 	}
 }
 
@@ -464,8 +474,8 @@ func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid operator") || !strings.Contains(err.Error(), "unary operator") {
-		t.Fatal("Expected to get invalid logical AND error")
+	if err == nil || !strings.HasPrefix(err.Error(), invalidOperator) || !strings.Contains(err.Error(), unaryOperator) {
+		t.Fatal(messageExpectedToGetInvalidConjunctionError)
 	}
 }
 
