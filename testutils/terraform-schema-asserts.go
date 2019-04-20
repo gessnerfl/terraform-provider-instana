@@ -51,7 +51,7 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndTypeFloat(schema
 func (inst *terraformSchemaAssertImpl) assertSchemaIsRequiredAndType(schemaField string, dataType schema.ValueType) {
 	s := inst.schemaMap[schemaField]
 	if s == nil {
-		inst.t.Fatalf("Expected configuration for %s", schemaField)
+		inst.t.Fatalf(ExpectedNoErrorButGotMessage, schemaField)
 	}
 	inst.assertSchemaIsOfType(s, dataType)
 	if !s.Required {
@@ -78,7 +78,7 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeInt(schema
 func (inst *terraformSchemaAssertImpl) assertSchemaIsOptionalAndOfType(schemaField string, dataType schema.ValueType) {
 	s := inst.schemaMap[schemaField]
 	if s == nil {
-		inst.t.Fatalf("Expected configuration for %s", schemaField)
+		inst.t.Fatalf(ExpectedNoErrorButGotMessage, schemaField)
 	}
 	inst.assertSchemaIsOfType(s, dataType)
 	if !s.Optional {
@@ -89,7 +89,7 @@ func (inst *terraformSchemaAssertImpl) assertSchemaIsOptionalAndOfType(schemaFie
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOfTypeBooleanWithDefault(schemaField string, defaultValue bool) {
 	s := inst.schemaMap[schemaField]
 	if s == nil {
-		inst.t.Fatalf("Expected configuration for %s", schemaField)
+		inst.t.Fatalf(ExpectedNoErrorButGotMessage, schemaField)
 	}
 	inst.assertSchemaIsOfType(s, schema.TypeBool)
 	if s.Required {
@@ -112,7 +112,7 @@ func (inst *terraformSchemaAssertImpl) assertSchemaIsOfType(s *schema.Schema, da
 func (inst *terraformSchemaAssertImpl) AssertSChemaIsRequiredAndOfTypeListOfStrings(schemaField string) {
 	s := inst.schemaMap[schemaField]
 	if s == nil {
-		inst.t.Fatalf("Expected configuration for %s", schemaField)
+		inst.t.Fatalf(ExpectedNoErrorButGotMessage, schemaField)
 	}
 	if s.Type != schema.TypeList {
 		inst.t.Fatal("Expected field to be of type list")

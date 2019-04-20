@@ -7,20 +7,29 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
+const (
+	ruleID                = "rule-id"
+	ruleName              = "rule-name"
+	ruleEntityType        = "rule-entity-type"
+	ruleMetricName        = "rule-metric-name"
+	ruleAggregation       = "sum"
+	ruleConditionOperator = ">"
+)
+
 func TestValidRule(t *testing.T) {
 	rule := Rule{
-		ID:                "test-rule-id",
-		Name:              "Test Rule",
-		EntityType:        "test",
-		MetricName:        "test.metric",
+		ID:                ruleID,
+		Name:              ruleName,
+		EntityType:        ruleEntityType,
+		MetricName:        ruleMetricName,
 		Rollup:            0,
 		Window:            300000,
-		Aggregation:       "sum",
-		ConditionOperator: ">",
+		Aggregation:       ruleAggregation,
+		ConditionOperator: ruleConditionOperator,
 		ConditionValue:    0,
 	}
 
-	if "test-rule-id" != rule.GetID() {
+	if ruleID != rule.GetID() {
 		t.Fatalf("Expected to get correct ID but got %s", rule.GetID())
 	}
 
@@ -31,13 +40,13 @@ func TestValidRule(t *testing.T) {
 
 func TestInvalidRuleBecauseOfMissingId(t *testing.T) {
 	rule := Rule{
-		Name:              "Test Rule",
-		EntityType:        "test",
-		MetricName:        "test.metric",
+		Name:              ruleName,
+		EntityType:        ruleEntityType,
+		MetricName:        ruleMetricName,
 		Rollup:            0,
 		Window:            300000,
-		Aggregation:       "sum",
-		ConditionOperator: ">",
+		Aggregation:       ruleAggregation,
+		ConditionOperator: ruleConditionOperator,
 		ConditionValue:    0,
 	}
 
@@ -48,13 +57,13 @@ func TestInvalidRuleBecauseOfMissingId(t *testing.T) {
 
 func TestInvalidRuleBecauseOfMissingName(t *testing.T) {
 	rule := Rule{
-		ID:                "test-rule-id",
-		EntityType:        "test",
-		MetricName:        "test.metric",
+		ID:                ruleID,
+		EntityType:        ruleEntityType,
+		MetricName:        ruleMetricName,
 		Rollup:            0,
 		Window:            300000,
-		Aggregation:       "sum",
-		ConditionOperator: ">",
+		Aggregation:       ruleAggregation,
+		ConditionOperator: ruleConditionOperator,
 		ConditionValue:    0,
 	}
 
@@ -65,13 +74,13 @@ func TestInvalidRuleBecauseOfMissingName(t *testing.T) {
 
 func TestInvalidRuleBecauseOfMissingEntityType(t *testing.T) {
 	rule := Rule{
-		ID:                "test-rule-id",
-		Name:              "Test Rule",
-		MetricName:        "test.metric",
+		ID:                ruleID,
+		Name:              ruleName,
+		MetricName:        ruleMetricName,
 		Rollup:            0,
 		Window:            300000,
-		Aggregation:       "sum",
-		ConditionOperator: ">",
+		Aggregation:       ruleAggregation,
+		ConditionOperator: ruleConditionOperator,
 		ConditionValue:    0,
 	}
 
@@ -82,13 +91,13 @@ func TestInvalidRuleBecauseOfMissingEntityType(t *testing.T) {
 
 func TestInvalidRuleBecauseOfMissingMetricName(t *testing.T) {
 	rule := Rule{
-		ID:                "test-rule-id",
-		Name:              "Test Rule",
-		EntityType:        "test",
+		ID:                ruleID,
+		Name:              ruleName,
+		EntityType:        ruleEntityType,
 		Rollup:            0,
 		Window:            300000,
-		Aggregation:       "sum",
-		ConditionOperator: ">",
+		Aggregation:       ruleAggregation,
+		ConditionOperator: ruleConditionOperator,
 		ConditionValue:    0,
 	}
 
@@ -99,13 +108,13 @@ func TestInvalidRuleBecauseOfMissingMetricName(t *testing.T) {
 
 func TestInvalidRuleBecauseOfMissingAggregation(t *testing.T) {
 	rule := Rule{
-		ID:                "test-rule-id",
-		Name:              "Test Rule",
-		EntityType:        "test",
-		MetricName:        "test.metric",
+		ID:                ruleID,
+		Name:              ruleName,
+		EntityType:        ruleEntityType,
+		MetricName:        ruleMetricName,
 		Rollup:            0,
 		Window:            300000,
-		ConditionOperator: ">",
+		ConditionOperator: ruleConditionOperator,
 		ConditionValue:    0,
 	}
 
@@ -116,13 +125,13 @@ func TestInvalidRuleBecauseOfMissingAggregation(t *testing.T) {
 
 func TestInvalidRuleBecauseOfMissingConditionOperator(t *testing.T) {
 	rule := Rule{
-		ID:             "test-rule-id",
-		Name:           "Test Rule",
-		EntityType:     "test",
-		MetricName:     "test.metric",
+		ID:             ruleID,
+		Name:           ruleName,
+		EntityType:     ruleEntityType,
+		MetricName:     ruleMetricName,
 		Rollup:         0,
 		Window:         300000,
-		Aggregation:    "sum",
+		Aggregation:    ruleAggregation,
 		ConditionValue: 0,
 	}
 

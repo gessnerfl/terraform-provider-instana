@@ -7,13 +7,18 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
+const (
+	userRoleID   = "user-role-id"
+	userRoleName = "user-role-name"
+)
+
 func TestValidMinimalUserRole(t *testing.T) {
 	userRole := UserRole{
-		ID:   "test-user-role-id",
-		Name: "Test User Role",
+		ID:   userRoleID,
+		Name: userRoleName,
 	}
 
-	if "test-user-role-id" != userRole.GetID() {
+	if userRoleID != userRole.GetID() {
 		t.Fatalf("Expected to get correct ID but got %s", userRole.GetID())
 	}
 
@@ -24,8 +29,8 @@ func TestValidMinimalUserRole(t *testing.T) {
 
 func TestValidFullUserRole(t *testing.T) {
 	userRole := UserRole{
-		ID:                                "test-user-role-id",
-		Name:                              "Test User Role",
+		ID:                                userRoleID,
+		Name:                              userRoleName,
 		ImplicitViewFilter:                "Test view filter",
 		CanConfigureServiceMapping:        true,
 		CanConfigureEumApplications:       true,
@@ -45,7 +50,7 @@ func TestValidFullUserRole(t *testing.T) {
 		CanConfigureApplications:          true,
 	}
 
-	if "test-user-role-id" != userRole.GetID() {
+	if userRoleID != userRole.GetID() {
 		t.Fatalf("Expected to get correct ID but got %s", userRole.GetID())
 	}
 
@@ -56,7 +61,7 @@ func TestValidFullUserRole(t *testing.T) {
 
 func TestInvalidUserRoleBecauseOfMissingId(t *testing.T) {
 	userRole := UserRole{
-		Name: "Test userRole",
+		Name: userRoleName,
 	}
 
 	if err := userRole.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
@@ -66,7 +71,7 @@ func TestInvalidUserRoleBecauseOfMissingId(t *testing.T) {
 
 func TestInvalidUserRoleBecauseOfMissingName(t *testing.T) {
 	userRole := UserRole{
-		ID: "test-user-role-id",
+		ID: userRoleID,
 	}
 
 	if err := userRole.Validate(); err == nil || !strings.Contains(err.Error(), "Name") {

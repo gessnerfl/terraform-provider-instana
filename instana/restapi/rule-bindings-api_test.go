@@ -7,20 +7,28 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
+const (
+	ruleBindingId          = "rule-binding-id"
+	ruleBindingText        = "rule-binding-text"
+	ruleBindingDescription = "rule-binding-description"
+	ruleBindingQuery       = "entity.type:jvm"
+	ruleBindingRuleId      = "rule-id"
+)
+
 func TestValidRuleBinding(t *testing.T) {
 	ruleBinding := RuleBinding{
-		ID:             "test-id",
+		ID:             ruleBindingId,
 		Enabled:        false,
 		Triggering:     false,
 		Severity:       1,
-		Text:           "test-text",
-		Description:    "test-description",
+		Text:           ruleBindingText,
+		Description:    ruleBindingDescription,
 		ExpirationTime: 60000,
-		Query:          "entity.type:jvm",
-		RuleIds:        []string{"test-rule-id"},
+		Query:          ruleBindingQuery,
+		RuleIds:        []string{ruleBindingRuleId},
 	}
 
-	if "test-id" != ruleBinding.GetID() {
+	if ruleBindingId != ruleBinding.GetID() {
 		t.Fatalf("Expected to get correct ID but got %s", ruleBinding.GetID())
 	}
 
@@ -34,11 +42,11 @@ func TestInvalidRuleBindingBecauseOfMissingId(t *testing.T) {
 		Enabled:        false,
 		Triggering:     false,
 		Severity:       1,
-		Text:           "test-text",
-		Description:    "test-description",
+		Text:           ruleBindingText,
+		Description:    ruleBindingDescription,
 		ExpirationTime: 60000,
-		Query:          "entity.type:jvm",
-		RuleIds:        []string{"test-rule-id"},
+		Query:          ruleBindingQuery,
+		RuleIds:        []string{ruleBindingRuleId},
 	}
 
 	if err := ruleBinding.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
@@ -48,14 +56,14 @@ func TestInvalidRuleBindingBecauseOfMissingId(t *testing.T) {
 
 func TestInvalidRuleBindingBecauseOfMissingText(t *testing.T) {
 	ruleBinding := RuleBinding{
-		ID:             "test-id",
+		ID:             ruleBindingId,
 		Enabled:        false,
 		Triggering:     false,
 		Severity:       1,
-		Description:    "test-description",
+		Description:    ruleBindingDescription,
 		ExpirationTime: 60000,
-		Query:          "entity.type:jvm",
-		RuleIds:        []string{"test-rule-id"},
+		Query:          ruleBindingQuery,
+		RuleIds:        []string{ruleBindingRuleId},
 	}
 
 	if err := ruleBinding.Validate(); err == nil || !strings.Contains(err.Error(), "Text") {
@@ -65,14 +73,14 @@ func TestInvalidRuleBindingBecauseOfMissingText(t *testing.T) {
 
 func TestInvalidRuleBindingBecauseOfMissingDescription(t *testing.T) {
 	ruleBinding := RuleBinding{
-		ID:             "test-id",
+		ID:             ruleBindingId,
 		Enabled:        false,
 		Triggering:     false,
 		Severity:       1,
-		Text:           "test-text",
+		Text:           ruleBindingText,
 		ExpirationTime: 60000,
-		Query:          "entity.type:jvm",
-		RuleIds:        []string{"test-rule-id"},
+		Query:          ruleBindingQuery,
+		RuleIds:        []string{ruleBindingRuleId},
 	}
 
 	if err := ruleBinding.Validate(); err == nil || !strings.Contains(err.Error(), "Description") {
@@ -82,14 +90,14 @@ func TestInvalidRuleBindingBecauseOfMissingDescription(t *testing.T) {
 
 func TestInvalidRuleBindingBecauseOfMissingRuleIds(t *testing.T) {
 	ruleBinding := RuleBinding{
-		ID:             "test-id",
+		ID:             ruleBindingId,
 		Enabled:        false,
 		Triggering:     false,
 		Severity:       1,
-		Text:           "test-text",
-		Description:    "test-description",
+		Text:           ruleBindingText,
+		Description:    ruleBindingDescription,
 		ExpirationTime: 60000,
-		Query:          "entity.type:jvm",
+		Query:          ruleBindingQuery,
 	}
 
 	if err := ruleBinding.Validate(); err == nil || !strings.Contains(err.Error(), "RuleIds") {
