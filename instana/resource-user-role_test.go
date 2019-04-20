@@ -350,6 +350,11 @@ func TestShouldReturnErrorWhenDeleteUserRoleFailsThroughInstanaAPI(t *testing.T)
 }
 
 func verifyUserRoleModelAppliedToResource(model restapi.UserRole, resourceData *schema.ResourceData, t *testing.T) {
+	verifyBasicUserRoleFiledsAppliedToResource(model, resourceData, t)
+	verifyPermissionOfUserRoleAppliedToResource(model, resourceData, t)
+}
+
+func verifyBasicUserRoleFiledsAppliedToResource(model restapi.UserRole, resourceData *schema.ResourceData, t *testing.T) {
 	if model.ID != resourceData.Id() {
 		t.Fatal("Expected ID to be identical")
 	}
@@ -359,6 +364,9 @@ func verifyUserRoleModelAppliedToResource(model restapi.UserRole, resourceData *
 	if model.ImplicitViewFilter != resourceData.Get(UserRoleFieldImplicitViewFilter).(string) {
 		t.Fatal("Expected ImplicitViewFilter to be identical")
 	}
+}
+
+func verifyPermissionOfUserRoleAppliedToResource(model restapi.UserRole, resourceData *schema.ResourceData, t *testing.T) {
 	if model.CanConfigureServiceMapping != resourceData.Get(UserRoleFieldCanConfigureServiceMapping).(bool) {
 		t.Fatal("Expected CanConfigureServiceMapping to be identical")
 	}

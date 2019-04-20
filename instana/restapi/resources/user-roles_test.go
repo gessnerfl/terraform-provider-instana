@@ -3,7 +3,6 @@ package resources_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -12,6 +11,11 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
+)
+
+const (
+	userRoleID   = "test-user-role-id"
+	userRoleName = "Test User Role"
 )
 
 func TestSuccessfulGetOneUserRole(t *testing.T) {
@@ -42,7 +46,6 @@ func TestFailedGetOneUserRoleBecauseOfErrorFromRestClient(t *testing.T) {
 	client := mocks.NewMockRestClient(ctrl)
 
 	sut := NewUserRoleResource(client)
-	userRoleID := "test-user-role-id"
 
 	client.EXPECT().GetOne(gomock.Eq(userRoleID), gomock.Eq(restapi.UserRolesResourcePath)).Return(nil, errors.New("error during test"))
 
@@ -59,7 +62,6 @@ func TestFailedGetOneUserRoleBecauseOfInvalidJsonArray(t *testing.T) {
 	client := mocks.NewMockRestClient(ctrl)
 
 	sut := NewUserRoleResource(client)
-	userRoleID := "test-user-role-id"
 
 	client.EXPECT().GetOne(gomock.Eq(userRoleID), gomock.Eq(restapi.UserRolesResourcePath)).Return([]byte("[{ \"invalid\" : \"data\" }]"), nil)
 
@@ -76,7 +78,6 @@ func TestFailedGetOneUserRoleBecauseOfInvalidJsonObject(t *testing.T) {
 	client := mocks.NewMockRestClient(ctrl)
 
 	sut := NewUserRoleResource(client)
-	userRoleID := "test-user-role-id"
 
 	client.EXPECT().GetOne(gomock.Eq(userRoleID), gomock.Eq(restapi.UserRolesResourcePath)).Return([]byte("{ \"invalid\" : \"data\" }"), nil)
 
@@ -93,7 +94,6 @@ func TestFailedGetOneUserRoleBecauseResponseIsNotAValidJsonDocument(t *testing.T
 	client := mocks.NewMockRestClient(ctrl)
 
 	sut := NewUserRoleResource(client)
-	userRoleID := "test-user-role-id"
 
 	client.EXPECT().GetOne(gomock.Eq(userRoleID), gomock.Eq(restapi.UserRolesResourcePath)).Return([]byte("Invalid Data"), nil)
 
@@ -184,7 +184,7 @@ func TestFailedUpsertOfUserRoleBecauseOfInvalidUserRoleProvided(t *testing.T) {
 
 	sut := NewUserRoleResource(client)
 	userRole := restapi.UserRole{
-		Name: "Test UserRole",
+		Name: userRoleName,
 	}
 
 	client.EXPECT().Put(gomock.Eq(userRole), gomock.Eq(restapi.UserRolesResourcePath)).Times(0)
@@ -204,7 +204,7 @@ func TestSuccessfulDeleteOfUserRoleByUserRole(t *testing.T) {
 	sut := NewUserRoleResource(client)
 	userRole := makeTestUserRole()
 
-	client.EXPECT().Delete(gomock.Eq("test-user-role-id-1"), gomock.Eq(restapi.UserRolesResourcePath)).Return(nil)
+	client.EXPECT().Delete(gomock.Eq(userRoleID), gomock.Eq(restapi.UserRolesResourcePath)).Return(nil)
 
 	err := sut.Delete(userRole)
 
@@ -221,7 +221,7 @@ func TestFailedDeleteOfUserRoleByUserRole(t *testing.T) {
 	sut := NewUserRoleResource(client)
 	userRole := makeTestUserRole()
 
-	client.EXPECT().Delete(gomock.Eq("test-user-role-id-1"), gomock.Eq(restapi.UserRolesResourcePath)).Return(errors.New("Error during test"))
+	client.EXPECT().Delete(gomock.Eq(userRoleID), gomock.Eq(restapi.UserRolesResourcePath)).Return(errors.New("Error during test"))
 
 	err := sut.Delete(userRole)
 
@@ -231,15 +231,9 @@ func TestFailedDeleteOfUserRoleByUserRole(t *testing.T) {
 }
 
 func makeTestUserRole() restapi.UserRole {
-	return makeTestUserRoleWithCounter(1)
-}
-
-func makeTestUserRoleWithCounter(counter int) restapi.UserRole {
-	id := fmt.Sprintf("test-user-role-id-%d", counter)
-	name := fmt.Sprintf("Test User Role %d", counter)
 	return restapi.UserRole{
-		ID:                                id,
-		Name:                              name,
+		ID:                                userRoleID,
+		Name:                              userRoleName,
 		ImplicitViewFilter:                "Test view filter",
 		CanConfigureServiceMapping:        true,
 		CanConfigureEumApplications:       true,

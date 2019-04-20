@@ -20,6 +20,9 @@ const (
 	keyRightFieldValue   = "keyRight"
 	valueLeftFieldValue  = "valueLeft"
 	valueRightFieldValue = "valueRight"
+
+	operatorFieldName                = "operator"
+	messageExpectedInvalidTagMatcher = "Expected invalid tag matcher expression because of missing operator"
 )
 
 func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
@@ -222,16 +225,16 @@ func TestShouldFailToValidateComparisionExpressionWhenKeyIsMissing(t *testing.T)
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsMissing(t *testing.T) {
 	exp := NewComparisionExpression(keyFieldValue, "", valueFieldValue)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "operator") {
-		t.Fatal("Expected invalid tag matcher expression because of missing operator")
+	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), operatorFieldName) {
+		t.Fatal(messageExpectedInvalidTagMatcher)
 	}
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsNotValid(t *testing.T) {
 	exp := NewComparisionExpression(keyFieldValue, "FOO", valueFieldValue)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "operator") {
-		t.Fatal("Expected invalid tag matcher expression because of missing operator")
+	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), operatorFieldName) {
+		t.Fatal(messageExpectedInvalidTagMatcher)
 	}
 }
 
@@ -274,16 +277,16 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenKeyIsMissing(t *testing.
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsMissing(t *testing.T) {
 	exp := NewUnaryOperationExpression(keyFieldValue, "")
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "operator") {
-		t.Fatal("Expected invalid tag matcher expression because of missing operator")
+	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), operatorFieldName) {
+		t.Fatal(messageExpectedInvalidTagMatcher)
 	}
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsNotValid(t *testing.T) {
 	exp := NewUnaryOperationExpression(keyFieldValue, "FOO")
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "operator") {
-		t.Fatal("Expected invalid tag matcher expression because of missing operator")
+	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), operatorFieldName) {
+		t.Fatal(messageExpectedInvalidTagMatcher)
 	}
 }
 

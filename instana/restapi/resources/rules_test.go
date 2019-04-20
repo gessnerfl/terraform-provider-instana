@@ -3,7 +3,6 @@ package resources_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -12,6 +11,15 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
+)
+
+const (
+	ruleID                = "test-rule-id"
+	ruleName              = "Test Rule"
+	ruleEntityType        = "entity_type"
+	ruleMetricName        = "entity.metric"
+	ruleAggregation       = "sum"
+	ruleConditionOperator = ">"
 )
 
 func TestSuccessfulGetOneRule(t *testing.T) {
@@ -42,7 +50,6 @@ func TestFailedGetOneRuleBecauseOfErrorFromRestClient(t *testing.T) {
 	client := mocks.NewMockRestClient(ctrl)
 
 	sut := NewRuleResource(client)
-	ruleID := "test-rule-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleID), gomock.Eq(restapi.RulesResourcePath)).Return(nil, errors.New("error during test"))
 
@@ -59,7 +66,6 @@ func TestFailedGetOneRuleBecauseOfInvalidJsonArray(t *testing.T) {
 	client := mocks.NewMockRestClient(ctrl)
 
 	sut := NewRuleResource(client)
-	ruleID := "test-rule-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleID), gomock.Eq(restapi.RulesResourcePath)).Return([]byte("[{ \"invalid\" : \"data\" }]"), nil)
 
@@ -76,7 +82,6 @@ func TestFailedGetOneRuleBecauseOfInvalidJsonObject(t *testing.T) {
 	client := mocks.NewMockRestClient(ctrl)
 
 	sut := NewRuleResource(client)
-	ruleID := "test-rule-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleID), gomock.Eq(restapi.RulesResourcePath)).Return([]byte("{ \"invalid\" : \"data\" }"), nil)
 
@@ -93,7 +98,6 @@ func TestFailedGetOneRuleBecauseOfNoJsonAsResponse(t *testing.T) {
 	client := mocks.NewMockRestClient(ctrl)
 
 	sut := NewRuleResource(client)
-	ruleID := "test-rule-id"
 
 	client.EXPECT().GetOne(gomock.Eq(ruleID), gomock.Eq(restapi.RulesResourcePath)).Return([]byte("Invalid Data"), nil)
 
@@ -184,14 +188,14 @@ func TestFailedUpsertOfRuleBecauseOfInvalidRuleProvided(t *testing.T) {
 
 	sut := NewRuleResource(client)
 	rule := restapi.Rule{
-		Name:              "Test Rule",
-		EntityType:        "test",
-		MetricName:        "test.metric",
+		Name:              ruleName,
+		EntityType:        ruleEntityType,
+		MetricName:        ruleMetricName,
 		Rollup:            0,
 		Window:            300000,
-		Aggregation:       "sum",
+		Aggregation:       ruleAggregation,
 		ConditionValue:    0,
-		ConditionOperator: ">",
+		ConditionOperator: ruleConditionOperator,
 	}
 
 	client.EXPECT().Put(gomock.Eq(rule), gomock.Eq(restapi.RulesResourcePath)).Times(0)
@@ -211,7 +215,7 @@ func TestSuccessfulDeleteOfRuleByRule(t *testing.T) {
 	sut := NewRuleResource(client)
 	rule := makeTestRule()
 
-	client.EXPECT().Delete(gomock.Eq("test-rule-id-1"), gomock.Eq(restapi.RulesResourcePath)).Return(nil)
+	client.EXPECT().Delete(gomock.Eq(ruleID), gomock.Eq(restapi.RulesResourcePath)).Return(nil)
 
 	err := sut.Delete(rule)
 
@@ -228,7 +232,7 @@ func TestFailedDeleteOfRuleByRule(t *testing.T) {
 	sut := NewRuleResource(client)
 	rule := makeTestRule()
 
-	client.EXPECT().Delete(gomock.Eq("test-rule-id-1"), gomock.Eq(restapi.RulesResourcePath)).Return(errors.New("Error during test"))
+	client.EXPECT().Delete(gomock.Eq(ruleID), gomock.Eq(restapi.RulesResourcePath)).Return(errors.New("Error during test"))
 
 	err := sut.Delete(rule)
 
@@ -238,21 +242,15 @@ func TestFailedDeleteOfRuleByRule(t *testing.T) {
 }
 
 func makeTestRule() restapi.Rule {
-	return makeTestRuleWithCounter(1)
-}
-
-func makeTestRuleWithCounter(counter int) restapi.Rule {
-	id := fmt.Sprintf("test-rule-id-%d", counter)
-	name := fmt.Sprintf("Test Rule %d", counter)
 	return restapi.Rule{
-		ID:                id,
-		Name:              name,
-		EntityType:        "test",
-		MetricName:        "test.metric",
+		ID:                ruleID,
+		Name:              ruleName,
+		EntityType:        ruleEntityType,
+		MetricName:        ruleMetricName,
 		Rollup:            0,
 		Window:            300000,
-		Aggregation:       "sum",
-		ConditionOperator: ">",
+		Aggregation:       ruleAggregation,
+		ConditionOperator: ruleConditionOperator,
 		ConditionValue:    0,
 	}
 }
