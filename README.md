@@ -9,6 +9,8 @@ Terraform provider implementation for the Instana REST API.
   - [How to Use](#how-to-use)
     - [Provider Configuration](#provider-configuration)
     - [Resources](#resources)
+      - [Application Settings](#application-settings)
+        - [Application Configuration](#application-configuration)
       - [Event Settings](#event-settings)
         - [Rules](#rules)
         - [Rule Bindings](#rule-bindings)
