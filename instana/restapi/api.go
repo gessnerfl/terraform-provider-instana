@@ -14,6 +14,12 @@ const settingsPathElement = "/settings"
 //EventSettingsBasePath path to Event Settings resource of Instana RESTful API
 const EventSettingsBasePath = EventsBasePath + settingsPathElement
 
+//EventSpecificationBasePath path to Event Specification settings of Instana RESTful API
+const EventSpecificationBasePath = EventSettingsBasePath + "/event-specifications"
+
+//CustomEventSpecificationResourcePath path to Custom Event Specification settings resource of Instana RESTful API
+const CustomEventSpecificationResourcePath = EventSpecificationBasePath + "/custom"
+
 //RulesResourcePath path to Rule resource of Instana RESTful API
 const RulesResourcePath = EventSettingsBasePath + "/rules"
 
@@ -35,6 +41,24 @@ const ApplicationMonitoringSettingsBasePath = ApplicationMonitoringBasePath + se
 //ApplicationConfigsResourcePath path to application config resource of Instana RESTful API
 const ApplicationConfigsResourcePath = ApplicationMonitoringSettingsBasePath + "/application"
 
+//Severity representation of the severity in both worlds Instana API and Terraform Provider
+type Severity struct {
+	apiRepresentation       int
+	terraformRepresentation string
+}
+
+//GetAPIRepresentation returns the integer representation of the Instana API
+func (s Severity) GetAPIRepresentation() int { return s.apiRepresentation }
+
+//GetTerraformRepresentation returns the string representation of the Terraform Provider
+func (s Severity) GetTerraformRepresentation() string { return s.terraformRepresentation }
+
+//SeverityCritical representation of the critical severity
+var SeverityCritical = Severity{apiRepresentation: 10, terraformRepresentation: "critical"}
+
+//SeverityWarning representation of the warning severity
+var SeverityWarning = Severity{apiRepresentation: 5, terraformRepresentation: "warning"}
+
 //InstanaDataObject is a marker interface for any data object provided by any resource of the Instana REST API
 type InstanaDataObject interface {
 	GetID() string
@@ -50,6 +74,7 @@ type RestClient interface {
 
 //InstanaAPI is the interface to all resources of the Instana Rest API
 type InstanaAPI interface {
+	CustomEventSpecifications() CustomEventSpecificationResource
 	Rules() RuleResource
 	RuleBindings() RuleBindingResource
 	UserRoles() UserRoleResource

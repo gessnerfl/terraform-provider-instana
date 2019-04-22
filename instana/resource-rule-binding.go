@@ -51,7 +51,7 @@ func CreateResourceRuleBinding() *schema.Resource {
 			RuleBindingFieldSeverity: &schema.Schema{
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{SeverityWarning.terraformRepresentation, SeverityCritical.terraformRepresentation}, false),
+				ValidateFunc: validation.StringInSlice([]string{restapi.SeverityWarning.GetTerraformRepresentation(), restapi.SeverityCritical.GetTerraformRepresentation()}, false),
 				Description:  "Configures the severity of the issue",
 			},
 			RuleBindingFieldText: &schema.Schema{

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/google/go-cmp/cmp"
 )
@@ -41,14 +42,14 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T
 }
 
 func TestShouldReturnStringRepresentationOfSeverityWarning(t *testing.T) {
-	testShouldReturnStringRepresentationOfSeverity(SeverityWarning, t)
+	testShouldReturnStringRepresentationOfSeverity(restapi.SeverityWarning, t)
 }
 
 func TestShouldReturnStringRepresentationOfSeverityCritical(t *testing.T) {
-	testShouldReturnStringRepresentationOfSeverity(SeverityCritical, t)
+	testShouldReturnStringRepresentationOfSeverity(restapi.SeverityCritical, t)
 }
 
-func testShouldReturnStringRepresentationOfSeverity(severity Severity, t *testing.T) {
+func testShouldReturnStringRepresentationOfSeverity(severity restapi.Severity, t *testing.T) {
 	result, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity.GetAPIRepresentation())
 
 	if err != nil {
@@ -73,14 +74,14 @@ func TestShouldFailToConvertStringRepresentationForSeverityWhenIntValueIsNotVali
 }
 
 func TestShouldReturnIntRepresentationOfSeverityWarning(t *testing.T) {
-	testShouldReturnIntRepresentationOfSeverity(SeverityWarning, t)
+	testShouldReturnIntRepresentationOfSeverity(restapi.SeverityWarning, t)
 }
 
 func TestShouldReturnIntRepresentationOfSeverityCritical(t *testing.T) {
-	testShouldReturnIntRepresentationOfSeverity(SeverityCritical, t)
+	testShouldReturnIntRepresentationOfSeverity(restapi.SeverityCritical, t)
 }
 
-func testShouldReturnIntRepresentationOfSeverity(severity Severity, t *testing.T) {
+func testShouldReturnIntRepresentationOfSeverity(severity restapi.Severity, t *testing.T) {
 	result, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity.GetTerraformRepresentation())
 
 	if err != nil {

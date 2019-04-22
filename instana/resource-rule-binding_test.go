@@ -50,14 +50,14 @@ const textFieldValue = "text"
 const descriptionFieldValue = "description"
 
 func TestCRUDOfRuleBindingResourceOfSeverityCriticalWithMockServer(t *testing.T) {
-	testCRUDOfRuleBindingResourceWithMockServer(SeverityCritical, t)
+	testCRUDOfRuleBindingResourceWithMockServer(restapi.SeverityCritical, t)
 }
 
 func TestCRUDOfRuleBindingResourceOfSeverityWarningWithMockServer(t *testing.T) {
-	testCRUDOfRuleBindingResourceWithMockServer(SeverityWarning, t)
+	testCRUDOfRuleBindingResourceWithMockServer(restapi.SeverityWarning, t)
 }
 
-func testCRUDOfRuleBindingResourceWithMockServer(severity Severity, t *testing.T) {
+func testCRUDOfRuleBindingResourceWithMockServer(severity restapi.Severity, t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPut, ruleBindingApiPath, testutils.EchoHandlerFunc)
@@ -426,7 +426,7 @@ func createFullTestRuleBindingData() map[string]interface{} {
 	data[RuleBindingFieldText] = textFieldValue
 	data[RuleBindingFieldDescription] = descriptionFieldValue
 	data[RuleBindingFieldExpirationTime] = 1234
-	data[RuleBindingFieldSeverity] = SeverityWarning.GetTerraformRepresentation()
+	data[RuleBindingFieldSeverity] = restapi.SeverityWarning.GetTerraformRepresentation()
 	data[RuleBindingFieldQuery] = "query"
 	data[RuleBindingFieldRuleIds] = []string{"test-rule-id-1", "test-rule-id-2"}
 	return data

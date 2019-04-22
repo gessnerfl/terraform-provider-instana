@@ -138,7 +138,7 @@ func TestFailedUpsertOfRuleBindingBecauseOfInvalidRuleBinding(t *testing.T) {
 	ruleBinding := restapi.RuleBinding{
 		Enabled:        false,
 		Triggering:     false,
-		Severity:       1,
+		Severity:       restapi.SeverityWarning.GetAPIRepresentation(),
 		Text:           ruleBindingText,
 		Description:    ruleBindingDescription,
 		ExpirationTime: 60000,
@@ -245,7 +245,7 @@ func makeTestRuleBinding() restapi.RuleBinding {
 		ID:             ruleBindingID,
 		Enabled:        false,
 		Triggering:     false,
-		Severity:       1,
+		Severity:       restapi.SeverityWarning.GetAPIRepresentation(),
 		Text:           ruleBindingText,
 		Description:    ruleBindingDescription,
 		ExpirationTime: 60000,

@@ -152,6 +152,20 @@ func (m *MockInstanaAPI) EXPECT() *MockInstanaAPIMockRecorder {
 	return m.recorder
 }
 
+// CustomEventSpecifications mocks base method
+func (m *MockInstanaAPI) CustomEventSpecifications() restapi.CustomEventSpecificationResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CustomEventSpecifications")
+	ret0, _ := ret[0].(restapi.CustomEventSpecificationResource)
+	return ret0
+}
+
+// CustomEventSpecifications indicates an expected call of CustomEventSpecifications
+func (mr *MockInstanaAPIMockRecorder) CustomEventSpecifications() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CustomEventSpecifications", reflect.TypeOf((*MockInstanaAPI)(nil).CustomEventSpecifications))
+}
+
 // RuleBindings mocks base method
 func (m *MockInstanaAPI) RuleBindings() restapi.RuleBindingResource {
 	m.ctrl.T.Helper()

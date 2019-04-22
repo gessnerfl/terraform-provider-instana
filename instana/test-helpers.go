@@ -21,6 +21,8 @@ type TestHelper interface {
 	CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyApplicationConfigResourceData() *schema.ResourceData
 	CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData
+	CreateEmptyCustomSystemEventSpecificationResourceData() *schema.ResourceData
+	CreateCustomSystemEventSpecificationResourceData(data map[string]interface{}) *schema.ResourceData
 }
 
 type testHelperImpl struct {
@@ -64,5 +66,15 @@ func (inst *testHelperImpl) CreateEmptyApplicationConfigResourceData() *schema.R
 
 func (inst *testHelperImpl) CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData {
 	schemaMap := CreateResourceApplicationConfig().Schema
+	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
+}
+
+func (inst *testHelperImpl) CreateEmptyCustomSystemEventSpecificationResourceData() *schema.ResourceData {
+	data := make(map[string]interface{})
+	return inst.CreateCustomSystemEventSpecificationResourceData(data)
+}
+
+func (inst *testHelperImpl) CreateCustomSystemEventSpecificationResourceData(data map[string]interface{}) *schema.ResourceData {
+	schemaMap := CreateResourceCustomSystemEventSpecification().Schema
 	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }
