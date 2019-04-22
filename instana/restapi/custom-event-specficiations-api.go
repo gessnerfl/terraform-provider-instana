@@ -73,7 +73,7 @@ type CustomEventSpecification struct {
 	EntityType     string                        `json:"entityType"`
 	Query          *string                       `json:"query"`
 	Triggering     bool                          `json:"triggering"`
-	Description    *string                       `json:"string"`
+	Description    *string                       `json:"description"`
 	ExpirationTime *int                          `json:"expirationTime"`
 	Enabled        bool                          `json:"enabled"`
 	Rules          []RuleSpecification           `json:"rules"`

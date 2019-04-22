@@ -91,7 +91,7 @@ func createCustomEventSpecificationSchema(ruleSpecificSchemaFields map[string]*s
 		},
 		CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs: &schema.Schema{
 			Type:        schema.TypeBool,
-			Required:    false,
+			Default:     true,
 			Optional:    true,
 			Description: "Configures the downstream reporting should be sent to all integrations",
 		},
