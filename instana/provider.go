@@ -23,6 +23,7 @@ const ResourceInstanaUserRole = "instana_user_role"
 //ResourceInstanaApplicationConfig the name of the terraform-provider-instana resource to manage application config
 const ResourceInstanaApplicationConfig = "instana_application_config"
 
+//ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
 const ResourceInstanaCustomEventSpecificationSystemRule = "instana_custom_event_spec_system_rule"
 
 //Provider interface implementation of hashicorp terraform provider

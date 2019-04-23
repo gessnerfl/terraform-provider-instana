@@ -26,7 +26,7 @@ const (
 
 	ruleFieldPrefix = "rule_"
 
-	//RuleSpecificationSeverity constant value for the schema field severity of a rule specification
+	//CustomEventSpecificationRuleSeverity constant value for the schema field severity of a rule specification
 	CustomEventSpecificationRuleSeverity = ruleFieldPrefix + "severity"
 
 	downstreamFieldPrefix = "downstream_"
