@@ -14,11 +14,71 @@ type CustomEventSpecificationResource interface {
 type RuleType string
 
 const (
-	//SystemRuleType const for RuleType of System Rules
+	//SystemRuleType const for RuleType of System
 	SystemRuleType = "system"
+	//ThresholdRuleType const for RuleType of Threshold
+	ThresholdRuleType = "threshold"
 )
 
-//NewSystemRuleSpecification creates a new instance of a System Rule
+//AggregationType custom type representing an aggregation of a custom event specification rule
+type AggregationType string
+
+const (
+	//AggregationSum const for a sum aggregation
+	AggregationSum = AggregationType("sum")
+	//AggregationAvg const for a avg aggregation
+	AggregationAvg = AggregationType("avg")
+	//AggregationMin const for a min aggregation
+	AggregationMin = AggregationType("min")
+	//AggregationMax const for a max aggregation
+	AggregationMax = AggregationType("max")
+)
+
+//SupportedAggregationTypes slice of supported aggregation types
+var SupportedAggregationTypes = []AggregationType{AggregationSum, AggregationAvg, AggregationMin, AggregationMax}
+
+//IsSupportedAggregationType check if the provided aggregation type is supported
+func IsSupportedAggregationType(aggregation AggregationType) bool {
+	for _, v := range SupportedAggregationTypes {
+		if v == aggregation {
+			return true
+		}
+	}
+	return false
+}
+
+//ConditionOperatorType custom type representing a condition operator of a custom event specification rule
+type ConditionOperatorType string
+
+const (
+	//ConditionOperatorEquals const for a equals (==) condition operator
+	ConditionOperatorEquals = ConditionOperatorType("==")
+	//ConditionOperatorNotEqual const for a not equal (!=) condition operator
+	ConditionOperatorNotEqual = ConditionOperatorType("!=")
+	//ConditionOperatorLessThan const for a less than (<) condition operator
+	ConditionOperatorLessThan = ConditionOperatorType("<")
+	//ConditionOperatorLessThanOrEqual const for a less than or equal (<=) condition operator
+	ConditionOperatorLessThanOrEqual = ConditionOperatorType("<=")
+	//ConditionOperatorGreaterThan const for a greater than (>) condition operator
+	ConditionOperatorGreaterThan = ConditionOperatorType(">")
+	//ConditionOperatorGreaterThanOrEqual const for a greater than or equal (<=) condition operator
+	ConditionOperatorGreaterThanOrEqual = ConditionOperatorType(">=")
+)
+
+//SupportedConditionOperatorTypes slice of supported aggregation types
+var SupportedConditionOperatorTypes = []ConditionOperatorType{ConditionOperatorEquals, ConditionOperatorNotEqual, ConditionOperatorLessThan, ConditionOperatorLessThanOrEqual, ConditionOperatorGreaterThan, ConditionOperatorGreaterThanOrEqual}
+
+//IsSupportedConditionOperatorType check if the provided condition operator type is supported
+func IsSupportedConditionOperatorType(operator ConditionOperatorType) bool {
+	for _, v := range SupportedConditionOperatorTypes {
+		if v == operator {
+			return true
+		}
+	}
+	return false
+}
+
+//NewSystemRuleSpecification creates a new instance of System Rule
 func NewSystemRuleSpecification(systemRuleID string, severity int) RuleSpecification {
 	return RuleSpecification{
 		DType:        SystemRuleType,
@@ -29,9 +89,22 @@ func NewSystemRuleSpecification(systemRuleID string, severity int) RuleSpecifica
 
 //RuleSpecification representation of a rule specification for a CustomEventSpecification
 type RuleSpecification struct {
-	DType        RuleType `json:"ruleType"`
-	SystemRuleID string   `json:"systemRuleId"`
-	Severity     int      `json:"severity"`
+	//Common Fields
+	DType    RuleType `json:"ruleType"`
+	Severity int      `json:"severity"`
+
+	//System Rule fields
+	SystemRuleID string `json:"systemRuleId"`
+
+	//Threshold Rule fields
+	MetricName                         string                `json:"metricName"`
+	Rollup                             int64                 `json:"rollup"`
+	Window                             int64                 `json:"window"`
+	Aggregation                        AggregationType       `json:"aggregation"`
+	ConditionOperator                  ConditionOperatorType `json:"conditionOperator"`
+	ConditionValue                     float64               `json:"conditionValue"`
+	AggregationForNonPercentileMetric  bool                  `json:"aggregationForNonPercentileMetric"`
+	EitherRollupOrWindowAndAggregation bool                  `json:"eitherRollupOrWindowAndAggregation"`
 }
 
 //Validate Rule interface implementation for SystemRule
@@ -41,6 +114,8 @@ func (r *RuleSpecification) Validate() error {
 	}
 	if r.DType == SystemRuleType {
 		return r.validateSystemRule()
+	} else if r.DType == ThresholdRuleType {
+		return r.validateThresholdRule()
 	}
 	return nil
 }
@@ -48,6 +123,22 @@ func (r *RuleSpecification) Validate() error {
 func (r *RuleSpecification) validateSystemRule() error {
 	if len(r.SystemRuleID) == 0 {
 		return errors.New("id of system rule is missing")
+	}
+	return nil
+}
+
+func (r *RuleSpecification) validateThresholdRule() error {
+	if len(r.MetricName) == 0 {
+		return errors.New("metric name of threshold rule is missing")
+	}
+	if r.Window <= 0 {
+		return errors.New("window of threshold rule must be greater than zero")
+	}
+	if !IsSupportedAggregationType(r.Aggregation) {
+		return errors.New("aggregation type of threshold rule is not valid")
+	}
+	if !IsSupportedConditionOperatorType(r.ConditionOperator) {
+		return errors.New("condition operator of threshold rule is not valid")
 	}
 	return nil
 }

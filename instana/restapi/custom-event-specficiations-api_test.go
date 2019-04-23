@@ -1,6 +1,7 @@
 package restapi_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -10,12 +11,17 @@ import (
 )
 
 const (
-	customEventID           = "custom-event-id"
-	customEventName         = "custom-event-name"
-	customEventEntityType   = "custom-event-entity-type"
-	customEventQuery        = "custom-event-query"
-	customEventDescription  = "custom-event-description"
-	customEventSystemRuleID = "system-rule-id"
+	customEventID                = "custom-event-id"
+	customEventName              = "custom-event-name"
+	customEventEntityType        = "custom-event-entity-type"
+	customEventQuery             = "custom-event-query"
+	customEventDescription       = "custom-event-description"
+	customEventSystemRuleID      = "system-rule-id"
+	customEventMetricName        = "threshold-rule-metric-name"
+	customEventWindow            = 60000
+	customEventAggregation       = AggregationSum
+	customEventConditionOperator = ConditionOperatorEquals
+	customEventConditionValue    = 1.2
 )
 
 func TestShouldValidateMinimalCustemEventSpecificationWithSystemRule(t *testing.T) {
@@ -188,9 +194,96 @@ func TestShouldFailToValidateSystemRuleWhenRuleTypeIsMissing(t *testing.T) {
 }
 
 func TestShouldSuccessfullyValidateEventSpecificationDownstream(t *testing.T) {
-	rule := EventSpecificationDownstream{
+	downstream := EventSpecificationDownstream{
 		IntegrationIds:                []string{"integration-id-1"},
 		BroadcastToAllAlertingConfigs: true,
+	}
+
+	if err := downstream.Validate(); err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+}
+
+func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDsAreNil(t *testing.T) {
+	downstream := EventSpecificationDownstream{
+		IntegrationIds: nil,
+	}
+
+	if err := downstream.Validate(); err == nil || !strings.Contains(err.Error(), "integration id") {
+		t.Fatal("Expected to fail to validate event specification downstream as integration ids is nil")
+	}
+}
+
+func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsProvided(t *testing.T) {
+	downstream := EventSpecificationDownstream{
+		IntegrationIds: []string{},
+	}
+
+	if err := downstream.Validate(); err == nil || !strings.Contains(err.Error(), "integration id") {
+		t.Fatal("Expected to fail to validate event specification downstream as no integration id is provided")
+	}
+}
+
+func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSupportedAggregations(t *testing.T) {
+	for _, a := range SupportedAggregationTypes {
+		t.Run(fmt.Sprintf("TestShouldSuccessfullyValidateMinimalThresholdRuleForAggregation%s", a), createTestCaseForSuccessfullValidateMinimalThresholdRuleForAggregation(a))
+	}
+}
+
+func createTestCaseForSuccessfullValidateMinimalThresholdRuleForAggregation(aggregation AggregationType) func(*testing.T) {
+	return func(t *testing.T) {
+		rule := RuleSpecification{
+			DType:             ThresholdRuleType,
+			Severity:          SeverityWarning.GetAPIRepresentation(),
+			MetricName:        customEventMetricName,
+			Window:            customEventWindow,
+			Aggregation:       aggregation,
+			ConditionOperator: customEventConditionOperator,
+			ConditionValue:    customEventConditionValue,
+		}
+
+		if err := rule.Validate(); err != nil {
+			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+		}
+	}
+}
+
+func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSupportedConditionOperators(t *testing.T) {
+	for _, o := range SupportedConditionOperatorTypes {
+		t.Run(fmt.Sprintf("TestShouldSuccessfullyValidateMinimalThresholdRuleForConditionOperator%s", o), createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperators(o))
+	}
+}
+
+func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperators(operator ConditionOperatorType) func(*testing.T) {
+	return func(t *testing.T) {
+		rule := RuleSpecification{
+			DType:             ThresholdRuleType,
+			Severity:          SeverityWarning.GetAPIRepresentation(),
+			MetricName:        customEventMetricName,
+			Window:            customEventWindow,
+			Aggregation:       customEventAggregation,
+			ConditionOperator: operator,
+			ConditionValue:    customEventConditionValue,
+		}
+
+		if err := rule.Validate(); err != nil {
+			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+		}
+	}
+}
+
+func TestShouldValidateFullThresholdRuleSpecification(t *testing.T) {
+	rule := RuleSpecification{
+		DType:                              ThresholdRuleType,
+		Severity:                           SeverityWarning.GetAPIRepresentation(),
+		MetricName:                         customEventMetricName,
+		Rollup:                             500,
+		Window:                             customEventWindow,
+		Aggregation:                        customEventAggregation,
+		ConditionOperator:                  customEventConditionOperator,
+		ConditionValue:                     customEventConditionValue,
+		AggregationForNonPercentileMetric:  true,
+		EitherRollupOrWindowAndAggregation: true,
 	}
 
 	if err := rule.Validate(); err != nil {
@@ -198,22 +291,94 @@ func TestShouldSuccessfullyValidateEventSpecificationDownstream(t *testing.T) {
 	}
 }
 
-func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDsAreNil(t *testing.T) {
-	rule := EventSpecificationDownstream{
-		IntegrationIds: nil,
+func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameIsMissing(t *testing.T) {
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		Window:            customEventWindow,
+		Aggregation:       customEventAggregation,
+		ConditionOperator: customEventConditionOperator,
+		ConditionValue:    customEventConditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "integration id") {
-		t.Fatal("Expected to fail to validate event specification downstream as integration ids is nil")
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "metric name") {
+		t.Fatal("Expected to fail to validate threshold rule as no metric name is provided")
 	}
 }
 
-func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsProvided(t *testing.T) {
-	rule := EventSpecificationDownstream{
-		IntegrationIds: []string{},
+func TestShouldFailToValidateThresholdRuleSpecificationWhenWindowIsMissing(t *testing.T) {
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        customEventMetricName,
+		Aggregation:       customEventAggregation,
+		ConditionOperator: customEventConditionOperator,
+		ConditionValue:    customEventConditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "integration id") {
-		t.Fatal("Expected to fail to validate event specification downstream as no integration id is provided")
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "window") {
+		t.Fatal("Expected to fail to validate threshold rule as no window is provided")
+	}
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWhenAggregationIsMissing(t *testing.T) {
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        customEventMetricName,
+		Window:            customEventWindow,
+		ConditionOperator: customEventConditionOperator,
+		ConditionValue:    customEventConditionValue,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "aggregation") {
+		t.Fatal("Expected to fail to validate threshold rule as no aggregation is provided")
+	}
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWhenAggregationIsNotValid(t *testing.T) {
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        customEventMetricName,
+		Window:            customEventWindow,
+		Aggregation:       "invalid",
+		ConditionOperator: customEventConditionOperator,
+		ConditionValue:    customEventConditionValue,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "aggregation") {
+		t.Fatal("Expected to fail to validate threshold rule as no aggregation is provided")
+	}
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWhenConditionOperatorIsMissing(t *testing.T) {
+	rule := RuleSpecification{
+		DType:          ThresholdRuleType,
+		Severity:       SeverityWarning.GetAPIRepresentation(),
+		MetricName:     customEventMetricName,
+		Window:         customEventWindow,
+		Aggregation:    customEventAggregation,
+		ConditionValue: customEventConditionValue,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
+		t.Fatal("Expected to fail to validate threshold rule as no condition operator is provided")
+	}
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWhenConditionOperatorIsNotValid(t *testing.T) {
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        customEventMetricName,
+		Window:            customEventWindow,
+		Aggregation:       customEventAggregation,
+		ConditionOperator: "invalid",
+		ConditionValue:    customEventConditionValue,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
+		t.Fatal("Expected to fail to validate threshold rule as no condition operator is not valid")
 	}
 }
