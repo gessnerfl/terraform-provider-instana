@@ -113,11 +113,11 @@ func createCustomEventSpecificationSchema(ruleSpecificSchemaFields map[string]*s
 func createCustomEventSpecificationReadFunc(ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) func(*schema.ResourceData, interface{}) error {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		instanaAPI := meta.(restapi.InstanaAPI)
-		secID := d.Id()
-		if len(secID) == 0 {
+		specID := d.Id()
+		if len(specID) == 0 {
 			return errors.New("ID of custom event specification is missing")
 		}
-		sec, err := instanaAPI.CustomEventSpecifications().GetOne(secID)
+		spec, err := instanaAPI.CustomEventSpecifications().GetOne(specID)
 		if err != nil {
 			if err == restapi.ErrEntityNotFound {
 				d.SetId("")
@@ -125,7 +125,7 @@ func createCustomEventSpecificationReadFunc(ruleSpecificMappingFunc func(*schema
 			}
 			return err
 		}
-		return updateCustomEventSpecificationState(d, sec, ruleSpecificMappingFunc)
+		return updateCustomEventSpecificationState(d, spec, ruleSpecificMappingFunc)
 	}
 }
 
@@ -141,11 +141,11 @@ func createCustomEventSpecificationCreateFunc(ruleSpecificationMapFunc func(*sch
 func createCustomEventSpecificationUpdateFunc(ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error), ruleSpecificResourceMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) func(*schema.ResourceData, interface{}) error {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		instanaAPI := meta.(restapi.InstanaAPI)
-		sec, err := createCustomEventSpecificationFromResourceData(d, ruleSpecificationMapFunc)
+		spec, err := createCustomEventSpecificationFromResourceData(d, ruleSpecificationMapFunc)
 		if err != nil {
 			return err
 		}
-		updatedCustomEventSpecification, err := instanaAPI.CustomEventSpecifications().Upsert(sec)
+		updatedCustomEventSpecification, err := instanaAPI.CustomEventSpecifications().Upsert(spec)
 		if err != nil {
 			return err
 		}
@@ -156,11 +156,11 @@ func createCustomEventSpecificationUpdateFunc(ruleSpecificationMapFunc func(*sch
 func createCustomEventSpecificationDeleteFunc(ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error)) func(*schema.ResourceData, interface{}) error {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		instanaAPI := meta.(restapi.InstanaAPI)
-		sec, err := createCustomEventSpecificationFromResourceData(d, ruleSpecificationMapFunc)
+		spec, err := createCustomEventSpecificationFromResourceData(d, ruleSpecificationMapFunc)
 		if err != nil {
 			return err
 		}
-		err = instanaAPI.CustomEventSpecifications().DeleteByID(sec.ID)
+		err = instanaAPI.CustomEventSpecifications().DeleteByID(spec.ID)
 		if err != nil {
 			return err
 		}
@@ -201,22 +201,25 @@ func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, rule
 	return apiModel, nil
 }
 
-func updateCustomEventSpecificationState(d *schema.ResourceData, sec restapi.CustomEventSpecification, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
-	d.Set(CustomEventSpecificationFieldName, sec.Name)
-	d.Set(CustomEventSpecificationFieldEntityType, sec.EntityType)
-	d.Set(CustomEventSpecificationFieldQuery, sec.Query)
-	d.Set(CustomEventSpecificationFieldTriggering, sec.Triggering)
-	d.Set(CustomEventSpecificationFieldDescription, sec.Description)
-	d.Set(CustomEventSpecificationFieldExpirationTime, sec.ExpirationTime)
-	d.Set(CustomEventSpecificationFieldEnabled, sec.Enabled)
+func updateCustomEventSpecificationState(d *schema.ResourceData, spec restapi.CustomEventSpecification, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
+	d.Set(CustomEventSpecificationFieldName, spec.Name)
+	d.Set(CustomEventSpecificationFieldEntityType, spec.EntityType)
+	d.Set(CustomEventSpecificationFieldQuery, spec.Query)
+	d.Set(CustomEventSpecificationFieldTriggering, spec.Triggering)
+	d.Set(CustomEventSpecificationFieldDescription, spec.Description)
+	d.Set(CustomEventSpecificationFieldExpirationTime, spec.ExpirationTime)
+	d.Set(CustomEventSpecificationFieldEnabled, spec.Enabled)
 
-	if sec.Downstream != nil {
-		d.Set(CustomEventSpecificationDownstreamIntegrationIds, sec.Downstream.IntegrationIds)
-		d.Set(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, sec.Downstream.BroadcastToAllAlertingConfigs)
+	if spec.Downstream != nil {
+		d.Set(CustomEventSpecificationDownstreamIntegrationIds, spec.Downstream.IntegrationIds)
+		d.Set(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, spec.Downstream.BroadcastToAllAlertingConfigs)
 	}
 
-	ruleSpecificMappingFunc(d, sec)
+	err := ruleSpecificMappingFunc(d, spec)
+	if err != nil {
+		return err
+	}
 
-	d.SetId(sec.ID)
+	d.SetId(spec.ID)
 	return nil
 }

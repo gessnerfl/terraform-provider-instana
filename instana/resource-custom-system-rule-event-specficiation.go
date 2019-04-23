@@ -55,9 +55,14 @@ func mapCustomSystemEventToInstanaAPIModel(d *schema.ResourceData) (restapi.Rule
 	return restapi.NewSystemRuleSpecification(systemRuleID, severity), nil
 }
 
-func mapCustomSystemEventToTerraformState(d *schema.ResourceData, sec restapi.CustomEventSpecification) error {
-	ruleSpec := sec.Rules[0]
-	d.Set(CustomEventSpecificationRuleSeverity, ruleSpec.Severity)
+func mapCustomSystemEventToTerraformState(d *schema.ResourceData, spec restapi.CustomEventSpecification) error {
+	ruleSpec := spec.Rules[0]
+	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
+	if err != nil {
+		return err
+	}
+
+	d.Set(CustomEventSpecificationRuleSeverity, severity)
 	d.Set(SystemRuleSpecificationSystemRuleID, ruleSpec.SystemRuleID)
 	return nil
 }
