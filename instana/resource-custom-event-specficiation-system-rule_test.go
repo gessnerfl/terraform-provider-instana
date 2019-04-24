@@ -173,6 +173,28 @@ func testShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstana
 	resourceData := NewTestHelper(t).CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
 	resourceData.SetId(customSystemEventID)
 
+	err := runExecuteReadAndReturnResultOfCustomEventSpecificationWithSystemRuleForExpectedModel(expectedModel, resourceData, t)
+
+	if err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+	verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(expectedModel, resourceData, t)
+}
+
+func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhenSeverityFromAPICannotBeMappedToSeverityOfTerraformState(t *testing.T) {
+	expectedModel := createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet()
+	expectedModel.Rules[0].Severity = 999
+	resourceData := NewTestHelper(t).CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
+	resourceData.SetId(customSystemEventID)
+
+	err := runExecuteReadAndReturnResultOfCustomEventSpecificationWithSystemRuleForExpectedModel(expectedModel, resourceData, t)
+
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
+	}
+}
+
+func runExecuteReadAndReturnResultOfCustomEventSpecificationWithSystemRuleForExpectedModel(expectedModel restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) error {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
@@ -182,12 +204,7 @@ func testShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstana
 	mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(expectedModel, nil).Times(1)
 
 	resource := CreateResourceCustomEventSpecificationWithSystemRule()
-	err := resource.Read(resourceData, mockInstanaAPI)
-
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(expectedModel, resourceData, t)
+	return resource.Read(resourceData, mockInstanaAPI)
 }
 
 func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
@@ -249,28 +266,6 @@ func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIAnd
 	}
 	if len(resourceData.Id()) == 0 {
 		t.Fatal("Expected ID should still be set")
-	}
-}
-
-func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhenSeverityFromAPICannotBeMappedToSeverityOfTerraformState(t *testing.T) {
-	expectedModel := createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet()
-	expectedModel.Rules[0].Severity = 999
-	resourceData := NewTestHelper(t).CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
-	resourceData.SetId(customSystemEventID)
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-
-	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-	mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(expectedModel, nil).Times(1)
-
-	resource := CreateResourceCustomEventSpecificationWithSystemRule()
-	err := resource.Read(resourceData, mockInstanaAPI)
-
-	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
-		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 

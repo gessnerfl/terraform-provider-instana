@@ -29,7 +29,7 @@ provider "instana" {
   endpoint = "localhost:{{PORT}}"
 }
 
-resource "instana_custom_event_spec_threshold_rule" "rollup" {
+resource "instana_custom_event_spec_threshold_rule" "example" {
   name = "name"
   entity_type = "entity_type"
   query = "query"
@@ -53,7 +53,7 @@ provider "instana" {
   endpoint = "localhost:{{PORT}}"
 }
 
-resource "instana_custom_event_spec_threshold_rule" "window" {
+resource "instana_custom_event_spec_threshold_rule" "example" {
   name = "name"
   entity_type = "entity_type"
   query = "query"
@@ -73,9 +73,8 @@ resource "instana_custom_event_spec_threshold_rule" "window" {
 `
 
 const (
-	customEventSpecificationWithThresholdRuleApiPath              = restapi.CustomEventSpecificationResourcePath + "/{id}"
-	testCustomEventSpecificationWithThresholdRuleRollupDefinition = "instana_custom_event_spec_threshold_rule.rollup"
-	testCustomEventSpecificationWithThresholdRuleWindowDefinition = "instana_custom_event_spec_threshold_rule.window"
+	customEventSpecificationWithThresholdRuleApiPath        = restapi.CustomEventSpecificationResourcePath + "/{id}"
+	testCustomEventSpecificationWithThresholdRuleDefinition = "instana_custom_event_spec_threshold_rule.example"
 
 	customEventSpecificationWithThresholdRuleID                       = "custom-system-event-id"
 	customEventSpecificationWithThresholdRuleName                     = "name"
@@ -96,13 +95,41 @@ const (
 var CustomEventSpecificationWithThresholdRuleRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
 
 func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithRollupResourceWithMockServer(t *testing.T) {
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName" : "metric_name", "rollup" : 40000, "conditionOperator" : "==", "conditionValue" : 1.2 }`
+	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
+		t,
+		resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTemplate,
+		ruleAsJson,
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldRollup, strconv.FormatInt(customEventSpecificationWithThresholdRuleRollup, 10)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionValue, "1.2"),
+	)
+}
+
+func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMockServer(t *testing.T) {
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "==", "conditionValue" : 1.2 }`
+	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
+		t,
+		resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate,
+		ruleAsJson,
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldWindow, strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldAggregation, string(customEventSpecificationWithThresholdRuleAggregation)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionValue, "1.2"),
+	)
+}
+
+func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(t *testing.T, terraformDefinition, ruleAsJson string, ruleTestCheckFunctions ...resource.TestCheckFunc) {
+	allTestCheckFunctions := createTestCheckFunctions(ruleTestCheckFunctions)
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPut, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodDelete, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, customEventSpecificationWithThresholdRuleApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		json := strings.ReplaceAll(`
+		json := strings.ReplaceAll(strings.ReplaceAll(`
 		{
 			"id" : "{{id}}",
 			"name" : "name",
@@ -112,13 +139,13 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithRollupResourceWithMo
 			"triggering" : true,
 			"description" : "description",
 			"expirationTime" : 60000,
-			"rules" : [ { "ruleType" : "threshold", "severity" : 5, "metricName" : "metric_name", "rollup" : 40000, "conditionOperator" : "==", "conditionValue" : 1.2 } ],
+			"rules" : [ {{rule}} ],
 			"downstream" : {
 				"integrationIds" : ["integration-id-1", "integration-id-2"],
 				"broadcastToAllAlertingConfigs" : true
 			}
 		}
-		`, "{{id}}", vars["id"])
+		`, "{{id}}", vars["id"]), "{{rule}}", ruleAsJson)
 		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -126,96 +153,36 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithRollupResourceWithMo
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceCustomEventSpecificationWithThresholdRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
+	completeTerraformDefinition := strings.ReplaceAll(terraformDefinition, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testCustomEventSpecificationWithThresholdRuleProviders,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: resourceCustomEventSpecificationWithThresholdRuleDefinition,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithThresholdRuleRollupDefinition, "id"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationFieldTriggering, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customEventSpecificationWithThresholdRuleExpirationTime)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationFieldEnabled, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationDownstreamIntegrationIds+".0", customEventSpecificationWithThresholdRuleDownstreamIntegrationId1),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationDownstreamIntegrationIds+".1", customEventSpecificationWithThresholdRuleDownstreamIntegrationId2),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, CustomEventSpecificationRuleSeverity, CustomEventSpecificationWithThresholdRuleRuleSeverity),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, ThresholdRuleFieldRollup, strconv.FormatInt(customEventSpecificationWithThresholdRuleRollup, 10)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleRollupDefinition, ThresholdRuleFieldConditionValue, "1.2"),
-				),
+				Config: completeTerraformDefinition,
+				Check:  resource.ComposeTestCheckFunc(allTestCheckFunctions...),
 			},
 		},
 	})
 }
 
-func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, customEventSpecificationWithThresholdRuleApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(`
-		{
-			"id" : "{{id}}",
-			"name" : "name",
-			"entityType" : "entity_type",
-			"query" : "query",
-			"enabled" : true,
-			"triggering" : true,
-			"description" : "description",
-			"expirationTime" : 60000,
-			"rules" : [ { "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "==", "conditionValue" : 1.2 } ],
-			"downstream" : {
-				"integrationIds" : ["integration-id-1", "integration-id-2"],
-				"broadcastToAllAlertingConfigs" : true
-			}
-		}
-		`, "{{id}}", vars["id"])
-		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
-	httpServer.Start()
-	defer httpServer.Close()
-
-	resourceCustomEventSpecificationWithThresholdRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-
-	resource.UnitTest(t, resource.TestCase{
-		Providers: testCustomEventSpecificationWithThresholdRuleProviders,
-		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: resourceCustomEventSpecificationWithThresholdRuleDefinition,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithThresholdRuleWindowDefinition, "id"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationFieldTriggering, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customEventSpecificationWithThresholdRuleExpirationTime)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationFieldEnabled, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationDownstreamIntegrationIds+".0", customEventSpecificationWithThresholdRuleDownstreamIntegrationId1),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationDownstreamIntegrationIds+".1", customEventSpecificationWithThresholdRuleDownstreamIntegrationId2),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, CustomEventSpecificationRuleSeverity, CustomEventSpecificationWithThresholdRuleRuleSeverity),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, ThresholdRuleFieldWindow, strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, ThresholdRuleFieldAggregation, string(customEventSpecificationWithThresholdRuleAggregation)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleWindowDefinition, ThresholdRuleFieldConditionValue, "1.2"),
-				),
-			},
-		},
-	})
+func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc) []resource.TestCheckFunc {
+	defaultCheckFunctions := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithThresholdRuleDefinition, "id"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customEventSpecificationWithThresholdRuleExpirationTime)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationDownstreamIntegrationIds+".0", customEventSpecificationWithThresholdRuleDownstreamIntegrationId1),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationDownstreamIntegrationIds+".1", customEventSpecificationWithThresholdRuleDownstreamIntegrationId2),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, "true"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationRuleSeverity, CustomEventSpecificationWithThresholdRuleRuleSeverity),
+	}
+	allFunctions := append(defaultCheckFunctions, ruleTestCheckFunctions...)
+	return allFunctions
 }
 
 func TestResourceCustomEventSpecificationWithThresholdRuleDefinition(t *testing.T) {
@@ -272,6 +239,27 @@ func testShouldSuccessfullyReadCustomEventSpecificationWithThresholdRuleFromInst
 	resourceData := NewTestHelper(t).CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData()
 	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
 
+	err := runExecuteReadAndReturnResultOfCustomEventSpecificationWithThresholdRuleForExpectedModel(expectedModel, resourceData, t)
+	if err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+	verifyCustomEventSpecificationWithThresholdRuleModelAppliedToResource(expectedModel, resourceData, t)
+}
+
+func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPIWhenSeverityFromAPICannotBeMappedToSeverityOfTerraformState(t *testing.T) {
+	expectedModel := createTestCustomEventSpecificationWithThresholdRuleModelWithFullDataSet()
+	expectedModel.Rules[0].Severity = 999
+	resourceData := NewTestHelper(t).CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData()
+	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
+
+	err := runExecuteReadAndReturnResultOfCustomEventSpecificationWithThresholdRuleForExpectedModel(expectedModel, resourceData, t)
+
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
+	}
+}
+
+func runExecuteReadAndReturnResultOfCustomEventSpecificationWithThresholdRuleForExpectedModel(expectedModel restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) error {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
@@ -281,12 +269,7 @@ func testShouldSuccessfullyReadCustomEventSpecificationWithThresholdRuleFromInst
 	mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEventSpecificationWithThresholdRuleID)).Return(expectedModel, nil).Times(1)
 
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
-	err := resource.Read(resourceData, mockInstanaAPI)
-
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	verifyCustomEventSpecificationWithThresholdRuleModelAppliedToResource(expectedModel, resourceData, t)
+	return resource.Read(resourceData, mockInstanaAPI)
 }
 
 func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
@@ -348,28 +331,6 @@ func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPI
 	}
 	if len(resourceData.Id()) == 0 {
 		t.Fatal("Expected ID should still be set")
-	}
-}
-
-func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPIWhenSeverityFromAPICannotBeMappedToSeverityOfTerraformState(t *testing.T) {
-	expectedModel := createTestCustomEventSpecificationWithThresholdRuleModelWithFullDataSet()
-	expectedModel.Rules[0].Severity = 999
-	resourceData := NewTestHelper(t).CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData()
-	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-
-	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-	mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEventSpecificationWithThresholdRuleID)).Return(expectedModel, nil).Times(1)
-
-	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
-	err := resource.Read(resourceData, mockInstanaAPI)
-
-	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
-		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
