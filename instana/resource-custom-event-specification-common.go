@@ -170,18 +170,14 @@ func createCustomEventSpecificationDeleteFunc(ruleSpecificationMapFunc func(*sch
 }
 
 func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error)) (restapi.CustomEventSpecification, error) {
-	query := d.Get(CustomEventSpecificationFieldQuery).(string)
-	description := d.Get(CustomEventSpecificationFieldDescription).(string)
-	expirationTime := d.Get(CustomEventSpecificationFieldExpirationTime).(int)
-
 	apiModel := restapi.CustomEventSpecification{
 		ID:             d.Id(),
 		Name:           d.Get(CustomEventSpecificationFieldName).(string),
 		EntityType:     d.Get(CustomEventSpecificationFieldEntityType).(string),
-		Query:          &query,
+		Query:          GetStringPointerFromResourceData(d, CustomEventSpecificationFieldQuery),
 		Triggering:     d.Get(CustomEventSpecificationFieldTriggering).(bool),
-		Description:    &description,
-		ExpirationTime: &expirationTime,
+		Description:    GetStringPointerFromResourceData(d, CustomEventSpecificationFieldDescription),
+		ExpirationTime: GetIntPointerFromResourceData(d, CustomEventSpecificationFieldExpirationTime),
 		Enabled:        d.Get(CustomEventSpecificationFieldEnabled).(bool),
 	}
 

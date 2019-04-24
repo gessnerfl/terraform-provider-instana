@@ -20,6 +20,7 @@ const (
 	customEventSystemRuleID      = "system-rule-id"
 	customEventMetricName        = "threshold-rule-metric-name"
 	customEventWindow            = 60000
+	customEventRollup            = 40000
 	customEventAggregation       = AggregationSum
 	customEventConditionOperator = ConditionOperatorEquals
 	customEventConditionValue    = 1.2
@@ -225,6 +226,25 @@ func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsPr
 	}
 }
 
+func TestShouldValidateFullThresholdRuleSpecificationWithWindowAndAggregation(t *testing.T) {
+	aggregation := customEventAggregation
+	conditionValue := customEventConditionValue
+	window := customEventWindow
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        customEventMetricName,
+		Window:            &window,
+		Aggregation:       &aggregation,
+		ConditionOperator: customEventConditionOperator,
+		ConditionValue:    &conditionValue,
+	}
+
+	if err := rule.Validate(); err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+}
+
 func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSupportedAggregations(t *testing.T) {
 	for _, a := range SupportedAggregationTypes {
 		t.Run(fmt.Sprintf("TestShouldSuccessfullyValidateMinimalThresholdRuleForAggregation%s", a), createTestCaseForSuccessfullValidateMinimalThresholdRuleForAggregation(a))
@@ -233,14 +253,16 @@ func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSuppor
 
 func createTestCaseForSuccessfullValidateMinimalThresholdRuleForAggregation(aggregation AggregationType) func(*testing.T) {
 	return func(t *testing.T) {
+		conditionValue := customEventConditionValue
+		window := customEventWindow
 		rule := RuleSpecification{
 			DType:             ThresholdRuleType,
 			Severity:          SeverityWarning.GetAPIRepresentation(),
 			MetricName:        customEventMetricName,
-			Window:            customEventWindow,
-			Aggregation:       aggregation,
+			Window:            &window,
+			Aggregation:       &aggregation,
 			ConditionOperator: customEventConditionOperator,
-			ConditionValue:    customEventConditionValue,
+			ConditionValue:    &conditionValue,
 		}
 
 		if err := rule.Validate(); err != nil {
@@ -257,14 +279,17 @@ func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSuppor
 
 func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperators(operator ConditionOperatorType) func(*testing.T) {
 	return func(t *testing.T) {
+		aggregation := customEventAggregation
+		conditionValue := customEventConditionValue
+		window := customEventWindow
 		rule := RuleSpecification{
 			DType:             ThresholdRuleType,
 			Severity:          SeverityWarning.GetAPIRepresentation(),
 			MetricName:        customEventMetricName,
-			Window:            customEventWindow,
-			Aggregation:       customEventAggregation,
+			Window:            &window,
+			Aggregation:       &aggregation,
 			ConditionOperator: operator,
-			ConditionValue:    customEventConditionValue,
+			ConditionValue:    &conditionValue,
 		}
 
 		if err := rule.Validate(); err != nil {
@@ -273,16 +298,33 @@ func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperato
 	}
 }
 
-func TestShouldValidateFullThresholdRuleSpecification(t *testing.T) {
+func TestShouldValidateMinimalThresholdRuleSpecificationWithRollup(t *testing.T) {
+	rollup := customEventRollup
+	conditionValue := customEventConditionValue
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        customEventMetricName,
+		Rollup:            &rollup,
+		ConditionOperator: customEventConditionOperator,
+		ConditionValue:    &conditionValue,
+	}
+
+	if err := rule.Validate(); err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+}
+
+func TestShouldValidateFullThresholdRuleSpecificationWithRollup(t *testing.T) {
+	rollup := customEventRollup
+	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
 		DType:                              ThresholdRuleType,
 		Severity:                           SeverityWarning.GetAPIRepresentation(),
 		MetricName:                         customEventMetricName,
-		Rollup:                             500,
-		Window:                             customEventWindow,
-		Aggregation:                        customEventAggregation,
+		Rollup:                             &rollup,
 		ConditionOperator:                  customEventConditionOperator,
-		ConditionValue:                     customEventConditionValue,
+		ConditionValue:                     &conditionValue,
 		AggregationForNonPercentileMetric:  true,
 		EitherRollupOrWindowAndAggregation: true,
 	}
@@ -292,14 +334,17 @@ func TestShouldValidateFullThresholdRuleSpecification(t *testing.T) {
 	}
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameIsMissing(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameIsMissing(t *testing.T) {
+	aggregation := customEventAggregation
+	conditionValue := customEventConditionValue
+	window := customEventWindow
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		Window:            customEventWindow,
-		Aggregation:       customEventAggregation,
+		Window:            &window,
+		Aggregation:       &aggregation,
 		ConditionOperator: customEventConditionOperator,
-		ConditionValue:    customEventConditionValue,
+		ConditionValue:    &conditionValue,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "metric name") {
@@ -307,29 +352,54 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameIsMissing(t
 	}
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWhenWindowIsMissing(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenNeitherNorRollupWindowIsDefined(t *testing.T) {
+	aggregation := customEventAggregation
+	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
 		MetricName:        customEventMetricName,
-		Aggregation:       customEventAggregation,
+		Aggregation:       &aggregation,
 		ConditionOperator: customEventConditionOperator,
-		ConditionValue:    customEventConditionValue,
+		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "window") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "either rollup or window") {
 		t.Fatal("Expected to fail to validate threshold rule as no window is provided")
 	}
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWhenAggregationIsMissing(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenRollupAndWindowIsDefined(t *testing.T) {
+	window := customEventWindow
+	rollup := customEventRollup
+	aggregation := customEventAggregation
+	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
 		MetricName:        customEventMetricName,
-		Window:            customEventWindow,
+		Rollup:            &rollup,
+		Window:            &window,
+		Aggregation:       &aggregation,
 		ConditionOperator: customEventConditionOperator,
-		ConditionValue:    customEventConditionValue,
+		ConditionValue:    &conditionValue,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "either rollup or window") {
+		t.Fatal("Expected to fail to validate threshold rule as no window is provided")
+	}
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsMissingConditionOperator(t *testing.T) {
+	conditionValue := customEventConditionValue
+	window := customEventWindow
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        customEventMetricName,
+		Window:            &window,
+		ConditionOperator: customEventConditionOperator,
+		ConditionValue:    &conditionValue,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "aggregation") {
@@ -337,15 +407,18 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenAggregationIsMissing(
 	}
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWhenAggregationIsNotValid(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsNotValid(t *testing.T) {
+	aggregation := AggregationType("invalid")
+	conditionValue := customEventConditionValue
+	window := customEventWindow
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
 		MetricName:        customEventMetricName,
-		Window:            customEventWindow,
-		Aggregation:       "invalid",
+		Window:            &window,
+		Aggregation:       &aggregation,
 		ConditionOperator: customEventConditionOperator,
-		ConditionValue:    customEventConditionValue,
+		ConditionValue:    &conditionValue,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "aggregation") {
@@ -353,14 +426,17 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenAggregationIsNotValid
 	}
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWhenConditionOperatorIsMissing(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOperatorIsMissing(t *testing.T) {
+	aggregation := customEventAggregation
+	conditionValue := customEventConditionValue
+	window := customEventWindow
 	rule := RuleSpecification{
 		DType:          ThresholdRuleType,
 		Severity:       SeverityWarning.GetAPIRepresentation(),
 		MetricName:     customEventMetricName,
-		Window:         customEventWindow,
-		Aggregation:    customEventAggregation,
-		ConditionValue: customEventConditionValue,
+		Window:         &window,
+		Aggregation:    &aggregation,
+		ConditionValue: &conditionValue,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
@@ -368,15 +444,53 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenConditionOperatorIsMi
 	}
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWhenConditionOperatorIsNotValid(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOperatorIsNotValid(t *testing.T) {
+	aggregation := customEventAggregation
+	conditionOperator := ConditionOperatorType("invalid")
+	conditionValue := customEventConditionValue
+	window := customEventWindow
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
 		MetricName:        customEventMetricName,
-		Window:            customEventWindow,
-		Aggregation:       customEventAggregation,
-		ConditionOperator: "invalid",
-		ConditionValue:    customEventConditionValue,
+		Window:            &window,
+		Aggregation:       &aggregation,
+		ConditionOperator: conditionOperator,
+		ConditionValue:    &conditionValue,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
+		t.Fatal("Expected to fail to validate threshold rule as no condition operator is not valid")
+	}
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWithRollupWhenConditionOperatorIsMissing(t *testing.T) {
+	conditionValue := customEventConditionValue
+	rollup := customEventRollup
+	rule := RuleSpecification{
+		DType:          ThresholdRuleType,
+		Severity:       SeverityWarning.GetAPIRepresentation(),
+		MetricName:     customEventMetricName,
+		Rollup:         &rollup,
+		ConditionValue: &conditionValue,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
+		t.Fatal("Expected to fail to validate threshold rule as no condition operator is provided")
+	}
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWithRollupWhenConditionOperatorIsNotValid(t *testing.T) {
+	conditionOperator := ConditionOperatorType("invalid")
+	conditionValue := customEventConditionValue
+	rollup := customEventRollup
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        customEventMetricName,
+		Rollup:            &rollup,
+		ConditionOperator: conditionOperator,
+		ConditionValue:    &conditionValue,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {

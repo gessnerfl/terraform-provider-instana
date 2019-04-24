@@ -72,12 +72,12 @@ func CreateResourceRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice(restapi.SupportedConditionOperatorTypes.ToStringSlice(), false),
-				Description:  "The aggregation operator (e.g >, <)",
+				Description:  "The condition operator (e.g >, <)",
 			},
 			RuleFieldConditionValue: &schema.Schema{
 				Type:        schema.TypeFloat,
 				Required:    true,
-				Description: "The expected aggregation value to fulfill the rule",
+				Description: "The expected condition value to fulfill the rule",
 			},
 		},
 	}

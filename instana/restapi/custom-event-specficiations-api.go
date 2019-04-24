@@ -122,11 +122,11 @@ type RuleSpecification struct {
 
 	//Threshold Rule fields
 	MetricName                         string                `json:"metricName"`
-	Rollup                             int64                 `json:"rollup"`
-	Window                             int64                 `json:"window"`
-	Aggregation                        AggregationType       `json:"aggregation"`
+	Rollup                             *int                  `json:"rollup"`
+	Window                             *int                  `json:"window"`
+	Aggregation                        *AggregationType      `json:"aggregation"`
 	ConditionOperator                  ConditionOperatorType `json:"conditionOperator"`
-	ConditionValue                     float64               `json:"conditionValue"`
+	ConditionValue                     *float64              `json:"conditionValue"`
 	AggregationForNonPercentileMetric  bool                  `json:"aggregationForNonPercentileMetric"`
 	EitherRollupOrWindowAndAggregation bool                  `json:"eitherRollupOrWindowAndAggregation"`
 }
@@ -155,15 +155,20 @@ func (r *RuleSpecification) validateThresholdRule() error {
 	if len(r.MetricName) == 0 {
 		return errors.New("metric name of threshold rule is missing")
 	}
-	if r.Window <= 0 {
-		return errors.New("window of threshold rule must be greater than zero")
+	if r.Window == nil && r.Rollup == nil || r.Window != nil && r.Rollup != nil {
+		return errors.New("either rollup or window and condition must be defined")
 	}
-	if !IsSupportedAggregationType(r.Aggregation) {
-		return errors.New("aggregation type of threshold rule is not valid")
+
+	if r.Window != nil {
+		if r.Aggregation == nil || !IsSupportedAggregationType(*r.Aggregation) {
+			return errors.New("aggregation type of threshold rule is mission or not valid")
+		}
 	}
+
 	if !IsSupportedConditionOperatorType(r.ConditionOperator) {
-		return errors.New("condition operator of threshold rule is not valid")
+		return errors.New("condition operator of threshold rule is missing or not valid")
 	}
+
 	return nil
 }
 

@@ -54,11 +54,32 @@ func ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity string) (in
 	}
 }
 
-//ConvertToStringSlice converts the input slice of type interface{} to a slice of strings
-func ConvertToStringSlice(input []interface{}) []string {
-	result := make([]string, len(input))
-	for i, v := range input {
-		result[i] = fmt.Sprintf("%v", v)
+//GetIntPointerFromResourceData gets a int value from the resource data and either returns a pointer to the value or nil if the value is not defined
+func GetIntPointerFromResourceData(d *schema.ResourceData, key string) *int {
+	val, ok := d.GetOk(key)
+	if ok {
+		intValue := val.(int)
+		return &intValue
 	}
-	return result
+	return nil
+}
+
+//GetFloat64PointerFromResourceData gets a float64 value from the resource data and either returns a pointer to the value or nil if the value is not defined
+func GetFloat64PointerFromResourceData(d *schema.ResourceData, key string) *float64 {
+	val, ok := d.GetOk(key)
+	if ok {
+		floatValue := val.(float64)
+		return &floatValue
+	}
+	return nil
+}
+
+//GetStringPointerFromResourceData gets a string value from the resource data and either returns a pointer to the value or nil if the value is not defined
+func GetStringPointerFromResourceData(d *schema.ResourceData, key string) *string {
+	val, ok := d.GetOk(key)
+	if ok {
+		stringValue := val.(string)
+		return &stringValue
+	}
+	return nil
 }

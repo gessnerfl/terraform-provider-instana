@@ -17,14 +17,16 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsRequiredAndOfTypeString(fieldName string)
 	//AssertSchemaIsRequiredAndTypeInt checks if the given schema field is required and of type int
 	AssertSchemaIsRequiredAndOfTypeInt(fieldName string)
-	//AssertSchemaIsRequiredAndTypeFloat checks if the given schema field is required and of type float
-	AssertSchemaIsRequiredAndTypeFloat(fieldName string)
+	//AssertSchemaIsRequiredAndOfTypeFloat checks if the given schema field is required and of type float
+	AssertSchemaIsRequiredAndOfTypeFloat(fieldName string)
 	//AssertSchemaIsOptionalAndOfTypeString checks if the given schema field is optional and of type string
 	AssertSchemaIsOptionalAndOfTypeString(fieldName string)
 	//AssertSchemaIsOptionalAndOfTypeStringWithDefault checks if the given schema field is optional and of type string and has the given default value
 	AssertSchemaIsOptionalAndOfTypeStringWithDefault(fieldName string, defaultValue string)
 	//AssertSchemaIsOptionalAndOfTypeInt checks if the given schema field is optional and of type int
 	AssertSchemaIsOptionalAndOfTypeInt(fieldName string)
+	//AssertSchemaIsOptionalAndOfTypeFloat checks if the given schema field is required and of type float
+	AssertSchemaIsOptionalAndOfTypeFloat(fieldName string)
 	//AssertSchemaIsOfTypeBooleanWithDefault checks if the given schema field is an optional boolean field with an expected default value
 	AssertSchemaIsOfTypeBooleanWithDefault(fieldName string, defaultValue bool)
 	//AssertSChemaIsRequiredAndOfTypeListOfStrings checks if the given schema field is required and of type list of string
@@ -44,7 +46,7 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeInt(schema
 	inst.assertSchemaIsRequiredAndType(schemaField, schema.TypeInt)
 }
 
-func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndTypeFloat(schemaField string) {
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeFloat(schemaField string) {
 	inst.assertSchemaIsRequiredAndType(schemaField, schema.TypeFloat)
 }
 
@@ -73,6 +75,10 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeStringWith
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeInt(schemaField string) {
 	inst.assertSchemaIsOptionalAndOfType(schemaField, schema.TypeInt)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeFloat(schemaField string) {
+	inst.assertSchemaIsOptionalAndOfType(schemaField, schema.TypeFloat)
 }
 
 func (inst *terraformSchemaAssertImpl) assertSchemaIsOptionalAndOfType(schemaField string, dataType schema.ValueType) {

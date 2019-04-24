@@ -21,8 +21,10 @@ type TestHelper interface {
 	CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyApplicationConfigResourceData() *schema.ResourceData
 	CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData
-	CreateEmptyCustomSystemEventSpecificationResourceData() *schema.ResourceData
-	CreateCustomSystemEventSpecificationResourceData(data map[string]interface{}) *schema.ResourceData
+	CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData
+	CreateCustomEventSpecificationWithSystemRuleResourceData(data map[string]interface{}) *schema.ResourceData
+	CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData
+	CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData
 }
 
 type testHelperImpl struct {
@@ -69,12 +71,22 @@ func (inst *testHelperImpl) CreateApplicationConfigResourceData(data map[string]
 	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }
 
-func (inst *testHelperImpl) CreateEmptyCustomSystemEventSpecificationResourceData() *schema.ResourceData {
+func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData {
 	data := make(map[string]interface{})
-	return inst.CreateCustomSystemEventSpecificationResourceData(data)
+	return inst.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
 }
 
-func (inst *testHelperImpl) CreateCustomSystemEventSpecificationResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceCustomSystemEventSpecification().Schema
+func (inst *testHelperImpl) CreateCustomEventSpecificationWithSystemRuleResourceData(data map[string]interface{}) *schema.ResourceData {
+	schemaMap := CreateResourceCustomEventSpecificationWithSystemRule().Schema
+	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
+}
+
+func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData {
+	data := make(map[string]interface{})
+	return inst.CreateCustomEventSpecificationWithThresholdRuleResourceData(data)
+}
+
+func (inst *testHelperImpl) CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData {
+	schemaMap := CreateResourceCustomEventSpecificationWithThresholdRule().Schema
 	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }

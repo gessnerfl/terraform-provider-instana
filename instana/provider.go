@@ -26,6 +26,9 @@ const ResourceInstanaApplicationConfig = "instana_application_config"
 //ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
 const ResourceInstanaCustomEventSpecificationSystemRule = "instana_custom_event_spec_system_rule"
 
+//ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
+const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_event_spec_threshold_rule"
+
 //Provider interface implementation of hashicorp terraform provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
@@ -52,11 +55,12 @@ func providerSchema() map[string]*schema.Schema {
 
 func providerResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		ResourceInstanaRule:                               CreateResourceRule(),
-		ResourceInstanaRuleBinding:                        CreateResourceRuleBinding(),
-		ResourceInstanaUserRole:                           CreateResourceUserRole(),
-		ResourceInstanaApplicationConfig:                  CreateResourceApplicationConfig(),
-		ResourceInstanaCustomEventSpecificationSystemRule: CreateResourceCustomSystemEventSpecification(),
+		ResourceInstanaRule:                                  CreateResourceRule(),
+		ResourceInstanaRuleBinding:                           CreateResourceRuleBinding(),
+		ResourceInstanaUserRole:                              CreateResourceUserRole(),
+		ResourceInstanaApplicationConfig:                     CreateResourceApplicationConfig(),
+		ResourceInstanaCustomEventSpecificationSystemRule:    CreateResourceCustomEventSpecificationWithSystemRule(),
+		ResourceInstanaCustomEventSpecificationThresholdRule: CreateResourceCustomEventSpecificationWithThresholdRule(),
 	}
 }
 

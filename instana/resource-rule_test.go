@@ -128,7 +128,7 @@ func validateRuleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(RuleFieldWindow)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleFieldAggregation)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(RuleFieldConditionOperator)
-	schemaAssert.AssertSchemaIsRequiredAndTypeFloat(RuleFieldConditionValue)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeFloat(RuleFieldConditionValue)
 }
 
 func TestShouldSuccessfullyReadRuleFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
