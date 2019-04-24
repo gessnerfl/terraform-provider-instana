@@ -5,6 +5,7 @@ import (
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 const (
@@ -62,14 +63,16 @@ func CreateResourceRule() *schema.Resource {
 				Description: "The time window where the condition has to be fulfilled",
 			},
 			RuleFieldAggregation: &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The aggregation type (e.g. sum, avg)",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(restapi.SupportedAggregationTypes.ToStringSlice(), false),
+				Description:  "The aggregation type (e.g. sum, avg)",
 			},
 			RuleFieldConditionOperator: &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The aggregation operator (e.g >, <)",
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(restapi.SupportedConditionOperatorTypes.ToStringSlice(), false),
+				Description:  "The aggregation operator (e.g >, <)",
 			},
 			RuleFieldConditionValue: &schema.Schema{
 				Type:        schema.TypeFloat,
@@ -137,8 +140,8 @@ func createRuleFromResourceData(d *schema.ResourceData) restapi.Rule {
 		MetricName:        d.Get(RuleFieldMetricName).(string),
 		Rollup:            d.Get(RuleFieldRollup).(int),
 		Window:            d.Get(RuleFieldWindow).(int),
-		Aggregation:       d.Get(RuleFieldAggregation).(string),
-		ConditionOperator: d.Get(RuleFieldConditionOperator).(string),
+		Aggregation:       restapi.AggregationType(d.Get(RuleFieldAggregation).(string)),
+		ConditionOperator: restapi.ConditionOperatorType(d.Get(RuleFieldConditionOperator).(string)),
 		ConditionValue:    d.Get(RuleFieldConditionValue).(float64),
 	}
 }
@@ -149,8 +152,8 @@ func updateRuleState(d *schema.ResourceData, rule restapi.Rule) {
 	d.Set(RuleFieldMetricName, rule.MetricName)
 	d.Set(RuleFieldRollup, rule.Rollup)
 	d.Set(RuleFieldWindow, rule.Window)
-	d.Set(RuleFieldAggregation, rule.Aggregation)
-	d.Set(RuleFieldConditionOperator, rule.ConditionOperator)
+	d.Set(RuleFieldAggregation, string(rule.Aggregation))
+	d.Set(RuleFieldConditionOperator, string(rule.ConditionOperator))
 	d.Set(RuleFieldConditionValue, rule.ConditionValue)
 
 	d.SetId(rule.ID)

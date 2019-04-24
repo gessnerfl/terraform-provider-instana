@@ -329,10 +329,10 @@ func verifyRuleModelAppliedToResource(model restapi.Rule, resourceData *schema.R
 	if model.Window != resourceData.Get(RuleFieldWindow).(int) {
 		t.Fatal("Expected Window to be identical")
 	}
-	if model.Aggregation != resourceData.Get(RuleFieldAggregation).(string) {
+	if model.Aggregation != restapi.AggregationType(resourceData.Get(RuleFieldAggregation).(string)) {
 		t.Fatal("Expected Aggregation to be identical")
 	}
-	if model.ConditionOperator != resourceData.Get(RuleFieldConditionOperator).(string) {
+	if model.ConditionOperator != restapi.ConditionOperatorType(resourceData.Get(RuleFieldConditionOperator).(string)) {
 		t.Fatal("Expected ConditionOperator to be identical")
 	}
 	if model.ConditionValue != resourceData.Get(RuleFieldConditionValue).(float64) {

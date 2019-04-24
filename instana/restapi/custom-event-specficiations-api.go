@@ -23,6 +23,18 @@ const (
 //AggregationType custom type representing an aggregation of a custom event specification rule
 type AggregationType string
 
+//AggregationTypes custom type representing a slice of AggregationType
+type AggregationTypes []AggregationType
+
+//ToStringSlice Returns the string representations fo the aggregations
+func (types AggregationTypes) ToStringSlice() []string {
+	result := make([]string, len(types))
+	for i, v := range types {
+		result[i] = string(v)
+	}
+	return result
+}
+
 const (
 	//AggregationSum const for a sum aggregation
 	AggregationSum = AggregationType("sum")
@@ -35,7 +47,7 @@ const (
 )
 
 //SupportedAggregationTypes slice of supported aggregation types
-var SupportedAggregationTypes = []AggregationType{AggregationSum, AggregationAvg, AggregationMin, AggregationMax}
+var SupportedAggregationTypes = AggregationTypes{AggregationSum, AggregationAvg, AggregationMin, AggregationMax}
 
 //IsSupportedAggregationType check if the provided aggregation type is supported
 func IsSupportedAggregationType(aggregation AggregationType) bool {
@@ -49,6 +61,18 @@ func IsSupportedAggregationType(aggregation AggregationType) bool {
 
 //ConditionOperatorType custom type representing a condition operator of a custom event specification rule
 type ConditionOperatorType string
+
+//ConditionOperatorTypes custom type representing a slice of ConditionOperatorType
+type ConditionOperatorTypes []ConditionOperatorType
+
+//ToStringSlice Returns the string representations fo the condition operators
+func (types ConditionOperatorTypes) ToStringSlice() []string {
+	result := make([]string, len(types))
+	for i, v := range types {
+		result[i] = string(v)
+	}
+	return result
+}
 
 const (
 	//ConditionOperatorEquals const for a equals (==) condition operator
@@ -66,7 +90,7 @@ const (
 )
 
 //SupportedConditionOperatorTypes slice of supported aggregation types
-var SupportedConditionOperatorTypes = []ConditionOperatorType{ConditionOperatorEquals, ConditionOperatorNotEqual, ConditionOperatorLessThan, ConditionOperatorLessThanOrEqual, ConditionOperatorGreaterThan, ConditionOperatorGreaterThanOrEqual}
+var SupportedConditionOperatorTypes = ConditionOperatorTypes{ConditionOperatorEquals, ConditionOperatorNotEqual, ConditionOperatorLessThan, ConditionOperatorLessThanOrEqual, ConditionOperatorGreaterThan, ConditionOperatorGreaterThanOrEqual}
 
 //IsSupportedConditionOperatorType check if the provided condition operator type is supported
 func IsSupportedConditionOperatorType(operator ConditionOperatorType) bool {

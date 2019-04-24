@@ -8,6 +8,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/google/go-cmp/cmp"
 )
 
 const (
@@ -380,5 +381,23 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenConditionOperatorIsNo
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
 		t.Fatal("Expected to fail to validate threshold rule as no condition operator is not valid")
+	}
+}
+
+func TestShouldConvertSupportedAggregationTypesToSliceOfString(t *testing.T) {
+	expectedResult := []string{string(AggregationSum), string(AggregationAvg), string(AggregationMin), string(AggregationMax)}
+	result := SupportedAggregationTypes.ToStringSlice()
+
+	if !cmp.Equal(result, expectedResult) {
+		t.Fatal("Expected to get slice of strings for supported aggregations")
+	}
+}
+
+func TestShouldConvertSupportedConditionOperatorTypessToSliceOfString(t *testing.T) {
+	expectedResult := []string{string(ConditionOperatorEquals), string(ConditionOperatorNotEqual), string(ConditionOperatorLessThan), string(ConditionOperatorLessThanOrEqual), string(ConditionOperatorGreaterThan), string(ConditionOperatorGreaterThanOrEqual)}
+	result := SupportedConditionOperatorTypes.ToStringSlice()
+
+	if !cmp.Equal(result, expectedResult) {
+		t.Fatal("Expected to get slice of strings for supported condition operators")
 	}
 }

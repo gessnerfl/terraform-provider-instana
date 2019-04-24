@@ -12,15 +12,15 @@ type RuleResource interface {
 
 //Rule is the representation of a custom rule in Instana
 type Rule struct {
-	ID                string  `json:"id"`
-	Name              string  `json:"name"`
-	EntityType        string  `json:"entityType"`
-	MetricName        string  `json:"metricName"`
-	Rollup            int     `json:"rollup"`
-	Window            int     `json:"window"`
-	Aggregation       string  `json:"aggregation"`
-	ConditionOperator string  `json:"conditionOperator"`
-	ConditionValue    float64 `json:"conditionValue"`
+	ID                string                `json:"id"`
+	Name              string                `json:"name"`
+	EntityType        string                `json:"entityType"`
+	MetricName        string                `json:"metricName"`
+	Rollup            int                   `json:"rollup"`
+	Window            int                   `json:"window"`
+	Aggregation       AggregationType       `json:"aggregation"`
+	ConditionOperator ConditionOperatorType `json:"conditionOperator"`
+	ConditionValue    float64               `json:"conditionValue"`
 }
 
 //GetID implemention of the interface InstanaDataObject
@@ -42,11 +42,11 @@ func (rule Rule) Validate() error {
 	if len(rule.MetricName) == 0 {
 		return errors.New("MetricName is missing")
 	}
-	if len(rule.Aggregation) == 0 {
-		return errors.New("Aggregation is missing")
+	if !IsSupportedAggregationType(rule.Aggregation) {
+		return errors.New("Aggregation is missing or not valid")
 	}
-	if len(rule.ConditionOperator) == 0 {
-		return errors.New("ConditionOperator is missing")
+	if !IsSupportedConditionOperatorType(rule.ConditionOperator) {
+		return errors.New("ConditionOperator is missing or not valid")
 	}
 	return nil
 }

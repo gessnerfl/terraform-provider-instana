@@ -53,3 +53,12 @@ func ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity string) (in
 		return -1, fmt.Errorf("%s is not a valid severity", severity)
 	}
 }
+
+//ConvertToStringSlice converts the input slice of type interface{} to a slice of strings
+func ConvertToStringSlice(input []interface{}) []string {
+	result := make([]string, len(input))
+	for i, v := range input {
+		result[i] = fmt.Sprintf("%v", v)
+	}
+	return result
+}
