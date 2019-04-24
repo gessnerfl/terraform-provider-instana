@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -369,8 +368,8 @@ func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPI
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
 	err := resource.Read(resourceData, mockInstanaAPI)
 
-	if err == nil || !strings.Contains(err.Error(), "not a valid severity") {
-		t.Fatal("Expected to get error that the provided severity is not valid")
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
@@ -429,8 +428,8 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithThresholdRuleFai
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
 	err := resource.Create(resourceData, mockInstanaAPI)
 
-	if err == nil || !strings.Contains(err.Error(), "not a valid severity") {
-		t.Fatal("Expected to get error that the provided severity is not valid")
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
@@ -451,16 +450,15 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithThresholdRuleFai
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
 	err := resource.Create(resourceData, mockInstanaAPI)
 
-	if err == nil || !strings.Contains(err.Error(), "not a valid severity") {
-		t.Fatal("Expected to get error that the provided severity is not valid")
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
 func TestShouldDeleteCustomEventSpecificationWithThresholdRuleThroughInstanaAPI(t *testing.T) {
-	id := "test-id"
 	data := createFullTestCustomEventSpecificationWithThresholdRuleData()
 	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithThresholdRuleResourceData(data)
-	resourceData.SetId(id)
+	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -468,7 +466,7 @@ func TestShouldDeleteCustomEventSpecificationWithThresholdRuleThroughInstanaAPI(
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-	mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
+	mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(customEventSpecificationWithThresholdRuleID)).Return(nil).Times(1)
 
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
 	err := resource.Delete(resourceData, mockInstanaAPI)
@@ -482,10 +480,9 @@ func TestShouldDeleteCustomEventSpecificationWithThresholdRuleThroughInstanaAPI(
 }
 
 func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithThresholdRuleFailsThroughInstanaAPI(t *testing.T) {
-	id := "test-id"
 	data := createFullTestCustomEventSpecificationWithThresholdRuleData()
 	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithThresholdRuleResourceData(data)
-	resourceData.SetId(id)
+	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
 	expectedError := errors.New("test")
 
 	ctrl := gomock.NewController(t)
@@ -494,7 +491,7 @@ func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithThresholdRuleFai
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-	mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
+	mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(customEventSpecificationWithThresholdRuleID)).Return(expectedError).Times(1)
 
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
 	err := resource.Delete(resourceData, mockInstanaAPI)
@@ -508,11 +505,10 @@ func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithThresholdRuleFai
 }
 
 func TestShouldFailToDeleteCustomEventSpecificationWithThresholdRuleWhenInvalidSeverityIsConfiguredInTerraform(t *testing.T) {
-	id := "test-id"
 	data := createFullTestCustomEventSpecificationWithThresholdRuleData()
 	data[CustomEventSpecificationRuleSeverity] = "invalid"
 	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithThresholdRuleResourceData(data)
-	resourceData.SetId(id)
+	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -521,70 +517,14 @@ func TestShouldFailToDeleteCustomEventSpecificationWithThresholdRuleWhenInvalidS
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
 	err := resource.Delete(resourceData, mockInstanaAPI)
 
-	if err == nil || !strings.Contains(err.Error(), "not a valid severity") {
-		t.Fatal("Expected to get error that the provided severity is not valid")
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
 func verifyCustomEventSpecificationWithThresholdRuleModelAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
-	if model.ID != resourceData.Id() {
-		t.Fatal("Expected ID to be identical")
-	}
-	if model.Name != resourceData.Get(CustomEventSpecificationFieldName).(string) {
-		t.Fatal("Expected Name to be identical")
-	}
-	if model.EntityType != resourceData.Get(CustomEventSpecificationFieldEntityType).(string) {
-		t.Fatal("Expected EntityType to be identical")
-	}
-	if model.Query != nil {
-		if *model.Query != resourceData.Get(CustomEventSpecificationFieldQuery).(string) {
-			t.Fatal("Expected Query to be identical")
-		}
-	} else {
-		if _, ok := resourceData.GetOk(CustomEventSpecificationFieldQuery); ok {
-			t.Fatal("Expected Query not to be defined")
-		}
-	}
-	if model.Triggering != resourceData.Get(CustomEventSpecificationFieldTriggering).(bool) {
-		t.Fatal("Expected Triggering to be identical")
-	}
-	if model.Description != nil {
-		if *model.Description != resourceData.Get(CustomEventSpecificationFieldDescription).(string) {
-			t.Fatal("Expected Description to be identical")
-		}
-	} else {
-		if _, ok := resourceData.GetOk(CustomEventSpecificationFieldDescription); ok {
-			t.Fatal("Expected Description not to be defined")
-		}
-	}
-	if model.ExpirationTime != nil {
-		if *model.ExpirationTime != resourceData.Get(CustomEventSpecificationFieldExpirationTime).(int) {
-			t.Fatal("Expected Expiration Time to be identical")
-		}
-	} else {
-		if _, ok := resourceData.GetOk(CustomEventSpecificationFieldExpirationTime); ok {
-			t.Fatal("Expected Expiration Time not to be defined")
-		}
-	}
-	if model.Enabled != resourceData.Get(CustomEventSpecificationFieldEnabled).(bool) {
-		t.Fatal("Expected Enabled to be identical")
-	}
-
-	if model.Downstream != nil {
-		if !cmp.Equal(model.Downstream.IntegrationIds, ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)) {
-			t.Fatal("Expected Integration IDs to be identical")
-		}
-		if model.Downstream.BroadcastToAllAlertingConfigs != resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool) {
-			t.Fatal("Expected Broadcast to All Alert Configs to be identical")
-		}
-	} else {
-		if _, ok := resourceData.GetOk(CustomEventSpecificationDownstreamIntegrationIds); ok {
-			t.Fatal("Expected Integration IDs not to be defined")
-		}
-		if true != resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs) {
-			t.Fatalf("Expected Broadcast to All Alert Configs to have the default value set")
-		}
-	}
+	verifyCustomEventSpecificationModelAppliedToResource(model, resourceData, t)
+	verifyCustomEventSpecificationDownstreamModelAppliedToResource(model, resourceData, t)
 
 	ruleSpec := model.Rules[0]
 	convertedSeverity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)

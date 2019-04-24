@@ -42,7 +42,7 @@ func createUpdateCustomEventSpecificationWithSystemRule() func(*schema.ResourceD
 	return createCustomEventSpecificationUpdateFunc(mapSystemRuleToInstanaAPIModel, mapSystemRuleToTerraformState)
 }
 
-func createDeleteCustomEventSpecificationWithSystemRule() func(d *schema.ResourceData, meta interface{}) error {
+func createDeleteCustomEventSpecificationWithSystemRule() func(*schema.ResourceData, interface{}) error {
 	return createCustomEventSpecificationDeleteFunc(mapSystemRuleToInstanaAPIModel)
 }
 

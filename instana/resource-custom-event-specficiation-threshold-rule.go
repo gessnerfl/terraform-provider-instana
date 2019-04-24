@@ -85,7 +85,7 @@ func createUpdateCustomEventSpecificationWithThresholdRule() func(*schema.Resour
 	return createCustomEventSpecificationUpdateFunc(mapThresholdRuleToInstanaAPIModel, mapThresholdRuleToTerraformState)
 }
 
-func createDeleteCustomEventSpecificationWithThresholdRule() func(d *schema.ResourceData, meta interface{}) error {
+func createDeleteCustomEventSpecificationWithThresholdRule() func(*schema.ResourceData, interface{}) error {
 	return createCustomEventSpecificationDeleteFunc(mapThresholdRuleToInstanaAPIModel)
 }
 

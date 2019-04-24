@@ -58,6 +58,9 @@ const (
 	customSystemEventRuleSystemRuleId         = "system-rule-id"
 	customSystemEventDownStringIntegrationId1 = "integration-id-1"
 	customSystemEventDownStringIntegrationId2 = "integration-id-2"
+
+	customSystemEventMessageNotAValidSeverity           = "not a valid severity"
+	customSystemEventTestMessageExpectedInvalidSeverity = "Expected to get error that the provided severity is not valid"
 )
 
 var customSystemEventRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
@@ -264,8 +267,8 @@ func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhe
 	resource := CreateResourceCustomEventSpecificationWithSystemRule()
 	err := resource.Read(resourceData, mockInstanaAPI)
 
-	if err == nil || !strings.Contains(err.Error(), "not a valid severity") {
-		t.Fatal("Expected to get error that the provided severity is not valid")
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
@@ -324,8 +327,8 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithSystemRuleFailsB
 	resource := CreateResourceCustomEventSpecificationWithSystemRule()
 	err := resource.Create(resourceData, mockInstanaAPI)
 
-	if err == nil || !strings.Contains(err.Error(), "not a valid severity") {
-		t.Fatal("Expected to get error that the provided severity is not valid")
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
@@ -346,16 +349,15 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithSystemRuleFailsB
 	resource := CreateResourceCustomEventSpecificationWithSystemRule()
 	err := resource.Create(resourceData, mockInstanaAPI)
 
-	if err == nil || !strings.Contains(err.Error(), "not a valid severity") {
-		t.Fatal("Expected to get error that the provided severity is not valid")
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
 func TestShouldDeleteCustomEventSpecificationWithSystemRuleThroughInstanaAPI(t *testing.T) {
-	id := "test-id"
 	data := createFullTestCustomEventSpecificationWithSystemRuleData()
 	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-	resourceData.SetId(id)
+	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -363,7 +365,7 @@ func TestShouldDeleteCustomEventSpecificationWithSystemRuleThroughInstanaAPI(t *
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-	mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
+	mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(customEventSpecificationWithThresholdRuleID)).Return(nil).Times(1)
 
 	resource := CreateResourceCustomEventSpecificationWithSystemRule()
 	err := resource.Delete(resourceData, mockInstanaAPI)
@@ -377,10 +379,9 @@ func TestShouldDeleteCustomEventSpecificationWithSystemRuleThroughInstanaAPI(t *
 }
 
 func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithSystemRuleFailsThroughInstanaAPI(t *testing.T) {
-	id := "test-id"
 	data := createFullTestCustomEventSpecificationWithSystemRuleData()
 	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-	resourceData.SetId(id)
+	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
 	expectedError := errors.New("test")
 
 	ctrl := gomock.NewController(t)
@@ -389,7 +390,7 @@ func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithSystemRuleFailsT
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-	mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
+	mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(customEventSpecificationWithThresholdRuleID)).Return(expectedError).Times(1)
 
 	resource := CreateResourceCustomEventSpecificationWithSystemRule()
 	err := resource.Delete(resourceData, mockInstanaAPI)
@@ -403,11 +404,10 @@ func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithSystemRuleFailsT
 }
 
 func TestShouldFailToDeleteCustomEventSpecificationWithSystemRuleWhenInvalidSeverityIsConfiguredInTerraform(t *testing.T) {
-	id := "test-id"
 	data := createFullTestCustomEventSpecificationWithSystemRuleData()
 	data[CustomEventSpecificationRuleSeverity] = "invalid"
 	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-	resourceData.SetId(id)
+	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -416,12 +416,29 @@ func TestShouldFailToDeleteCustomEventSpecificationWithSystemRuleWhenInvalidSeve
 	resource := CreateResourceCustomEventSpecificationWithSystemRule()
 	err := resource.Delete(resourceData, mockInstanaAPI)
 
-	if err == nil || !strings.Contains(err.Error(), "not a valid severity") {
-		t.Fatal("Expected to get error that the provided severity is not valid")
+	if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
+		t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
 	}
 }
 
 func verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
+	verifyCustomEventSpecificationModelAppliedToResource(model, resourceData, t)
+	verifyCustomEventSpecificationDownstreamModelAppliedToResource(model, resourceData, t)
+
+	convertedSeverity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(model.Rules[0].Severity)
+	if err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+	if convertedSeverity != resourceData.Get(CustomEventSpecificationRuleSeverity).(string) {
+		t.Fatal("Expected Severity to be identical")
+	}
+
+	if model.Rules[0].SystemRuleID != resourceData.Get(SystemRuleSpecificationSystemRuleID).(string) {
+		t.Fatal("Expected System Rule ID to be identical")
+	}
+}
+
+func verifyCustomEventSpecificationModelAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
 	if model.ID != resourceData.Id() {
 		t.Fatal("Expected ID to be identical")
 	}
@@ -464,7 +481,9 @@ func verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(model re
 	if model.Enabled != resourceData.Get(CustomEventSpecificationFieldEnabled).(bool) {
 		t.Fatal("Expected Enabled to be identical")
 	}
+}
 
+func verifyCustomEventSpecificationDownstreamModelAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
 	if model.Downstream != nil {
 		if !cmp.Equal(model.Downstream.IntegrationIds, ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)) {
 			t.Fatal("Expected Integration IDs to be identical")
@@ -479,18 +498,6 @@ func verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(model re
 		if true != resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs) {
 			t.Fatalf("Expected Broadcast to All Alert Configs to have the default value set")
 		}
-	}
-
-	convertedSeverity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(model.Rules[0].Severity)
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	if convertedSeverity != resourceData.Get(CustomEventSpecificationRuleSeverity).(string) {
-		t.Fatal("Expected Severity to be identical")
-	}
-
-	if model.Rules[0].SystemRuleID != resourceData.Get(SystemRuleSpecificationSystemRuleID).(string) {
-		t.Fatal("Expected System Rule ID to be identical")
 	}
 }
 
