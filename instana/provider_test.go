@@ -42,16 +42,10 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	if len(resourceMap) != 6 {
-		t.Fatal("Expected 6 resources to be configured")
+	if len(resourceMap) != 4 {
+		t.Fatal("Expected 4 resources to be configured")
 	}
 
-	if resourceMap[ResourceInstanaRule] == nil {
-		t.Fatal("Expected a resources to be configured for instana rules")
-	}
-	if resourceMap[ResourceInstanaRuleBinding] == nil {
-		t.Fatal("Expected a resources to be configured for instana rule bindings")
-	}
 	if resourceMap[ResourceInstanaUserRole] == nil {
 		t.Fatal("Expected a resources to be configured for instana user roles")
 	}

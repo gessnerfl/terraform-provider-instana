@@ -20,12 +20,6 @@ const EventSpecificationBasePath = EventSettingsBasePath + "/event-specification
 //CustomEventSpecificationResourcePath path to Custom Event Specification settings resource of Instana RESTful API
 const CustomEventSpecificationResourcePath = EventSpecificationBasePath + "/custom"
 
-//RulesResourcePath path to Rule resource of Instana RESTful API
-const RulesResourcePath = EventSettingsBasePath + "/rules"
-
-//RuleBindingsResourcePath path to Rule Binding resource of Instana RESTful API
-const RuleBindingsResourcePath = EventSettingsBasePath + "/rule-bindings"
-
 //SettingsBasePath path to Event Settings resource of Instana RESTful API
 const SettingsBasePath = InstanaAPIBasePath + settingsPathElement
 
@@ -75,8 +69,6 @@ type RestClient interface {
 //InstanaAPI is the interface to all resources of the Instana Rest API
 type InstanaAPI interface {
 	CustomEventSpecifications() CustomEventSpecificationResource
-	Rules() RuleResource
-	RuleBindings() RuleBindingResource
 	UserRoles() UserRoleResource
 	ApplicationConfigs() ApplicationConfigResource
 }

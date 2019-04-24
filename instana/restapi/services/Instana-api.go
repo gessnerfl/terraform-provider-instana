@@ -18,16 +18,6 @@ func (api baseInstanaAPI) CustomEventSpecifications() restapi.CustomEventSpecifi
 	return resources.NewCustomEventSpecificationResource(api.client)
 }
 
-//Rules implementation of InstanaAPI interface
-func (api baseInstanaAPI) Rules() restapi.RuleResource {
-	return resources.NewRuleResource(api.client)
-}
-
-//RuleBindings implementation of InstanaAPI interface
-func (api baseInstanaAPI) RuleBindings() restapi.RuleBindingResource {
-	return resources.NewRuleBindingResource(api.client)
-}
-
 //UserRoles implementation of InstanaAPI interface
 func (api baseInstanaAPI) UserRoles() restapi.UserRoleResource {
 	return resources.NewUserRoleResource(api.client)

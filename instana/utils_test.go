@@ -20,9 +20,9 @@ func TestRandomID(t *testing.T) {
 func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.T) {
 	ruleIds := []string{"test1", "test2"}
 	data := make(map[string]interface{})
-	data[RuleBindingFieldRuleIds] = ruleIds
-	resourceData := NewTestHelper(t).CreateRuleBindingResourceData(data)
-	result := ReadStringArrayParameterFromResource(resourceData, RuleBindingFieldRuleIds)
+	data[CustomEventSpecificationDownstreamIntegrationIds] = ruleIds
+	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithSystemRuleResourceData(data)
+	result := ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)
 
 	if result == nil {
 		t.Fatal("Expected result to available")
@@ -33,8 +33,8 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 }
 
 func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyRuleBindingResourceData()
-	result := ReadStringArrayParameterFromResource(resourceData, RuleBindingFieldRuleIds)
+	resourceData := NewTestHelper(t).CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
+	result := ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)
 
 	if result != nil {
 		t.Fatal("Expected result to be nil as no data is provided")
