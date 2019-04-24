@@ -24,6 +24,12 @@ const (
 	customEventAggregation       = AggregationSum
 	customEventConditionOperator = ConditionOperatorEquals
 	customEventConditionValue    = 1.2
+
+	valueInvalid = "invalid"
+
+	messagePartExactlyOneRule    = "exactly one rule"
+	messagePartIntegrationId     = "integration id"
+	messagePartConditionOperator = "condition operator"
 )
 
 func TestShouldValidateMinimalCustemEventSpecificationWithSystemRule(t *testing.T) {
@@ -113,7 +119,7 @@ func TestFailToValidateCustemEventSpecificationWhenNoRuleIsNil(t *testing.T) {
 		Rules:      nil,
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "exactly one rule") {
+	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartExactlyOneRule) {
 		t.Fatal("Expected validate to fail as no rule is provided")
 	}
 }
@@ -126,7 +132,7 @@ func TestFailToValidateCustemEventSpecificationWhenNoRuleIsProvided(t *testing.T
 		Rules:      []RuleSpecification{},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "exactly one rule") {
+	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartExactlyOneRule) {
 		t.Fatal("Expected validate to fail as no rule is provided")
 	}
 }
@@ -139,7 +145,7 @@ func TestFailToValidateCustemEventSpecificationWhenMultipleRulesAreProvided(t *t
 		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}, RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "exactly one rule") {
+	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartExactlyOneRule) {
 		t.Fatal("Expected validate to fail as no id of the second system rule is not provided")
 	}
 }
@@ -166,7 +172,7 @@ func TestFailToValidateCustemEventSpecificationWhenDownstreamSpecificationIsNotV
 		Downstream: &EventSpecificationDownstream{},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "integration id") {
+	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartIntegrationId) {
 		t.Fatal("Expected validate to fail as no integration id is provided for the downstream specification")
 	}
 }
@@ -211,7 +217,7 @@ func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDsAre
 		IntegrationIds: nil,
 	}
 
-	if err := downstream.Validate(); err == nil || !strings.Contains(err.Error(), "integration id") {
+	if err := downstream.Validate(); err == nil || !strings.Contains(err.Error(), messagePartIntegrationId) {
 		t.Fatal("Expected to fail to validate event specification downstream as integration ids is nil")
 	}
 }
@@ -221,7 +227,7 @@ func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsPr
 		IntegrationIds: []string{},
 	}
 
-	if err := downstream.Validate(); err == nil || !strings.Contains(err.Error(), "integration id") {
+	if err := downstream.Validate(); err == nil || !strings.Contains(err.Error(), messagePartIntegrationId) {
 		t.Fatal("Expected to fail to validate event specification downstream as no integration id is provided")
 	}
 }
@@ -408,7 +414,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregation
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsNotValid(t *testing.T) {
-	aggregation := AggregationType("invalid")
+	aggregation := AggregationType(valueInvalid)
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rule := RuleSpecification{
@@ -439,14 +445,14 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 		ConditionValue: &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
 		t.Fatal("Expected to fail to validate threshold rule as no condition operator is provided")
 	}
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOperatorIsNotValid(t *testing.T) {
 	aggregation := customEventAggregation
-	conditionOperator := ConditionOperatorType("invalid")
+	conditionOperator := ConditionOperatorType(valueInvalid)
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rule := RuleSpecification{
@@ -459,7 +465,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
 		t.Fatal("Expected to fail to validate threshold rule as no condition operator is not valid")
 	}
 }
@@ -475,13 +481,13 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithRollupWhenConditionOp
 		ConditionValue: &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
 		t.Fatal("Expected to fail to validate threshold rule as no condition operator is provided")
 	}
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithRollupWhenConditionOperatorIsNotValid(t *testing.T) {
-	conditionOperator := ConditionOperatorType("invalid")
+	conditionOperator := ConditionOperatorType(valueInvalid)
 	conditionValue := customEventConditionValue
 	rollup := customEventRollup
 	rule := RuleSpecification{
@@ -493,7 +499,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithRollupWhenConditionOp
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "condition operator") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
 		t.Fatal("Expected to fail to validate threshold rule as no condition operator is not valid")
 	}
 }

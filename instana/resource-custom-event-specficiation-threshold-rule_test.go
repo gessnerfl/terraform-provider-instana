@@ -119,7 +119,7 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithRollupResourceWithMo
 			}
 		}
 		`, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})
@@ -180,7 +180,7 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMo
 			}
 		}
 		`, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})

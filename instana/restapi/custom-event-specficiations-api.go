@@ -159,10 +159,8 @@ func (r *RuleSpecification) validateThresholdRule() error {
 		return errors.New("either rollup or window and condition must be defined")
 	}
 
-	if r.Window != nil {
-		if r.Aggregation == nil || !IsSupportedAggregationType(*r.Aggregation) {
-			return errors.New("aggregation type of threshold rule is mission or not valid")
-		}
+	if r.Window != nil && (r.Aggregation == nil || !IsSupportedAggregationType(*r.Aggregation)) {
+		return errors.New("aggregation type of threshold rule is mission or not valid")
 	}
 
 	if !IsSupportedConditionOperatorType(r.ConditionOperator) {

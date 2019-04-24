@@ -61,6 +61,8 @@ const (
 
 	customSystemEventMessageNotAValidSeverity           = "not a valid severity"
 	customSystemEventTestMessageExpectedInvalidSeverity = "Expected to get error that the provided severity is not valid"
+
+	constSystemEventContentType = "Content-Type"
 )
 
 var customSystemEventRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
@@ -89,7 +91,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithThresholdRuleResourceWi
 			}
 		}
 		`, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})
@@ -448,6 +450,18 @@ func verifyCustomEventSpecificationModelAppliedToResource(model restapi.CustomEv
 	if model.EntityType != resourceData.Get(CustomEventSpecificationFieldEntityType).(string) {
 		t.Fatal("Expected EntityType to be identical")
 	}
+	verifyCustomEventSpecificationQueryAppliedToResource(model, resourceData, t)
+	if model.Triggering != resourceData.Get(CustomEventSpecificationFieldTriggering).(bool) {
+		t.Fatal("Expected Triggering to be identical")
+	}
+	verifyCustomEventSpecificationDescriptionAppliedToResource(model, resourceData, t)
+	verifyCustomEventSpecificationExpirationTimeAppliedToResource(model, resourceData, t)
+	if model.Enabled != resourceData.Get(CustomEventSpecificationFieldEnabled).(bool) {
+		t.Fatal("Expected Enabled to be identical")
+	}
+}
+
+func verifyCustomEventSpecificationQueryAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
 	if model.Query != nil {
 		if *model.Query != resourceData.Get(CustomEventSpecificationFieldQuery).(string) {
 			t.Fatal("Expected Query to be identical")
@@ -457,9 +471,9 @@ func verifyCustomEventSpecificationModelAppliedToResource(model restapi.CustomEv
 			t.Fatal("Expected Query not to be defined")
 		}
 	}
-	if model.Triggering != resourceData.Get(CustomEventSpecificationFieldTriggering).(bool) {
-		t.Fatal("Expected Triggering to be identical")
-	}
+}
+
+func verifyCustomEventSpecificationDescriptionAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
 	if model.Description != nil {
 		if *model.Description != resourceData.Get(CustomEventSpecificationFieldDescription).(string) {
 			t.Fatal("Expected Description to be identical")
@@ -469,6 +483,9 @@ func verifyCustomEventSpecificationModelAppliedToResource(model restapi.CustomEv
 			t.Fatal("Expected Description not to be defined")
 		}
 	}
+}
+
+func verifyCustomEventSpecificationExpirationTimeAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
 	if model.ExpirationTime != nil {
 		if *model.ExpirationTime != resourceData.Get(CustomEventSpecificationFieldExpirationTime).(int) {
 			t.Fatal("Expected Expiration Time to be identical")
@@ -477,9 +494,6 @@ func verifyCustomEventSpecificationModelAppliedToResource(model restapi.CustomEv
 		if _, ok := resourceData.GetOk(CustomEventSpecificationFieldExpirationTime); ok {
 			t.Fatal("Expected Expiration Time not to be defined")
 		}
-	}
-	if model.Enabled != resourceData.Get(CustomEventSpecificationFieldEnabled).(bool) {
-		t.Fatal("Expected Enabled to be identical")
 	}
 }
 
@@ -495,7 +509,7 @@ func verifyCustomEventSpecificationDownstreamModelAppliedToResource(model restap
 		if _, ok := resourceData.GetOk(CustomEventSpecificationDownstreamIntegrationIds); ok {
 			t.Fatal("Expected Integration IDs not to be defined")
 		}
-		if true != resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs) {
+		if !resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool) {
 			t.Fatalf("Expected Broadcast to All Alert Configs to have the default value set")
 		}
 	}
