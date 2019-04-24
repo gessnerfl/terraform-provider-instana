@@ -81,7 +81,8 @@ func createCustomEventSpecificationSchema(ruleSpecificSchemaFields map[string]*s
 		},
 		CustomEventSpecificationDownstreamIntegrationIds: &schema.Schema{
 			Type:     schema.TypeList,
-			Required: true,
+			Required: false,
+			Optional: true,
 			MinItems: 0,
 			MaxItems: 16,
 			Elem: &schema.Schema{
