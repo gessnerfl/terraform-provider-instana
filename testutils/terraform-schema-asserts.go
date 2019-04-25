@@ -6,6 +6,13 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+const (
+	messageExpectedToBeNotRequired = "Expected %s to be not required"
+	messageExpectedToBeRequired    = "Expected %s to be required"
+	messageExpectedToBeOptional    = "Expected %s to be optional"
+	messageExpectedDefaultValue    = "Expected default value %t"
+)
+
 //NewTerraformSchemaAssert creates a new instance of TerraformSchemaAssert
 func NewTerraformSchemaAssert(schemaMap map[string]*schema.Schema, t *testing.T) TerraformSchemaAssert {
 	return &terraformSchemaAssertImpl{schemaMap: schemaMap, t: t}
@@ -59,7 +66,7 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndType(schemaField
 	}
 	inst.assertSchemaIsOfType(s, dataType)
 	if !s.Required {
-		inst.t.Fatalf("Expected %s to be required", schemaField)
+		inst.t.Fatalf(messageExpectedToBeRequired, schemaField)
 	}
 }
 
@@ -90,7 +97,7 @@ func (inst *terraformSchemaAssertImpl) assertSchemaIsOptionalAndOfType(schemaFie
 	}
 	inst.assertSchemaIsOfType(s, dataType)
 	if !s.Optional {
-		inst.t.Fatalf("Expected %s to be optional", schemaField)
+		inst.t.Fatalf(messageExpectedToBeOptional, schemaField)
 	}
 }
 
@@ -101,10 +108,10 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsOfTypeBooleanWithDefault(sc
 	}
 	inst.assertSchemaIsOfType(s, schema.TypeBool)
 	if s.Required {
-		inst.t.Fatalf("Expected %s to be optional", schemaField)
+		inst.t.Fatalf(messageExpectedToBeOptional, schemaField)
 	}
 	if s.Default != defaultValue {
-		inst.t.Fatalf("Expected default value %t", defaultValue)
+		inst.t.Fatalf(messageExpectedDefaultValue, defaultValue)
 	}
 }
 
@@ -123,10 +130,10 @@ func (inst *terraformSchemaAssertImpl) AssertSChemaIsOptionalAndOfTypeListOfStri
 		inst.t.Fatalf(ExpectedNoErrorButGotMessage, schemaField)
 	}
 	if s.Required {
-		inst.t.Fatalf("Expected %s to be not required", schemaField)
+		inst.t.Fatalf(messageExpectedToBeNotRequired, schemaField)
 	}
 	if !s.Optional {
-		inst.t.Fatalf("Expected %s to be optional", schemaField)
+		inst.t.Fatalf(messageExpectedToBeOptional, schemaField)
 	}
 	inst.assertSchemaIsOfTypeListOfStrings(s)
 }
@@ -137,7 +144,7 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeListOfStri
 		inst.t.Fatalf(ExpectedNoErrorButGotMessage, schemaField)
 	}
 	if !s.Required {
-		inst.t.Fatalf("Expected %s to be required", schemaField)
+		inst.t.Fatalf(messageExpectedToBeRequired, schemaField)
 	}
 	inst.assertSchemaIsOfTypeListOfStrings(s)
 }
