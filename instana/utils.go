@@ -3,6 +3,8 @@ package instana
 import (
 	"fmt"
 
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/rs/xid"
 )
@@ -32,10 +34,10 @@ func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []
 
 //ConvertSeverityFromInstanaAPIToTerraformRepresentation converts the integer representation of the Instana API to the string representation of the Terraform provider
 func ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity int) (string, error) {
-	if severity == SeverityWarning.apiRepresentation {
-		return SeverityWarning.terraformRepresentation, nil
-	} else if severity == SeverityCritical.apiRepresentation {
-		return SeverityCritical.terraformRepresentation, nil
+	if severity == restapi.SeverityWarning.GetAPIRepresentation() {
+		return restapi.SeverityWarning.GetTerraformRepresentation(), nil
+	} else if severity == restapi.SeverityCritical.GetAPIRepresentation() {
+		return restapi.SeverityCritical.GetTerraformRepresentation(), nil
 	} else {
 		return "INVALID", fmt.Errorf("%d is not a valid severity", severity)
 	}
@@ -43,11 +45,41 @@ func ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity int) (strin
 
 //ConvertSeverityFromTerraformToInstanaAPIRepresentation converts the string representation of the Terraform to the int representation of the Instana API provider
 func ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity string) (int, error) {
-	if severity == SeverityWarning.terraformRepresentation {
-		return SeverityWarning.apiRepresentation, nil
-	} else if severity == SeverityCritical.terraformRepresentation {
-		return SeverityCritical.apiRepresentation, nil
+	if severity == restapi.SeverityWarning.GetTerraformRepresentation() {
+		return restapi.SeverityWarning.GetAPIRepresentation(), nil
+	} else if severity == restapi.SeverityCritical.GetTerraformRepresentation() {
+		return restapi.SeverityCritical.GetAPIRepresentation(), nil
 	} else {
 		return -1, fmt.Errorf("%s is not a valid severity", severity)
 	}
+}
+
+//GetIntPointerFromResourceData gets a int value from the resource data and either returns a pointer to the value or nil if the value is not defined
+func GetIntPointerFromResourceData(d *schema.ResourceData, key string) *int {
+	val, ok := d.GetOk(key)
+	if ok {
+		intValue := val.(int)
+		return &intValue
+	}
+	return nil
+}
+
+//GetFloat64PointerFromResourceData gets a float64 value from the resource data and either returns a pointer to the value or nil if the value is not defined
+func GetFloat64PointerFromResourceData(d *schema.ResourceData, key string) *float64 {
+	val, ok := d.GetOk(key)
+	if ok {
+		floatValue := val.(float64)
+		return &floatValue
+	}
+	return nil
+}
+
+//GetStringPointerFromResourceData gets a string value from the resource data and either returns a pointer to the value or nil if the value is not defined
+func GetStringPointerFromResourceData(d *schema.ResourceData, key string) *string {
+	val, ok := d.GetOk(key)
+	if ok {
+		stringValue := val.(string)
+		return &stringValue
+	}
+	return nil
 }

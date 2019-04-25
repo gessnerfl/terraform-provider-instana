@@ -13,38 +13,18 @@ func NewTestHelper(t *testing.T) TestHelper {
 
 //TestHelper definition of the test helper utility
 type TestHelper interface {
-	CreateEmptyRuleResourceData() *schema.ResourceData
-	CreateRuleResourceData(data map[string]interface{}) *schema.ResourceData
-	CreateEmptyRuleBindingResourceData() *schema.ResourceData
-	CreateRuleBindingResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyUserRoleResourceData() *schema.ResourceData
 	CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyApplicationConfigResourceData() *schema.ResourceData
 	CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData
+	CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData
+	CreateCustomEventSpecificationWithSystemRuleResourceData(data map[string]interface{}) *schema.ResourceData
+	CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData
+	CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData
 }
 
 type testHelperImpl struct {
 	t *testing.T
-}
-
-func (inst *testHelperImpl) CreateEmptyRuleResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateRuleResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateRuleResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceRule().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
-}
-
-func (inst *testHelperImpl) CreateEmptyRuleBindingResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateRuleBindingResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateRuleBindingResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceRuleBinding().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }
 
 func (inst *testHelperImpl) CreateEmptyUserRoleResourceData() *schema.ResourceData {
@@ -64,5 +44,25 @@ func (inst *testHelperImpl) CreateEmptyApplicationConfigResourceData() *schema.R
 
 func (inst *testHelperImpl) CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData {
 	schemaMap := CreateResourceApplicationConfig().Schema
+	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
+}
+
+func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData {
+	data := make(map[string]interface{})
+	return inst.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
+}
+
+func (inst *testHelperImpl) CreateCustomEventSpecificationWithSystemRuleResourceData(data map[string]interface{}) *schema.ResourceData {
+	schemaMap := CreateResourceCustomEventSpecificationWithSystemRule().Schema
+	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
+}
+
+func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData {
+	data := make(map[string]interface{})
+	return inst.CreateCustomEventSpecificationWithThresholdRuleResourceData(data)
+}
+
+func (inst *testHelperImpl) CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData {
+	schemaMap := CreateResourceCustomEventSpecificationWithThresholdRule().Schema
 	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }

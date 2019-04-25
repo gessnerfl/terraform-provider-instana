@@ -12,8 +12,9 @@ Terraform provider implementation for the Instana REST API.
       - [Application Settings](#application-settings)
         - [Application Configuration](#application-configuration)
       - [Event Settings](#event-settings)
-        - [Rules](#rules)
-        - [Rule Bindings](#rule-bindings)
+        - [Custom Event Specification](#custom-event-specification)
+          - [Custom Event Specification with System Rules](#custom-event-specification-with-system-rules)
+          - [Custom Event Specification with Threshold Rules](#custom-event-specification-with-threshold-rules)
       - [Settings](#settings)
         - [User Roles](#user-roles)
   - [Implementation Details](#implementation-details)
@@ -98,43 +99,79 @@ value                     := "'" <string> "'"
 
 API Documentation: <https://instana.github.io/openapi/#tag/Event-Settings>
 
-##### Rules
+##### Custom Event Specification
 
-Management of custom rules.
-API Documentation: <https://instana.github.io/openapi/#operation/getRule>
+Management of custom event specifications
 
-The ID of the resource which is also used as unique identifier in Instana is auto generated!
+API Documentation: <https://instana.github.io/openapi/#operation/getCustomEventSpecification>
+
+Custom Event Specification support two different flavors:
+
+- System Rules - defines an event triggered by a system rule
+- Threshold Rules - defines an event triggered by a rule for a certain metric comparing the value with a given value over a time window
+
+###### Custom Event Specification with System Rules
 
 ```hcl
-resource "instana_rule" "example" {
+resource "instana_custom_event_spec_system_rule" "example" {
   name = "name"
   entity_type = "entity_type"
-  metric_name = "metric_name"
-  rollup = 100
-  window = 20000
-  aggregation = "sum"
-  condition_operator = ">"
-  condition_value = 1.1
+  query = "query"
+  enabled = true
+  triggering = true
+  description = "description"
+  expiration_time = "60000"
+	rule_severity = "warning"
+	rule_system_rule_id = "system-rule-id"
+	downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
+	downstream_broadcast_to_all_alerting_configs = true
 }
 ```
 
-##### Rule Bindings
+###### Custom Event Specification with Threshold Rules
 
-Management of Rule Bindings. Rule bindings represent incident configurations.
-API Documentation: <https://instana.github.io/openapi/#operation/getRuleBinding>
+Threshold Rules again come into flavors. Either the specify a window in which the metric has to match the comparison or a rollup for which the comparison is valid.
 
-The ID of the resource which is also used as unique identifier in Instana is auto generated!
+**Window**
 
 ```hcl
-resource "instana_rule_binding" "example" {
+resource "instana_custom_event_spec_threshold_rule" "example" {
+  name = "name"
+  entity_type = "entity_type"
+  query = "query"
   enabled = true
   triggering = true
-  severity = warning
-  text = "text"
   description = "description"
-  expiration_time = 60000
+  expiration_time = "60000"
+  rule_severity = "warning"
+  rule_metric_name = "metric_name"
+  rule_window = "60000"
+  rule_aggregation = "sum"
+  rule_condition_operator = "=="
+  rule_condition_value = "1.2"
+  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
+  downstream_broadcast_to_all_alerting_configs = true
+}
+```
+
+**Rollup**
+
+```hcl
+resource "instana_custom_event_spec_threshold_rule" "example" {
+  name = "name"
+  entity_type = "entity_type"
   query = "query"
-  rule_ids = [ "rule-id-1", "rule-id-2" ]
+  enabled = true
+  triggering = true
+  description = "description"
+  expiration_time = "60000"
+  rule_severity = "warning"
+  rule_metric_name = "metric_name"
+  rule_rollup = "40000"
+  rule_condition_operator = "=="
+  rule_condition_value = "1.2"
+  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
+  downstream_broadcast_to_all_alerting_configs = true
 }
 ```
 

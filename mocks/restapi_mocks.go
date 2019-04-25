@@ -152,32 +152,18 @@ func (m *MockInstanaAPI) EXPECT() *MockInstanaAPIMockRecorder {
 	return m.recorder
 }
 
-// RuleBindings mocks base method
-func (m *MockInstanaAPI) RuleBindings() restapi.RuleBindingResource {
+// CustomEventSpecifications mocks base method
+func (m *MockInstanaAPI) CustomEventSpecifications() restapi.CustomEventSpecificationResource {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RuleBindings")
-	ret0, _ := ret[0].(restapi.RuleBindingResource)
+	ret := m.ctrl.Call(m, "CustomEventSpecifications")
+	ret0, _ := ret[0].(restapi.CustomEventSpecificationResource)
 	return ret0
 }
 
-// RuleBindings indicates an expected call of RuleBindings
-func (mr *MockInstanaAPIMockRecorder) RuleBindings() *gomock.Call {
+// CustomEventSpecifications indicates an expected call of CustomEventSpecifications
+func (mr *MockInstanaAPIMockRecorder) CustomEventSpecifications() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RuleBindings", reflect.TypeOf((*MockInstanaAPI)(nil).RuleBindings))
-}
-
-// Rules mocks base method
-func (m *MockInstanaAPI) Rules() restapi.RuleResource {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Rules")
-	ret0, _ := ret[0].(restapi.RuleResource)
-	return ret0
-}
-
-// Rules indicates an expected call of Rules
-func (mr *MockInstanaAPIMockRecorder) Rules() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Rules", reflect.TypeOf((*MockInstanaAPI)(nil).Rules))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CustomEventSpecifications", reflect.TypeOf((*MockInstanaAPI)(nil).CustomEventSpecifications))
 }
 
 // UserRoles mocks base method

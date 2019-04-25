@@ -46,17 +46,17 @@ func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T)
 		t.Fatal("Expected 4 resources to be configured")
 	}
 
-	if resourceMap[ResourceInstanaRule] == nil {
-		t.Fatal("Expected a resources to be configured for instana rules")
-	}
-	if resourceMap[ResourceInstanaRuleBinding] == nil {
-		t.Fatal("Expected a resources to be configured for instana rule bindings")
-	}
 	if resourceMap[ResourceInstanaUserRole] == nil {
 		t.Fatal("Expected a resources to be configured for instana user roles")
 	}
 	if resourceMap[ResourceInstanaApplicationConfig] == nil {
 		t.Fatal("Expected a resources to be configured for instana application config")
+	}
+	if resourceMap[ResourceInstanaCustomEventSpecificationSystemRule] == nil {
+		t.Fatal("Expected a resources to be configured for instana custom event specification system rule")
+	}
+	if resourceMap[ResourceInstanaCustomEventSpecificationThresholdRule] == nil {
+		t.Fatal("Expected a resources to be configured for instana custom event specification threshold rule")
 	}
 }
 

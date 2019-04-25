@@ -13,14 +13,9 @@ type baseInstanaAPI struct {
 	client restapi.RestClient
 }
 
-//Rules implementation of InstanaAPI interface
-func (api baseInstanaAPI) Rules() restapi.RuleResource {
-	return resources.NewRuleResource(api.client)
-}
-
-//RuleBindings implementation of InstanaAPI interface
-func (api baseInstanaAPI) RuleBindings() restapi.RuleBindingResource {
-	return resources.NewRuleBindingResource(api.client)
+//CustomEventSpecifications implementation of InstanaAPI interface
+func (api baseInstanaAPI) CustomEventSpecifications() restapi.CustomEventSpecificationResource {
+	return resources.NewCustomEventSpecificationResource(api.client)
 }
 
 //UserRoles implementation of InstanaAPI interface
