@@ -109,7 +109,7 @@ func (e *UnaryOperationExpression) Render() string {
 var (
 	filterLexer = lexer.Must(lexer.Regexp(`(\s+)` +
 		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN)` +
-		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_]*)` +
+		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_\-]*)` +
 		`|(?P<Number>[-+]?\d+(\.\d+)?)` +
 		`|(?P<String>'[^']*'|"[^"]*")` +
 		`|(?P<Operators>EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK)`,
