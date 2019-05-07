@@ -157,6 +157,26 @@ func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
 	shouldSuccessfullyParseExpression(expression, expectedResult, t)
 }
 
+func TestShouldParseIdentifiersWithDashes(t *testing.T) {
+	expression := "call.http.header.x-example-foo EQUALS 'test'"
+
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparision: &ComparisionExpression{
+						Key:      "call.http.header.x-example-foo",
+						Operator: Operator(restapi.EqualsOperator),
+						Value:    "test",
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
 func shouldSuccessfullyParseExpression(input string, expectedResult *FilterExpression, t *testing.T) {
 	sut := NewParser()
 	result, err := sut.Parse(input)
