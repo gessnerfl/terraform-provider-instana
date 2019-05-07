@@ -59,10 +59,10 @@ API Documentation: <https://instana.github.io/openapi/#operation/putApplicationC
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
 
 ```hcl
-resource "instana_rule" "example" {
+resource "instana_application_config" "example" {
   label = "label"
   scope = "INCLUDE_ALL_DOWNSTREAM"
-  match_specification = "agent.tag.stage = 'test' OR aws.ec2.tag.stage = 'test' OR call.tag.stage = 'test'"
+  match_specification = "agent.tag.stage EQUALS 'test' OR aws.ec2.tag.stage EQUALS 'test' OR call.tag.stage EQUALS 'test'"
 }
 ```
 
