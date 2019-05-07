@@ -89,7 +89,7 @@ comparison                := key comparison_operator value
 comparison_operator       := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN
 unary_operator_expression := key unary_operator
 unary_operator            := IS_EMPTY | NOT_EMPTY | IS_BLANK | NOT_BLANK
-key                       := [a-zA-Z][\.a-zA-Z0-9]*
+key                       := [a-zA-Z][\.a-zA-Z0-9_\-]*
 value                     := "'" <string> "'"
 
 ```
