@@ -1,5 +1,8 @@
 # Change Log
 
+## [v0.3.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.3.1) (2019-06-19)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.3.0...v0.3.1)
+
 ## [v0.3.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.3.0) (2019-06-19)
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.2.2...v0.3.0)
 
