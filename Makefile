@@ -3,8 +3,11 @@ export CGO_ENABLED:=0
 export GO111MODULE=on
 #export GOFLAGS=-mod=vendor
 
-VERSION=$(shell git describe --tags --match=v* --always --dirty)
-SONAR_TARGET_BRANCH=$( if )
+ifdef TRAVIS_TAG
+	VERSION=$(TRAVIS_TAG)
+else
+	VERSION=$(shell git describe --tags --match "v*" --always --dirty)
+endif
 
 .PHONY: all
 all: build test vet lint fmt
@@ -92,20 +95,19 @@ endif
 .PHONY: release
 release: \
 	clean \
-	output/plugin-linux-amd64.tar.gz \
-	output/plugin-darwin-amd64.tar.gz \
-	output/plugin-windows-amd64.tar.gz
+	output/plugin-linux-amd64.zip \
+	output/plugin-darwin-amd64.zip \
+	output/plugin-windows-amd64.zip
 
-output/plugin-%.tar.gz: NAME=terraform-provider-instana-$(VERSION)-$*
-output/plugin-%.tar.gz: DEST=output/$(NAME)
-output/plugin-%.tar.gz: output/%/terraform-provider-instana
-	@mkdir -p $(DEST)
-	@cp output/$*/terraform-provider-instana $(DEST)
-	@tar zcvf $(DEST).tar.gz -C output $(NAME)
+output/plugin-%.zip: TARGET_PLATFORM=$*
+output/plugin-%.zip: NAME=terraform-provider-instana_$(VERSION)_$(TARGET_PLATFORM)
+output/plugin-%.zip: DEST=output/$(NAME)
+output/plugin-%.zip: output/%/terraform-provider-instana
+	@zip $(DEST).zip output/$(TARGET_PLATFORM)/$(NAME)
 
 output/linux-amd64/terraform-provider-instana: GOARGS = GOOS=linux GOARCH=amd64
 output/darwin-amd64/terraform-provider-instana: GOARGS = GOOS=darwin GOARCH=amd64
 output/windows-amd64/terraform-provider-instana: GOARGS = GOOS=windows GOARCH=amd64
 output/%/terraform-provider-instana:
 	@echo "+++++++++++ Build Release $@ +++++++++++ "
-	$(GOARGS) go build -o $@ github.com/gessnerfl/terraform-provider-instana
+	$(GOARGS) go build -o $@_$(VERSION)_$(TARGET_PLATFORM) github.com/gessnerfl/terraform-provider-instana
