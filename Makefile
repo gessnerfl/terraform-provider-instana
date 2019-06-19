@@ -103,7 +103,7 @@ output/plugin-%.zip: TARGET_PLATFORM=$*
 output/plugin-%.zip: NAME=terraform-provider-instana_$(VERSION)_$(TARGET_PLATFORM)
 output/plugin-%.zip: DEST=output/$(NAME)
 output/plugin-%.zip: output/%/terraform-provider-instana
-	@zip $(DEST).zip output/$(TARGET_PLATFORM)/$(NAME)
+	@zip -j $(DEST).zip output/$(TARGET_PLATFORM)/$(NAME)
 
 output/linux-amd64/terraform-provider-instana: GOARGS = GOOS=linux GOARCH=amd64
 output/darwin-amd64/terraform-provider-instana: GOARGS = GOOS=darwin GOARCH=amd64
