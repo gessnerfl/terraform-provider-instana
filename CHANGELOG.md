@@ -1,5 +1,16 @@
 # Change Log
 
+## [v0.3.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.3.2) (2019-06-19)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.3.1...v0.3.2)
+
+**Fixed bugs:**
+
+- Terraform provider should not have platform name in executable [\#17](https://github.com/gessnerfl/terraform-provider-instana/issues/17)
+
+**Merged pull requests:**
+
+- \#17: fix binary name [\#18](https://github.com/gessnerfl/terraform-provider-instana/pull/18) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.3.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.3.1) (2019-06-19)
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.3.0...v0.3.1)
 
