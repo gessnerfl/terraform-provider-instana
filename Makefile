@@ -100,14 +100,14 @@ release: \
 	output/plugin-windows-amd64.zip
 
 output/plugin-%.zip: TARGET_PLATFORM=$*
-output/plugin-%.zip: NAME=terraform-provider-instana_$(VERSION)_$(TARGET_PLATFORM)
+output/plugin-%.zip: NAME=terraform-provider-instana_$(VERSION)
 output/plugin-%.zip: DEST=output/$(NAME)
 output/plugin-%.zip: output/%/terraform-provider-instana
-	@zip -j $(DEST).zip output/$(TARGET_PLATFORM)/$(NAME)
+	@zip -j $(DEST)_$(TARGET_PLATFORM).zip output/$(TARGET_PLATFORM)/$(NAME)
 
 output/linux-amd64/terraform-provider-instana: GOARGS = GOOS=linux GOARCH=amd64
 output/darwin-amd64/terraform-provider-instana: GOARGS = GOOS=darwin GOARCH=amd64
 output/windows-amd64/terraform-provider-instana: GOARGS = GOOS=windows GOARCH=amd64
 output/%/terraform-provider-instana:
 	@echo "+++++++++++ Build Release $@ +++++++++++ "
-	$(GOARGS) go build -o $@_$(VERSION)_$(TARGET_PLATFORM) github.com/gessnerfl/terraform-provider-instana
+	$(GOARGS) go build -o $@_$(VERSION) github.com/gessnerfl/terraform-provider-instana
