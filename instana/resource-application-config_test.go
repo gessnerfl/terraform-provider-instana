@@ -154,11 +154,16 @@ func testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel res
 	defer ctrl.Finish()
 	mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
 	mockApplicationConfigApi.EXPECT().GetOne(gomock.Eq(applicationConfigID)).Return(expectedModel, nil).Times(1)
 
-	err := ReadApplicationConfig(resourceData, mockInstanaAPI)
+	err := ReadApplicationConfig(resourceData, meta)
 
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -172,8 +177,13 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIWhenIDIsMissing(t *testi
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
-	err := ReadApplicationConfig(resourceData, mockInstanaAPI)
+	err := ReadApplicationConfig(resourceData, meta)
 
 	if err == nil || !strings.HasPrefix(err.Error(), "ID of application config") {
 		t.Fatal("Expected error to occur because of missing id")
@@ -188,11 +198,16 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIAndDeleteResourceWhenRol
 	defer ctrl.Finish()
 	mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
 	mockApplicationConfigApi.EXPECT().GetOne(gomock.Eq(applicationConfigID)).Return(restapi.ApplicationConfig{}, restapi.ErrEntityNotFound).Times(1)
 
-	err := ReadApplicationConfig(resourceData, mockInstanaAPI)
+	err := ReadApplicationConfig(resourceData, meta)
 
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -211,11 +226,16 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIAndReturnErrorWhenAPICal
 	defer ctrl.Finish()
 	mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
 	mockApplicationConfigApi.EXPECT().GetOne(gomock.Eq(applicationConfigID)).Return(restapi.ApplicationConfig{}, expectedError).Times(1)
 
-	err := ReadApplicationConfig(resourceData, mockInstanaAPI)
+	err := ReadApplicationConfig(resourceData, meta)
 
 	if err == nil || err != expectedError {
 		t.Fatal("Expected error should be returned")
@@ -234,11 +254,16 @@ func TestShouldCreateApplicationConfigThroughInstanaAPI(t *testing.T) {
 	defer ctrl.Finish()
 	mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
 	mockApplicationConfigApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.ApplicationConfig{})).Return(expectedModel, nil).Times(1)
 
-	err := CreateApplicationConfig(resourceData, mockInstanaAPI)
+	err := CreateApplicationConfig(resourceData, meta)
 
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -255,11 +280,16 @@ func TestShouldReturnErrorWhenCreateApplicationConfigFailsThroughInstanaAPI(t *t
 	defer ctrl.Finish()
 	mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
 	mockApplicationConfigApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.ApplicationConfig{})).Return(restapi.ApplicationConfig{}, expectedError).Times(1)
 
-	err := CreateApplicationConfig(resourceData, mockInstanaAPI)
+	err := CreateApplicationConfig(resourceData, meta)
 
 	if err == nil || expectedError != err {
 		t.Fatal("Expected definned error to be returned")
@@ -276,11 +306,16 @@ func TestShouldDeleteApplicationConfigThroughInstanaAPI(t *testing.T) {
 	defer ctrl.Finish()
 	mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
 	mockApplicationConfigApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
 
-	err := DeleteApplicationConfig(resourceData, mockInstanaAPI)
+	err := DeleteApplicationConfig(resourceData, meta)
 
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -301,11 +336,16 @@ func TestShouldReturnErrorWhenDeleteApplicationConfigFailsThroughInstanaAPI(t *t
 	defer ctrl.Finish()
 	mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
 	mockApplicationConfigApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
 
-	err := DeleteApplicationConfig(resourceData, mockInstanaAPI)
+	err := DeleteApplicationConfig(resourceData, meta)
 
 	if err == nil || err != expectedError {
 		t.Fatal("Expected error to be returned")

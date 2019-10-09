@@ -72,7 +72,8 @@ func CreateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 
 //ReadApplicationConfig defines the read operation for the resource instana_application_config
 func ReadApplicationConfig(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
 	applicationConfigID := d.Id()
 	if len(applicationConfigID) == 0 {
 		return errors.New("ID of application config is missing")
@@ -90,7 +91,8 @@ func ReadApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 
 //UpdateApplicationConfig defines the update operation for the resource instana_application_config
 func UpdateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
 	applicationConfig, err := createApplicationConfigFromResourceData(d)
 	if err != nil {
 		return err
@@ -104,7 +106,8 @@ func UpdateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 
 //DeleteApplicationConfig defines the delete operation for the resource instana_application_config
 func DeleteApplicationConfig(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
 	applicationConfig, err := createApplicationConfigFromResourceData(d)
 	if err != nil {
 		return err

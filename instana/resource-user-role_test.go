@@ -188,11 +188,16 @@ func testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel restapi.User
 	defer ctrl.Finish()
 	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
 	mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(expectedModel, nil).Times(1)
 
-	err := ReadUserRole(resourceData, mockInstanaAPI)
+	err := ReadUserRole(resourceData, meta)
 
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -206,8 +211,13 @@ func TestShouldFailToReadUserRoleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
-	err := ReadUserRole(resourceData, mockInstanaAPI)
+	err := ReadUserRole(resourceData, meta)
 
 	if err == nil || !strings.HasPrefix(err.Error(), "ID of user role") {
 		t.Fatal("Expected error to occur because of missing id")
@@ -222,11 +232,16 @@ func TestShouldFailToReadUserRoleFromInstanaAPIAndDeleteResourceWhenUserRoleDoes
 	defer ctrl.Finish()
 	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
 	mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(restapi.UserRole{}, restapi.ErrEntityNotFound).Times(1)
 
-	err := ReadUserRole(resourceData, mockInstanaAPI)
+	err := ReadUserRole(resourceData, meta)
 
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -245,11 +260,16 @@ func TestShouldFailToReadUserRoleFromInstanaAPIAndReturnErrorWhenAPICallFails(t 
 	defer ctrl.Finish()
 	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
 	mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(restapi.UserRole{}, expectedError).Times(1)
 
-	err := ReadUserRole(resourceData, mockInstanaAPI)
+	err := ReadUserRole(resourceData, meta)
 
 	if err == nil || err != expectedError {
 		t.Fatal("Expected error should be returned")
@@ -268,11 +288,16 @@ func TestShouldCreateUserRoleThroughInstanaAPI(t *testing.T) {
 	defer ctrl.Finish()
 	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
 	mockUserRoleApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.UserRole{})).Return(expectedModel, nil).Times(1)
 
-	err := CreateUserRole(resourceData, mockInstanaAPI)
+	err := CreateUserRole(resourceData, meta)
 
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -289,11 +314,16 @@ func TestShouldReturnErrorWhenCreateUserRoleFailsThroughInstanaAPI(t *testing.T)
 	defer ctrl.Finish()
 	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
 	mockUserRoleApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.UserRole{})).Return(restapi.UserRole{}, expectedError).Times(1)
 
-	err := CreateUserRole(resourceData, mockInstanaAPI)
+	err := CreateUserRole(resourceData, meta)
 
 	if err == nil || expectedError != err {
 		t.Fatal("Expected definned error to be returned")
@@ -310,11 +340,16 @@ func TestShouldDeleteUserRoleThroughInstanaAPI(t *testing.T) {
 	defer ctrl.Finish()
 	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
 	mockUserRoleApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
 
-	err := DeleteUserRole(resourceData, mockInstanaAPI)
+	err := DeleteUserRole(resourceData, meta)
 
 	if err != nil {
 		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
@@ -335,11 +370,16 @@ func TestShouldReturnErrorWhenDeleteUserRoleFailsThroughInstanaAPI(t *testing.T)
 	defer ctrl.Finish()
 	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	meta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: resourceStringFormatter,
+	}
 
 	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
 	mockUserRoleApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
 
-	err := DeleteUserRole(resourceData, mockInstanaAPI)
+	err := DeleteUserRole(resourceData, meta)
 
 	if err == nil || err != expectedError {
 		t.Fatal("Expected error to be returned")

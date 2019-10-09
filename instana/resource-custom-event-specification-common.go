@@ -113,7 +113,8 @@ func createCustomEventSpecificationSchema(ruleSpecificSchemaFields map[string]*s
 
 func createCustomEventSpecificationReadFunc(ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) func(*schema.ResourceData, interface{}) error {
 	return func(d *schema.ResourceData, meta interface{}) error {
-		instanaAPI := meta.(restapi.InstanaAPI)
+		providerMeta := meta.(*ProviderMeta)
+		instanaAPI := providerMeta.InstanaAPI
 		specID := d.Id()
 		if len(specID) == 0 {
 			return errors.New("ID of custom event specification is missing")
@@ -141,7 +142,8 @@ func createCustomEventSpecificationCreateFunc(ruleSpecificationMapFunc func(*sch
 
 func createCustomEventSpecificationUpdateFunc(ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error), ruleSpecificResourceMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) func(*schema.ResourceData, interface{}) error {
 	return func(d *schema.ResourceData, meta interface{}) error {
-		instanaAPI := meta.(restapi.InstanaAPI)
+		providerMeta := meta.(*ProviderMeta)
+		instanaAPI := providerMeta.InstanaAPI
 		spec, err := createCustomEventSpecificationFromResourceData(d, ruleSpecificationMapFunc)
 		if err != nil {
 			return err
@@ -156,7 +158,8 @@ func createCustomEventSpecificationUpdateFunc(ruleSpecificationMapFunc func(*sch
 
 func createCustomEventSpecificationDeleteFunc(ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error)) func(*schema.ResourceData, interface{}) error {
 	return func(d *schema.ResourceData, meta interface{}) error {
-		instanaAPI := meta.(restapi.InstanaAPI)
+		providerMeta := meta.(*ProviderMeta)
+		instanaAPI := providerMeta.InstanaAPI
 		spec, err := createCustomEventSpecificationFromResourceData(d, ruleSpecificationMapFunc)
 		if err != nil {
 			return err

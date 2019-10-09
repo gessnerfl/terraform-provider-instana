@@ -7,21 +7,21 @@ Terraform provider implementation for the Instana REST API.
 
 Changes Log: **[CHANGELOG.md](https://github.com/gessnerfl/terraform-provider-instana/blob/master/CHANGELOG.md)**
 
-- [Terraform Provider Instana](#Terraform-Provider-Instana)
-  - [How to Use](#How-to-Use)
-    - [Provider Configuration](#Provider-Configuration)
-    - [Resources](#Resources)
-      - [Application Settings](#Application-Settings)
-        - [Application Configuration](#Application-Configuration)
-      - [Event Settings](#Event-Settings)
-        - [Custom Event Specification](#Custom-Event-Specification)
-          - [Custom Event Specification with System Rules](#Custom-Event-Specification-with-System-Rules)
-          - [Custom Event Specification with Threshold Rules](#Custom-Event-Specification-with-Threshold-Rules)
-      - [Settings](#Settings)
-        - [User Roles](#User-Roles)
-  - [Implementation Details](#Implementation-Details)
-    - [Testing](#Testing)
-    - [Release a new version](#Release-a-new-version)
+- [Terraform Provider Instana](#terraform-provider-instana)
+  - [How to Use](#how-to-use)
+    - [Provider Configuration](#provider-configuration)
+    - [Resources](#resources)
+      - [Application Settings](#application-settings)
+        - [Application Configuration](#application-configuration)
+      - [Event Settings](#event-settings)
+        - [Custom Event Specification](#custom-event-specification)
+          - [Custom Event Specification with System Rules](#custom-event-specification-with-system-rules)
+          - [Custom Event Specification with Threshold Rules](#custom-event-specification-with-threshold-rules)
+      - [Settings](#settings)
+        - [User Roles](#user-roles)
+  - [Implementation Details](#implementation-details)
+    - [Testing](#testing)
+    - [Release a new version](#release-a-new-version)
 
 ## How to Use
 
@@ -218,7 +218,7 @@ resource "instana_user_role" "example" {
  Mocking:
  Tests are co-located in the package next to the implementation. We use gomock (<https://github.com/golang/mock)> for mocking. To generate mocks you need to use the package options to create the mocks in the same package:
 
-```hcl
+```bash
 mockgen -source=<source_file> -destination=mocks/<source_package>/<source_file_name>_mocks.go package=<source_package>_mocks -self_package=github.com/gessnerfl/terraform-provider-instana/<source_package>
 ```
 
