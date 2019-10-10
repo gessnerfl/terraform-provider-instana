@@ -60,3 +60,31 @@ func (mr *MockResourceStringFormatterMockRecorder) FormatDescription(description
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FormatDescription", reflect.TypeOf((*MockResourceStringFormatter)(nil).FormatDescription), description)
 }
+
+// UndoFormatName mocks base method
+func (m *MockResourceStringFormatter) UndoFormatName(name string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UndoFormatName", name)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// UndoFormatName indicates an expected call of UndoFormatName
+func (mr *MockResourceStringFormatterMockRecorder) UndoFormatName(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UndoFormatName", reflect.TypeOf((*MockResourceStringFormatter)(nil).UndoFormatName), name)
+}
+
+// UndoFormatDescription mocks base method
+func (m *MockResourceStringFormatter) UndoFormatDescription(description string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UndoFormatDescription", description)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// UndoFormatDescription indicates an expected call of UndoFormatDescription
+func (mr *MockResourceStringFormatterMockRecorder) UndoFormatDescription(description interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UndoFormatDescription", reflect.TypeOf((*MockResourceStringFormatter)(nil).UndoFormatDescription), description)
+}
