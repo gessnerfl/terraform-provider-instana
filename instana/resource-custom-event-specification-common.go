@@ -127,7 +127,7 @@ func createCustomEventSpecificationReadFunc(ruleSpecificMappingFunc func(*schema
 			}
 			return err
 		}
-		return updateCustomEventSpecificationState(d, spec, ruleSpecificMappingFunc)
+		return updateCustomEventSpecificationState(d, spec, providerMeta.ResourceNameFormatter, ruleSpecificMappingFunc)
 	}
 }
 
@@ -144,7 +144,7 @@ func createCustomEventSpecificationUpdateFunc(ruleSpecificationMapFunc func(*sch
 	return func(d *schema.ResourceData, meta interface{}) error {
 		providerMeta := meta.(*ProviderMeta)
 		instanaAPI := providerMeta.InstanaAPI
-		spec, err := createCustomEventSpecificationFromResourceData(d, ruleSpecificationMapFunc)
+		spec, err := createCustomEventSpecificationFromResourceData(d, providerMeta.ResourceNameFormatter, ruleSpecificationMapFunc)
 		if err != nil {
 			return err
 		}
@@ -152,7 +152,7 @@ func createCustomEventSpecificationUpdateFunc(ruleSpecificationMapFunc func(*sch
 		if err != nil {
 			return err
 		}
-		return updateCustomEventSpecificationState(d, updatedCustomEventSpecification, ruleSpecificResourceMappingFunc)
+		return updateCustomEventSpecificationState(d, updatedCustomEventSpecification, providerMeta.ResourceNameFormatter, ruleSpecificResourceMappingFunc)
 	}
 }
 
@@ -160,7 +160,7 @@ func createCustomEventSpecificationDeleteFunc(ruleSpecificationMapFunc func(*sch
 	return func(d *schema.ResourceData, meta interface{}) error {
 		providerMeta := meta.(*ProviderMeta)
 		instanaAPI := providerMeta.InstanaAPI
-		spec, err := createCustomEventSpecificationFromResourceData(d, ruleSpecificationMapFunc)
+		spec, err := createCustomEventSpecificationFromResourceData(d, providerMeta.ResourceNameFormatter, ruleSpecificationMapFunc)
 		if err != nil {
 			return err
 		}
@@ -173,10 +173,12 @@ func createCustomEventSpecificationDeleteFunc(ruleSpecificationMapFunc func(*sch
 	}
 }
 
-func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error)) (restapi.CustomEventSpecification, error) {
+func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter ResourceNameFormatter, ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error)) (restapi.CustomEventSpecification, error) {
+	name := formatter.Format(d.Get(CustomEventSpecificationFieldName).(string))
+
 	apiModel := restapi.CustomEventSpecification{
 		ID:             d.Id(),
-		Name:           d.Get(CustomEventSpecificationFieldName).(string),
+		Name:           name,
 		EntityType:     d.Get(CustomEventSpecificationFieldEntityType).(string),
 		Query:          GetStringPointerFromResourceData(d, CustomEventSpecificationFieldQuery),
 		Triggering:     d.Get(CustomEventSpecificationFieldTriggering).(bool),
@@ -201,8 +203,10 @@ func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, rule
 	return apiModel, nil
 }
 
-func updateCustomEventSpecificationState(d *schema.ResourceData, spec restapi.CustomEventSpecification, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
-	d.Set(CustomEventSpecificationFieldName, spec.Name)
+func updateCustomEventSpecificationState(d *schema.ResourceData, spec restapi.CustomEventSpecification, formatter ResourceNameFormatter, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
+	name := formatter.UndoFormat(spec.Name)
+
+	d.Set(CustomEventSpecificationFieldName, name)
 	d.Set(CustomEventSpecificationFieldEntityType, spec.EntityType)
 	d.Set(CustomEventSpecificationFieldQuery, spec.Query)
 	d.Set(CustomEventSpecificationFieldTriggering, spec.Triggering)

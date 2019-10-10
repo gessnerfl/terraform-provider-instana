@@ -181,212 +181,171 @@ func TestShouldSuccessfullyReadUserRoleFromInstanaAPIWhenFullDataIsReturned(t *t
 }
 
 func testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel restapi.UserRole, t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
-	resourceData.SetId(userRoleID)
+	testHelper := NewTestHelper(t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
+		resourceData := testHelper.CreateEmptyUserRoleResourceData()
+		resourceData.SetId(userRoleID)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
-	meta := &ProviderMeta{
-		InstanaAPI:            mockInstanaAPI,
-		ResourceNameFormatter: resourceNameFormatter,
-	}
+		mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 
-	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-	mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(expectedModel, nil).Times(1)
+		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
+		mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(expectedModel, nil).Times(1)
 
-	err := ReadUserRole(resourceData, meta)
+		err := ReadUserRole(resourceData, providerMeta)
 
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	verifyUserRoleModelAppliedToResource(expectedModel, resourceData, t)
+		if err != nil {
+			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+		}
+		verifyUserRoleModelAppliedToResource(expectedModel, resourceData, t)
+	})
 }
 
 func TestShouldFailToReadUserRoleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
+	testHelper := NewTestHelper(t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
+		resourceData := testHelper.CreateEmptyUserRoleResourceData()
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
-	meta := &ProviderMeta{
-		InstanaAPI:            mockInstanaAPI,
-		ResourceNameFormatter: resourceNameFormatter,
-	}
+		err := ReadUserRole(resourceData, providerMeta)
 
-	err := ReadUserRole(resourceData, meta)
-
-	if err == nil || !strings.HasPrefix(err.Error(), "ID of user role") {
-		t.Fatal("Expected error to occur because of missing id")
-	}
+		if err == nil || !strings.HasPrefix(err.Error(), "ID of user role") {
+			t.Fatal("Expected error to occur because of missing id")
+		}
+	})
 }
 
 func TestShouldFailToReadUserRoleFromInstanaAPIAndDeleteResourceWhenUserRoleDoesNotExist(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
-	resourceData.SetId(userRoleID)
+	testHelper := NewTestHelper(t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
+		resourceData := testHelper.CreateEmptyUserRoleResourceData()
+		resourceData.SetId(userRoleID)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
-	meta := &ProviderMeta{
-		InstanaAPI:            mockInstanaAPI,
-		ResourceNameFormatter: resourceNameFormatter,
-	}
+		mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 
-	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-	mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(restapi.UserRole{}, restapi.ErrEntityNotFound).Times(1)
+		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
+		mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(restapi.UserRole{}, restapi.ErrEntityNotFound).Times(1)
 
-	err := ReadUserRole(resourceData, meta)
+		err := ReadUserRole(resourceData, providerMeta)
 
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	if len(resourceData.Id()) > 0 {
-		t.Fatal("Expected ID to be cleaned to destroy resource")
-	}
+		if err != nil {
+			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+		}
+		if len(resourceData.Id()) > 0 {
+			t.Fatal("Expected ID to be cleaned to destroy resource")
+		}
+	})
 }
 
 func TestShouldFailToReadUserRoleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyUserRoleResourceData()
-	resourceData.SetId(userRoleID)
-	expectedError := errors.New("test")
+	testHelper := NewTestHelper(t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
+		resourceData := testHelper.CreateEmptyUserRoleResourceData()
+		resourceData.SetId(userRoleID)
+		expectedError := errors.New("test")
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
-	meta := &ProviderMeta{
-		InstanaAPI:            mockInstanaAPI,
-		ResourceNameFormatter: resourceNameFormatter,
-	}
+		mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 
-	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-	mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(restapi.UserRole{}, expectedError).Times(1)
+		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
+		mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(restapi.UserRole{}, expectedError).Times(1)
 
-	err := ReadUserRole(resourceData, meta)
+		err := ReadUserRole(resourceData, providerMeta)
 
-	if err == nil || err != expectedError {
-		t.Fatal("Expected error should be returned")
-	}
-	if len(resourceData.Id()) == 0 {
-		t.Fatal("Expected ID should still be set")
-	}
+		if err == nil || err != expectedError {
+			t.Fatal("Expected error should be returned")
+		}
+		if len(resourceData.Id()) == 0 {
+			t.Fatal("Expected ID should still be set")
+		}
+	})
 }
 
 func TestShouldCreateUserRoleThroughInstanaAPI(t *testing.T) {
-	data := createFullTestUserRoleData()
-	resourceData := NewTestHelper(t).CreateUserRoleResourceData(data)
-	expectedModel := createFullTestUserRoleModel()
+	testHelper := NewTestHelper(t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
+		data := createFullTestUserRoleData()
+		resourceData := testHelper.CreateUserRoleResourceData(data)
+		expectedModel := createFullTestUserRoleModel()
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
-	meta := &ProviderMeta{
-		InstanaAPI:            mockInstanaAPI,
-		ResourceNameFormatter: resourceNameFormatter,
-	}
+		mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 
-	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-	mockUserRoleApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.UserRole{})).Return(expectedModel, nil).Times(1)
+		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
+		mockUserRoleApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.UserRole{})).Return(expectedModel, nil).Times(1)
 
-	err := CreateUserRole(resourceData, meta)
+		err := CreateUserRole(resourceData, providerMeta)
 
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	verifyUserRoleModelAppliedToResource(expectedModel, resourceData, t)
+		if err != nil {
+			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+		}
+		verifyUserRoleModelAppliedToResource(expectedModel, resourceData, t)
+	})
 }
 
 func TestShouldReturnErrorWhenCreateUserRoleFailsThroughInstanaAPI(t *testing.T) {
-	data := createFullTestUserRoleData()
-	resourceData := NewTestHelper(t).CreateUserRoleResourceData(data)
-	expectedError := errors.New("test")
+	testHelper := NewTestHelper(t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
+		data := createFullTestUserRoleData()
+		resourceData := testHelper.CreateUserRoleResourceData(data)
+		expectedError := errors.New("test")
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
-	meta := &ProviderMeta{
-		InstanaAPI:            mockInstanaAPI,
-		ResourceNameFormatter: resourceNameFormatter,
-	}
+		mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 
-	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-	mockUserRoleApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.UserRole{})).Return(restapi.UserRole{}, expectedError).Times(1)
+		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
+		mockUserRoleApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.UserRole{})).Return(restapi.UserRole{}, expectedError).Times(1)
 
-	err := CreateUserRole(resourceData, meta)
+		err := CreateUserRole(resourceData, providerMeta)
 
-	if err == nil || expectedError != err {
-		t.Fatal("Expected definned error to be returned")
-	}
+		if err == nil || expectedError != err {
+			t.Fatal("Expected definned error to be returned")
+		}
+	})
 }
 
 func TestShouldDeleteUserRoleThroughInstanaAPI(t *testing.T) {
-	id := "test-id"
-	data := createFullTestUserRoleData()
-	resourceData := NewTestHelper(t).CreateUserRoleResourceData(data)
-	resourceData.SetId(id)
+	testHelper := NewTestHelper(t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
+		id := "test-id"
+		data := createFullTestUserRoleData()
+		resourceData := testHelper.CreateUserRoleResourceData(data)
+		resourceData.SetId(id)
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
-	meta := &ProviderMeta{
-		InstanaAPI:            mockInstanaAPI,
-		ResourceNameFormatter: resourceNameFormatter,
-	}
+		mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 
-	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-	mockUserRoleApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
+		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
+		mockUserRoleApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
 
-	err := DeleteUserRole(resourceData, meta)
+		err := DeleteUserRole(resourceData, providerMeta)
 
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	if len(resourceData.Id()) > 0 {
-		t.Fatal("Expected ID to be cleaned to destroy resource")
-	}
+		if err != nil {
+			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+		}
+		if len(resourceData.Id()) > 0 {
+			t.Fatal("Expected ID to be cleaned to destroy resource")
+		}
+	})
 }
 
 func TestShouldReturnErrorWhenDeleteUserRoleFailsThroughInstanaAPI(t *testing.T) {
-	id := "test-id"
-	data := createFullTestUserRoleData()
-	resourceData := NewTestHelper(t).CreateUserRoleResourceData(data)
-	resourceData.SetId(id)
-	expectedError := errors.New("test")
+	testHelper := NewTestHelper(t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
+		id := "test-id"
+		data := createFullTestUserRoleData()
+		resourceData := testHelper.CreateUserRoleResourceData(data)
+		resourceData.SetId(id)
+		expectedError := errors.New("test")
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
-	meta := &ProviderMeta{
-		InstanaAPI:            mockInstanaAPI,
-		ResourceNameFormatter: resourceNameFormatter,
-	}
+		mockUserRoleApi := mocks.NewMockUserRoleResource(ctrl)
 
-	mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-	mockUserRoleApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
+		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
+		mockUserRoleApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
 
-	err := DeleteUserRole(resourceData, meta)
+		err := DeleteUserRole(resourceData, providerMeta)
 
-	if err == nil || err != expectedError {
-		t.Fatal("Expected error to be returned")
-	}
-	if len(resourceData.Id()) == 0 {
-		t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
-	}
+		if err == nil || err != expectedError {
+			t.Fatal("Expected error to be returned")
+		}
+		if len(resourceData.Id()) == 0 {
+			t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
+		}
+	})
 }
 
 func verifyUserRoleModelAppliedToResource(model restapi.UserRole, resourceData *schema.ResourceData, t *testing.T) {
