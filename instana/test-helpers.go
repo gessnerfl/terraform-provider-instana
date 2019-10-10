@@ -3,6 +3,8 @@ package instana
 import (
 	"testing"
 
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -13,6 +15,9 @@ func NewTestHelper(t *testing.T) TestHelper {
 
 //TestHelper definition of the test helper utility
 type TestHelper interface {
+	WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceStringFormatter))
+	CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceStringFormatter)
+
 	CreateEmptyUserRoleResourceData() *schema.ResourceData
 	CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyApplicationConfigResourceData() *schema.ResourceData
@@ -25,6 +30,24 @@ type TestHelper interface {
 
 type testHelperImpl struct {
 	t *testing.T
+}
+
+func (inst *testHelperImpl) WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceStringFormatter)) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	providerMeta, mockInstanaAPI, mockResourceStringFormatter := inst.CreateProviderMetaMock(ctrl)
+	testFunction(ctrl, providerMeta, mockInstanaAPI, mockResourceStringFormatter)
+}
+
+func (inst *testHelperImpl) CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceStringFormatter) {
+	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
+	mockResourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	providerMeta := &ProviderMeta{
+		InstanaAPI:              mockInstanaAPI,
+		ResourceStringFormatter: mockResourceStringFormatter,
+	}
+	return providerMeta, mockInstanaAPI, mockResourceStringFormatter
 }
 
 func (inst *testHelperImpl) CreateEmptyUserRoleResourceData() *schema.ResourceData {
