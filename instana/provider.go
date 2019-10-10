@@ -35,8 +35,8 @@ const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_eve
 
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
-	InstanaAPI              restapi.InstanaAPI
-	ResourceStringFormatter ResourceStringFormatter
+	InstanaAPI            restapi.InstanaAPI
+	ResourceNameFormatter ResourceNameFormatter
 }
 
 //Provider interface implementation of hashicorp terraform provider
@@ -83,9 +83,9 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	endpoint := d.Get(SchemaFieldEndpoint).(string)
 	appendTerraformManagedString := d.Get(SchemaFieldAddTerraformManagedString).(bool)
 	instanaAPI := services.NewInstanaAPI(apiToken, endpoint)
-	formatter := NewResourceStringFormatter(appendTerraformManagedString)
+	formatter := NewResourceNameFormatter(appendTerraformManagedString)
 	return &ProviderMeta{
-		InstanaAPI:              instanaAPI,
-		ResourceStringFormatter: formatter,
+		InstanaAPI:            instanaAPI,
+		ResourceNameFormatter: formatter,
 	}, nil
 }

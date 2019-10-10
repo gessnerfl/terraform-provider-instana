@@ -86,14 +86,14 @@ func ReadApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 		}
 		return err
 	}
-	return updateApplicationConfigState(d, applicationConfig, providerMeta.ResourceStringFormatter)
+	return updateApplicationConfigState(d, applicationConfig, providerMeta.ResourceNameFormatter)
 }
 
 //UpdateApplicationConfig defines the update operation for the resource instana_application_config
 func UpdateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
-	applicationConfig, err := createApplicationConfigFromResourceData(d, providerMeta.ResourceStringFormatter)
+	applicationConfig, err := createApplicationConfigFromResourceData(d, providerMeta.ResourceNameFormatter)
 	if err != nil {
 		return err
 	}
@@ -101,14 +101,14 @@ func UpdateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	return updateApplicationConfigState(d, updatedApplicationConfig, providerMeta.ResourceStringFormatter)
+	return updateApplicationConfigState(d, updatedApplicationConfig, providerMeta.ResourceNameFormatter)
 }
 
 //DeleteApplicationConfig defines the delete operation for the resource instana_application_config
 func DeleteApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
-	applicationConfig, err := createApplicationConfigFromResourceData(d, providerMeta.ResourceStringFormatter)
+	applicationConfig, err := createApplicationConfigFromResourceData(d, providerMeta.ResourceNameFormatter)
 	if err != nil {
 		return err
 	}
@@ -120,14 +120,14 @@ func DeleteApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func createApplicationConfigFromResourceData(d *schema.ResourceData, formatter ResourceStringFormatter) (restapi.ApplicationConfig, error) {
+func createApplicationConfigFromResourceData(d *schema.ResourceData, formatter ResourceNameFormatter) (restapi.ApplicationConfig, error) {
 	matchSpecification, err := convertExpressionStringToAPIModel(d.Get(ApplicationConfigFieldMatchSpecification).(string))
 	if err != nil {
 		return restapi.ApplicationConfig{}, err
 	}
 	return restapi.ApplicationConfig{
 		ID:                 d.Id(),
-		Label:              formatter.FormatName(d.Get(ApplicationConfigFieldLabel).(string)),
+		Label:              formatter.Format(d.Get(ApplicationConfigFieldLabel).(string)),
 		Scope:              d.Get(ApplicationConfigFieldScope).(string),
 		MatchSpecification: matchSpecification,
 	}, nil
@@ -144,13 +144,13 @@ func convertExpressionStringToAPIModel(input string) (restapi.MatchExpression, e
 	return mapper.ToAPIModel(expr), nil
 }
 
-func updateApplicationConfigState(d *schema.ResourceData, applicationConfig restapi.ApplicationConfig, formatter ResourceStringFormatter) error {
+func updateApplicationConfigState(d *schema.ResourceData, applicationConfig restapi.ApplicationConfig, formatter ResourceNameFormatter) error {
 	normalizedExpressionString, err := convertAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 	if err != nil {
 		return err
 	}
 
-	label := formatter.UndoFormatName(applicationConfig.Label)
+	label := formatter.UndoFormat(applicationConfig.Label)
 
 	d.Set(ApplicationConfigFieldLabel, label)
 	d.Set(ApplicationConfigFieldScope, applicationConfig.Scope)

@@ -15,8 +15,8 @@ func NewTestHelper(t *testing.T) TestHelper {
 
 //TestHelper definition of the test helper utility
 type TestHelper interface {
-	WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceStringFormatter))
-	CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceStringFormatter)
+	WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter))
+	CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceNameFormatter)
 
 	CreateEmptyUserRoleResourceData() *schema.ResourceData
 	CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData
@@ -32,22 +32,22 @@ type testHelperImpl struct {
 	t *testing.T
 }
 
-func (inst *testHelperImpl) WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceStringFormatter)) {
+func (inst *testHelperImpl) WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter)) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	providerMeta, mockInstanaAPI, mockResourceStringFormatter := inst.CreateProviderMetaMock(ctrl)
-	testFunction(ctrl, providerMeta, mockInstanaAPI, mockResourceStringFormatter)
+	providerMeta, mockInstanaAPI, mockResourceNameFormatter := inst.CreateProviderMetaMock(ctrl)
+	testFunction(ctrl, providerMeta, mockInstanaAPI, mockResourceNameFormatter)
 }
 
-func (inst *testHelperImpl) CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceStringFormatter) {
+func (inst *testHelperImpl) CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceNameFormatter) {
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	mockResourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	mockResourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	providerMeta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: mockResourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: mockResourceNameFormatter,
 	}
-	return providerMeta, mockInstanaAPI, mockResourceStringFormatter
+	return providerMeta, mockInstanaAPI, mockResourceNameFormatter
 }
 
 func (inst *testHelperImpl) CreateEmptyUserRoleResourceData() *schema.ResourceData {

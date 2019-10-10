@@ -264,10 +264,10 @@ func runExecuteReadAndReturnResultOfCustomEventSpecificationWithThresholdRuleFor
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
@@ -283,10 +283,10 @@ func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPI
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
@@ -305,10 +305,10 @@ func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPI
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
@@ -334,10 +334,10 @@ func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPI
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
@@ -363,10 +363,10 @@ func TestShouldCreateCustomEventSpecificationWithThresholdRuleThroughInstanaAPI(
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
@@ -390,10 +390,10 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithThresholdRuleFai
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
@@ -415,10 +415,10 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithThresholdRuleFai
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()
@@ -439,10 +439,10 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithThresholdRuleFai
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
@@ -465,10 +465,10 @@ func TestShouldDeleteCustomEventSpecificationWithThresholdRuleThroughInstanaAPI(
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
@@ -495,10 +495,10 @@ func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithThresholdRuleFai
 	defer ctrl.Finish()
 	mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
@@ -524,10 +524,10 @@ func TestShouldFailToDeleteCustomEventSpecificationWithThresholdRuleWhenInvalidS
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	resourceStringFormatter := mocks.NewMockResourceStringFormatter(ctrl)
+	resourceNameFormatter := mocks.NewMockResourceNameFormatter(ctrl)
 	meta := &ProviderMeta{
-		InstanaAPI:              mockInstanaAPI,
-		ResourceStringFormatter: resourceStringFormatter,
+		InstanaAPI:            mockInstanaAPI,
+		ResourceNameFormatter: resourceNameFormatter,
 	}
 
 	resource := CreateResourceCustomEventSpecificationWithThresholdRule()

@@ -51,7 +51,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 		json := strings.ReplaceAll(`
 		{
 			"id" : "{{id}}",
-			"label" : "label (tf managed)",
+			"label" : "label (TF managed)",
 			"scope" : "INCLUDE_ALL_DOWNSTREAM",
 			"matchSpecification" : {
 				"type" : "BINARY_OP",
@@ -148,13 +148,13 @@ func TestShouldSuccessfullyReadApplicationConfigFromInstanaAPIWhenBaseDataWithSc
 
 func testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel restapi.ApplicationConfig, t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceStringFormatter *mocks.MockResourceStringFormatter) {
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := testHelper.CreateEmptyApplicationConfigResourceData()
 		resourceData.SetId(applicationConfigID)
 		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 
 		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceStringFormatter.EXPECT().UndoFormatName(expectedModel.Label).Return(expectedModel.Label).Times(1)
+		mockResourceNameFormatter.EXPECT().UndoFormat(expectedModel.Label).Return(expectedModel.Label).Times(1)
 		mockApplicationConfigApi.EXPECT().GetOne(gomock.Eq(applicationConfigID)).Return(expectedModel, nil).Times(1)
 
 		err := ReadApplicationConfig(resourceData, providerMeta)
@@ -168,7 +168,7 @@ func testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel res
 
 func TestShouldFailToReadApplicationConfigFromInstanaAPIWhenIDIsMissing(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceStringFormatter *mocks.MockResourceStringFormatter) {
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := testHelper.CreateEmptyApplicationConfigResourceData()
 
 		err := ReadApplicationConfig(resourceData, providerMeta)
@@ -181,7 +181,7 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIWhenIDIsMissing(t *testi
 
 func TestShouldFailToReadApplicationConfigFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceStringFormatter *mocks.MockResourceStringFormatter) {
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := testHelper.CreateEmptyApplicationConfigResourceData()
 		resourceData.SetId(applicationConfigID)
 		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
@@ -202,7 +202,7 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIAndDeleteResourceWhenRol
 
 func TestShouldFailToReadApplicationConfigFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceStringFormatter *mocks.MockResourceStringFormatter) {
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := testHelper.CreateEmptyApplicationConfigResourceData()
 		resourceData.SetId(applicationConfigID)
 		expectedError := errors.New("test")
@@ -224,15 +224,15 @@ func TestShouldFailToReadApplicationConfigFromInstanaAPIAndReturnErrorWhenAPICal
 
 func TestShouldCreateApplicationConfigThroughInstanaAPI(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceStringFormatter *mocks.MockResourceStringFormatter) {
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		data := createFullTestApplicationConfigData()
 		resourceData := testHelper.CreateApplicationConfigResourceData(data)
 		expectedModel := createTestApplicationConfigModelWithRollup()
 		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 
 		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceStringFormatter.EXPECT().FormatName(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
-		mockResourceStringFormatter.EXPECT().UndoFormatName(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
+		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
+		mockResourceNameFormatter.EXPECT().UndoFormat(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
 		mockApplicationConfigApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.ApplicationConfig{})).Return(expectedModel, nil).Times(1)
 
 		err := CreateApplicationConfig(resourceData, providerMeta)
@@ -246,14 +246,14 @@ func TestShouldCreateApplicationConfigThroughInstanaAPI(t *testing.T) {
 
 func TestShouldReturnErrorWhenCreateApplicationConfigFailsThroughInstanaAPI(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceStringFormatter *mocks.MockResourceStringFormatter) {
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		data := createFullTestApplicationConfigData()
 		resourceData := testHelper.CreateApplicationConfigResourceData(data)
 		expectedError := errors.New("test")
 		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 
 		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceStringFormatter.EXPECT().FormatName(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
+		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
 		mockApplicationConfigApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.ApplicationConfig{})).Return(restapi.ApplicationConfig{}, expectedError).Times(1)
 
 		err := CreateApplicationConfig(resourceData, providerMeta)
@@ -266,7 +266,7 @@ func TestShouldReturnErrorWhenCreateApplicationConfigFailsThroughInstanaAPI(t *t
 
 func TestShouldDeleteApplicationConfigThroughInstanaAPI(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceStringFormatter *mocks.MockResourceStringFormatter) {
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		id := "test-id"
 		data := createFullTestApplicationConfigData()
 		resourceData := testHelper.CreateApplicationConfigResourceData(data)
@@ -274,7 +274,7 @@ func TestShouldDeleteApplicationConfigThroughInstanaAPI(t *testing.T) {
 		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 
 		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceStringFormatter.EXPECT().FormatName(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
+		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
 		mockApplicationConfigApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
 
 		err := DeleteApplicationConfig(resourceData, providerMeta)
@@ -290,7 +290,7 @@ func TestShouldDeleteApplicationConfigThroughInstanaAPI(t *testing.T) {
 
 func TestShouldReturnErrorWhenDeleteApplicationConfigFailsThroughInstanaAPI(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceStringFormatter *mocks.MockResourceStringFormatter) {
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		id := "test-id"
 		data := createFullTestApplicationConfigData()
 		resourceData := testHelper.CreateApplicationConfigResourceData(data)
@@ -299,7 +299,7 @@ func TestShouldReturnErrorWhenDeleteApplicationConfigFailsThroughInstanaAPI(t *t
 		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 
 		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceStringFormatter.EXPECT().FormatName(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
+		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
 		mockApplicationConfigApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
 
 		err := DeleteApplicationConfig(resourceData, providerMeta)
