@@ -147,6 +147,7 @@ func TestResourceCustomEventSpecificationWithSystemRuleDefinition(t *testing.T) 
 func validateCustomEventSpecificationWithSystemRuleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldEntityType)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldQuery)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldTriggering, false)
@@ -178,7 +179,6 @@ func testShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstana
 		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(expectedModel.Name).Return(expectedModel.Name).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(expectedModel, nil).Times(1)
 
 		resource := CreateResourceCustomEventSpecificationWithSystemRule()
@@ -202,7 +202,6 @@ func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhe
 		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(expectedModel.Name).Return(expectedModel.Name).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(expectedModel, nil).Times(1)
 
 		resource := CreateResourceCustomEventSpecificationWithSystemRule()
@@ -286,7 +285,6 @@ func TestShouldCreateCustomEventSpecificationWithSystemRuleThroughInstanaAPI(t *
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
 		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(expectedModel, nil).Times(1)
 
 		resource := CreateResourceCustomEventSpecificationWithSystemRule()
@@ -351,7 +349,6 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithSystemRuleFailsB
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
 		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(expectedModel, nil).Times(1)
 
 		resource := CreateResourceCustomEventSpecificationWithSystemRule()
@@ -454,8 +451,8 @@ func verifyCustomEventSpecificationModelAppliedToResource(model restapi.CustomEv
 	if model.ID != resourceData.Id() {
 		t.Fatal("Expected ID to be identical")
 	}
-	if model.Name != resourceData.Get(CustomEventSpecificationFieldName).(string) {
-		t.Fatal("Expected Name to be identical")
+	if model.Name != resourceData.Get(CustomEventSpecificationFieldFullName).(string) {
+		t.Fatal("Expected Full Name to be identical")
 	}
 	if model.EntityType != resourceData.Get(CustomEventSpecificationFieldEntityType).(string) {
 		t.Fatal("Expected EntityType to be identical")

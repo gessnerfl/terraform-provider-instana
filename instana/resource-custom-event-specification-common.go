@@ -2,15 +2,20 @@ package instana
 
 import (
 	"errors"
+	"fmt"
+	"log"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 const (
 	//CustomEventSpecificationFieldName constant value for the schema field name
 	CustomEventSpecificationFieldName = "name"
+	//CustomEventSpecificationFieldFullName constant value for the schema field full_name. The field is computed and contains the name which is sent to instana. The computation depends on the activation of add_terraform_managed_string at provider level
+	CustomEventSpecificationFieldFullName = "full_name"
 	//CustomEventSpecificationFieldEntityType constant value for the schema field entity type
 	CustomEventSpecificationFieldEntityType = "entity_type"
 	//CustomEventSpecificationFieldQuery constant value for the schema field query
@@ -43,6 +48,11 @@ func createCustomEventSpecificationSchema(ruleSpecificSchemaFields map[string]*s
 			Type:        schema.TypeString,
 			Required:    true,
 			Description: "Configures the name of the custom event specification",
+		},
+		CustomEventSpecificationFieldFullName: &schema.Schema{
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "The computed full name of the custom event specification. The field contains the name which is sent to instana. The computation depends on the activation of add_terraform_managed_string at provider level",
 		},
 		CustomEventSpecificationFieldEntityType: &schema.Schema{
 			Type:        schema.TypeString,
@@ -111,6 +121,40 @@ func createCustomEventSpecificationSchema(ruleSpecificSchemaFields map[string]*s
 	return defaultMap
 }
 
+//CreateMigrateCustomEventConfigStateFunction creates the function for migrating schemas in terraform for the different implementations of custom events
+func CreateMigrateCustomEventConfigStateFunction(specificFunctions map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error))) func(v int, inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+	return func(v int, inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+		if inst.Empty() {
+			log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
+			return inst, nil
+		}
+
+		switch v {
+		case 0:
+			log.Println("[INFO] Found Custom Event Config State v0; migrating to v1")
+			temp, err := applySpecificFunction(v, inst, meta, specificFunctions)
+			if err != nil {
+				return temp, err
+			}
+			return migrateCustomEventConfigNameInStateFromV0toV1(inst)
+		default:
+			return inst, fmt.Errorf("Unexpected schema version: %d", v)
+		}
+	}
+}
+
+func applySpecificFunction(v int, inst *terraform.InstanceState, meta interface{}, specificFunctions map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error))) (*terraform.InstanceState, error) {
+	if specificFunctions != nil && specificFunctions[v] != nil {
+		return specificFunctions[v](inst, meta)
+	}
+	return inst, nil
+}
+
+func migrateCustomEventConfigNameInStateFromV0toV1(inst *terraform.InstanceState) (*terraform.InstanceState, error) {
+	inst.Attributes[CustomEventSpecificationFieldFullName] = inst.Attributes[CustomEventSpecificationFieldName]
+	return inst, nil
+}
+
 func createCustomEventSpecificationReadFunc(ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) func(*schema.ResourceData, interface{}) error {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		providerMeta := meta.(*ProviderMeta)
@@ -174,7 +218,7 @@ func createCustomEventSpecificationDeleteFunc(ruleSpecificationMapFunc func(*sch
 }
 
 func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter ResourceNameFormatter, ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error)) (restapi.CustomEventSpecification, error) {
-	name := formatter.Format(d.Get(CustomEventSpecificationFieldName).(string))
+	name := computeFullCustomEventNameString(d, formatter)
 
 	apiModel := restapi.CustomEventSpecification{
 		ID:             d.Id(),
@@ -203,10 +247,15 @@ func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, form
 	return apiModel, nil
 }
 
-func updateCustomEventSpecificationState(d *schema.ResourceData, spec restapi.CustomEventSpecification, formatter ResourceNameFormatter, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
-	name := formatter.UndoFormat(spec.Name)
+func computeFullCustomEventNameString(d *schema.ResourceData, formatter ResourceNameFormatter) string {
+	if d.HasChange(CustomEventSpecificationFieldName) {
+		return formatter.Format(d.Get(CustomEventSpecificationFieldName).(string))
+	}
+	return d.Get(CustomEventSpecificationFieldFullName).(string)
+}
 
-	d.Set(CustomEventSpecificationFieldName, name)
+func updateCustomEventSpecificationState(d *schema.ResourceData, spec restapi.CustomEventSpecification, formatter ResourceNameFormatter, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
+	d.Set(CustomEventSpecificationFieldFullName, spec.Name)
 	d.Set(CustomEventSpecificationFieldEntityType, spec.EntityType)
 	d.Set(CustomEventSpecificationFieldQuery, spec.Query)
 	d.Set(CustomEventSpecificationFieldTriggering, spec.Triggering)

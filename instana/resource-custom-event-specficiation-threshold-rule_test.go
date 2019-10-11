@@ -2,6 +2,7 @@ package instana_test
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -30,7 +31,7 @@ provider "instana" {
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name"
+  name = "name {{ITERATION}}"
   entity_type = "entity_type"
   query = "query"
   enabled = true
@@ -54,7 +55,7 @@ provider "instana" {
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name"
+  name = "name {{ITERATION}}"
   entity_type = "entity_type"
   query = "query"
   enabled = true
@@ -121,31 +122,32 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMo
 	)
 }
 
+const httpServerResponseTemplate = `
+{
+	"id" : "{{id}}",
+	"name" : "name (TF managed)",
+	"entityType" : "entity_type",
+	"query" : "query",
+	"enabled" : true,
+	"triggering" : true,
+	"description" : "description",
+	"expirationTime" : 60000,
+	"rules" : [ {{rule}} ],
+	"downstream" : {
+		"integrationIds" : ["integration-id-1", "integration-id-2"],
+		"broadcastToAllAlertingConfigs" : true
+	}
+}
+`
+
 func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(t *testing.T, terraformDefinition, ruleAsJson string, ruleTestCheckFunctions ...resource.TestCheckFunc) {
-	allTestCheckFunctions := createTestCheckFunctions(ruleTestCheckFunctions)
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPut, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodDelete, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, customEventSpecificationWithThresholdRuleApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		json := strings.ReplaceAll(strings.ReplaceAll(`
-		{
-			"id" : "{{id}}",
-			"name" : "name",
-			"entityType" : "entity_type",
-			"query" : "query",
-			"enabled" : true,
-			"triggering" : true,
-			"description" : "description",
-			"expirationTime" : 60000,
-			"rules" : [ {{rule}} ],
-			"downstream" : {
-				"integrationIds" : ["integration-id-1", "integration-id-2"],
-				"broadcastToAllAlertingConfigs" : true
-			}
-		}
-		`, "{{id}}", vars["id"]), "{{rule}}", ruleAsJson)
+		json := strings.ReplaceAll(strings.ReplaceAll(httpServerResponseTemplate, "{{id}}", vars["id"]), "{{rule}}", ruleAsJson)
 		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -153,23 +155,31 @@ func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServ
 	httpServer.Start()
 	defer httpServer.Close()
 
-	completeTerraformDefinition := strings.ReplaceAll(terraformDefinition, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
+	completeTerraformDefinitionWithoutName := strings.ReplaceAll(terraformDefinition, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
+
+	completeTerraformDefinitionWithName1 := strings.ReplaceAll(completeTerraformDefinitionWithoutName, "{{ITERATION}}", "0")
+	completeTerraformDefinitionWithName2 := strings.ReplaceAll(completeTerraformDefinitionWithoutName, "{{ITERATION}}", "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testCustomEventSpecificationWithThresholdRuleProviders,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: completeTerraformDefinition,
-				Check:  resource.ComposeTestCheckFunc(allTestCheckFunctions...),
+				Config: completeTerraformDefinitionWithName1,
+				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 0)...),
+			},
+			resource.TestStep{
+				Config: completeTerraformDefinitionWithName2,
+				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 1)...),
 			},
 		},
 	})
 }
 
-func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc) []resource.TestCheckFunc {
+func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc, iteration int) []resource.TestCheckFunc {
 	defaultCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithThresholdRuleDefinition, "id"),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName+fmt.Sprintf(" %d", iteration)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldFullName, customEventSpecificationWithThresholdRuleName+fmt.Sprintf(" %d%s", iteration, TerraformManagedResourceNameSuffix)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
@@ -207,6 +217,7 @@ func TestResourceCustomEventSpecificationWithThresholdRuleDefinition(t *testing.
 func validateCustomEventSpecificationWithThresholdRuleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldEntityType)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldQuery)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldTriggering, false)
@@ -244,7 +255,6 @@ func testShouldSuccessfullyReadCustomEventSpecificationWithThresholdRuleFromInst
 		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(expectedModel.Name).Return(expectedModel.Name).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEventSpecificationWithThresholdRuleID)).Return(expectedModel, nil).Times(1)
 		resource := CreateResourceCustomEventSpecificationWithThresholdRule()
 
@@ -267,7 +277,6 @@ func TestShouldFailToReadCustomEventSpecificationWithThresholdRuleFromInstanaAPI
 		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(expectedModel.Name).Return(expectedModel.Name).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEventSpecificationWithThresholdRuleID)).Return(expectedModel, nil).Times(1)
 		resource := CreateResourceCustomEventSpecificationWithThresholdRule()
 
@@ -351,7 +360,6 @@ func TestShouldCreateCustomEventSpecificationWithThresholdRuleThroughInstanaAPI(
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
 		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(expectedModel, nil).Times(1)
 
 		resource := CreateResourceCustomEventSpecificationWithThresholdRule()
@@ -416,7 +424,6 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithThresholdRuleFai
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
 		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(expectedModel, nil).Times(1)
 
 		resource := CreateResourceCustomEventSpecificationWithThresholdRule()

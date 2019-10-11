@@ -2,6 +2,7 @@ package instana_test
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -30,9 +31,43 @@ provider "instana" {
 }
 
 resource "instana_application_config" "example" {
-  label = "label"
+  label = "label {{ITERATOR}}"
   scope = "INCLUDE_ALL_DOWNSTREAM"
   match_specification = "{{MATCH_SPECIFICATION}}"
+}
+`
+
+const serverResponseTemplate = `
+{
+	"id" : "{{id}}",
+	"label" : "label (TF managed)",
+	"scope" : "INCLUDE_ALL_DOWNSTREAM",
+	"matchSpecification" : {
+		"type" : "BINARY_OP",
+		"left" : {
+			"type" : "BINARY_OP",
+			"left" : {
+				"type" : "LEAF",
+				"key" : "entity.name",
+				"operator" : "CONTAINS",
+				"value" : "foo"
+			},
+			"conjunction" : "AND",
+			"right" : {
+				"type" : "LEAF",
+				"key" : "entity.type",
+				"operator" : "EQUALS",
+				"value" : "mysql"
+			}
+		},
+		"conjunction" : "OR",
+		"right" : {
+			"type" : "LEAF",
+			"key" : "entity.type",
+			"operator" : "EQUALS",
+			"value" : "elasticsearch"
+		}
+	}
 }
 `
 
@@ -48,39 +83,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodDelete, applicationConfigApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, applicationConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		json := strings.ReplaceAll(`
-		{
-			"id" : "{{id}}",
-			"label" : "label (TF managed)",
-			"scope" : "INCLUDE_ALL_DOWNSTREAM",
-			"matchSpecification" : {
-				"type" : "BINARY_OP",
-				"left" : {
-					"type" : "BINARY_OP",
-					"left" : {
-						"type" : "LEAF",
-						"key" : "entity.name",
-						"operator" : "CONTAINS",
-						"value" : "foo"
-					},
-					"conjunction" : "AND",
-					"right" : {
-						"type" : "LEAF",
-						"key" : "entity.type",
-						"operator" : "EQUALS",
-						"value" : "mysql"
-					}
-				},
-				"conjunction" : "OR",
-				"right" : {
-					"type" : "LEAF",
-					"key" : "entity.type",
-					"operator" : "EQUALS",
-					"value" : "elasticsearch"
-				}
-			}
-		}
-		`, "{{id}}", vars["id"])
+		json := strings.ReplaceAll(serverResponseTemplate, "{{id}}", vars["id"])
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -88,20 +91,34 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinition := strings.ReplaceAll(
+	resourceDefinitionWithoutLabel := strings.ReplaceAll(
 		strings.ReplaceAll(resourceApplicationConfigDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort())),
 		"{{MATCH_SPECIFICATION}}",
 		defaultMatchSpecification,
 	)
 
+	resourceDefinitionWithLabel0 := strings.ReplaceAll(resourceDefinitionWithoutLabel, "{{ITERATOR}}", "0")
+	resourceDefinitionWithLabel1 := strings.ReplaceAll(resourceDefinitionWithoutLabel, "{{ITERATOR}}", "1")
+
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testApplicationConfigProviders,
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: resourceDefinition,
+				Config: resourceDefinitionWithLabel0,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label 0"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "label 0 (TF managed)"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
+				),
+			},
+			resource.TestStep{
+				Config: resourceDefinitionWithLabel1,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label 1"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "label 1 (TF managed)"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
 				),
@@ -132,8 +149,56 @@ func TestResourceApplicationConfigDefinition(t *testing.T) {
 func validateApplicationConfigResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldLabel)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(ApplicationConfigFieldFullLabel)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldMatchSpecification)
+}
+
+func TestShouldFailToMigrateApplicationConfigStateFromVersionOtherThan0(t *testing.T) {
+	for i := 1; i <= 10; i++ {
+		t.Run(fmt.Sprintf("TestShouldFailToMigrateStateFromVersionOtherThan0_%d", i), func(t *testing.T) {
+			state := &terraform.InstanceState{}
+
+			_, err := MigrateApplicationConfigState(i, state, &ProviderMeta{})
+
+			if err == nil {
+				t.Fatalf("Expected error when triggering migration of state from for unknown version %d", i)
+			}
+		})
+	}
+}
+
+func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelWhenMigratingFromVersion0To1(t *testing.T) {
+	label := "Test Label"
+	data := make(map[string]string)
+	data[ApplicationConfigFieldLabel] = label
+	state := &terraform.InstanceState{}
+	state.ID = "TEST_ID"
+	state.Attributes = data
+
+	result, err := MigrateApplicationConfigState(0, state, &ProviderMeta{})
+
+	if err != nil {
+		t.Fatalf("No error expected during migration of state from version 0 to 1 but got %s", err)
+	}
+
+	if result.Attributes[ApplicationConfigFieldFullLabel] != label {
+		t.Fatal("Full label should be initialized with value of label when migrating from version 0 to 1")
+	}
+}
+
+func TestShouldMigrateEmptyApplicationConfigStateFromVersion0To1(t *testing.T) {
+	state := &terraform.InstanceState{}
+
+	result, err := MigrateApplicationConfigState(0, state, &ProviderMeta{})
+
+	if err != nil {
+		t.Fatalf("No error expected during migration of state from version 0 to 1 but got %s", err)
+	}
+
+	if result.Attributes != nil {
+		t.Fatal("No changes should be applied during migration of an empty state from version 0 to 1")
+	}
 }
 
 func TestShouldSuccessfullyReadApplicationConfigFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
@@ -154,7 +219,6 @@ func testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel res
 		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
 
 		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(expectedModel.Label).Return(expectedModel.Label).Times(1)
 		mockApplicationConfigApi.EXPECT().GetOne(gomock.Eq(applicationConfigID)).Return(expectedModel, nil).Times(1)
 
 		err := ReadApplicationConfig(resourceData, providerMeta)
@@ -232,7 +296,6 @@ func TestShouldCreateApplicationConfigThroughInstanaAPI(t *testing.T) {
 
 		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
-		mockResourceNameFormatter.EXPECT().UndoFormat(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
 		mockApplicationConfigApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.ApplicationConfig{})).Return(expectedModel, nil).Times(1)
 
 		err := CreateApplicationConfig(resourceData, providerMeta)
@@ -317,8 +380,8 @@ func verifyApplicationConfigModelAppliedToResource(model restapi.ApplicationConf
 	if model.ID != resourceData.Id() {
 		t.Fatal("Expected ID to be identical")
 	}
-	if model.Label != resourceData.Get(ApplicationConfigFieldLabel).(string) {
-		t.Fatal("Expected Label to be identical")
+	if model.Label != resourceData.Get(ApplicationConfigFieldFullLabel).(string) {
+		t.Fatal("Expected Full Label to match label of API")
 	}
 	if model.Scope != resourceData.Get(ApplicationConfigFieldScope).(string) {
 		t.Fatal("Expected Scope to be identical")

@@ -4,6 +4,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 const (
@@ -69,7 +70,9 @@ func CreateResourceCustomEventSpecificationWithThresholdRule() *schema.Resource 
 		Update: createUpdateCustomEventSpecificationWithThresholdRule(),
 		Delete: createDeleteCustomEventSpecificationWithThresholdRule(),
 
-		Schema: createCustomEventSpecificationSchema(thresholdRuleSchemaFields),
+		Schema:        createCustomEventSpecificationSchema(thresholdRuleSchemaFields),
+		SchemaVersion: 1,
+		MigrateState:  CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error)))),
 	}
 }
 

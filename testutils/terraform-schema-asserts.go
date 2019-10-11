@@ -9,6 +9,7 @@ import (
 const (
 	messageExpectedToBeNotRequired = "Expected %s to be not required"
 	messageExpectedToBeRequired    = "Expected %s to be required"
+	messageExpectedToBeComputed    = "Expected %s to be required"
 	messageExpectedToBeOptional    = "Expected %s to be optional"
 	messageExpectedDefaultValue    = "Expected default value %t"
 )
@@ -40,6 +41,8 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsRequiredAndOfTypeListOfStrings(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeListOfStrings checks if the given schema field is required and of type list of string
 	AssertSChemaIsOptionalAndOfTypeListOfStrings(fieldName string)
+	//AssertSchemaIsComputedAndOfTypeString checks if the given schema field is computed and of type string
+	AssertSchemaIsComputedAndOfTypeString(fieldName string)
 }
 
 type terraformSchemaAssertImpl struct {
@@ -161,5 +164,16 @@ func (inst *terraformSchemaAssertImpl) assertSchemaIsOfTypeListOfStrings(s *sche
 	}
 	if len(s.Description) == 0 {
 		inst.t.Fatal("Expected description for schema")
+	}
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsComputedAndOfTypeString(schemaField string) {
+	s := inst.schemaMap[schemaField]
+	if s == nil {
+		inst.t.Fatalf(ExpectedNoErrorButGotMessage, schemaField)
+	}
+	inst.assertSchemaIsOfType(s, schema.TypeString)
+	if !s.Computed {
+		inst.t.Fatalf(messageExpectedToBeComputed, schemaField)
 	}
 }
