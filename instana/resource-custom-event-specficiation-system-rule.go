@@ -3,6 +3,7 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 const (
@@ -26,7 +27,9 @@ func CreateResourceCustomEventSpecificationWithSystemRule() *schema.Resource {
 		Update: createUpdateCustomEventSpecificationWithSystemRule(),
 		Delete: createDeleteCustomEventSpecificationWithSystemRule(),
 
-		Schema: createCustomEventSpecificationSchema(systemRuleSchemaFields),
+		Schema:        createCustomEventSpecificationSchema(systemRuleSchemaFields),
+		SchemaVersion: 1,
+		MigrateState:  CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error)))),
 	}
 }
 

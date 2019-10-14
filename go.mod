@@ -30,3 +30,5 @@ require (
 	golang.org/x/lint v0.0.0-20190301231843-5614ed5bae6f // indirect
 	gopkg.in/resty.v1 v1.12.0
 )
+
+go 1.13

@@ -174,7 +174,8 @@ func CreateUserRole(d *schema.ResourceData, meta interface{}) error {
 
 //ReadUserRole defines the read operation for the resource instana_user_role
 func ReadUserRole(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
 	ruleID := d.Id()
 	if len(ruleID) == 0 {
 		return errors.New("ID of user role is missing")
@@ -193,7 +194,8 @@ func ReadUserRole(d *schema.ResourceData, meta interface{}) error {
 
 //UpdateUserRole defines the update operation for the resource instana_user_role
 func UpdateUserRole(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
 	rule := createUserRoleFromResourceData(d)
 	updatedUserRole, err := instanaAPI.UserRoles().Upsert(rule)
 	if err != nil {
@@ -205,7 +207,8 @@ func UpdateUserRole(d *schema.ResourceData, meta interface{}) error {
 
 //DeleteUserRole defines the delete operation for the resource instana_user_role
 func DeleteUserRole(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
 	userRole := createUserRoleFromResourceData(d)
 	err := instanaAPI.UserRoles().DeleteByID(userRole.ID)
 	if err != nil {

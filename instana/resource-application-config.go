@@ -2,11 +2,14 @@ package instana
 
 import (
 	"errors"
+	"fmt"
+	"log"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 // matchSpecification := binaryOperation | tagMatcherExpression
@@ -25,8 +28,10 @@ const (
 )
 
 const (
-	//ApplicationConfigFieldLabel const for the lable field of the application config
+	//ApplicationConfigFieldLabel const for the label field of the application config
 	ApplicationConfigFieldLabel = "label"
+	//ApplicationConfigFieldFullLabel const for the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the activation of add_terraform_managed_string at provider level
+	ApplicationConfigFieldFullLabel = "full_label"
 	//ApplicationConfigFieldScope const for the scope field of the application config
 	ApplicationConfigFieldScope = "scope"
 	//ApplicationConfigFieldMatchSpecification const for the match_specification field of the application config
@@ -47,6 +52,11 @@ func CreateResourceApplicationConfig() *schema.Resource {
 				Required:    true,
 				Description: "The label of the application config",
 			},
+			ApplicationConfigFieldFullLabel: &schema.Schema{
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the activation of add_terraform_managed_string at provider level",
+			},
 			ApplicationConfigFieldScope: &schema.Schema{
 				Type:         schema.TypeString,
 				Required:     false,
@@ -61,7 +71,29 @@ func CreateResourceApplicationConfig() *schema.Resource {
 				Description: "The match specification of the application config",
 			},
 		},
+		SchemaVersion: 1,
+		MigrateState:  MigrateApplicationConfigState,
 	}
+}
+
+//MigrateApplicationConfigState migrates the terraform state from one version to the other
+func MigrateApplicationConfigState(v int, inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+	switch v {
+	case 0:
+		log.Println("[INFO] Found Application Config State v0; migrating to v1")
+		return migrateApplicationConfigStateV0toV1(inst)
+	default:
+		return inst, fmt.Errorf("Unexpected schema version: %d", v)
+	}
+}
+
+func migrateApplicationConfigStateV0toV1(inst *terraform.InstanceState) (*terraform.InstanceState, error) {
+	if inst.Empty() {
+		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
+		return inst, nil
+	}
+	inst.Attributes[ApplicationConfigFieldFullLabel] = inst.Attributes[ApplicationConfigFieldLabel]
+	return inst, nil
 }
 
 //CreateApplicationConfig defines the create operation for the resource instana_application_config
@@ -72,7 +104,8 @@ func CreateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 
 //ReadApplicationConfig defines the read operation for the resource instana_application_config
 func ReadApplicationConfig(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
 	applicationConfigID := d.Id()
 	if len(applicationConfigID) == 0 {
 		return errors.New("ID of application config is missing")
@@ -85,13 +118,14 @@ func ReadApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 		}
 		return err
 	}
-	return updateApplicationConfigState(d, applicationConfig)
+	return updateApplicationConfigState(d, applicationConfig, providerMeta.ResourceNameFormatter)
 }
 
 //UpdateApplicationConfig defines the update operation for the resource instana_application_config
 func UpdateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
-	applicationConfig, err := createApplicationConfigFromResourceData(d)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
+	applicationConfig, err := createApplicationConfigFromResourceData(d, providerMeta.ResourceNameFormatter)
 	if err != nil {
 		return err
 	}
@@ -99,13 +133,14 @@ func UpdateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	return updateApplicationConfigState(d, updatedApplicationConfig)
+	return updateApplicationConfigState(d, updatedApplicationConfig, providerMeta.ResourceNameFormatter)
 }
 
 //DeleteApplicationConfig defines the delete operation for the resource instana_application_config
 func DeleteApplicationConfig(d *schema.ResourceData, meta interface{}) error {
-	instanaAPI := meta.(restapi.InstanaAPI)
-	applicationConfig, err := createApplicationConfigFromResourceData(d)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
+	applicationConfig, err := createApplicationConfigFromResourceData(d, providerMeta.ResourceNameFormatter)
 	if err != nil {
 		return err
 	}
@@ -117,17 +152,26 @@ func DeleteApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func createApplicationConfigFromResourceData(d *schema.ResourceData) (restapi.ApplicationConfig, error) {
+func createApplicationConfigFromResourceData(d *schema.ResourceData, formatter ResourceNameFormatter) (restapi.ApplicationConfig, error) {
 	matchSpecification, err := convertExpressionStringToAPIModel(d.Get(ApplicationConfigFieldMatchSpecification).(string))
 	if err != nil {
 		return restapi.ApplicationConfig{}, err
 	}
+
+	label := computeFullApplicationConfigLabelString(d, formatter)
 	return restapi.ApplicationConfig{
 		ID:                 d.Id(),
-		Label:              d.Get(ApplicationConfigFieldLabel).(string),
+		Label:              label,
 		Scope:              d.Get(ApplicationConfigFieldScope).(string),
 		MatchSpecification: matchSpecification,
 	}, nil
+}
+
+func computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter ResourceNameFormatter) string {
+	if d.HasChange(ApplicationConfigFieldLabel) {
+		return formatter.Format(d.Get(ApplicationConfigFieldLabel).(string))
+	}
+	return d.Get(ApplicationConfigFieldFullLabel).(string)
 }
 
 func convertExpressionStringToAPIModel(input string) (restapi.MatchExpression, error) {
@@ -141,13 +185,13 @@ func convertExpressionStringToAPIModel(input string) (restapi.MatchExpression, e
 	return mapper.ToAPIModel(expr), nil
 }
 
-func updateApplicationConfigState(d *schema.ResourceData, applicationConfig restapi.ApplicationConfig) error {
+func updateApplicationConfigState(d *schema.ResourceData, applicationConfig restapi.ApplicationConfig, formatter ResourceNameFormatter) error {
 	normalizedExpressionString, err := convertAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 	if err != nil {
 		return err
 	}
 
-	d.Set(ApplicationConfigFieldLabel, applicationConfig.Label)
+	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
 	d.Set(ApplicationConfigFieldScope, applicationConfig.Scope)
 	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 
