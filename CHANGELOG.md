@@ -1,5 +1,16 @@
 # Change Log
 
+## [v0.4.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.4.0) (2019-10-14)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.3.2...v0.4.0)
+
+**Closed issues:**
+
+- Add support to append terraform managed string [\#19](https://github.com/gessnerfl/terraform-provider-instana/issues/19)
+
+**Merged pull requests:**
+
+- Feature/19 append terraform managed string [\#21](https://github.com/gessnerfl/terraform-provider-instana/pull/21) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.3.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.3.2) (2019-06-19)
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.3.1...v0.3.2)
 
@@ -58,7 +69,6 @@
 
 - Feature/7 events [\#11](https://github.com/gessnerfl/terraform-provider-instana/pull/11) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/1 application perspective [\#10](https://github.com/gessnerfl/terraform-provider-instana/pull/10) ([gessnerfl](https://github.com/gessnerfl))
-- \#8 Change severity to a user friendly text instead of int codes [\#9](https://github.com/gessnerfl/terraform-provider-instana/pull/9) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/3 manage groups [\#6](https://github.com/gessnerfl/terraform-provider-instana/pull/6) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/4 migrate to open api [\#5](https://github.com/gessnerfl/terraform-provider-instana/pull/5) ([gessnerfl](https://github.com/gessnerfl))
 
