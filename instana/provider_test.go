@@ -33,13 +33,14 @@ func TestValidConfigurationOfProvider(t *testing.T) {
 }
 
 func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	if len(schemaMap) != 3 {
+	if len(schemaMap) != 4 {
 		t.Fatal("Expected three configuration options for provider")
 	}
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldAPIToken)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldEndpoint)
-	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(SchemaFieldAddTerraformManagedString, true)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(SchemaFieldDefaultNamePrefix, "")
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(SchemaFieldDefaultNameSuffix, "(TF managed)")
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {

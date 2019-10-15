@@ -30,7 +30,7 @@ const (
 const (
 	//ApplicationConfigFieldLabel const for the label field of the application config
 	ApplicationConfigFieldLabel = "label"
-	//ApplicationConfigFieldFullLabel const for the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the activation of add_terraform_managed_string at provider level
+	//ApplicationConfigFieldFullLabel const for the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level
 	ApplicationConfigFieldFullLabel = "full_label"
 	//ApplicationConfigFieldScope const for the scope field of the application config
 	ApplicationConfigFieldScope = "scope"
@@ -55,7 +55,7 @@ func CreateResourceApplicationConfig() *schema.Resource {
 			ApplicationConfigFieldFullLabel: &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the activation of add_terraform_managed_string at provider level",
+				Description: "The the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
 			},
 			ApplicationConfigFieldScope: &schema.Schema{
 				Type:         schema.TypeString,

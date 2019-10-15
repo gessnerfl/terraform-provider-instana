@@ -37,13 +37,15 @@ two configuration options needed to setup the Instana Terraform Provider:
 
 - api_token: The API token which is created in the Settings area of Instana for remote access through the REST API. You have to make sure that you assign the proper permissions for this token to configure the desired resources with this provider. E.g. when User Roles should be provisioned by terraform using this provider implementation then the permission 'Access role configuration' must be activated
 - endpoint: The endpoint of the instana backend. For SaaS the endpoint URL has the pattern _tenant_-_organization_.instana.io. For onPremise installation the endpoint URL depends on your local setup.
-- add_terraform_managed_string: optional - default true - boolean flag if the string ' (TF managed)' should be appended to the resource UI name or label (not supported by all resources). For existing resources the string will only be appended when the name/label is changed.
+- default_name_prefix: optional - default "" - string which should be added in front the resource UI name or label by default (not supported by all resources). For existing resources the string will only be added when the name/label is changed.
+- default_name_suffix: optional - default " (TF managed)" - string which should be appended to the resource UI name or label by default (not supported by all resources). For existing resources the string will only be appended when the name/label is changed.
 
 ```hcl
 provider "instana" {
   api_token = "secure-api-token"  
   endpoint = "<tenant>-<org>.instana.io"
-  add_terraform_managed_string = true
+  default_name_prefix = ""
+  default_name_suffix = "(TF managed)"
 }
 ```
 
@@ -63,7 +65,7 @@ Management of application configurations (definition of application perspectives
 API Documentation: <https://instana.github.io/openapi/#operation/putApplicationConfig>
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
-The resource supports `add_terraform_managed_string` and will append the string automatically
+The resource supports `default_name_prefix` and `default_name_suffix` and will append the string automatically
 to the application config label when active.
 
 ```hcl
@@ -118,7 +120,7 @@ Custom Event Specification support two different flavors:
 - System Rules - defines an event triggered by a system rule
 - Threshold Rules - defines an event triggered by a rule for a certain metric comparing the value with a given value over a time window
 
-Custom event resources supports `add_terraform_managed_string`. The string will be appended automatically
+Custom event resources supports `default_name_prefix` and `default_name_suffix`. The string will be appended automatically
 to the name of the custom event.
 
 ###### Custom Event Specification with System Rules
@@ -194,7 +196,7 @@ Management of user roles.
 API Documentation: <https://instana.github.io/openapi/#operation/getRole>
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
-The resource does NOT support `add_terraform_managed_string`.
+The resource does NOT support `default_name_prefix` and `default_name_suffix`.
 
 ```hcl
 resource "instana_user_role" "example" {
