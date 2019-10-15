@@ -4,41 +4,30 @@ import (
 	"strings"
 )
 
-//TerraformManagedResourceNameSuffix the suffix which is appended to a name string
-const TerraformManagedResourceNameSuffix = " (TF managed)"
-
 //ResourceNameFormatter interface for the library to format resource name with a terraform managed string when configured
 type ResourceNameFormatter interface {
 	Format(name string) string
 	UndoFormat(name string) string
 }
 
-//NewResourceNameFormatter creates a new formatter instance depending on if terraform managed string append is requested or not
-func NewResourceNameFormatter(appendString bool) ResourceNameFormatter {
-	if appendString {
-		return &terraformManagedResourceNameFormatter{}
+//NewResourceNameFormatter creates a new formatter instance for the given prefix and suffix
+func NewResourceNameFormatter(prefix string, suffix string) ResourceNameFormatter {
+	return &terraformManagedResourceNameFormatter{
+		prefix: prefix + " ",
+		suffix: " " + suffix,
 	}
-	return &noopResourceNameFormatter{}
-}
-
-//noopResourceNameFormatter implementation of ResourceNameFormatter which is used when no terraform managed string should be appended to the name
-type noopResourceNameFormatter struct{}
-
-func (d *noopResourceNameFormatter) Format(name string) string {
-	return name
-}
-
-func (d *noopResourceNameFormatter) UndoFormat(name string) string {
-	return name
 }
 
 //terraformManagedResourceNameFormatter implementation of ResourceNameFormatter which is used when terraform managed string should be appended to the name
-type terraformManagedResourceNameFormatter struct{}
-
-func (d *terraformManagedResourceNameFormatter) Format(name string) string {
-	return name + TerraformManagedResourceNameSuffix
+type terraformManagedResourceNameFormatter struct {
+	prefix string
+	suffix string
 }
 
-func (d *terraformManagedResourceNameFormatter) UndoFormat(name string) string {
-	return strings.TrimSuffix(name, TerraformManagedResourceNameSuffix)
+func (formatter *terraformManagedResourceNameFormatter) Format(name string) string {
+	return formatter.prefix + name + formatter.suffix
+}
+
+func (formatter *terraformManagedResourceNameFormatter) UndoFormat(name string) string {
+	return strings.TrimPrefix(strings.TrimSuffix(name, formatter.suffix), formatter.prefix)
 }

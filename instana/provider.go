@@ -12,8 +12,11 @@ const SchemaFieldAPIToken = "api_token"
 //SchemaFieldEndpoint the name of the provider configuration option for the instana endpoint
 const SchemaFieldEndpoint = "endpoint"
 
-//SchemaFieldAddTerraformManagedString the indicator if a string should be appended to a name or description that the resource is managed by terraform
-const SchemaFieldAddTerraformManagedString = "add_terraform_managed_string"
+//SchemaFieldDefaultNamePrefix the default prefix which should be added to all resource names/labels
+const SchemaFieldDefaultNamePrefix = "default_name_prefix"
+
+//SchemaFieldDefaultNameSuffix the default prefix which should be added to all resource names/labels
+const SchemaFieldDefaultNameSuffix = "default_name_suffix"
 
 //ResourceInstanaRule the name of the terraform-provider-instana resource to manage rules
 const ResourceInstanaRule = "instana_rule"
@@ -60,11 +63,17 @@ func providerSchema() map[string]*schema.Schema {
 			Required:    true,
 			Description: "The DNS Name of the Instana Endpoint (eg. saas-eu-west-1.instana.io)",
 		},
-		SchemaFieldAddTerraformManagedString: &schema.Schema{
-			Type:        schema.TypeBool,
+		SchemaFieldDefaultNamePrefix: &schema.Schema{
+			Type:        schema.TypeString,
 			Optional:    true,
-			Default:     true,
-			Description: "The indicator if a string should be appended to a name or description that the resource is managed by terraform",
+			Default:     "",
+			Description: "The default prefix which should be added to all resource names/labels",
+		},
+		SchemaFieldDefaultNameSuffix: &schema.Schema{
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "(TF managed)",
+			Description: "The default suffix which should be added to all resource names/labels - default '(TF managed)'",
 		},
 	}
 }
@@ -81,9 +90,10 @@ func providerResources() map[string]*schema.Resource {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	apiToken := d.Get(SchemaFieldAPIToken).(string)
 	endpoint := d.Get(SchemaFieldEndpoint).(string)
-	appendTerraformManagedString := d.Get(SchemaFieldAddTerraformManagedString).(bool)
+	defaultNamePrefix := d.Get(SchemaFieldDefaultNamePrefix).(string)
+	defaultNameSuffix := d.Get(SchemaFieldDefaultNameSuffix).(string)
 	instanaAPI := services.NewInstanaAPI(apiToken, endpoint)
-	formatter := NewResourceNameFormatter(appendTerraformManagedString)
+	formatter := NewResourceNameFormatter(defaultNamePrefix, defaultNameSuffix)
 	return &ProviderMeta{
 		InstanaAPI:            instanaAPI,
 		ResourceNameFormatter: formatter,

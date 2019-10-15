@@ -14,7 +14,7 @@ import (
 const (
 	//CustomEventSpecificationFieldName constant value for the schema field name
 	CustomEventSpecificationFieldName = "name"
-	//CustomEventSpecificationFieldFullName constant value for the schema field full_name. The field is computed and contains the name which is sent to instana. The computation depends on the activation of add_terraform_managed_string at provider level
+	//CustomEventSpecificationFieldFullName constant value for the schema field full_name. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level
 	CustomEventSpecificationFieldFullName = "full_name"
 	//CustomEventSpecificationFieldEntityType constant value for the schema field entity type
 	CustomEventSpecificationFieldEntityType = "entity_type"
@@ -52,7 +52,7 @@ func createCustomEventSpecificationSchema(ruleSpecificSchemaFields map[string]*s
 		CustomEventSpecificationFieldFullName: &schema.Schema{
 			Type:        schema.TypeString,
 			Computed:    true,
-			Description: "The computed full name of the custom event specification. The field contains the name which is sent to instana. The computation depends on the activation of add_terraform_managed_string at provider level",
+			Description: "The computed full name of the custom event specification. The field contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
 		},
 		CustomEventSpecificationFieldEntityType: &schema.Schema{
 			Type:        schema.TypeString,

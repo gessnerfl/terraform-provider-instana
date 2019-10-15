@@ -28,6 +28,8 @@ const resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTempla
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:{{PORT}}"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
@@ -52,6 +54,8 @@ const resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTempla
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:{{PORT}}"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
@@ -125,7 +129,7 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMo
 const httpServerResponseTemplate = `
 {
 	"id" : "{{id}}",
-	"name" : "name (TF managed)",
+	"name" : "prefix name suffix",
 	"entityType" : "entity_type",
 	"query" : "query",
 	"enabled" : true,
@@ -179,7 +183,7 @@ func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc, i
 	defaultCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithThresholdRuleDefinition, "id"),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName+fmt.Sprintf(" %d", iteration)),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldFullName, customEventSpecificationWithThresholdRuleName+fmt.Sprintf(" %d%s", iteration, TerraformManagedResourceNameSuffix)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldFullName, fmt.Sprintf("%s %s %d %s", "prefix", customEventSpecificationWithThresholdRuleName, iteration, "suffix")),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),

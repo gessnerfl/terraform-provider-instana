@@ -28,6 +28,8 @@ const resourceApplicationConfigDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:{{PORT}}"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
 }
 
 resource "instana_application_config" "example" {
@@ -40,7 +42,7 @@ resource "instana_application_config" "example" {
 const serverResponseTemplate = `
 {
 	"id" : "{{id}}",
-	"label" : "label (TF managed)",
+	"label" : "prefix label suffix",
 	"scope" : "INCLUDE_ALL_DOWNSTREAM",
 	"matchSpecification" : {
 		"type" : "BINARY_OP",
@@ -108,7 +110,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label 0"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "label 0 (TF managed)"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "prefix label 0 suffix"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
 				),
@@ -118,7 +120,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label 1"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "label 1 (TF managed)"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "prefix label 1 suffix"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
 				),
