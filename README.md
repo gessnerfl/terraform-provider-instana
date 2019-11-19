@@ -143,9 +143,13 @@ resource "instana_custom_event_spec_system_rule" "example" {
 
 ###### Custom Event Specification with Threshold Rules
 
-Threshold Rules again come into flavors. Either the specify a window in which the metric has to match the comparison or a rollup for which the comparison is valid.
+A threshold rule is verifies if a certain condition applies to a given metric. Therefore you can either use `rule_rollup` or `rule_window` or
+both to define the data points which should be evaluated. Instana API always returns max. 600 data points for validation.
 
-**Window**
+* `rule_window` = the time frame in seconds where the aggregation is applied to
+* `rule_rollup` = the resolution of the data points which are considered for this event (See also https://instana.github.io/openapi/#tag/Infrastructure-Metrics)
+
+Both are optional in the Instana API. Usually configurations define a **window** for calculating the event.
 
 ```hcl
 resource "instana_custom_event_spec_threshold_rule" "example" {
@@ -159,28 +163,8 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_severity = "warning"
   rule_metric_name = "metric_name"
   rule_window = "60000"
+  rule_rollup = "500"
   rule_aggregation = "sum"
-  rule_condition_operator = "=="
-  rule_condition_value = "1.2"
-  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-  downstream_broadcast_to_all_alerting_configs = true
-}
-```
-
-**Rollup**
-
-```hcl
-resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name"
-  entity_type = "entity_type"
-  query = "query"
-  enabled = true
-  triggering = true
-  description = "description"
-  expiration_time = "60000"
-  rule_severity = "warning"
-  rule_metric_name = "metric_name"
-  rule_rollup = "40000"
   rule_condition_operator = "=="
   rule_condition_value = "1.2"
   downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
