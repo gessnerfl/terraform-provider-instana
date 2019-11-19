@@ -155,7 +155,7 @@ func (r *RuleSpecification) validateThresholdRule() error {
 	if len(r.MetricName) == 0 {
 		return errors.New("metric name of threshold rule is missing")
 	}
-	if (r.Window == nil && r.Rollup == nil) || (r.Window != nil && r.Rollup != nil && *r.Window > 0 && *r.Rollup > 0) {
+	if (r.Window == nil && r.Rollup == nil) || (r.Window != nil && r.Rollup != nil && *r.Window == 0 && *r.Rollup == 0) {
 		return errors.New("either rollup or window and condition must be defined")
 	}
 

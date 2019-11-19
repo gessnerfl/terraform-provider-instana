@@ -232,15 +232,17 @@ func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsPr
 	}
 }
 
-func TestShouldValidateFullThresholdRuleSpecificationWithWindowAndAggregation(t *testing.T) {
+func TestShouldValidateFullThresholdRuleSpecificationWithWindowRollupAndAggregation(t *testing.T) {
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	window := customEventWindow
+	rollup := customEventRollup
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
 		MetricName:        customEventMetricName,
 		Window:            &window,
+		Rollup:            &rollup,
 		Aggregation:       &aggregation,
 		ConditionOperator: customEventConditionOperator,
 		ConditionValue:    &conditionValue,
@@ -321,25 +323,6 @@ func TestShouldValidateMinimalThresholdRuleSpecificationWithRollup(t *testing.T)
 	}
 }
 
-func TestShouldValidateFullThresholdRuleSpecificationWithRollup(t *testing.T) {
-	rollup := customEventRollup
-	conditionValue := customEventConditionValue
-	rule := RuleSpecification{
-		DType:                              ThresholdRuleType,
-		Severity:                           SeverityWarning.GetAPIRepresentation(),
-		MetricName:                         customEventMetricName,
-		Rollup:                             &rollup,
-		ConditionOperator:                  customEventConditionOperator,
-		ConditionValue:                     &conditionValue,
-		AggregationForNonPercentileMetric:  true,
-		EitherRollupOrWindowAndAggregation: true,
-	}
-
-	if err := rule.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-}
-
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameIsMissing(t *testing.T) {
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
@@ -358,7 +341,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameI
 	}
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenNeitherNorRollupWindowIsDefined(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWhenNeitherRollupNorWindowIsDefined(t *testing.T) {
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
@@ -375,9 +358,9 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenNeitherNorR
 	}
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenRollupAndWindowIsDefined(t *testing.T) {
-	window := customEventWindow
-	rollup := customEventRollup
+func TestShouldFailToValidateThresholdRuleSpecificationWithRollupAndWindowAreZero(t *testing.T) {
+	window := 0
+	rollup := 0
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
@@ -461,40 +444,6 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 		MetricName:        customEventMetricName,
 		Window:            &window,
 		Aggregation:       &aggregation,
-		ConditionOperator: conditionOperator,
-		ConditionValue:    &conditionValue,
-	}
-
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
-		t.Fatal("Expected to fail to validate threshold rule as no condition operator is not valid")
-	}
-}
-
-func TestShouldFailToValidateThresholdRuleSpecificationWithRollupWhenConditionOperatorIsMissing(t *testing.T) {
-	conditionValue := customEventConditionValue
-	rollup := customEventRollup
-	rule := RuleSpecification{
-		DType:          ThresholdRuleType,
-		Severity:       SeverityWarning.GetAPIRepresentation(),
-		MetricName:     customEventMetricName,
-		Rollup:         &rollup,
-		ConditionValue: &conditionValue,
-	}
-
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
-		t.Fatal("Expected to fail to validate threshold rule as no condition operator is provided")
-	}
-}
-
-func TestShouldFailToValidateThresholdRuleSpecificationWithRollupWhenConditionOperatorIsNotValid(t *testing.T) {
-	conditionOperator := ConditionOperatorType(valueInvalid)
-	conditionValue := customEventConditionValue
-	rollup := customEventRollup
-	rule := RuleSpecification{
-		DType:             ThresholdRuleType,
-		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        customEventMetricName,
-		Rollup:            &rollup,
 		ConditionOperator: conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
