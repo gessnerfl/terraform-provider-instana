@@ -37,7 +37,7 @@ resource "instana_custom_event_spec_system_rule" "example" {
   enabled = true
   triggering = true
   description = "description"
-  expiration_time = "60000"
+  expiration_time = 60000
 	rule_severity = "warning"
 	rule_system_rule_id = "system-rule-id"
 	downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
@@ -560,7 +560,10 @@ func createFullTestCustomEventSpecificationWithSystemRuleData() map[string]inter
 	data[CustomEventSpecificationFieldDescription] = customSystemEventDescription
 	data[CustomEventSpecificationFieldExpirationTime] = customSystemEventExpirationTime
 	data[CustomEventSpecificationFieldEnabled] = "true"
-	data[CustomEventSpecificationDownstreamIntegrationIds] = []string{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2}
+	integrationIds := make([]interface{}, 2)
+	integrationIds[0] = customSystemEventDownStringIntegrationId1
+	integrationIds[1] = customSystemEventDownStringIntegrationId2
+	data[CustomEventSpecificationDownstreamIntegrationIds] = integrationIds
 	data[CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs] = "true"
 	data[CustomEventSpecificationRuleSeverity] = customSystemEventRuleSeverity
 	data[SystemRuleSpecificationSystemRuleID] = customSystemEventRuleSystemRuleId

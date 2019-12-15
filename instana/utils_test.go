@@ -6,7 +6,6 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/google/go-cmp/cmp"
 )
 
 func TestRandomID(t *testing.T) {
@@ -18,7 +17,9 @@ func TestRandomID(t *testing.T) {
 }
 
 func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.T) {
-	ruleIds := []string{"test1", "test2"}
+	ruleIds := make([]interface{}, 2)
+	ruleIds[0] = "test1"
+	ruleIds[1] = "test2"
 	data := make(map[string]interface{})
 	data[CustomEventSpecificationDownstreamIntegrationIds] = ruleIds
 	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithSystemRuleResourceData(data)
@@ -27,8 +28,15 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 	if result == nil {
 		t.Fatal("Expected result to available")
 	}
-	if !cmp.Equal(result, ruleIds) {
-		t.Fatal("Expected to get rule ids in string array")
+
+	if len(result) != len(ruleIds) {
+		t.Fatal("Expected that result has the same number of elements as ruleIds")
+	}
+
+	for i, v := range ruleIds {
+		if result[i] != v {
+			t.Fatalf("Expected to get rule id %s in result on position %d, value is %s", v, i, result[i])
+		}
 	}
 }
 
