@@ -65,13 +65,13 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   enabled = true
   triggering = true
   description = "description"
-  expiration_time = "60000"
+  expiration_time = 60000
   rule_severity = "warning"
   rule_metric_name = "metric_name"
-  rule_window = "60000"
+  rule_window = 60000
   rule_aggregation = "sum"
   rule_condition_operator = "=="
-  rule_condition_value = "1.2"
+  rule_condition_value = 1.2
   downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
   downstream_broadcast_to_all_alerting_configs = true
 }
@@ -589,13 +589,18 @@ func createFullTestCustomEventSpecificationWithThresholdRuleData() map[string]in
 	data[CustomEventSpecificationFieldDescription] = customEventSpecificationWithThresholdRuleDescription
 	data[CustomEventSpecificationFieldExpirationTime] = customEventSpecificationWithThresholdRuleExpirationTime
 	data[CustomEventSpecificationFieldEnabled] = "true"
-	data[CustomEventSpecificationDownstreamIntegrationIds] = []string{customEventSpecificationWithThresholdRuleDownstreamIntegrationId1, customEventSpecificationWithThresholdRuleDownstreamIntegrationId2}
+
+	integrationIds := make([]interface{}, 2)
+	integrationIds[0] = customEventSpecificationWithThresholdRuleDownstreamIntegrationId1
+	integrationIds[1] = customEventSpecificationWithThresholdRuleDownstreamIntegrationId2
+	data[CustomEventSpecificationDownstreamIntegrationIds] = integrationIds
+
 	data[CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs] = "true"
 	data[CustomEventSpecificationRuleSeverity] = CustomEventSpecificationWithThresholdRuleRuleSeverity
 	data[ThresholdRuleFieldMetricName] = customEventSpecificationWithThresholdRuleMetricName
 	data[ThresholdRuleFieldWindow] = customEventSpecificationWithThresholdRuleWindow
-	data[ThresholdRuleFieldAggregation] = customEventSpecificationWithThresholdRuleAggregation
-	data[ThresholdRuleFieldConditionOperator] = customEventSpecificationWithThresholdRuleConditionOperator
+	data[ThresholdRuleFieldAggregation] = string(customEventSpecificationWithThresholdRuleAggregation)
+	data[ThresholdRuleFieldConditionOperator] = string(customEventSpecificationWithThresholdRuleConditionOperator)
 	data[ThresholdRuleFieldConditionValue] = customEventSpecificationWithThresholdRuleConditionValue
 	return data
 }
