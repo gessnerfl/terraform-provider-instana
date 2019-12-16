@@ -15,7 +15,7 @@ resource "instana_custom_event_spec_system_rule" "example" {
   enabled = true
   triggering = true
   description = "Terraform test of system rule"
-  expiration_time = "60000"
+  expiration_time = 60000
 	rule_severity = "warning"
 	rule_system_rule_id = "entity.offline"
 }
@@ -27,11 +27,11 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   enabled = true
   triggering = true
   description = "Terraform test of threshold rule"
-  expiration_time = "60000"
+  expiration_time = 60000
   rule_severity = "warning"
   rule_metric_name = "nomad.client.allocations.pending"
-  rule_window = "60000"
+  rule_window = 60000
   rule_aggregation = "sum"
   rule_condition_operator = ">"
-  rule_condition_value = "0.0"
+  rule_condition_value = 0.0
 }

@@ -133,7 +133,7 @@ resource "instana_custom_event_spec_system_rule" "example" {
   enabled = true
   triggering = true
   description = "description"
-  expiration_time = "60000"
+  expiration_time = 60000
 	rule_severity = "warning"
 	rule_system_rule_id = "system-rule-id"
 	downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
@@ -159,14 +159,14 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   enabled = true
   triggering = true
   description = "description"
-  expiration_time = "60000"
+  expiration_time = 60000
   rule_severity = "warning"
   rule_metric_name = "metric_name"
-  rule_window = "60000"
-  rule_rollup = "500"
+  rule_window = 60000
+  rule_rollup = 500
   rule_aggregation = "sum"
   rule_condition_operator = "=="
-  rule_condition_value = "1.2"
+  rule_condition_value = 1.2
   downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
   downstream_broadcast_to_all_alerting_configs = true
 }
