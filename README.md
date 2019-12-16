@@ -134,10 +134,10 @@ resource "instana_custom_event_spec_system_rule" "example" {
   triggering = true
   description = "description"
   expiration_time = 60000
-	rule_severity = "warning"
-	rule_system_rule_id = "system-rule-id"
-	downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-	downstream_broadcast_to_all_alerting_configs = true
+  rule_severity = "warning"
+  rule_system_rule_id = "system-rule-id"
+  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
+  downstream_broadcast_to_all_alerting_configs = true
 }
 ```
 
