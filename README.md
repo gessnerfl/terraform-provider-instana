@@ -25,6 +25,8 @@ Changes Log: **[CHANGELOG.md](https://github.com/gessnerfl/terraform-provider-in
 
 ## How to Use
 
+**NOTE:** Starting with version 0.6.0 Terraform version 0.12.x or later is required.
+
 The implementation is based on the Instana REST API. The configuration reflects one by one the REST API of Instana.
 Because of this the semantics of the configuration options is not described in this documentation. Instead of this
 a link to the official API documentation will be provided to avoid that the documentation of this implementation
