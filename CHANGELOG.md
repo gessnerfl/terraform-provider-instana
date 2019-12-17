@@ -1,5 +1,16 @@
 # Change Log
 
+## [v0.7.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.7.0) (2019-12-17)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.6.0...v0.7.0)
+
+**Closed issues:**
+
+- Add support for Entity Verification Rule Type [\#27](https://github.com/gessnerfl/terraform-provider-instana/issues/27)
+
+**Merged pull requests:**
+
+- Feature/27 entity verification events [\#28](https://github.com/gessnerfl/terraform-provider-instana/pull/28) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.6.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.6.0) (2019-12-16)
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.5.0...v0.6.0)
 
@@ -9,7 +20,6 @@
 
 **Closed issues:**
 
-- Support for label/name prefix and suffix [\#22](https://github.com/gessnerfl/terraform-provider-instana/issues/22)
 - Update to terraform 0.12.x [\#20](https://github.com/gessnerfl/terraform-provider-instana/issues/20)
 
 **Merged pull requests:**
@@ -19,6 +29,10 @@
 
 ## [v0.5.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.5.0) (2019-10-15)
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.4.0...v0.5.0)
+
+**Closed issues:**
+
+- Support for label/name prefix and suffix [\#22](https://github.com/gessnerfl/terraform-provider-instana/issues/22)
 
 **Merged pull requests:**
 
