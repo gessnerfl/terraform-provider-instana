@@ -106,7 +106,7 @@ func IsSupportedConditionOperatorType(operator ConditionOperatorType) bool {
 func NewSystemRuleSpecification(systemRuleID string, severity int) RuleSpecification {
 	return RuleSpecification{
 		DType:        SystemRuleType,
-		SystemRuleID: systemRuleID,
+		SystemRuleID: &systemRuleID,
 		Severity:     severity,
 	}
 }
@@ -118,17 +118,15 @@ type RuleSpecification struct {
 	Severity int      `json:"severity"`
 
 	//System Rule fields
-	SystemRuleID string `json:"systemRuleId"`
+	SystemRuleID *string `json:"systemRuleId"`
 
 	//Threshold Rule fields
-	MetricName                         string                `json:"metricName"`
-	Rollup                             *int                  `json:"rollup"`
-	Window                             *int                  `json:"window"`
-	Aggregation                        *AggregationType      `json:"aggregation"`
-	ConditionOperator                  ConditionOperatorType `json:"conditionOperator"`
-	ConditionValue                     *float64              `json:"conditionValue"`
-	AggregationForNonPercentileMetric  bool                  `json:"aggregationForNonPercentileMetric"`
-	EitherRollupOrWindowAndAggregation bool                  `json:"eitherRollupOrWindowAndAggregation"`
+	MetricName        *string                `json:"metricName"`
+	Rollup            *int                   `json:"rollup"`
+	Window            *int                   `json:"window"`
+	Aggregation       *AggregationType       `json:"aggregation"`
+	ConditionOperator *ConditionOperatorType `json:"conditionOperator"`
+	ConditionValue    *float64               `json:"conditionValue"`
 }
 
 //Validate Rule interface implementation for SystemRule
@@ -145,14 +143,14 @@ func (r *RuleSpecification) Validate() error {
 }
 
 func (r *RuleSpecification) validateSystemRule() error {
-	if len(r.SystemRuleID) == 0 {
+	if r.SystemRuleID == nil || len(*r.SystemRuleID) == 0 {
 		return errors.New("id of system rule is missing")
 	}
 	return nil
 }
 
 func (r *RuleSpecification) validateThresholdRule() error {
-	if len(r.MetricName) == 0 {
+	if r.MetricName == nil || len(*r.MetricName) == 0 {
 		return errors.New("metric name of threshold rule is missing")
 	}
 	if (r.Window == nil && r.Rollup == nil) || (r.Window != nil && r.Rollup != nil && *r.Window == 0 && *r.Rollup == 0) {
@@ -163,7 +161,7 @@ func (r *RuleSpecification) validateThresholdRule() error {
 		return errors.New("aggregation type of threshold rule is mission or not valid")
 	}
 
-	if !IsSupportedConditionOperatorType(r.ConditionOperator) {
+	if r.ConditionOperator == nil || !IsSupportedConditionOperatorType(*r.ConditionOperator) {
 		return errors.New("condition operator of threshold rule is missing or not valid")
 	}
 

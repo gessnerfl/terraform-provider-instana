@@ -442,7 +442,7 @@ func verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(model re
 		t.Fatal("Expected Severity to be identical")
 	}
 
-	if model.Rules[0].SystemRuleID != resourceData.Get(SystemRuleSpecificationSystemRuleID).(string) {
+	if *model.Rules[0].SystemRuleID != resourceData.Get(SystemRuleSpecificationSystemRuleID).(string) {
 		t.Fatal("Expected System Rule ID to be identical")
 	}
 }

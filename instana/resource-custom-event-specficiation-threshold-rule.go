@@ -97,17 +97,17 @@ func mapThresholdRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpec
 	if err != nil {
 		return restapi.RuleSpecification{}, err
 	}
+	metricName := d.Get(ThresholdRuleFieldMetricName).(string)
+	conditionOperator := restapi.ConditionOperatorType(d.Get(ThresholdRuleFieldConditionOperator).(string))
 	return restapi.RuleSpecification{
-		DType:                              restapi.ThresholdRuleType,
-		Severity:                           severity,
-		MetricName:                         d.Get(ThresholdRuleFieldMetricName).(string),
-		Rollup:                             GetIntPointerFromResourceData(d, ThresholdRuleFieldRollup),
-		Window:                             GetIntPointerFromResourceData(d, ThresholdRuleFieldWindow),
-		Aggregation:                        getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
-		ConditionOperator:                  restapi.ConditionOperatorType(d.Get(ThresholdRuleFieldConditionOperator).(string)),
-		ConditionValue:                     GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
-		AggregationForNonPercentileMetric:  true,
-		EitherRollupOrWindowAndAggregation: true,
+		DType:             restapi.ThresholdRuleType,
+		Severity:          severity,
+		MetricName:        &metricName,
+		Rollup:            GetIntPointerFromResourceData(d, ThresholdRuleFieldRollup),
+		Window:            GetIntPointerFromResourceData(d, ThresholdRuleFieldWindow),
+		Aggregation:       getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
+		ConditionOperator: &conditionOperator,
+		ConditionValue:    GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
 	}, nil
 }
 

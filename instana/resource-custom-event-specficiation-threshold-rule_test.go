@@ -522,7 +522,7 @@ func verifyCustomEventSpecificationWithThresholdRuleModelAppliedToResource(model
 		t.Fatal("Expected Severity to be identical")
 	}
 
-	if ruleSpec.MetricName != resourceData.Get(ThresholdRuleFieldMetricName).(string) {
+	if *ruleSpec.MetricName != resourceData.Get(ThresholdRuleFieldMetricName).(string) {
 		t.Fatal("Expected metric name to be identical")
 	}
 	if *ruleSpec.Window != resourceData.Get(ThresholdRuleFieldWindow).(int) {
@@ -531,7 +531,7 @@ func verifyCustomEventSpecificationWithThresholdRuleModelAppliedToResource(model
 	if *ruleSpec.Aggregation != restapi.AggregationType(resourceData.Get(ThresholdRuleFieldAggregation).(string)) {
 		t.Fatal("Expected aggregation to be identical")
 	}
-	if ruleSpec.ConditionOperator != restapi.ConditionOperatorType(resourceData.Get(ThresholdRuleFieldConditionOperator).(string)) {
+	if *ruleSpec.ConditionOperator != restapi.ConditionOperatorType(resourceData.Get(ThresholdRuleFieldConditionOperator).(string)) {
 		t.Fatal("Expected condition operator to be identical")
 	}
 	if *ruleSpec.ConditionValue != resourceData.Get(ThresholdRuleFieldConditionValue).(float64) {
@@ -559,6 +559,8 @@ func createBaseTestCustomEventSpecificationWithThresholdRuleModel() restapi.Cust
 	window := customEventSpecificationWithThresholdRuleWindow
 	aggregation := customEventSpecificationWithThresholdRuleAggregation
 	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
+	metricName := customEventSpecificationWithThresholdRuleMetricName
+	conditionOperator := customEventSpecificationWithThresholdRuleConditionOperator
 
 	return restapi.CustomEventSpecification{
 		ID:         customEventSpecificationWithThresholdRuleID,
@@ -570,10 +572,10 @@ func createBaseTestCustomEventSpecificationWithThresholdRuleModel() restapi.Cust
 			restapi.RuleSpecification{
 				DType:             restapi.ThresholdRuleType,
 				Severity:          restapi.SeverityWarning.GetAPIRepresentation(),
-				MetricName:        customEventSpecificationWithThresholdRuleMetricName,
+				MetricName:        &metricName,
 				Window:            &window,
 				Aggregation:       &aggregation,
-				ConditionOperator: customEventSpecificationWithThresholdRuleConditionOperator,
+				ConditionOperator: &conditionOperator,
 				ConditionValue:    &conditionValue,
 			},
 		},
