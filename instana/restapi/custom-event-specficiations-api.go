@@ -184,9 +184,9 @@ type RuleSpecification struct {
 	ConditionValue    *float64               `json:"conditionValue"`
 
 	//Entity Verification Rule
-	MatchingEntityLabel *string               `json:"matchingEntityLabel"`
 	MatchingEntityType  *string               `json:"matchingEntityType"`
 	MatchingOperator    *MatchingOperatorType `json:"matchingOperator"`
+	MatchingEntityLabel *string               `json:"matchingEntityLabel"`
 	OfflineDuration     *int                  `json:"offlineDuration"`
 }
 

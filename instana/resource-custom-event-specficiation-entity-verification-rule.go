@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	//EntityVerificationRuleFieldMatchingEntityLabel constant value for the schema field matching_entity_label
-	EntityVerificationRuleFieldMatchingEntityLabel = ruleFieldPrefix + "matching_entity_label"
 	//EntityVerificationRuleFieldMatchingEntityType constant value for the schema field matching_entity_type
 	EntityVerificationRuleFieldMatchingEntityType = ruleFieldPrefix + "matching_entity_type"
 	//EntityVerificationRuleFieldMatchingOperator constant value for the schema field matching_operator
 	EntityVerificationRuleFieldMatchingOperator = ruleFieldPrefix + "matching_operator"
+	//EntityVerificationRuleFieldMatchingEntityLabel constant value for the schema field matching_entity_label
+	EntityVerificationRuleFieldMatchingEntityLabel = ruleFieldPrefix + "matching_entity_label"
 	//EntityVerificationRuleFieldOfflineDuration constant value for the schema field offline_duration
 	EntityVerificationRuleFieldOfflineDuration = ruleFieldPrefix + "offline_duration"
 )
@@ -27,11 +27,6 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 		Computed:    true,
 		Description: "The computed entity type of a entity verification rule 'host'",
 	},
-	EntityVerificationRuleFieldMatchingEntityLabel: &schema.Schema{
-		Type:        schema.TypeString,
-		Required:    true,
-		Description: "The label of the matching entity",
-	},
 	EntityVerificationRuleFieldMatchingEntityType: &schema.Schema{
 		Type:        schema.TypeString,
 		Required:    true,
@@ -42,6 +37,11 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedMatchingOperatorTypes.ToStringSlice(), false),
 		Description:  "The operator which should be applied for matching the label for the given entity (e.g. IS, CONTAINS, STARTS_WITH, ENDS_WITH, NONE)",
+	},
+	EntityVerificationRuleFieldMatchingEntityLabel: &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The label of the matching entity",
 	},
 	EntityVerificationRuleFieldOfflineDuration: &schema.Schema{
 		Type:        schema.TypeInt,
