@@ -23,6 +23,11 @@ const (
 )
 
 var thresholdRuleSchemaFields = map[string]*schema.Schema{
+	CustomEventSpecificationFieldEntityType: &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "Configures the entity type of the custom event specification",
+	},
 	ThresholdRuleFieldMetricName: &schema.Schema{
 		Type:        schema.TypeString,
 		Required:    true,
@@ -68,7 +73,7 @@ func CreateResourceCustomEventSpecificationWithThresholdRule() *schema.Resource 
 		Update: createUpdateCustomEventSpecificationWithThresholdRule(),
 		Delete: createDeleteCustomEventSpecificationWithThresholdRule(),
 
-		Schema:        createCustomEventSpecificationSchema(thresholdRuleSchemaFields),
+		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
 		SchemaVersion: 1,
 		MigrateState:  CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error)))),
 	}

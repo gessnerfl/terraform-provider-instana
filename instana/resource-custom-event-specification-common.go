@@ -42,83 +42,83 @@ const (
 	CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs = downstreamFieldPrefix + "broadcast_to_all_alerting_configs"
 )
 
-func createCustomEventSpecificationSchema(ruleSpecificSchemaFields map[string]*schema.Schema) map[string]*schema.Schema {
-	defaultMap := map[string]*schema.Schema{
-		CustomEventSpecificationFieldName: &schema.Schema{
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Configures the name of the custom event specification",
+var defaultCustomEventSchemaFields = map[string]*schema.Schema{
+	CustomEventSpecificationFieldName: &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "Configures the name of the custom event specification",
+	},
+	CustomEventSpecificationFieldFullName: &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The computed full name of the custom event specification. The field contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
+	},
+	CustomEventSpecificationFieldQuery: &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    false,
+		Optional:    true,
+		Description: "Configures the dynamic focus query for the custom event specification",
+	},
+	CustomEventSpecificationFieldTriggering: &schema.Schema{
+		Type:        schema.TypeBool,
+		Default:     false,
+		Optional:    true,
+		Description: "Configures the custom event specification should trigger an incident",
+	},
+	CustomEventSpecificationFieldDescription: &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    false,
+		Optional:    true,
+		Description: "Configures the description text of the custom event specification",
+	},
+	CustomEventSpecificationFieldExpirationTime: &schema.Schema{
+		Type:        schema.TypeInt,
+		Required:    false,
+		Optional:    true,
+		Description: "Configures the expiration time (grace period) to wait before the issue is closed",
+	},
+	CustomEventSpecificationFieldEnabled: &schema.Schema{
+		Type:        schema.TypeBool,
+		Default:     true,
+		Optional:    true,
+		Description: "Configures if the custom event specification is enabled or not",
+	},
+	CustomEventSpecificationDownstreamIntegrationIds: &schema.Schema{
+		Type:     schema.TypeList,
+		Required: false,
+		Optional: true,
+		MinItems: 0,
+		MaxItems: 16,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
 		},
-		CustomEventSpecificationFieldFullName: &schema.Schema{
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "The computed full name of the custom event specification. The field contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
-		},
-		CustomEventSpecificationFieldEntityType: &schema.Schema{
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Configures the entity type of the custom event specification",
-		},
-		CustomEventSpecificationFieldQuery: &schema.Schema{
-			Type:        schema.TypeString,
-			Required:    false,
-			Optional:    true,
-			Description: "Configures the dynamic focus query for the custom event specification",
-		},
-		CustomEventSpecificationFieldTriggering: &schema.Schema{
-			Type:        schema.TypeBool,
-			Default:     false,
-			Optional:    true,
-			Description: "Configures the custom event specification should trigger an incident",
-		},
-		CustomEventSpecificationFieldDescription: &schema.Schema{
-			Type:        schema.TypeString,
-			Required:    false,
-			Optional:    true,
-			Description: "Configures the description text of the custom event specification",
-		},
-		CustomEventSpecificationFieldExpirationTime: &schema.Schema{
-			Type:        schema.TypeInt,
-			Required:    false,
-			Optional:    true,
-			Description: "Configures the expiration time (grace period) to wait before the issue is closed",
-		},
-		CustomEventSpecificationFieldEnabled: &schema.Schema{
-			Type:        schema.TypeBool,
-			Default:     true,
-			Optional:    true,
-			Description: "Configures if the custom event specification is enabled or not",
-		},
-		CustomEventSpecificationDownstreamIntegrationIds: &schema.Schema{
-			Type:     schema.TypeList,
-			Required: false,
-			Optional: true,
-			MinItems: 0,
-			MaxItems: 16,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-			Description: "Configures the list of integration ids which should be used for downstream reporting",
-		},
-		CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs: &schema.Schema{
-			Type:        schema.TypeBool,
-			Default:     true,
-			Optional:    true,
-			Description: "Configures the downstream reporting should be sent to all integrations",
-		},
-		CustomEventSpecificationRuleSeverity: &schema.Schema{
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice([]string{restapi.SeverityWarning.GetTerraformRepresentation(), restapi.SeverityCritical.GetTerraformRepresentation()}, false),
-			Description:  "Configures the severity of the rule of the custom event specification",
-		},
+		Description: "Configures the list of integration ids which should be used for downstream reporting",
+	},
+	CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs: &schema.Schema{
+		Type:        schema.TypeBool,
+		Default:     true,
+		Optional:    true,
+		Description: "Configures the downstream reporting should be sent to all integrations",
+	},
+	CustomEventSpecificationRuleSeverity: &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validation.StringInSlice([]string{restapi.SeverityWarning.GetTerraformRepresentation(), restapi.SeverityCritical.GetTerraformRepresentation()}, false),
+		Description:  "Configures the severity of the rule of the custom event specification",
+	},
+}
+
+func mergeSchemaMap(mapA map[string]*schema.Schema, mapB map[string]*schema.Schema) map[string]*schema.Schema {
+	mergedMap := make(map[string]*schema.Schema)
+
+	for k, v := range mapA {
+		mergedMap[k] = v
+	}
+	for k, v := range mapB {
+		mergedMap[k] = v
 	}
 
-	for k, v := range ruleSpecificSchemaFields {
-		defaultMap[k] = v
-	}
-
-	return defaultMap
+	return mergedMap
 }
 
 //CreateMigrateCustomEventConfigStateFunction creates the function for migrating schemas in terraform for the different implementations of custom events
@@ -256,8 +256,8 @@ func computeFullCustomEventNameString(d *schema.ResourceData, formatter Resource
 
 func updateCustomEventSpecificationState(d *schema.ResourceData, spec restapi.CustomEventSpecification, formatter ResourceNameFormatter, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
 	d.Set(CustomEventSpecificationFieldFullName, spec.Name)
-	d.Set(CustomEventSpecificationFieldEntityType, spec.EntityType)
 	d.Set(CustomEventSpecificationFieldQuery, spec.Query)
+	d.Set(CustomEventSpecificationFieldEntityType, spec.EntityType)
 	d.Set(CustomEventSpecificationFieldTriggering, spec.Triggering)
 	d.Set(CustomEventSpecificationFieldDescription, spec.Description)
 	d.Set(CustomEventSpecificationFieldExpirationTime, spec.ExpirationTime)

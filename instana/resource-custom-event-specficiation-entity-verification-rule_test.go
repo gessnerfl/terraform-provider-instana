@@ -31,7 +31,6 @@ provider "instana" {
 
 resource "instana_custom_event_spec_entity_verification_rule" "example" {
   name = "name"
-  entity_type = "entity_type"
   query = "query"
   enabled = true
   triggering = true
@@ -40,7 +39,8 @@ resource "instana_custom_event_spec_entity_verification_rule" "example" {
   rule_severity = "warning"
   rule_matching_entity_label = "matching-entity-label"
   rule_matching_entity_type = "matching-entity-type"
-  rule_matching_operator = "IS"
+  rule_matching_operator = "is"
+  rule_offline_duration = 60000
   downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
   downstream_broadcast_to_all_alerting_configs = true
 }
@@ -52,13 +52,13 @@ const (
 
 	customEntityVerificationEventID                       = "custom-entity-verification-event-id"
 	customEntityVerificationEventName                     = "name"
-	customEntityVerificationEventEntityType               = "entity_type"
 	customEntityVerificationEventQuery                    = "query"
 	customEntityVerificationEventExpirationTime           = 60000
 	customEntityVerificationEventDescription              = "description"
 	customEntityVerificationEventRuleMatchingEntityLabel  = "matching-entity-label"
 	customEntityVerificationEventRuleMatchingEntityType   = "matching-entity-type"
 	customEntityVerificationEventRuleMatchingOperator     = restapi.MatchingOperatorIs
+	customEntityVerificationEventRuleOfflineDuration      = 60000
 	customEntityVerificationEventDownStringIntegrationId1 = "integration-id-1"
 	customEntityVerificationEventDownStringIntegrationId2 = "integration-id-2"
 
@@ -81,13 +81,13 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 		{
 			"id" : "{{id}}",
 			"name" : "name",
-			"entityType" : "entity_type",
 			"query" : "query",
+			"entityType" : "host",
 			"enabled" : true,
 			"triggering" : true,
 			"description" : "description",
 			"expirationTime" : 60000,
-			"rules" : [ { "ruleType" : "entity_verification", "severity" : 5, "matchingEntityLabel" : "matching-entity-label", "matchingEntityType" : "matching-entity-type", "matchingOperator" : "IS" } ],
+			"rules" : [ { "ruleType" : "entity_verification", "severity" : 5, "matchingEntityLabel" : "matching-entity-label", "matchingEntityType" : "matching-entity-type", "matchingOperator" : "is", "offlineDuration" : 60000 } ],
 			"downstream" : {
 				"integrationIds" : ["integration-id-1", "integration-id-2"],
 				"broadcastToAllAlertingConfigs" : true
@@ -111,7 +111,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithEntityVerificationRuleDefinition, "id"),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldName, customEntityVerificationEventName),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldEntityType, customEntityVerificationEventEntityType),
+					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldQuery, customEntityVerificationEventQuery),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldDescription, customEntityVerificationEventDescription),
@@ -124,6 +124,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator)),
+					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldOfflineDuration, strconv.Itoa(customEntityVerificationEventRuleOfflineDuration)),
 				),
 			},
 		},
@@ -153,7 +154,7 @@ func validateCustomEventSpecificationWithEntityVerificationRuleResourceSchema(sc
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldFullName)
-	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldEntityType)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldEntityType)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldQuery)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldTriggering, false)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldDescription)
@@ -165,6 +166,7 @@ func validateCustomEventSpecificationWithEntityVerificationRuleResourceSchema(sc
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(EntityVerificationRuleFieldMatchingEntityLabel)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(EntityVerificationRuleFieldMatchingEntityType)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(EntityVerificationRuleFieldMatchingOperator)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(EntityVerificationRuleFieldOfflineDuration)
 }
 
 func TestShouldSuccessfullyReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
@@ -480,13 +482,14 @@ func createBaseTestCustomEventSpecificationWithEntityVerificationRuleModel() res
 	return restapi.CustomEventSpecification{
 		ID:         customEntityVerificationEventID,
 		Name:       customEntityVerificationEventName,
-		EntityType: customEntityVerificationEventEntityType,
+		EntityType: EntityVerificationRuleEntityType,
 		Triggering: false,
 		Enabled:    true,
 		Rules: []restapi.RuleSpecification{
 			restapi.NewEntityVerificationRuleSpecification(customEntityVerificationEventRuleMatchingEntityLabel,
 				customEntityVerificationEventRuleMatchingEntityType,
 				customEntityVerificationEventRuleMatchingOperator,
+				customEntityVerificationEventRuleOfflineDuration,
 				restapi.SeverityWarning.GetAPIRepresentation()),
 		},
 	}
@@ -495,7 +498,7 @@ func createBaseTestCustomEventSpecificationWithEntityVerificationRuleModel() res
 func createFullTestCustomEventSpecificationWithEntityVerificationRuleData() map[string]interface{} {
 	data := make(map[string]interface{})
 	data[CustomEventSpecificationFieldName] = customEntityVerificationEventName
-	data[CustomEventSpecificationFieldEntityType] = customEntityVerificationEventEntityType
+	data[CustomEventSpecificationFieldEntityType] = EntityVerificationRuleEntityType
 	data[CustomEventSpecificationFieldQuery] = customEntityVerificationEventQuery
 	data[CustomEventSpecificationFieldTriggering] = "true"
 	data[CustomEventSpecificationFieldDescription] = customEntityVerificationEventDescription

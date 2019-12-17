@@ -11,7 +11,15 @@ const (
 	SystemRuleSpecificationSystemRuleID = ruleFieldPrefix + "system_rule_id"
 )
 
+//SystemRuleEntityType the fix entity_type of entity verification rules
+const SystemRuleEntityType = "any"
+
 var systemRuleSchemaFields = map[string]*schema.Schema{
+	CustomEventSpecificationFieldEntityType: &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The computed entity type of a entity verification rule 'any'",
+	},
 	SystemRuleSpecificationSystemRuleID: &schema.Schema{
 		Type:        schema.TypeString,
 		Required:    true,
@@ -27,7 +35,7 @@ func CreateResourceCustomEventSpecificationWithSystemRule() *schema.Resource {
 		Update: createUpdateCustomEventSpecificationWithSystemRule(),
 		Delete: createDeleteCustomEventSpecificationWithSystemRule(),
 
-		Schema:        createCustomEventSpecificationSchema(systemRuleSchemaFields),
+		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, systemRuleSchemaFields),
 		SchemaVersion: 1,
 		MigrateState:  CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error)))),
 	}
@@ -38,7 +46,13 @@ func createReadCustomEventSpecificationWithSystemRule() func(*schema.ResourceDat
 }
 
 func createCreateCustomEventSpecificationWithSystemRule() func(*schema.ResourceData, interface{}) error {
-	return createCustomEventSpecificationCreateFunc(mapSystemRuleToInstanaAPIModel, mapSystemRuleToTerraformState)
+	return func(d *schema.ResourceData, meta interface{}) error {
+		updateFunc := createCustomEventSpecificationUpdateFunc(mapSystemRuleToInstanaAPIModel, mapSystemRuleToTerraformState)
+
+		d.SetId(RandomID())
+		d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
+		return updateFunc(d, meta)
+	}
 }
 
 func createUpdateCustomEventSpecificationWithSystemRule() func(*schema.ResourceData, interface{}) error {

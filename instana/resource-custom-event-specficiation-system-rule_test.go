@@ -32,7 +32,6 @@ provider "instana" {
 
 resource "instana_custom_event_spec_system_rule" "example" {
   name = "name"
-  entity_type = "entity_type"
   query = "query"
   enabled = true
   triggering = true
@@ -51,7 +50,6 @@ const (
 
 	customSystemEventID                       = "custom-system-event-id"
 	customSystemEventName                     = "name"
-	customSystemEventEntityType               = "entity_type"
 	customSystemEventQuery                    = "query"
 	customSystemEventExpirationTime           = 60000
 	customSystemEventDescription              = "description"
@@ -108,7 +106,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithSystemRuleDefinition, "id"),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldName, customSystemEventName),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldEntityType, customSystemEventEntityType),
+					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldEntityType, SystemRuleEntityType),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldQuery, customSystemEventQuery),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldDescription, customSystemEventDescription),
@@ -148,7 +146,7 @@ func validateCustomEventSpecificationWithSystemRuleResourceSchema(schemaMap map[
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldFullName)
-	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldEntityType)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldEntityType)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldQuery)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldTriggering, false)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldDescription)
@@ -542,7 +540,7 @@ func createBaseTestCustomEventSpecificationWithSystemRuleModel() restapi.CustomE
 	return restapi.CustomEventSpecification{
 		ID:         customSystemEventID,
 		Name:       customSystemEventName,
-		EntityType: customSystemEventEntityType,
+		EntityType: SystemRuleEntityType,
 		Triggering: false,
 		Enabled:    true,
 		Rules: []restapi.RuleSpecification{
@@ -554,7 +552,7 @@ func createBaseTestCustomEventSpecificationWithSystemRuleModel() restapi.CustomE
 func createFullTestCustomEventSpecificationWithSystemRuleData() map[string]interface{} {
 	data := make(map[string]interface{})
 	data[CustomEventSpecificationFieldName] = customSystemEventName
-	data[CustomEventSpecificationFieldEntityType] = customSystemEventEntityType
+	data[CustomEventSpecificationFieldEntityType] = SystemRuleEntityType
 	data[CustomEventSpecificationFieldQuery] = customSystemEventQuery
 	data[CustomEventSpecificationFieldTriggering] = "true"
 	data[CustomEventSpecificationFieldDescription] = customSystemEventDescription

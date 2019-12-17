@@ -27,6 +27,7 @@ const (
 
 	customEventMatchingEntityLabel = "custom-event-matching-entity-label"
 	customEventMatchingEntityType  = "custom-event-matching-entity-type"
+	customEventOfflineDuration     = 60000
 
 	valueInvalid = "invalid"
 
@@ -521,12 +522,14 @@ func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsA
 	entityLabel := customEventMatchingEntityLabel
 	entityType := customEventMatchingEntityType
 	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		Severity:            SeverityWarning.GetAPIRepresentation(),
 		MatchingEntityLabel: &entityLabel,
 		MatchingEntityType:  &entityType,
 		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
 	}
 
 	if err := rule.Validate(); err != nil {
@@ -537,10 +540,12 @@ func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsA
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsMissing(t *testing.T) {
 	entityType := customEventMatchingEntityType
 	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:              EntityVerificationRuleType,
 		MatchingEntityType: &entityType,
 		MatchingOperator:   &operator,
+		OfflineDuration:    &offlineDuration,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity label") {
@@ -552,11 +557,13 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabel
 	entityLabel := ""
 	entityType := customEventMatchingEntityType
 	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &entityLabel,
 		MatchingEntityType:  &entityType,
 		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity label") {
@@ -567,10 +574,12 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabel
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsMissing(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &entityLabel,
 		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity type") {
@@ -582,11 +591,13 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeI
 	entityLabel := customEventMatchingEntityLabel
 	entityType := ""
 	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &entityLabel,
 		MatchingEntityType:  &entityType,
 		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity type") {
@@ -597,10 +608,12 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeI
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOperatorIsMissing(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	entityType := customEventMatchingEntityType
+	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityType:  &entityType,
 		MatchingEntityLabel: &entityLabel,
+		OfflineDuration:     &offlineDuration,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
@@ -612,6 +625,24 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOpe
 	entityLabel := customEventMatchingEntityLabel
 	entityType := customEventMatchingEntityType
 	operator := MatchingOperatorType("Invalid")
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching operator is not supported")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenOfflineDurationIsNotSupported(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIs
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &entityLabel,
@@ -619,8 +650,8 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOpe
 		MatchingOperator:    &operator,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
-		t.Fatal("Expected to fail to validate entity verification rule as matching operator is not supported")
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "offline duration") {
+		t.Fatal("Expected to fail to validate entity verification rule as offline duration is missing")
 	}
 }
 

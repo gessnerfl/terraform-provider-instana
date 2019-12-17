@@ -10,7 +10,6 @@ resource "instana_application_config" "terraform-test" {
 
 resource "instana_custom_event_spec_system_rule" "example" {
   name = "test-instana-system-rule"
-  entity_type = "any"
   query = "entity.service.name:\"btm-payment-export\" AND entity.tag:stage=live-test"
   enabled = true
   triggering = true
@@ -38,7 +37,6 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 
 resource "instana_custom_event_spec_entity_verification_rule" "example" {
   name = "name"
-  entity_type = "entity_type"
   query = "query"
   enabled = true
   triggering = true
@@ -47,7 +45,8 @@ resource "instana_custom_event_spec_entity_verification_rule" "example" {
   rule_severity = "warning"
   rule_matching_entity_label = "entity-label"
   rule_matching_entity_type = "process"
-  rule_matching_operator = "IS"
+  rule_matching_operator = "is"
+  rule_offline_duration = 60000
   downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
   downstream_broadcast_to_all_alerting_configs = true
 }

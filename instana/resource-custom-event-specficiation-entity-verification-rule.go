@@ -14,9 +14,19 @@ const (
 	EntityVerificationRuleFieldMatchingEntityType = ruleFieldPrefix + "matching_entity_type"
 	//EntityVerificationRuleFieldMatchingOperator constant value for the schema field matching_operator
 	EntityVerificationRuleFieldMatchingOperator = ruleFieldPrefix + "matching_operator"
+	//EntityVerificationRuleFieldOfflineDuration constant value for the schema field offline_duration
+	EntityVerificationRuleFieldOfflineDuration = ruleFieldPrefix + "offline_duration"
 )
 
+//EntityVerificationRuleEntityType the fix entity_type of entity verification rules
+const EntityVerificationRuleEntityType = "host"
+
 var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
+	CustomEventSpecificationFieldEntityType: &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The computed entity type of a entity verification rule 'host'",
+	},
 	EntityVerificationRuleFieldMatchingEntityLabel: &schema.Schema{
 		Type:        schema.TypeString,
 		Required:    true,
@@ -33,6 +43,11 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 		ValidateFunc: validation.StringInSlice(restapi.SupportedMatchingOperatorTypes.ToStringSlice(), false),
 		Description:  "The operator which should be applied for matching the label for the given entity (e.g. IS, CONTAINS, STARTS_WITH, ENDS_WITH, NONE)",
 	},
+	EntityVerificationRuleFieldOfflineDuration: &schema.Schema{
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "The duration after which the matching entity is considered to be offline",
+	},
 }
 
 //CreateResourceCustomEventSpecificationWithEntityVerificationRule creates the resource definition for the instana api endpoint for Custom Event Specifications for Threshold rules
@@ -43,7 +58,7 @@ func CreateResourceCustomEventSpecificationWithEntityVerificationRule() *schema.
 		Update: createUpdateCustomEventSpecificationWithEntityVerificationRule(),
 		Delete: createDeleteCustomEventSpecificationWithEntityVerificationRule(),
 
-		Schema:        createCustomEventSpecificationSchema(entityVerificationRuleSchemaFields),
+		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, entityVerificationRuleSchemaFields),
 		SchemaVersion: 1,
 		MigrateState:  CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error)))),
 	}
@@ -54,7 +69,13 @@ func createReadCustomEventSpecificationWithEntityVerificationRule() func(*schema
 }
 
 func createCreateCustomEventSpecificationWithEntityVerificationRule() func(*schema.ResourceData, interface{}) error {
-	return createCustomEventSpecificationCreateFunc(mapEntityVerificationRuleToInstanaAPIModel, mapEntityVerificationRuleToTerraformState)
+	return func(d *schema.ResourceData, meta interface{}) error {
+		updateFunc := createCustomEventSpecificationUpdateFunc(mapEntityVerificationRuleToInstanaAPIModel, mapEntityVerificationRuleToTerraformState)
+
+		d.SetId(RandomID())
+		d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
+		return updateFunc(d, meta)
+	}
 }
 
 func createUpdateCustomEventSpecificationWithEntityVerificationRule() func(*schema.ResourceData, interface{}) error {
@@ -73,8 +94,9 @@ func mapEntityVerificationRuleToInstanaAPIModel(d *schema.ResourceData) (restapi
 	entityLabel := d.Get(EntityVerificationRuleFieldMatchingEntityLabel).(string)
 	entityType := d.Get(EntityVerificationRuleFieldMatchingEntityType).(string)
 	operator := restapi.MatchingOperatorType(d.Get(EntityVerificationRuleFieldMatchingOperator).(string))
+	offlineDuration := d.Get(EntityVerificationRuleFieldOfflineDuration).(int)
 
-	return restapi.NewEntityVerificationRuleSpecification(entityLabel, entityType, operator, severity), nil
+	return restapi.NewEntityVerificationRuleSpecification(entityLabel, entityType, operator, offlineDuration, severity), nil
 }
 
 func mapEntityVerificationRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEventSpecification) error {
@@ -88,5 +110,6 @@ func mapEntityVerificationRuleToTerraformState(d *schema.ResourceData, spec rest
 	d.Set(EntityVerificationRuleFieldMatchingEntityLabel, ruleSpec.MatchingEntityLabel)
 	d.Set(EntityVerificationRuleFieldMatchingEntityType, ruleSpec.MatchingEntityType)
 	d.Set(EntityVerificationRuleFieldMatchingOperator, ruleSpec.MatchingOperator)
+	d.Set(EntityVerificationRuleFieldOfflineDuration, ruleSpec.OfflineDuration)
 	return nil
 }

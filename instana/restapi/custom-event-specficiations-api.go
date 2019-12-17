@@ -121,15 +121,15 @@ func (types MatchingOperatorTypes) ToStringSlice() []string {
 
 const (
 	//MatchingOperatorIs const for IS condition operator
-	MatchingOperatorIs = MatchingOperatorType("IS")
+	MatchingOperatorIs = MatchingOperatorType("is")
 	//MatchingOperatorContains const for CONTAINS condition operator
-	MatchingOperatorContains = MatchingOperatorType("CONTAINS")
+	MatchingOperatorContains = MatchingOperatorType("contains")
 	//MatchingOperatorStartsWith const for STARTS_WITH condition operator
-	MatchingOperatorStartsWith = MatchingOperatorType("STARTS_WITH")
+	MatchingOperatorStartsWith = MatchingOperatorType("starts_with")
 	//MatchingOperatorEndsWith const for ENDS_WITH condition operator
-	MatchingOperatorEndsWith = MatchingOperatorType("ENDS_WITH")
+	MatchingOperatorEndsWith = MatchingOperatorType("ends_with")
 	//MatchingOperatorNone const for NONE condition operator
-	MatchingOperatorNone = MatchingOperatorType("NONE")
+	MatchingOperatorNone = MatchingOperatorType("none")
 )
 
 //SupportedMatchingOperatorTypes slice of supported matching operatorTypes types
@@ -155,12 +155,13 @@ func NewSystemRuleSpecification(systemRuleID string, severity int) RuleSpecifica
 }
 
 //NewEntityVerificationRuleSpecification creates a new instance of Entity Verification Rule
-func NewEntityVerificationRuleSpecification(matchingEntityLabel string, matchingEntityType string, matchingOperator MatchingOperatorType, severity int) RuleSpecification {
+func NewEntityVerificationRuleSpecification(matchingEntityLabel string, matchingEntityType string, matchingOperator MatchingOperatorType, offlineDuration int, severity int) RuleSpecification {
 	return RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &matchingEntityLabel,
 		MatchingEntityType:  &matchingEntityType,
 		MatchingOperator:    &matchingOperator,
+		OfflineDuration:     &offlineDuration,
 		Severity:            severity,
 	}
 }
@@ -186,6 +187,7 @@ type RuleSpecification struct {
 	MatchingEntityLabel *string               `json:"matchingEntityLabel"`
 	MatchingEntityType  *string               `json:"matchingEntityType"`
 	MatchingOperator    *MatchingOperatorType `json:"matchingOperator"`
+	OfflineDuration     *int                  `json:"offlineDuration"`
 }
 
 //Validate Rule interface implementation for SystemRule
@@ -238,6 +240,9 @@ func (r *RuleSpecification) validateEntityVerificationRule() error {
 	}
 	if r.MatchingOperator == nil || !IsSupportedMatchingOperatorType(*r.MatchingOperator) {
 		return errors.New("matching operator of entity verification rule is missing or not valid")
+	}
+	if r.OfflineDuration == nil {
+		return errors.New("offline duration of entity verification rule is missing")
 	}
 	return nil
 }
