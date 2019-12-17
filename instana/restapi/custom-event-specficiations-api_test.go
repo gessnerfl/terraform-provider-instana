@@ -520,7 +520,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsAreProvided(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	entityType := customEventMatchingEntityType
-	operator := MatchingOperatorIS
+	operator := MatchingOperatorIs
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		Severity:            SeverityWarning.GetAPIRepresentation(),
@@ -536,7 +536,7 @@ func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsA
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsMissing(t *testing.T) {
 	entityType := customEventMatchingEntityType
-	operator := MatchingOperatorIS
+	operator := MatchingOperatorIs
 	rule := RuleSpecification{
 		DType:              EntityVerificationRuleType,
 		MatchingEntityType: &entityType,
@@ -551,7 +551,7 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabel
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsBlank(t *testing.T) {
 	entityLabel := ""
 	entityType := customEventMatchingEntityType
-	operator := MatchingOperatorIS
+	operator := MatchingOperatorIs
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &entityLabel,
@@ -566,7 +566,7 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabel
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsMissing(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
-	operator := MatchingOperatorIS
+	operator := MatchingOperatorIs
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &entityLabel,
@@ -581,7 +581,7 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeI
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsBlank(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	entityType := ""
-	operator := MatchingOperatorIS
+	operator := MatchingOperatorIs
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &entityLabel,
@@ -643,7 +643,7 @@ func TestShouldConvertSupportedConditionOperatorTypesToSliceOfString(t *testing.
 }
 
 func TestShouldConvertMatchingOperatorTypesToSliceOfString(t *testing.T) {
-	expectedResult := []string{string(MatchingOperatorIS), string(MatchingOperatorContains), string(MatchingOperatorStartsWith), string(MatchingOperatorEndsWith), string(MatchingOperatorNone)}
+	expectedResult := []string{string(MatchingOperatorIs), string(MatchingOperatorContains), string(MatchingOperatorStartsWith), string(MatchingOperatorEndsWith), string(MatchingOperatorNone)}
 	result := SupportedMatchingOperatorTypes.ToStringSlice()
 
 	if !cmp.Equal(result, expectedResult) {

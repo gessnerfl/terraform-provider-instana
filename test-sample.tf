@@ -35,3 +35,19 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_condition_operator = ">"
   rule_condition_value = 0.0
 }
+
+resource "instana_custom_event_spec_entity_verification_rule" "example" {
+  name = "name"
+  entity_type = "entity_type"
+  query = "query"
+  enabled = true
+  triggering = true
+  description = "description"
+  expiration_time = 60000
+  rule_severity = "warning"
+  rule_matching_entity_label = "entity-label"
+  rule_matching_entity_type = "process"
+  rule_matching_operator = "IS"
+  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
+  downstream_broadcast_to_all_alerting_configs = true
+}

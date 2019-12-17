@@ -58,7 +58,7 @@ const (
 	customEntityVerificationEventDescription              = "description"
 	customEntityVerificationEventRuleMatchingEntityLabel  = "matching-entity-label"
 	customEntityVerificationEventRuleMatchingEntityType   = "matching-entity-type"
-	customEntityVerificationEventRuleMatchingOperator     = restapi.MatchingOperatorIS
+	customEntityVerificationEventRuleMatchingOperator     = restapi.MatchingOperatorIs
 	customEntityVerificationEventDownStringIntegrationId1 = "integration-id-1"
 	customEntityVerificationEventDownStringIntegrationId2 = "integration-id-2"
 

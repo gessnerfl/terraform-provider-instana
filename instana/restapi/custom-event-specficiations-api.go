@@ -120,8 +120,8 @@ func (types MatchingOperatorTypes) ToStringSlice() []string {
 }
 
 const (
-	//MatchingOperatorIS const for IS condition operator
-	MatchingOperatorIS = MatchingOperatorType("IS")
+	//MatchingOperatorIs const for IS condition operator
+	MatchingOperatorIs = MatchingOperatorType("IS")
 	//MatchingOperatorContains const for CONTAINS condition operator
 	MatchingOperatorContains = MatchingOperatorType("CONTAINS")
 	//MatchingOperatorStartsWith const for STARTS_WITH condition operator
@@ -133,7 +133,7 @@ const (
 )
 
 //SupportedMatchingOperatorTypes slice of supported matching operatorTypes types
-var SupportedMatchingOperatorTypes = MatchingOperatorTypes{MatchingOperatorIS, MatchingOperatorContains, MatchingOperatorStartsWith, MatchingOperatorEndsWith, MatchingOperatorNone}
+var SupportedMatchingOperatorTypes = MatchingOperatorTypes{MatchingOperatorIs, MatchingOperatorContains, MatchingOperatorStartsWith, MatchingOperatorEndsWith, MatchingOperatorNone}
 
 //IsSupportedMatchingOperatorType check if the provided matching operator type is supported
 func IsSupportedMatchingOperatorType(operator MatchingOperatorType) bool {
