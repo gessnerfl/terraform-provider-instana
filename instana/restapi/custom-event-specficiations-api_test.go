@@ -25,6 +25,10 @@ const (
 	customEventConditionOperator = ConditionOperatorEquals
 	customEventConditionValue    = 1.2
 
+	customEventMatchingEntityLabel = "custom-event-matching-entity-label"
+	customEventMatchingEntityType  = "custom-event-matching-entity-type"
+	customEventOfflineDuration     = 60000
+
 	valueInvalid = "invalid"
 
 	messagePartExactlyOneRule    = "exactly one rule"
@@ -33,11 +37,12 @@ const (
 )
 
 func TestShouldValidateMinimalCustemEventSpecificationWithSystemRule(t *testing.T) {
+	systemRuleId := customEventSystemRuleID
 	spec := CustomEventSpecification{
 		ID:         customEventID,
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}},
+		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	if err := spec.Validate(); err != nil {
@@ -53,6 +58,7 @@ func TestShouldValidateFullCustomEventSpecificationWithSystemRule(t *testing.T) 
 	query := customEventQuery
 	description := customEventDescription
 	expirationTime := 1234
+	systemRuleId := customEventSystemRuleID
 
 	spec := CustomEventSpecification{
 		ID:             customEventID,
@@ -63,7 +69,7 @@ func TestShouldValidateFullCustomEventSpecificationWithSystemRule(t *testing.T) 
 		ExpirationTime: &expirationTime,
 		Triggering:     true,
 		Enabled:        true,
-		Rules:          []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}},
+		Rules:          []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 		Downstream: &EventSpecificationDownstream{
 			IntegrationIds:                []string{"downstream-integration-id"},
 			BroadcastToAllAlertingConfigs: true,
@@ -76,10 +82,11 @@ func TestShouldValidateFullCustomEventSpecificationWithSystemRule(t *testing.T) 
 }
 
 func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenIDIsMissing(t *testing.T) {
+	systemRuleId := customEventSystemRuleID
 	spec := CustomEventSpecification{
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}},
+		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
@@ -88,10 +95,11 @@ func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenIDIsMissing(t *
 }
 
 func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenNameIsMissing(t *testing.T) {
+	systemRuleId := customEventSystemRuleID
 	spec := CustomEventSpecification{
 		ID:         customEventID,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}},
+		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "name") {
@@ -100,10 +108,11 @@ func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenNameIsMissing(t
 }
 
 func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenEntityTypeIsMissing(t *testing.T) {
+	systemRuleId := customEventSystemRuleID
 	spec := CustomEventSpecification{
 		ID:    customEventID,
 		Name:  customEventName,
-		Rules: []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}},
+		Rules: []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "entity type") {
@@ -138,15 +147,29 @@ func TestFailToValidateCustemEventSpecificationWhenNoRuleIsProvided(t *testing.T
 }
 
 func TestFailToValidateCustemEventSpecificationWhenMultipleRulesAreProvided(t *testing.T) {
+	systemRuleId := customEventSystemRuleID
 	spec := CustomEventSpecification{
 		ID:         customEventID,
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}, RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}},
+		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}, RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartExactlyOneRule) {
-		t.Fatal("Expected validate to fail as no id of the second system rule is not provided")
+		t.Fatal("Expected validation to fail as multiple rules are provided")
+	}
+}
+
+func TestFailToValidateCustemEventSpecificationWhenRuleTypeIsNotSupported(t *testing.T) {
+	spec := CustomEventSpecification{
+		ID:         customEventID,
+		Name:       customEventName,
+		EntityType: customEventEntityType,
+		Rules:      []RuleSpecification{RuleSpecification{DType: "invalid"}},
+	}
+
+	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "Unsupported rule type") {
+		t.Fatal("Expected validation to fail as rule type is not supported")
 	}
 }
 
@@ -164,11 +187,12 @@ func TestFailToValidateCustemEventSpecificationWhenTheProvidedRuleIsNotValid(t *
 }
 
 func TestFailToValidateCustemEventSpecificationWhenDownstreamSpecificationIsNotValid(t *testing.T) {
+	systemRuleId := customEventSystemRuleID
 	spec := CustomEventSpecification{
 		ID:         customEventID,
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: customEventSystemRuleID}},
+		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 		Downstream: &EventSpecificationDownstream{},
 	}
 
@@ -194,9 +218,10 @@ func TestShouldFailToValidateSystemRuleWhenSystemRuleIDIsMissing(t *testing.T) {
 }
 
 func TestShouldFailToValidateSystemRuleWhenRuleTypeIsMissing(t *testing.T) {
-	rule := RuleSpecification{SystemRuleID: customEventSystemRuleID}
+	systemRuleId := customEventSystemRuleID
+	rule := RuleSpecification{SystemRuleID: &systemRuleId}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "type of system rule") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "type of rule") {
 		t.Fatal("Expected to fail to validate system rule as no system rule id is provided")
 	}
 }
@@ -233,18 +258,20 @@ func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsPr
 }
 
 func TestShouldValidateFullThresholdRuleSpecificationWithWindowRollupAndAggregation(t *testing.T) {
+	metricName := customEventMetricName
 	aggregation := customEventAggregation
+	conditionOperator := customEventConditionOperator
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rollup := customEventRollup
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        customEventMetricName,
+		MetricName:        &metricName,
 		Window:            &window,
 		Rollup:            &rollup,
 		Aggregation:       &aggregation,
-		ConditionOperator: customEventConditionOperator,
+		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
 
@@ -260,16 +287,18 @@ func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSuppor
 }
 
 func createTestCaseForSuccessfullValidateMinimalThresholdRuleForAggregation(aggregation AggregationType) func(*testing.T) {
+	metricName := customEventMetricName
+	conditionOperator := customEventConditionOperator
 	return func(t *testing.T) {
 		conditionValue := customEventConditionValue
 		window := customEventWindow
 		rule := RuleSpecification{
 			DType:             ThresholdRuleType,
 			Severity:          SeverityWarning.GetAPIRepresentation(),
-			MetricName:        customEventMetricName,
+			MetricName:        &metricName,
 			Window:            &window,
 			Aggregation:       &aggregation,
-			ConditionOperator: customEventConditionOperator,
+			ConditionOperator: &conditionOperator,
 			ConditionValue:    &conditionValue,
 		}
 
@@ -287,16 +316,18 @@ func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSuppor
 
 func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperators(operator ConditionOperatorType) func(*testing.T) {
 	return func(t *testing.T) {
+		metricName := customEventMetricName
+		conditionOperator := customEventConditionOperator
 		aggregation := customEventAggregation
 		conditionValue := customEventConditionValue
 		window := customEventWindow
 		rule := RuleSpecification{
 			DType:             ThresholdRuleType,
 			Severity:          SeverityWarning.GetAPIRepresentation(),
-			MetricName:        customEventMetricName,
+			MetricName:        &metricName,
 			Window:            &window,
 			Aggregation:       &aggregation,
-			ConditionOperator: operator,
+			ConditionOperator: &conditionOperator,
 			ConditionValue:    &conditionValue,
 		}
 
@@ -307,14 +338,16 @@ func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperato
 }
 
 func TestShouldValidateMinimalThresholdRuleSpecificationWithRollup(t *testing.T) {
+	metricName := customEventMetricName
+	conditionOperator := customEventConditionOperator
 	rollup := customEventRollup
 	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        customEventMetricName,
+		MetricName:        &metricName,
 		Rollup:            &rollup,
-		ConditionOperator: customEventConditionOperator,
+		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
 
@@ -324,6 +357,7 @@ func TestShouldValidateMinimalThresholdRuleSpecificationWithRollup(t *testing.T)
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameIsMissing(t *testing.T) {
+	conditionOperator := customEventConditionOperator
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	window := customEventWindow
@@ -332,7 +366,28 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameI
 		Severity:          SeverityWarning.GetAPIRepresentation(),
 		Window:            &window,
 		Aggregation:       &aggregation,
-		ConditionOperator: customEventConditionOperator,
+		ConditionOperator: &conditionOperator,
+		ConditionValue:    &conditionValue,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "metric name") {
+		t.Fatal("Expected to fail to validate threshold rule as no metric name is provided")
+	}
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameIsBlank(t *testing.T) {
+	metricName := ""
+	conditionOperator := customEventConditionOperator
+	aggregation := customEventAggregation
+	conditionValue := customEventConditionValue
+	window := customEventWindow
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        &metricName,
+		Window:            &window,
+		Aggregation:       &aggregation,
+		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
 
@@ -342,14 +397,16 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameI
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenNeitherRollupNorWindowIsDefined(t *testing.T) {
+	metricName := customEventMetricName
+	conditionOperator := customEventConditionOperator
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        customEventMetricName,
+		MetricName:        &metricName,
 		Aggregation:       &aggregation,
-		ConditionOperator: customEventConditionOperator,
+		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
 
@@ -359,6 +416,8 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenNeitherRollupNorWindo
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithRollupAndWindowAreZero(t *testing.T) {
+	metricName := customEventMetricName
+	conditionOperator := customEventConditionOperator
 	window := 0
 	rollup := 0
 	aggregation := customEventAggregation
@@ -366,11 +425,11 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithRollupAndWindowAreZer
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        customEventMetricName,
+		MetricName:        &metricName,
 		Rollup:            &rollup,
 		Window:            &window,
 		Aggregation:       &aggregation,
-		ConditionOperator: customEventConditionOperator,
+		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
 
@@ -380,14 +439,16 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithRollupAndWindowAreZer
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsMissingConditionOperator(t *testing.T) {
+	metricName := customEventMetricName
+	conditionOperator := customEventConditionOperator
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        customEventMetricName,
+		MetricName:        &metricName,
 		Window:            &window,
-		ConditionOperator: customEventConditionOperator,
+		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
 
@@ -397,16 +458,18 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregation
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsNotValid(t *testing.T) {
+	metricName := customEventMetricName
+	conditionOperator := customEventConditionOperator
 	aggregation := AggregationType(valueInvalid)
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        customEventMetricName,
+		MetricName:        &metricName,
 		Window:            &window,
 		Aggregation:       &aggregation,
-		ConditionOperator: customEventConditionOperator,
+		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
 
@@ -416,13 +479,14 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregation
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOperatorIsMissing(t *testing.T) {
+	metricName := customEventMetricName
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rule := RuleSpecification{
 		DType:          ThresholdRuleType,
 		Severity:       SeverityWarning.GetAPIRepresentation(),
-		MetricName:     customEventMetricName,
+		MetricName:     &metricName,
 		Window:         &window,
 		Aggregation:    &aggregation,
 		ConditionValue: &conditionValue,
@@ -434,6 +498,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOperatorIsNotValid(t *testing.T) {
+	metricName := customEventMetricName
 	aggregation := customEventAggregation
 	conditionOperator := ConditionOperatorType(valueInvalid)
 	conditionValue := customEventConditionValue
@@ -441,15 +506,152 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        customEventMetricName,
+		MetricName:        &metricName,
 		Window:            &window,
 		Aggregation:       &aggregation,
-		ConditionOperator: conditionOperator,
+		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
 	}
 
 	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
 		t.Fatal("Expected to fail to validate threshold rule as no condition operator is not valid")
+	}
+}
+
+func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsAreProvided(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		Severity:            SeverityWarning.GetAPIRepresentation(),
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
+	}
+
+	if err := rule.Validate(); err != nil {
+		t.Fatal("Expected to successfully validate entity verification rule")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsMissing(t *testing.T) {
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:              EntityVerificationRuleType,
+		MatchingEntityType: &entityType,
+		MatchingOperator:   &operator,
+		OfflineDuration:    &offlineDuration,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity label") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching entity label is missing")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsBlank(t *testing.T) {
+	entityLabel := ""
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity label") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching entity label is blank")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsMissing(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity type") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching entity type is blank")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsBlank(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := ""
+	operator := MatchingOperatorIs
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity type") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching entity type is blank")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOperatorIsMissing(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityType:  &entityType,
+		MatchingEntityLabel: &entityLabel,
+		OfflineDuration:     &offlineDuration,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching operator is missing")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOpertatorIsNotSupported(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorType("Invalid")
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching operator is not supported")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenOfflineDurationIsNotSupported(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIs
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "offline duration") {
+		t.Fatal("Expected to fail to validate entity verification rule as offline duration is missing")
 	}
 }
 
@@ -462,11 +664,20 @@ func TestShouldConvertSupportedAggregationTypesToSliceOfString(t *testing.T) {
 	}
 }
 
-func TestShouldConvertSupportedConditionOperatorTypessToSliceOfString(t *testing.T) {
+func TestShouldConvertSupportedConditionOperatorTypesToSliceOfString(t *testing.T) {
 	expectedResult := []string{string(ConditionOperatorEquals), string(ConditionOperatorNotEqual), string(ConditionOperatorLessThan), string(ConditionOperatorLessThanOrEqual), string(ConditionOperatorGreaterThan), string(ConditionOperatorGreaterThanOrEqual)}
 	result := SupportedConditionOperatorTypes.ToStringSlice()
 
 	if !cmp.Equal(result, expectedResult) {
 		t.Fatal("Expected to get slice of strings for supported condition operators")
+	}
+}
+
+func TestShouldConvertMatchingOperatorTypesToSliceOfString(t *testing.T) {
+	expectedResult := []string{string(MatchingOperatorIs), string(MatchingOperatorContains), string(MatchingOperatorStartsWith), string(MatchingOperatorEndsWith), string(MatchingOperatorNone)}
+	result := SupportedMatchingOperatorTypes.ToStringSlice()
+
+	if !cmp.Equal(result, expectedResult) {
+		t.Fatal("Expected to get slice of strings for supported matching operators")
 	}
 }

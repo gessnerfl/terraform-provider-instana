@@ -23,24 +23,27 @@ const (
 )
 
 var thresholdRuleSchemaFields = map[string]*schema.Schema{
+	CustomEventSpecificationFieldEntityType: &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "Configures the entity type of the custom event specification",
+	},
 	ThresholdRuleFieldMetricName: &schema.Schema{
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The metric name of the rule",
 	},
 	ThresholdRuleFieldRollup: &schema.Schema{
-		Type:          schema.TypeInt,
-		Required:      false,
-		Optional:      true,
-		ConflictsWith: []string{ThresholdRuleFieldWindow},
-		Description:   "The rollup of the metric",
+		Type:        schema.TypeInt,
+		Required:    false,
+		Optional:    true,
+		Description: "The rollup of the metric",
 	},
 	ThresholdRuleFieldWindow: &schema.Schema{
-		Type:          schema.TypeInt,
-		Required:      false,
-		Optional:      true,
-		ConflictsWith: []string{ThresholdRuleFieldRollup},
-		Description:   "The time window where the condition has to be fulfilled",
+		Type:        schema.TypeInt,
+		Required:    false,
+		Optional:    true,
+		Description: "The time window where the condition has to be fulfilled",
 	},
 	ThresholdRuleFieldAggregation: &schema.Schema{
 		Type:         schema.TypeString,
@@ -70,7 +73,7 @@ func CreateResourceCustomEventSpecificationWithThresholdRule() *schema.Resource 
 		Update: createUpdateCustomEventSpecificationWithThresholdRule(),
 		Delete: createDeleteCustomEventSpecificationWithThresholdRule(),
 
-		Schema:        createCustomEventSpecificationSchema(thresholdRuleSchemaFields),
+		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
 		SchemaVersion: 1,
 		MigrateState:  CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error)))),
 	}
@@ -97,17 +100,17 @@ func mapThresholdRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpec
 	if err != nil {
 		return restapi.RuleSpecification{}, err
 	}
+	metricName := d.Get(ThresholdRuleFieldMetricName).(string)
+	conditionOperator := restapi.ConditionOperatorType(d.Get(ThresholdRuleFieldConditionOperator).(string))
 	return restapi.RuleSpecification{
-		DType:                              restapi.ThresholdRuleType,
-		Severity:                           severity,
-		MetricName:                         d.Get(ThresholdRuleFieldMetricName).(string),
-		Rollup:                             GetIntPointerFromResourceData(d, ThresholdRuleFieldRollup),
-		Window:                             GetIntPointerFromResourceData(d, ThresholdRuleFieldWindow),
-		Aggregation:                        getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
-		ConditionOperator:                  restapi.ConditionOperatorType(d.Get(ThresholdRuleFieldConditionOperator).(string)),
-		ConditionValue:                     GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
-		AggregationForNonPercentileMetric:  true,
-		EitherRollupOrWindowAndAggregation: true,
+		DType:             restapi.ThresholdRuleType,
+		Severity:          severity,
+		MetricName:        &metricName,
+		Rollup:            GetIntPointerFromResourceData(d, ThresholdRuleFieldRollup),
+		Window:            GetIntPointerFromResourceData(d, ThresholdRuleFieldWindow),
+		Aggregation:       getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
+		ConditionOperator: &conditionOperator,
+		ConditionValue:    GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
 	}, nil
 }
 

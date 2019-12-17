@@ -40,7 +40,7 @@ type TerraformSchemaAssert interface {
 	//AssertSchemaIsRequiredAndOfTypeListOfStrings checks if the given schema field is required and of type list of string
 	AssertSchemaIsRequiredAndOfTypeListOfStrings(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeListOfStrings checks if the given schema field is required and of type list of string
-	AssertSChemaIsOptionalAndOfTypeListOfStrings(fieldName string)
+	AssertSchemaIsOptionalAndOfTypeListOfStrings(fieldName string)
 	//AssertSchemaIsComputedAndOfTypeString checks if the given schema field is computed and of type string
 	AssertSchemaIsComputedAndOfTypeString(fieldName string)
 }
@@ -127,7 +127,7 @@ func (inst *terraformSchemaAssertImpl) assertSchemaIsOfType(s *schema.Schema, da
 	}
 }
 
-func (inst *terraformSchemaAssertImpl) AssertSChemaIsOptionalAndOfTypeListOfStrings(schemaField string) {
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeListOfStrings(schemaField string) {
 	s := inst.schemaMap[schemaField]
 	if s == nil {
 		inst.t.Fatalf(ExpectedNoErrorButGotMessage, schemaField)

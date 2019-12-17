@@ -16,6 +16,7 @@ Changes Log: **[CHANGELOG.md](https://github.com/gessnerfl/terraform-provider-in
       - [Event Settings](#event-settings)
         - [Custom Event Specification](#custom-event-specification)
           - [Custom Event Specification with System Rules](#custom-event-specification-with-system-rules)
+          - [Custom Event Specification with Entity Verification Rules](#custom-event-specification-with-entity-verification-rules)
           - [Custom Event Specification with Threshold Rules](#custom-event-specification-with-threshold-rules)
       - [Settings](#settings)
         - [User Roles](#user-roles)
@@ -130,7 +131,6 @@ to the name of the custom event.
 ```hcl
 resource "instana_custom_event_spec_system_rule" "example" {
   name = "name"
-  entity_type = "entity_type"
   query = "query"
   enabled = true
   triggering = true
@@ -138,6 +138,28 @@ resource "instana_custom_event_spec_system_rule" "example" {
   expiration_time = 60000
   rule_severity = "warning"
   rule_system_rule_id = "system-rule-id"
+  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
+  downstream_broadcast_to_all_alerting_configs = true
+}
+```
+
+###### Custom Event Specification with Entity Verification Rules
+
+Entity verification rules is a specialized system rule to check for hosts which do not have matching entities running on them.
+
+```hcl
+resource "instana_custom_event_spec_entity_verification_rule" "example" {
+  name = "name"
+  query = "query"
+  enabled = true
+  triggering = true
+  description = "description"
+  expiration_time = 60000
+  rule_severity = "warning"
+  rule_matching_entity_type = "process"
+  rule_matching_operator = "is"
+  rule_matching_entity_label = "entity-label"
+  rule_offline_duration = 60000
   downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
   downstream_broadcast_to_all_alerting_configs = true
 }
