@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+const noMigrationErrorExpected = "No error expected during migration of state from version 0 to 1 but got %s"
+
 func TestShouldFailToMigrateCustomEventStateFromVersionOtherThan0ForCreatedMigrationFunction(t *testing.T) {
 	function := CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error))))
 	state := &terraform.InstanceState{}
@@ -34,7 +36,7 @@ func TestShouldSkipMigrationWhenEmptyCustomEventStateIsProvided(t *testing.T) {
 			result, err := function(i, state, &ProviderMeta{})
 
 			if err != nil {
-				t.Fatalf("No error expected during migration of state from version 0 to 1 but got %s", err)
+				t.Fatalf(noMigrationErrorExpected, err)
 			}
 
 			if result.Attributes != nil {
@@ -56,7 +58,7 @@ func TestShouldMigrateCustomEventStateAndAddFullNameWithSameValueAsNameWhenMigra
 	result, err := function(0, state, &ProviderMeta{})
 
 	if err != nil {
-		t.Fatalf("No error expected during migration of state from version 0 to 1 but got %s", err)
+		t.Fatalf(noMigrationErrorExpected, err)
 	}
 
 	if result.Attributes[CustomEventSpecificationFieldFullName] != name {
@@ -83,7 +85,7 @@ func TestShouldMigrateCustomEventStateAndApplyProvidedCustomMigrationFunction(t 
 	result, err := function(0, state, &ProviderMeta{})
 
 	if err != nil {
-		t.Fatalf("No error expected during migration of state from version 0 to 1 but got %s", err)
+		t.Fatalf(noMigrationErrorExpected, err)
 	}
 
 	if result.Attributes[testAttribute] != testString {

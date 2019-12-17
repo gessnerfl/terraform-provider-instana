@@ -455,10 +455,13 @@ func verifyCustomEventSpecificationWithEntityVerificationRuleModelAppliedToResou
 		t.Fatal("Expected EntityVerification MatchingEntityLabel to be identical")
 	}
 	if *model.Rules[0].MatchingEntityType != resourceData.Get(EntityVerificationRuleFieldMatchingEntityType).(string) {
-		t.Fatal("Expected EntityVerification MatchingEntityLabel to be identical")
+		t.Fatal("Expected EntityVerification MatchingEntityType to be identical")
 	}
 	if string(*model.Rules[0].MatchingOperator) != resourceData.Get(EntityVerificationRuleFieldMatchingOperator).(string) {
-		t.Fatal("Expected EntityVerification MatchingEntityLabel to be identical")
+		t.Fatal("Expected EntityVerification MatchingOperator to be identical")
+	}
+	if *model.Rules[0].OfflineDuration != resourceData.Get(EntityVerificationRuleFieldOfflineDuration).(int) {
+		t.Fatal("Expected EntityVerification OfflineDuration to be identical")
 	}
 }
 
