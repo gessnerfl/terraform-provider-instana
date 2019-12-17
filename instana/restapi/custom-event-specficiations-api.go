@@ -18,6 +18,8 @@ const (
 	SystemRuleType = "system"
 	//ThresholdRuleType const for RuleType of Threshold
 	ThresholdRuleType = "threshold"
+	//EntityVerificationRuleType const for RuleType of Entity Verification
+	EntityVerificationRuleType = "entity_verification"
 )
 
 //AggregationType custom type representing an aggregation of a custom event specification rule
@@ -102,12 +104,64 @@ func IsSupportedConditionOperatorType(operator ConditionOperatorType) bool {
 	return false
 }
 
+//MatchingOperatorType custom type representing a matching operator of a custom event specification rule
+type MatchingOperatorType string
+
+//MatchingOperatorTypes custom type representing a slice of MatchingOperatorType
+type MatchingOperatorTypes []MatchingOperatorType
+
+//ToStringSlice Returns the string representations fo the matching operators
+func (types MatchingOperatorTypes) ToStringSlice() []string {
+	result := make([]string, len(types))
+	for i, v := range types {
+		result[i] = string(v)
+	}
+	return result
+}
+
+const (
+	//MatchingOperatorIS const for IS condition operator
+	MatchingOperatorIS = MatchingOperatorType("IS")
+	//MatchingOperatorContains const for CONTAINS condition operator
+	MatchingOperatorContains = MatchingOperatorType("CONTAINS")
+	//MatchingOperatorStartsWith const for STARTS_WITH condition operator
+	MatchingOperatorStartsWith = MatchingOperatorType("STARTS_WITH")
+	//MatchingOperatorEndsWith const for ENDS_WITH condition operator
+	MatchingOperatorEndsWith = MatchingOperatorType("ENDS_WITH")
+	//MatchingOperatorNone const for NONE condition operator
+	MatchingOperatorNone = MatchingOperatorType("NONE")
+)
+
+//SupportedMatchingOperatorTypes slice of supported matching operatorTypes types
+var SupportedMatchingOperatorTypes = MatchingOperatorTypes{MatchingOperatorIS, MatchingOperatorContains, MatchingOperatorStartsWith, MatchingOperatorEndsWith, MatchingOperatorNone}
+
+//IsSupportedMatchingOperatorType check if the provided matching operator type is supported
+func IsSupportedMatchingOperatorType(operator MatchingOperatorType) bool {
+	for _, v := range SupportedMatchingOperatorTypes {
+		if v == operator {
+			return true
+		}
+	}
+	return false
+}
+
 //NewSystemRuleSpecification creates a new instance of System Rule
 func NewSystemRuleSpecification(systemRuleID string, severity int) RuleSpecification {
 	return RuleSpecification{
 		DType:        SystemRuleType,
 		SystemRuleID: &systemRuleID,
 		Severity:     severity,
+	}
+}
+
+//NewEntityVerificationRuleSpecification creates a new instance of Entity Verification Rule
+func NewEntityVerificationRuleSpecification(matchingEntityLabel string, matchingEntityType string, matchingOperator MatchingOperatorType, severity int) RuleSpecification {
+	return RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &matchingEntityLabel,
+		MatchingEntityType:  &matchingEntityType,
+		MatchingOperator:    &matchingOperator,
+		Severity:            severity,
 	}
 }
 
@@ -127,19 +181,26 @@ type RuleSpecification struct {
 	Aggregation       *AggregationType       `json:"aggregation"`
 	ConditionOperator *ConditionOperatorType `json:"conditionOperator"`
 	ConditionValue    *float64               `json:"conditionValue"`
+
+	//Entity Verification Rule
+	MatchingEntityLabel *string               `json:"matchingEntityLabel"`
+	MatchingEntityType  *string               `json:"matchingEntityType"`
+	MatchingOperator    *MatchingOperatorType `json:"matchingOperator"`
 }
 
 //Validate Rule interface implementation for SystemRule
 func (r *RuleSpecification) Validate() error {
 	if len(r.DType) == 0 {
-		return errors.New("type of system rule is missing")
+		return errors.New("type of rule is missing")
 	}
 	if r.DType == SystemRuleType {
 		return r.validateSystemRule()
 	} else if r.DType == ThresholdRuleType {
 		return r.validateThresholdRule()
+	} else if r.DType == EntityVerificationRuleType {
+		return r.validateEntityVerificationRule()
 	}
-	return nil
+	return errors.New("Unsupported rule type " + string(r.DType))
 }
 
 func (r *RuleSpecification) validateSystemRule() error {
@@ -165,6 +226,19 @@ func (r *RuleSpecification) validateThresholdRule() error {
 		return errors.New("condition operator of threshold rule is missing or not valid")
 	}
 
+	return nil
+}
+
+func (r *RuleSpecification) validateEntityVerificationRule() error {
+	if r.MatchingEntityLabel == nil || len(*r.MatchingEntityLabel) == 0 {
+		return errors.New("matching entity label of entity verification rule is missing")
+	}
+	if r.MatchingEntityType == nil || len(*r.MatchingEntityType) == 0 {
+		return errors.New("matching entity type of entity verification rule is missing")
+	}
+	if r.MatchingOperator == nil || !IsSupportedMatchingOperatorType(*r.MatchingOperator) {
+		return errors.New("matching operator of entity verification rule is missing or not valid")
+	}
 	return nil
 }
 

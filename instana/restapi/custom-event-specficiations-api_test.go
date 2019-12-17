@@ -25,6 +25,9 @@ const (
 	customEventConditionOperator = ConditionOperatorEquals
 	customEventConditionValue    = 1.2
 
+	customEventMatchingEntityLabel = "custom-event-matching-entity-label"
+	customEventMatchingEntityType  = "custom-event-matching-entity-type"
+
 	valueInvalid = "invalid"
 
 	messagePartExactlyOneRule    = "exactly one rule"
@@ -152,7 +155,20 @@ func TestFailToValidateCustemEventSpecificationWhenMultipleRulesAreProvided(t *t
 	}
 
 	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartExactlyOneRule) {
-		t.Fatal("Expected validate to fail as no id of the second system rule is not provided")
+		t.Fatal("Expected validation to fail as multiple rules are provided")
+	}
+}
+
+func TestFailToValidateCustemEventSpecificationWhenRuleTypeIsNotSupported(t *testing.T) {
+	spec := CustomEventSpecification{
+		ID:         customEventID,
+		Name:       customEventName,
+		EntityType: customEventEntityType,
+		Rules:      []RuleSpecification{RuleSpecification{DType: "invalid"}},
+	}
+
+	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "Unsupported rule type") {
+		t.Fatal("Expected validation to fail as rule type is not supported")
 	}
 }
 
@@ -204,7 +220,7 @@ func TestShouldFailToValidateSystemRuleWhenRuleTypeIsMissing(t *testing.T) {
 	systemRuleId := customEventSystemRuleID
 	rule := RuleSpecification{SystemRuleID: &systemRuleId}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "type of system rule") {
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "type of rule") {
 		t.Fatal("Expected to fail to validate system rule as no system rule id is provided")
 	}
 }
@@ -501,6 +517,113 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 	}
 }
 
+func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsAreProvided(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIS
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		Severity:            SeverityWarning.GetAPIRepresentation(),
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+	}
+
+	if err := rule.Validate(); err != nil {
+		t.Fatal("Expected to successfully validate entity verification rule")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsMissing(t *testing.T) {
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIS
+	rule := RuleSpecification{
+		DType:              EntityVerificationRuleType,
+		MatchingEntityType: &entityType,
+		MatchingOperator:   &operator,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity label") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching entity label is missing")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsBlank(t *testing.T) {
+	entityLabel := ""
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIS
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity label") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching entity label is blank")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsMissing(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	operator := MatchingOperatorIS
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingOperator:    &operator,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity type") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching entity type is blank")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsBlank(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := ""
+	operator := MatchingOperatorIS
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity type") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching entity type is blank")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOperatorIsMissing(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityType:  &entityType,
+		MatchingEntityLabel: &entityLabel,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching operator is missing")
+	}
+}
+
+func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOpertatorIsNotSupported(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorType("Invalid")
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+	}
+
+	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
+		t.Fatal("Expected to fail to validate entity verification rule as matching operator is not supported")
+	}
+}
+
 func TestShouldConvertSupportedAggregationTypesToSliceOfString(t *testing.T) {
 	expectedResult := []string{string(AggregationSum), string(AggregationAvg), string(AggregationMin), string(AggregationMax)}
 	result := SupportedAggregationTypes.ToStringSlice()
@@ -510,11 +633,20 @@ func TestShouldConvertSupportedAggregationTypesToSliceOfString(t *testing.T) {
 	}
 }
 
-func TestShouldConvertSupportedConditionOperatorTypessToSliceOfString(t *testing.T) {
+func TestShouldConvertSupportedConditionOperatorTypesToSliceOfString(t *testing.T) {
 	expectedResult := []string{string(ConditionOperatorEquals), string(ConditionOperatorNotEqual), string(ConditionOperatorLessThan), string(ConditionOperatorLessThanOrEqual), string(ConditionOperatorGreaterThan), string(ConditionOperatorGreaterThanOrEqual)}
 	result := SupportedConditionOperatorTypes.ToStringSlice()
 
 	if !cmp.Equal(result, expectedResult) {
 		t.Fatal("Expected to get slice of strings for supported condition operators")
+	}
+}
+
+func TestShouldConvertMatchingOperatorTypesToSliceOfString(t *testing.T) {
+	expectedResult := []string{string(MatchingOperatorIS), string(MatchingOperatorContains), string(MatchingOperatorStartsWith), string(MatchingOperatorEndsWith), string(MatchingOperatorNone)}
+	result := SupportedMatchingOperatorTypes.ToStringSlice()
+
+	if !cmp.Equal(result, expectedResult) {
+		t.Fatal("Expected to get slice of strings for supported matching operators")
 	}
 }
