@@ -17,6 +17,9 @@ const EventSettingsBasePath = EventsBasePath + settingsPathElement
 //EventSpecificationBasePath path to Event Specification settings of Instana RESTful API
 const EventSpecificationBasePath = EventSettingsBasePath + "/event-specifications"
 
+//AlertingChannelsResourcePath path to Alerting channels resource of Instana RESTful API
+const AlertingChannelsResourcePath = EventSettingsBasePath + "/alertingChannels"
+
 //CustomEventSpecificationResourcePath path to Custom Event Specification settings resource of Instana RESTful API
 const CustomEventSpecificationResourcePath = EventSpecificationBasePath + "/custom"
 
