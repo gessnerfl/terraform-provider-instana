@@ -211,7 +211,7 @@ func (r AlertingChannel) validateVictorOpsIntegration() error {
 
 func (r AlertingChannel) validateGenericWebHookIntegration() error {
 	if len(r.WebhookURLs) == 0 {
-		return errors.New("Email addresses are missing")
+		return errors.New("Webhook URLs are missing")
 	}
 	return nil
 }

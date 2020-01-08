@@ -16,9 +16,12 @@ const (
 	apiKeyFieldValue                = "apiKey"
 	tagsFieldValue                  = "tag1, tag2"
 	serviceIntegrationKeyFieldValue = "serviceIntegrationKey"
+	urlFieldValue                   = "urlFieldValue"
+	tokenFieldValue                 = "tokenFieldValue"
+	routingKeyFieldValue            = "routingKeyFieldValue"
 )
 
-func TestShouldSuccussullyValididateConsistentEmailAlteringChannel(t *testing.T) {
+func TestShouldSuccussullyValidateConsistentEmailAlteringChannel(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		ID:     idFieldValue,
 		Name:   nameFieldValue,
@@ -31,7 +34,7 @@ func TestShouldSuccussullyValididateConsistentEmailAlteringChannel(t *testing.T)
 	}
 }
 
-func TestShouldFailToValididateAlteringChannelWhenIdIsMissing(t *testing.T) {
+func TestShouldFailToValidateAlteringChannelWhenIdIsMissing(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		Name:   nameFieldValue,
 		Kind:   EmailChannelType,
@@ -43,7 +46,7 @@ func TestShouldFailToValididateAlteringChannelWhenIdIsMissing(t *testing.T) {
 	}
 }
 
-func TestShouldFailToValididateAlteringChannelWhenIdIsBlank(t *testing.T) {
+func TestShouldFailToValidateAlteringChannelWhenIdIsBlank(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		ID:     " ",
 		Name:   nameFieldValue,
@@ -56,7 +59,7 @@ func TestShouldFailToValididateAlteringChannelWhenIdIsBlank(t *testing.T) {
 	}
 }
 
-func TestShouldFailToValididateAlteringChannelWhenNameIsMissing(t *testing.T) {
+func TestShouldFailToValidateAlteringChannelWhenNameIsMissing(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		ID:     idFieldValue,
 		Kind:   EmailChannelType,
@@ -68,7 +71,7 @@ func TestShouldFailToValididateAlteringChannelWhenNameIsMissing(t *testing.T) {
 	}
 }
 
-func TestShouldFailToValididateAlteringChannelWhenNameIsBlank(t *testing.T) {
+func TestShouldFailToValidateAlteringChannelWhenNameIsBlank(t *testing.T) {
 	name := " "
 	alertingChannel := AlertingChannel{
 		ID:     idFieldValue,
@@ -82,7 +85,7 @@ func TestShouldFailToValididateAlteringChannelWhenNameIsBlank(t *testing.T) {
 	}
 }
 
-func TestShouldFailToValididateAlteringChannelWhenKindIsMissing(t *testing.T) {
+func TestShouldFailToValidateAlteringChannelWhenKindIsMissing(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		ID:     idFieldValue,
 		Name:   nameFieldValue,
@@ -94,7 +97,7 @@ func TestShouldFailToValididateAlteringChannelWhenKindIsMissing(t *testing.T) {
 	}
 }
 
-func TestShouldFailToValididateAlteringChannelWhenKindIsNotValid(t *testing.T) {
+func TestShouldFailToValidateAlteringChannelWhenKindIsNotValid(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		ID:     idFieldValue,
 		Name:   nameFieldValue,
@@ -106,7 +109,7 @@ func TestShouldFailToValididateAlteringChannelWhenKindIsNotValid(t *testing.T) {
 		t.Fatal("Expected validate to fail as kind is not valid")
 	}
 }
-func TestShouldFailToValididateEmailAlteringChannelWhenNoEmailIsProvided(t *testing.T) {
+func TestShouldFailToValidateEmailAlteringChannelWhenNoEmailIsProvided(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		ID:     idFieldValue,
 		Name:   nameFieldValue,
@@ -119,9 +122,9 @@ func TestShouldFailToValididateEmailAlteringChannelWhenNoEmailIsProvided(t *test
 	}
 }
 
-func TestShouldSuccussullyValididateConsistentWebhhokBasedAlteringChannel(t *testing.T) {
+func TestShouldSuccussullyValidateConsistentWebhhokBasedAlteringChannel(t *testing.T) {
 	for _, channelType := range []AlertingChannelType{GoogleChatChannelType, Office365ChannelType, SlackChannelType} {
-		t.Run(fmt.Sprintf("TestShouldSuccussullyValididateConsistentWebhhokBasedAlteringChannel%s", channelType), func(t *testing.T) {
+		t.Run(fmt.Sprintf("TestShouldSuccussullyValidateConsistentWebhhokBasedAlteringChannel%s", channelType), func(t *testing.T) {
 			webhookURL := "https://my-webhook.example.com"
 			alertingChannel := AlertingChannel{
 				ID:         idFieldValue,
@@ -137,9 +140,9 @@ func TestShouldSuccussullyValididateConsistentWebhhokBasedAlteringChannel(t *tes
 	}
 }
 
-func TestShouldFailToValididateWebhhokBasedAlteringChannelWhenWebhookUrlIsMissing(t *testing.T) {
+func TestShouldFailToValidateWebhhokBasedAlteringChannelWhenWebhookUrlIsMissing(t *testing.T) {
 	for _, channelType := range []AlertingChannelType{GoogleChatChannelType, Office365ChannelType, SlackChannelType} {
-		t.Run(fmt.Sprintf("TestShouldFailToValididateWebhhokBasedAlteringChannel%sWhenWebhookUrlIsMissing", channelType), func(t *testing.T) {
+		t.Run(fmt.Sprintf("TestShouldFailToValidateWebhhokBasedAlteringChannel%sWhenWebhookUrlIsMissing", channelType), func(t *testing.T) {
 			alertingChannel := AlertingChannel{
 				ID:   idFieldValue,
 				Name: nameFieldValue,
@@ -153,9 +156,9 @@ func TestShouldFailToValididateWebhhokBasedAlteringChannelWhenWebhookUrlIsMissin
 	}
 }
 
-func TestShouldFailToValididateWebhhokBasedAlteringChannelWhenWebhookUrlIsBlank(t *testing.T) {
+func TestShouldFailToValidateWebhhokBasedAlteringChannelWhenWebhookUrlIsBlank(t *testing.T) {
 	for _, channelType := range []AlertingChannelType{GoogleChatChannelType, Office365ChannelType, SlackChannelType} {
-		t.Run(fmt.Sprintf("TestShouldFailToValididateWebhhokBasedAlteringChannel%sWhenWebhookUrlIsBlank", channelType), func(t *testing.T) {
+		t.Run(fmt.Sprintf("TestShouldFailToValidateWebhhokBasedAlteringChannel%sWhenWebhookUrlIsBlank", channelType), func(t *testing.T) {
 			webhookURL := " "
 			alertingChannel := AlertingChannel{
 				ID:         idFieldValue,
@@ -171,7 +174,7 @@ func TestShouldFailToValididateWebhhokBasedAlteringChannelWhenWebhookUrlIsBlank(
 	}
 }
 
-func TestShouldSuccussullyValididateConsistentOpsGenieAlteringChannel(t *testing.T) {
+func TestShouldSuccussullyValidateConsistentOpsGenieAlteringChannel(t *testing.T) {
 	apiKey := apiKeyFieldValue
 	region := EuOpsGenieRegion
 	tags := tagsFieldValue
@@ -190,7 +193,7 @@ func TestShouldSuccussullyValididateConsistentOpsGenieAlteringChannel(t *testing
 	}
 }
 
-func TestShouldFailToValididateOpsGenieAlteringChannelWhenApiKeyIsMissing(t *testing.T) {
+func TestShouldFailToValidateOpsGenieAlteringChannelWhenApiKeyIsMissing(t *testing.T) {
 	region := EuOpsGenieRegion
 	tags := tagsFieldValue
 
@@ -207,7 +210,7 @@ func TestShouldFailToValididateOpsGenieAlteringChannelWhenApiKeyIsMissing(t *tes
 	}
 }
 
-func TestShouldFailToValididateOpsGenieAlteringChannelWhenApiKeyIsBlank(t *testing.T) {
+func TestShouldFailToValidateOpsGenieAlteringChannelWhenApiKeyIsBlank(t *testing.T) {
 	region := EuOpsGenieRegion
 	tags := tagsFieldValue
 	apiKey := " "
@@ -226,7 +229,7 @@ func TestShouldFailToValididateOpsGenieAlteringChannelWhenApiKeyIsBlank(t *testi
 	}
 }
 
-func TestShouldFailToValididateOpsGenieAlteringChannelWhenRegionIsMissing(t *testing.T) {
+func TestShouldFailToValidateOpsGenieAlteringChannelWhenRegionIsMissing(t *testing.T) {
 	apiKey := apiKeyFieldValue
 	tags := tagsFieldValue
 
@@ -243,7 +246,7 @@ func TestShouldFailToValididateOpsGenieAlteringChannelWhenRegionIsMissing(t *tes
 	}
 }
 
-func TestShouldFailToValididateOpsGenieAlteringChannelWhenRegionIsNotValid(t *testing.T) {
+func TestShouldFailToValidateOpsGenieAlteringChannelWhenRegionIsNotValid(t *testing.T) {
 	apiKey := apiKeyFieldValue
 	region := OpsGenieRegionType("Invalid")
 	tags := tagsFieldValue
@@ -262,7 +265,7 @@ func TestShouldFailToValididateOpsGenieAlteringChannelWhenRegionIsNotValid(t *te
 	}
 }
 
-func TestShouldFailToValididateOpsGenieAlteringChannelWhenTagsAreMissing(t *testing.T) {
+func TestShouldFailToValidateOpsGenieAlteringChannelWhenTagsAreMissing(t *testing.T) {
 	apiKey := apiKeyFieldValue
 	region := EuOpsGenieRegion
 
@@ -279,7 +282,7 @@ func TestShouldFailToValididateOpsGenieAlteringChannelWhenTagsAreMissing(t *test
 	}
 }
 
-func TestShouldFailToValididateOpsGenieAlteringChannelWhenTagsAreBlank(t *testing.T) {
+func TestShouldFailToValidateOpsGenieAlteringChannelWhenTagsAreBlank(t *testing.T) {
 	apiKey := apiKeyFieldValue
 	region := EuOpsGenieRegion
 	tags := " "
@@ -298,7 +301,7 @@ func TestShouldFailToValididateOpsGenieAlteringChannelWhenTagsAreBlank(t *testin
 	}
 }
 
-func TestShouldSuccussullyValididateConsistentPagerDutyAlteringChannel(t *testing.T) {
+func TestShouldSuccussullyValidateConsistentPagerDutyAlteringChannel(t *testing.T) {
 	integrationId := serviceIntegrationKeyFieldValue
 
 	alertingChannel := AlertingChannel{
@@ -313,7 +316,7 @@ func TestShouldSuccussullyValididateConsistentPagerDutyAlteringChannel(t *testin
 	}
 }
 
-func TestShouldFailToValididatePagerDutyAlteringChannelWhenServiceIntegrationKeyIsMissing(t *testing.T) {
+func TestShouldFailToValidatePagerDutyAlteringChannelWhenServiceIntegrationKeyIsMissing(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		ID:   idFieldValue,
 		Name: nameFieldValue,
@@ -321,11 +324,11 @@ func TestShouldFailToValididatePagerDutyAlteringChannelWhenServiceIntegrationKey
 	}
 
 	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Service integration key") {
-		t.Fatal("Expected validate to fail as API key is missing")
+		t.Fatal("Expected validate to fail as service integration key is missing")
 	}
 }
 
-func TestShouldFailToValididatePagerdutyAlteringChannelWhenServiceIntegrationKeyIsBlank(t *testing.T) {
+func TestShouldFailToValidatePagerdutyAlteringChannelWhenServiceIntegrationKeyIsBlank(t *testing.T) {
 	integrationId := "  "
 
 	alertingChannel := AlertingChannel{
@@ -336,6 +339,207 @@ func TestShouldFailToValididatePagerdutyAlteringChannelWhenServiceIntegrationKey
 	}
 
 	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Service integration key") {
-		t.Fatal("Expected validate to fail as API key is missing")
+		t.Fatal("Expected validate to fail as service integration key is missing")
+	}
+}
+
+func TestShouldSuccussullyValidateConsistentSplunkAlteringChannel(t *testing.T) {
+	url := urlFieldValue
+	token := tokenFieldValue
+
+	alertingChannel := AlertingChannel{
+		ID:    idFieldValue,
+		Name:  nameFieldValue,
+		Kind:  SplunkChannelType,
+		URL:   &url,
+		Token: &token,
+	}
+
+	if err := alertingChannel.Validate(); err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+}
+
+func TestShouldFailToValidateSplunkAlteringChannelWhenUrlIsMissing(t *testing.T) {
+	token := tokenFieldValue
+
+	alertingChannel := AlertingChannel{
+		ID:    idFieldValue,
+		Name:  nameFieldValue,
+		Kind:  SplunkChannelType,
+		Token: &token,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "URL") {
+		t.Fatal("Expected validate to fail as URL is missing")
+	}
+}
+
+func TestShouldFailToValidateSplunkAlteringChannelWhenUrlIsBlank(t *testing.T) {
+	url := " "
+	token := tokenFieldValue
+
+	alertingChannel := AlertingChannel{
+		ID:    idFieldValue,
+		Name:  nameFieldValue,
+		Kind:  SplunkChannelType,
+		URL:   &url,
+		Token: &token,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "URL") {
+		t.Fatal("Expected validate to fail as URL is missing")
+	}
+}
+
+func TestShouldFailToValidateSplunkAlteringChannelWhenTokenIsMissing(t *testing.T) {
+	url := urlFieldValue
+
+	alertingChannel := AlertingChannel{
+		ID:   idFieldValue,
+		Name: nameFieldValue,
+		Kind: SplunkChannelType,
+		URL:  &url,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Token") {
+		t.Fatal("Expected validate to fail as token is missing")
+	}
+}
+
+func TestShouldFailToValidateSplunkAlteringChannelWhenTokenIsBlank(t *testing.T) {
+	url := urlFieldValue
+	token := " "
+
+	alertingChannel := AlertingChannel{
+		ID:    idFieldValue,
+		Name:  nameFieldValue,
+		Kind:  SplunkChannelType,
+		URL:   &url,
+		Token: &token,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Token") {
+		t.Fatal("Expected validate to fail as token is missing")
+	}
+}
+
+func TestShouldSuccussullyValidateConsistentVictorOpsAlteringChannel(t *testing.T) {
+	apiKey := apiKeyFieldValue
+	routingKey := routingKeyFieldValue
+
+	alertingChannel := AlertingChannel{
+		ID:         idFieldValue,
+		Name:       nameFieldValue,
+		Kind:       VictorOpsChannelType,
+		APIKey:     &apiKey,
+		RoutingKey: &routingKey,
+	}
+
+	if err := alertingChannel.Validate(); err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+}
+
+func TestShouldFailToValidateVictorOpsAlteringChannelWhenApiKeyIsMissing(t *testing.T) {
+	routingKey := routingKeyFieldValue
+
+	alertingChannel := AlertingChannel{
+		ID:         idFieldValue,
+		Name:       nameFieldValue,
+		Kind:       VictorOpsChannelType,
+		RoutingKey: &routingKey,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "API Key") {
+		t.Fatal("Expected validate to fail as API Key is missing")
+	}
+}
+
+func TestShouldFailToValidateVictorOpsAlteringChannelWhenApiKeyIsBlank(t *testing.T) {
+	apiKey := " "
+	routingKey := routingKeyFieldValue
+
+	alertingChannel := AlertingChannel{
+		ID:         idFieldValue,
+		Name:       nameFieldValue,
+		Kind:       VictorOpsChannelType,
+		APIKey:     &apiKey,
+		RoutingKey: &routingKey,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "API Key") {
+		t.Fatal("Expected validate to fail as API Key is missing")
+	}
+}
+
+func TestShouldFailToValidateVictorOpsAlteringChannelWhenRoutingKeyIsMissing(t *testing.T) {
+	apiKey := apiKeyFieldValue
+
+	alertingChannel := AlertingChannel{
+		ID:     idFieldValue,
+		Name:   nameFieldValue,
+		Kind:   VictorOpsChannelType,
+		APIKey: &apiKey,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Routing Key") {
+		t.Fatal("Expected validate to fail as Routing Key is missing")
+	}
+}
+
+func TestShouldFailToValidateVictorOpsAlteringChannelWhenRoutingKeyIsBlank(t *testing.T) {
+	apiKey := apiKeyFieldValue
+	routingKey := " "
+
+	alertingChannel := AlertingChannel{
+		ID:         idFieldValue,
+		Name:       nameFieldValue,
+		Kind:       VictorOpsChannelType,
+		APIKey:     &apiKey,
+		RoutingKey: &routingKey,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Routing Key") {
+		t.Fatal("Expected validate to fail as Routing Key is missing")
+	}
+}
+
+func TestShouldSuccussullyValidateConsistentMinimalGenericWebhookAlteringChannel(t *testing.T) {
+	alertingChannel := AlertingChannel{
+		ID:          idFieldValue,
+		Name:        nameFieldValue,
+		Kind:        WebhookChannelType,
+		WebhookURLs: []string{"url"},
+	}
+
+	if err := alertingChannel.Validate(); err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+}
+
+func TestShouldSuccussullyValidateConsistentFullGenericWebhookAlteringChannel(t *testing.T) {
+	alertingChannel := AlertingChannel{
+		ID:          idFieldValue,
+		Name:        nameFieldValue,
+		Kind:        WebhookChannelType,
+		WebhookURLs: []string{"url1", "url2"},
+		Headers:     []string{"key1: value1", "key2: value2"},
+	}
+
+	if err := alertingChannel.Validate(); err != nil {
+		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
+	}
+}
+
+func TestShouldFailToValidateGenericWebhookAlteringChannelWhenNoWebhookUrlIsProvided(t *testing.T) {
+	alertingChannel := AlertingChannel{
+		ID:   idFieldValue,
+		Name: nameFieldValue,
+		Kind: WebhookChannelType,
+	}
+
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Webhook URLs") {
+		t.Fatal("Expected validate to fail as Webhook URLs are missing")
 	}
 }
