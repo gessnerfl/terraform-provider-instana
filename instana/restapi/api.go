@@ -69,6 +69,14 @@ type RestClient interface {
 	Delete(resourceID string, resourceBasePath string) error
 }
 
+//RestResource interface definition of a instana REST resource.
+type RestResource interface {
+	GetOne(id string) (InstanaDataObject, error)
+	Upsert(data InstanaDataObject) (InstanaDataObject, error)
+	Delete(data InstanaDataObject) error
+	DeleteByID(id string) error
+}
+
 //InstanaAPI is the interface to all resources of the Instana Rest API
 type InstanaAPI interface {
 	CustomEventSpecifications() CustomEventSpecificationResource

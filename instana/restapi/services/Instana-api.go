@@ -1,7 +1,9 @@
 package services
 
-import "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-import "github.com/gessnerfl/terraform-provider-instana/instana/restapi/resources"
+import (
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi/resources"
+)
 
 //NewInstanaAPI creates a new instance of the instana API
 func NewInstanaAPI(apiToken string, endpoint string) restapi.InstanaAPI {
