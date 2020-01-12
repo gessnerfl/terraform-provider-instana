@@ -39,6 +39,9 @@ const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_eve
 //ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
 const ResourceInstanaCustomEventSpecificationEntityVerificationRule = "instana_custom_event_spec_entity_verification_rule"
 
+//ResourceInstanaAlertingChannelEmail the name of the terraform-provider-instana resource to manage alerting channels of type email
+const ResourceInstanaAlertingChannelEmail = "instana_alerting_channel_email"
+
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
@@ -58,6 +61,7 @@ func providerSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		SchemaFieldAPIToken: &schema.Schema{
 			Type:        schema.TypeString,
+			Sensitive:   true,
 			Required:    true,
 			Description: "API token used to authenticate with the Instana Backend",
 		},
@@ -88,6 +92,7 @@ func providerResources() map[string]*schema.Resource {
 		ResourceInstanaCustomEventSpecificationSystemRule:             CreateResourceCustomEventSpecificationWithSystemRule(),
 		ResourceInstanaCustomEventSpecificationThresholdRule:          CreateResourceCustomEventSpecificationWithThresholdRule(),
 		ResourceInstanaCustomEventSpecificationEntityVerificationRule: CreateResourceCustomEventSpecificationWithEntityVerificationRule(),
+		ResourceInstanaAlertingChannelEmail:                           CreateResourceAlertingChannelEmail(),
 	}
 }
 

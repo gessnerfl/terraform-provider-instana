@@ -193,3 +193,17 @@ func (mr *MockInstanaAPIMockRecorder) ApplicationConfigs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplicationConfigs", reflect.TypeOf((*MockInstanaAPI)(nil).ApplicationConfigs))
 }
+
+// AlertingChannels mocks base method
+func (m *MockInstanaAPI) AlertingChannels() restapi.AlertingChannelResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AlertingChannels")
+	ret0, _ := ret[0].(restapi.AlertingChannelResource)
+	return ret0
+}
+
+// AlertingChannels indicates an expected call of AlertingChannels
+func (mr *MockInstanaAPIMockRecorder) AlertingChannels() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlertingChannels", reflect.TypeOf((*MockInstanaAPI)(nil).AlertingChannels))
+}

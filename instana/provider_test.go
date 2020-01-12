@@ -44,7 +44,7 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	if len(resourceMap) != 5 {
+	if len(resourceMap) != 6 {
 		t.Fatal("Expected 5 resources to be configured")
 	}
 
@@ -62,6 +62,9 @@ func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T)
 	}
 	if resourceMap[ResourceInstanaCustomEventSpecificationEntityVerificationRule] == nil {
 		t.Fatal("Expected a resources to be configured for instana custom event specification entity verification rule")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelEmail] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel email")
 	}
 }
 

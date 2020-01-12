@@ -27,3 +27,8 @@ func (api baseInstanaAPI) UserRoles() restapi.UserRoleResource {
 func (api baseInstanaAPI) ApplicationConfigs() restapi.ApplicationConfigResource {
 	return resources.NewApplicationConfigResource(api.client)
 }
+
+//AlertingChannels implementation of InstanaAPI interface
+func (api baseInstanaAPI) AlertingChannels() restapi.AlertingChannelResource {
+	return resources.NewAlertingChannelResource(api.client)
+}

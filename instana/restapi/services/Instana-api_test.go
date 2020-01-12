@@ -27,4 +27,10 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 			t.Fatal("Expected instance of ApplicationConfigResource to be returned")
 		}
 	})
+	t.Run("Should return AlertingChannelResource instance", func(t *testing.T) {
+		alertingChannelResource := api.AlertingChannels()
+		if alertingChannelResource == nil {
+			t.Fatal("Expected instance of AlertingChannelResource to be returned")
+		}
+	})
 }
