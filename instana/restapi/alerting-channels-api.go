@@ -6,14 +6,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
-//AlertingChannelResource represents the REST resource of an alerting channel at Instana
-type AlertingChannelResource interface {
-	GetOne(id string) (AlertingChannel, error)
-	Upsert(channel AlertingChannel) (AlertingChannel, error)
-	Delete(channel AlertingChannel) error
-	DeleteByID(channelID string) error
-}
-
 //AlertingChannelType type of the alerting channel
 type AlertingChannelType string
 

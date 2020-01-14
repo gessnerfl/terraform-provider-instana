@@ -1,14 +1,11 @@
 package instana_test
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -16,7 +13,6 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
@@ -98,22 +94,9 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 }
 
 func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
-	resource := CreateResourceAlertingChannelEmail()
+	resource := NewAlertingChannelEmailResourceHandle()
 
-	validateAlertingChannelEmailResourceSchema(resource.Schema, t)
-
-	if resource.Create == nil {
-		t.Fatal("Create function expected")
-	}
-	if resource.Update == nil {
-		t.Fatal("Update function expected")
-	}
-	if resource.Read == nil {
-		t.Fatal("Read function expected")
-	}
-	if resource.Delete == nil {
-		t.Fatal("Delete function expected")
-	}
+	validateAlertingChannelEmailResourceSchema(resource.GetSchema(), t)
 }
 
 func validateAlertingChannelEmailResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
@@ -121,201 +104,4 @@ func validateAlertingChannelEmailResourceSchema(schemaMap map[string]*schema.Sch
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelEmailFieldEmails)
-}
-
-func TestShouldSuccessfullyReadAlertingChannelEmailFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
-	expectedModel := createTestAlertingChannelEmailModel()
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyAlertingChannelEmailResourceData()
-		resourceData.SetId(alertingChannelEmailID)
-		mockAlertingChannelEmailApi := mocks.NewMockAlertingChannelResource(ctrl)
-
-		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockAlertingChannelEmailApi).Times(1)
-		mockAlertingChannelEmailApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(expectedModel, nil).Times(1)
-
-		err := ReadAlertingChannelEmail(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyAlertingChannelEmailModelAppliedToResource(expectedModel, resourceData, t)
-	})
-}
-
-func TestShouldFailToReadAlertingChannelEmailFromInstanaAPIWhenIDIsMissing(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyAlertingChannelEmailResourceData()
-
-		err := ReadAlertingChannelEmail(resourceData, providerMeta)
-
-		if err == nil || !strings.HasPrefix(err.Error(), "ID of alerting channel email") {
-			t.Fatal("Expected error to occur because of missing id")
-		}
-	})
-}
-
-func TestShouldFailToReadAlertingChannelEmailFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyAlertingChannelEmailResourceData()
-		resourceData.SetId(alertingChannelEmailID)
-		mockAlertingChannelEmailApi := mocks.NewMockAlertingChannelResource(ctrl)
-
-		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockAlertingChannelEmailApi).Times(1)
-		mockAlertingChannelEmailApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(restapi.AlertingChannel{}, restapi.ErrEntityNotFound).Times(1)
-
-		err := ReadAlertingChannelEmail(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldFailToReadAlertingChannelEmailFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyAlertingChannelEmailResourceData()
-		resourceData.SetId(alertingChannelEmailID)
-		expectedError := errors.New("test")
-		mockAlertingChannelEmailApi := mocks.NewMockAlertingChannelResource(ctrl)
-
-		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockAlertingChannelEmailApi).Times(1)
-		mockAlertingChannelEmailApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(restapi.AlertingChannel{}, expectedError).Times(1)
-
-		err := ReadAlertingChannelEmail(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error should be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID should still be set")
-		}
-	})
-}
-
-func TestShouldCreateAlertingChannelEmailThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createTestAlertingChannelEmailData()
-		resourceData := testHelper.CreateAlertingChannelEmailResourceData(data)
-		expectedModel := createTestAlertingChannelEmailModel()
-		mockAlertingChannelEmailApi := mocks.NewMockAlertingChannelResource(ctrl)
-
-		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockAlertingChannelEmailApi).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockAlertingChannelEmailApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
-
-		err := CreateAlertingChannelEmail(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyAlertingChannelEmailModelAppliedToResource(expectedModel, resourceData, t)
-	})
-}
-
-func TestShouldReturnErrorWhenCreateAlertingChannelEmailFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createTestAlertingChannelEmailData()
-		resourceData := testHelper.CreateAlertingChannelEmailResourceData(data)
-		expectedError := errors.New("test")
-		mockAlertingChannelEmailApi := mocks.NewMockAlertingChannelResource(ctrl)
-
-		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockAlertingChannelEmailApi).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockAlertingChannelEmailApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(restapi.AlertingChannel{}, expectedError).Times(1)
-
-		err := CreateAlertingChannelEmail(resourceData, providerMeta)
-
-		if err == nil || expectedError != err {
-			t.Fatal("Expected definned error to be returned")
-		}
-	})
-}
-
-func TestShouldDeleteAlertingChannelEmailThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		id := "test-id"
-		data := createTestAlertingChannelEmailData()
-		resourceData := testHelper.CreateAlertingChannelEmailResourceData(data)
-		resourceData.SetId(id)
-		mockAlertingChannelEmailApi := mocks.NewMockAlertingChannelResource(ctrl)
-
-		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockAlertingChannelEmailApi).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockAlertingChannelEmailApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
-
-		err := DeleteAlertingChannelEmail(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenDeleteAlertingChannelEmailFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		id := "test-id"
-		data := createTestAlertingChannelEmailData()
-		resourceData := testHelper.CreateAlertingChannelEmailResourceData(data)
-		resourceData.SetId(id)
-		expectedError := errors.New("test")
-		mockAlertingChannelEmailApi := mocks.NewMockAlertingChannelResource(ctrl)
-
-		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockAlertingChannelEmailApi).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockAlertingChannelEmailApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
-
-		err := DeleteAlertingChannelEmail(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error to be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
-		}
-	})
-}
-
-func verifyAlertingChannelEmailModelAppliedToResource(model restapi.AlertingChannel, resourceData *schema.ResourceData, t *testing.T) {
-	if model.ID != resourceData.Id() {
-		t.Fatal("Expected ID to be identical")
-	}
-	if model.Name != resourceData.Get(AlertingChannelFieldFullName).(string) {
-		t.Fatal("Expected Full Name to match Name of API")
-	}
-	if !cmp.Equal(model.Emails, ReadStringArrayParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)) {
-		t.Fatal("Expected Emails to be identical")
-	}
-}
-
-func createTestAlertingChannelEmailModel() restapi.AlertingChannel {
-	return restapi.AlertingChannel{
-		ID:     "id",
-		Name:   "name",
-		Emails: []string{"Email1", "Email2"},
-	}
-}
-
-func createTestAlertingChannelEmailData() map[string]interface{} {
-	emails := make([]interface{}, 2)
-	emails[0] = "Email1"
-	emails[1] = "Email2"
-
-	data := make(map[string]interface{})
-	data[AlertingChannelFieldName] = "name"
-	data[AlertingChannelEmailFieldEmails] = emails
-	return data
 }

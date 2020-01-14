@@ -3,6 +3,7 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi/services"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -45,7 +46,7 @@ const ResourceInstanaAlertingChannelEmail = "instana_alerting_channel_email"
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
-	ResourceNameFormatter ResourceNameFormatter
+	ResourceNameFormatter utils.ResourceNameFormatter
 }
 
 //Provider interface implementation of hashicorp terraform provider
@@ -92,7 +93,7 @@ func providerResources() map[string]*schema.Resource {
 		ResourceInstanaCustomEventSpecificationSystemRule:             CreateResourceCustomEventSpecificationWithSystemRule(),
 		ResourceInstanaCustomEventSpecificationThresholdRule:          CreateResourceCustomEventSpecificationWithThresholdRule(),
 		ResourceInstanaCustomEventSpecificationEntityVerificationRule: CreateResourceCustomEventSpecificationWithEntityVerificationRule(),
-		ResourceInstanaAlertingChannelEmail:                           CreateResourceAlertingChannelEmail(),
+		ResourceInstanaAlertingChannelEmail:                           NewAlertingChannelResource().ToSchemaResource(),
 	}
 }
 
@@ -102,7 +103,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	defaultNamePrefix := d.Get(SchemaFieldDefaultNamePrefix).(string)
 	defaultNameSuffix := d.Get(SchemaFieldDefaultNameSuffix).(string)
 	instanaAPI := services.NewInstanaAPI(apiToken, endpoint)
-	formatter := NewResourceNameFormatter(defaultNamePrefix, defaultNameSuffix)
+	formatter := utils.NewResourceNameFormatter(defaultNamePrefix, defaultNameSuffix)
 	return &ProviderMeta{
 		InstanaAPI:            instanaAPI,
 		ResourceNameFormatter: formatter,

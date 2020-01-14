@@ -82,7 +82,7 @@ type InstanaAPI interface {
 	CustomEventSpecifications() CustomEventSpecificationResource
 	UserRoles() UserRoleResource
 	ApplicationConfigs() ApplicationConfigResource
-	AlertingChannels() AlertingChannelResource
+	AlertingChannels() RestResource
 }
 
 //ErrEntityNotFound error message which is returned when the entity cannot be found at the server

@@ -1,9 +1,8 @@
 package instana
 
 import (
-	"errors"
-
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -12,82 +11,52 @@ const (
 	AlertingChannelEmailFieldEmails = "emails"
 )
 
-//CreateResourceAlertingChannelEmail creates the resource definition for the resource instana_alerting_channel_email
-func CreateResourceAlertingChannelEmail() *schema.Resource {
-	return &schema.Resource{
-		Create: CreateAlertingChannelEmail,
-		Read:   ReadAlertingChannelEmail,
-		Update: UpdateAlertingChannelEmail,
-		Delete: DeleteAlertingChannelEmail,
+//NewAlertingChannelResource creates the terraform resource for Alerting Channels of type Email
+func NewAlertingChannelResource() TerraformResource {
+	return NewTerraformResource(NewAlertingChannelEmailResourceHandle())
+}
 
-		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:     alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelEmailFieldEmails: &schema.Schema{
-				Type: schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				Required:    true,
-				Description: "The list of emails of the alerting channel",
+//NewAlertingChannelEmailResourceHandle creates the resource handle for Alerting Channels of type Email
+func NewAlertingChannelEmailResourceHandle() ResourceHandle {
+	return &alertingChannelEmailResourceHandle{}
+}
+
+type alertingChannelEmailResourceHandle struct {
+}
+
+func (h *alertingChannelEmailResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.AlertingChannels()
+}
+
+func (h *alertingChannelEmailResourceHandle) GetSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		AlertingChannelFieldName:     alertingChannelNameSchemaField,
+		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+		AlertingChannelEmailFieldEmails: &schema.Schema{
+			Type:     schema.TypeList,
+			MinItems: 1,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
 			},
+			Required:    true,
+			Description: "The list of emails of the alerting channel",
 		},
 	}
 }
 
-//CreateAlertingChannelEmail defines the create operation for the resource instana_alerting_channel_email
-func CreateAlertingChannelEmail(d *schema.ResourceData, meta interface{}) error {
-	d.SetId(RandomID())
-	return UpdateAlertingChannelEmail(d, meta)
+func (h *alertingChannelEmailResourceHandle) GetResourceName() string {
+	return "instana_alerting_channel_email"
 }
 
-//ReadAlertingChannelEmail defines the read operation for the resource instana_alerting_channel_email
-func ReadAlertingChannelEmail(d *schema.ResourceData, meta interface{}) error {
-	providerMeta := meta.(*ProviderMeta)
-	instanaAPI := providerMeta.InstanaAPI
-	alertingChannelID := d.Id()
-	if len(alertingChannelID) == 0 {
-		return errors.New("ID of alerting channel email is missing")
-	}
-	alertingChannel, err := instanaAPI.AlertingChannels().GetOne(alertingChannelID)
-	if err != nil {
-		if err == restapi.ErrEntityNotFound {
-			d.SetId("")
-			return nil
-		}
-		return err
-	}
-	updateAlertingChannelEmailState(d, alertingChannel, providerMeta.ResourceNameFormatter)
-	return nil
+func (h *alertingChannelEmailResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+	alertingChannel := obj.(restapi.AlertingChannel)
+	emails := alertingChannel.Emails
+	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
+	d.Set(AlertingChannelEmailFieldEmails, emails)
+	d.SetId(alertingChannel.ID)
 }
 
-//UpdateAlertingChannelEmail defines the update operation for the resource instana_alerting_channel_email
-func UpdateAlertingChannelEmail(d *schema.ResourceData, meta interface{}) error {
-	providerMeta := meta.(*ProviderMeta)
-	instanaAPI := providerMeta.InstanaAPI
-	alertingChannel := createAlertingChannelEmailFromResourceData(d, providerMeta.ResourceNameFormatter)
-	updatedAlertingChannelEmail, err := instanaAPI.AlertingChannels().Upsert(alertingChannel)
-	if err != nil {
-		return err
-	}
-	updateAlertingChannelEmailState(d, updatedAlertingChannelEmail, providerMeta.ResourceNameFormatter)
-	return nil
-}
-
-//DeleteAlertingChannelEmail defines the delete operation for the resource instana_alerting_channel_email
-func DeleteAlertingChannelEmail(d *schema.ResourceData, meta interface{}) error {
-	providerMeta := meta.(*ProviderMeta)
-	instanaAPI := providerMeta.InstanaAPI
-	alertingChannel := createAlertingChannelEmailFromResourceData(d, providerMeta.ResourceNameFormatter)
-	err := instanaAPI.AlertingChannels().DeleteByID(alertingChannel.ID)
-	if err != nil {
-		return err
-	}
-	d.SetId("")
-	return nil
-}
-
-func createAlertingChannelEmailFromResourceData(d *schema.ResourceData, formatter ResourceNameFormatter) restapi.AlertingChannel {
+func (h *alertingChannelEmailResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	return restapi.AlertingChannel{
 		ID:     d.Id(),
@@ -95,10 +64,4 @@ func createAlertingChannelEmailFromResourceData(d *schema.ResourceData, formatte
 		Kind:   restapi.EmailChannelType,
 		Emails: ReadStringArrayParameterFromResource(d, AlertingChannelEmailFieldEmails),
 	}
-}
-
-func updateAlertingChannelEmailState(d *schema.ResourceData, alertingChannel restapi.AlertingChannel, formatter ResourceNameFormatter) {
-	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
-	d.Set(AlertingChannelEmailFieldEmails, alertingChannel.Emails)
-	d.SetId(alertingChannel.ID)
 }

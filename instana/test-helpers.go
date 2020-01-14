@@ -28,8 +28,6 @@ type TestHelper interface {
 	CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData() *schema.ResourceData
 	CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData
-	CreateEmptyAlertingChannelEmailResourceData() *schema.ResourceData
-	CreateAlertingChannelEmailResourceData(data map[string]interface{}) *schema.ResourceData
 }
 
 type testHelperImpl struct {
@@ -101,15 +99,5 @@ func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithEntityVerific
 
 func (inst *testHelperImpl) CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData {
 	schemaMap := CreateResourceCustomEventSpecificationWithEntityVerificationRule().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
-}
-
-func (inst *testHelperImpl) CreateEmptyAlertingChannelEmailResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateAlertingChannelEmailResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateAlertingChannelEmailResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceAlertingChannelEmail().Schema
 	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }

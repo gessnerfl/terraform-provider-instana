@@ -7,6 +7,7 @@ import (
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/hashicorp/terraform/terraform"
@@ -152,7 +153,7 @@ func DeleteApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func createApplicationConfigFromResourceData(d *schema.ResourceData, formatter ResourceNameFormatter) (restapi.ApplicationConfig, error) {
+func createApplicationConfigFromResourceData(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.ApplicationConfig, error) {
 	matchSpecification, err := convertExpressionStringToAPIModel(d.Get(ApplicationConfigFieldMatchSpecification).(string))
 	if err != nil {
 		return restapi.ApplicationConfig{}, err
@@ -167,7 +168,7 @@ func createApplicationConfigFromResourceData(d *schema.ResourceData, formatter R
 	}, nil
 }
 
-func computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter ResourceNameFormatter) string {
+func computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
 	if d.HasChange(ApplicationConfigFieldLabel) {
 		return formatter.Format(d.Get(ApplicationConfigFieldLabel).(string))
 	}
@@ -185,7 +186,7 @@ func convertExpressionStringToAPIModel(input string) (restapi.MatchExpression, e
 	return mapper.ToAPIModel(expr), nil
 }
 
-func updateApplicationConfigState(d *schema.ResourceData, applicationConfig restapi.ApplicationConfig, formatter ResourceNameFormatter) error {
+func updateApplicationConfigState(d *schema.ResourceData, applicationConfig restapi.ApplicationConfig, formatter utils.ResourceNameFormatter) error {
 	normalizedExpressionString, err := convertAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 	if err != nil {
 		return err
