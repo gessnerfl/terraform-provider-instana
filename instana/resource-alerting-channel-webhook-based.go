@@ -24,11 +24,6 @@ func NewAlertingChannelOffice356Resource() TerraformResource {
 	return NewTerraformResource(NewAlertingChannelWebhookBasedResourceHandle(restapi.Office365ChannelType))
 }
 
-//NewAlertingChannelSlackResource creates the terraform resource for Alerting Channels of type Slack
-func NewAlertingChannelSlackResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelWebhookBasedResourceHandle(restapi.SlackChannelType))
-}
-
 //NewAlertingChannelWebhookBasedResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingChannelType) ResourceHandle {
 	return &alertingChannelWebhookBasedResourceHandle{channelType: channelType}
