@@ -7,12 +7,12 @@ import (
 )
 
 const (
-	//AlertingChannelEmailFieldEmails const for the emails field of thealerting channel
+	//AlertingChannelEmailFieldEmails const for the emails field of the alerting channel
 	AlertingChannelEmailFieldEmails = "emails"
 )
 
-//NewAlertingChannelResource creates the terraform resource for Alerting Channels of type Email
-func NewAlertingChannelResource() TerraformResource {
+//NewAlertingChannelEmailResource creates the terraform resource for Alerting Channels of type Email
+func NewAlertingChannelEmailResource() TerraformResource {
 	return NewTerraformResource(NewAlertingChannelEmailResourceHandle())
 }
 

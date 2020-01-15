@@ -44,7 +44,7 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	if len(resourceMap) != 6 {
+	if len(resourceMap) != 9 {
 		t.Fatal("Expected 5 resources to be configured")
 	}
 
@@ -65,6 +65,15 @@ func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T)
 	}
 	if resourceMap[ResourceInstanaAlertingChannelEmail] == nil {
 		t.Fatal("Expected a resources to be configured for instana alerting channel email")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelGoogleChat] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel google chat")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelSlack] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel slack")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelOffice365] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel office 365")
 	}
 }
 

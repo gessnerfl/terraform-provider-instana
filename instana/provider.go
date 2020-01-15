@@ -43,6 +43,15 @@ const ResourceInstanaCustomEventSpecificationEntityVerificationRule = "instana_c
 //ResourceInstanaAlertingChannelEmail the name of the terraform-provider-instana resource to manage alerting channels of type email
 const ResourceInstanaAlertingChannelEmail = "instana_alerting_channel_email"
 
+//ResourceInstanaAlertingChannelGoogleChat the name of the terraform-provider-instana resource to manage alerting channels of type Google Chat
+const ResourceInstanaAlertingChannelGoogleChat = "instana_alerting_channel_google_chat"
+
+//ResourceInstanaAlertingChannelSlack the name of the terraform-provider-instana resource to manage alerting channels of type Slack
+const ResourceInstanaAlertingChannelSlack = "instana_alerting_channel_slack"
+
+//ResourceInstanaAlertingChannelOffice365 the name of the terraform-provider-instana resource to manage alerting channels of type Office 365
+const ResourceInstanaAlertingChannelOffice365 = "instana_alerting_channel_office_365"
+
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
@@ -93,7 +102,10 @@ func providerResources() map[string]*schema.Resource {
 		ResourceInstanaCustomEventSpecificationSystemRule:             CreateResourceCustomEventSpecificationWithSystemRule(),
 		ResourceInstanaCustomEventSpecificationThresholdRule:          CreateResourceCustomEventSpecificationWithThresholdRule(),
 		ResourceInstanaCustomEventSpecificationEntityVerificationRule: CreateResourceCustomEventSpecificationWithEntityVerificationRule(),
-		ResourceInstanaAlertingChannelEmail:                           NewAlertingChannelResource().ToSchemaResource(),
+		ResourceInstanaAlertingChannelEmail:                           NewAlertingChannelEmailResource().ToSchemaResource(),
+		ResourceInstanaAlertingChannelGoogleChat:                      NewAlertingChannelGoogleChatResource().ToSchemaResource(),
+		ResourceInstanaAlertingChannelOffice365:                       NewAlertingChannelOffice356Resource().ToSchemaResource(),
+		ResourceInstanaAlertingChannelSlack:                           NewAlertingChannelSlackResource().ToSchemaResource(),
 	}
 }
 
