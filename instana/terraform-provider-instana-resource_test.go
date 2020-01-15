@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+const alertingChannelEmailID = "id"
+
 func TestShouldSuccessfullyReadTestObjectFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
 	expectedModel := createTestAlertingChannelEmailObject()
 	testHelper := NewTestHelper(t)

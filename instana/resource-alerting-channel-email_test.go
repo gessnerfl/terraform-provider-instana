@@ -44,7 +44,6 @@ const alertingChannelEmailServerResponseTemplate = `
 
 const alertingChannelEmailApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelEmailDefinition = "instana_alerting_channel_email.example"
-const alertingChannelEmailID = "alerting-channel-email-id"
 
 func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()

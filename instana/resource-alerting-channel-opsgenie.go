@@ -44,7 +44,7 @@ func (h *alertingChannelOpsGenieResourceHandle) GetSchema() map[string]*schema.S
 		AlertingChannelOpsGenieFieldAPIKey: &schema.Schema{
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "The OpsGenie API Key of the alerting channel",
+			Description: "The OpsGenie API Key of the OpsGenie alerting channel",
 		},
 		AlertingChannelOpsGenieFieldTags: &schema.Schema{
 			Type:     schema.TypeList,
@@ -53,13 +53,13 @@ func (h *alertingChannelOpsGenieResourceHandle) GetSchema() map[string]*schema.S
 				Type: schema.TypeString,
 			},
 			Required:    true,
-			Description: "The OpsGenie tags of the alerting channel",
+			Description: "The OpsGenie tags of the OpsGenie alerting channel",
 		},
 		AlertingChannelOpsGenieFieldRegion: &schema.Schema{
 			Type:         schema.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringInSlice(opsGenieRegions, false),
-			Description:  fmt.Sprintf("The OpsGenie region (%s) of the alerting channel", strings.Join(opsGenieRegions, "/")),
+			Description:  fmt.Sprintf("The OpsGenie region (%s) of the OpsGenie alerting channel", strings.Join(opsGenieRegions, "/")),
 		},
 	}
 }

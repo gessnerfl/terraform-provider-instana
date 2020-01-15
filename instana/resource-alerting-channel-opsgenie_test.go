@@ -48,7 +48,6 @@ const alertingChannelOpsGenieServerResponseTemplate = `
 
 const alertingChannelOpsGenieApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelOpsGenieDefinition = "instana_alerting_channel_ops_genie.example"
-const alertingChannelOpsGenieID = "alerting-channel-ops_genie-id"
 
 func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()

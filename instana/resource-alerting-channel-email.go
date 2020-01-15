@@ -39,7 +39,7 @@ func (h *alertingChannelEmailResourceHandle) GetSchema() map[string]*schema.Sche
 				Type: schema.TypeString,
 			},
 			Required:    true,
-			Description: "The list of emails of the alerting channel",
+			Description: "The list of emails of the Email alerting channel",
 		},
 	}
 }

@@ -1,10 +1,12 @@
 package instana
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
-	"strings"
 )
 
 const (
@@ -47,7 +49,7 @@ func (h *alertingChannelWebhookBasedResourceHandle) GetSchema() map[string]*sche
 		AlertingChannelWebhookBasedFieldWebhookURL: &schema.Schema{
 			Type:        schema.TypeString,
 			Required:    true,
-			Description: "The webhook URL of the alerting channel",
+			Description: fmt.Sprintf("The webhook URL of the %s alerting channel", h.channelType),
 		},
 	}
 }

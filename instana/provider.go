@@ -55,6 +55,9 @@ const ResourceInstanaAlertingChannelOffice365 = "instana_alerting_channel_office
 //ResourceInstanaAlertingChannelOpsGenie the name of the terraform-provider-instana resource to manage alerting channels of type OpsGenie
 const ResourceInstanaAlertingChannelOpsGenie = "instana_alerting_channel_ops_genie"
 
+//ResourceInstanaAlertingChannelPagerDuty the name of the terraform-provider-instana resource to manage alerting channels of type PagerDuty
+const ResourceInstanaAlertingChannelPagerDuty = "instana_alerting_channel_pager_duty"
+
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
@@ -110,6 +113,7 @@ func providerResources() map[string]*schema.Resource {
 		ResourceInstanaAlertingChannelOffice365:                       NewAlertingChannelOffice356Resource().ToSchemaResource(),
 		ResourceInstanaAlertingChannelSlack:                           NewAlertingChannelSlackResource().ToSchemaResource(),
 		ResourceInstanaAlertingChannelOpsGenie:                        NewAlertingChannelOpsGenieResource().ToSchemaResource(),
+		ResourceInstanaAlertingChannelPagerDuty:                       NewAlertingChannelPagerDutyResource().ToSchemaResource(),
 	}
 }
 

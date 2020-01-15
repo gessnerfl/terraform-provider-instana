@@ -45,7 +45,6 @@ const alertingChannelWebhookBasedServerResponseTemplate = `
 
 const alertingChannelWebhookBasedApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelWebhookBasedDefinition = "instana_alerting_channel_%s.example"
-const alertingChannelWebhookBasedID = "alerting-channel-email-id"
 
 var supportedAlertingChannelWebhookTypes = []restapi.AlertingChannelType{restapi.GoogleChatChannelType, restapi.Office365ChannelType, restapi.SlackChannelType}
 
