@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -96,10 +95,8 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 	resource := NewAlertingChannelEmailResourceHandle()
 
-	validateAlertingChannelEmailResourceSchema(resource.GetSchema(), t)
-}
+	schemaMap := resource.GetSchema()
 
-func validateAlertingChannelEmailResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
