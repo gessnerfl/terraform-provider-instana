@@ -11,8 +11,8 @@ import (
 const (
 	//AlertingChannelWebhookFieldWebhookURLs const for the webhooks field of the Webhook alerting channel
 	AlertingChannelWebhookFieldWebhookURLs = "webhook_urls"
-	//AlertingChannelWebhookFieldHttpHeaders const for the http headers field of the Webhook alerting channel
-	AlertingChannelWebhookFieldHttpHeaders = "http_headers"
+	//AlertingChannelWebhookFieldHTTPHeaders const for the http headers field of the Webhook alerting channel
+	AlertingChannelWebhookFieldHTTPHeaders = "http_headers"
 )
 
 //NewAlertingChannelWebhookResource creates the terraform resource for Alerting Channels of type Webhook
@@ -45,7 +45,7 @@ func (h *alertingChannelWebhookResourceHandle) GetSchema() map[string]*schema.Sc
 			Required:    true,
 			Description: "The list of webhook urls of the Webhook alerting channel",
 		},
-		AlertingChannelWebhookFieldHttpHeaders: &schema.Schema{
+		AlertingChannelWebhookFieldHTTPHeaders: &schema.Schema{
 			Type: schema.TypeMap,
 			Elem: &schema.Schema{
 				Type: schema.TypeString,
@@ -66,7 +66,7 @@ func (h *alertingChannelWebhookResourceHandle) UpdateState(d *schema.ResourceDat
 	headers := h.createHeaderMapFromList(alertingChannel.Headers)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelWebhookFieldWebhookURLs, urls)
-	d.Set(AlertingChannelWebhookFieldHttpHeaders, headers)
+	d.Set(AlertingChannelWebhookFieldHTTPHeaders, headers)
 	d.SetId(alertingChannel.ID)
 }
 
@@ -96,7 +96,7 @@ func (h *alertingChannelWebhookResourceHandle) ConvertStateToDataObject(d *schem
 }
 
 func (h *alertingChannelWebhookResourceHandle) createHeaderListFromMap(d *schema.ResourceData) []string {
-	if attr, ok := d.GetOk(AlertingChannelWebhookFieldHttpHeaders); ok {
+	if attr, ok := d.GetOk(AlertingChannelWebhookFieldHTTPHeaders); ok {
 		headerMap := attr.(map[string]interface{})
 		result := make([]string, len(headerMap))
 		i := 0
