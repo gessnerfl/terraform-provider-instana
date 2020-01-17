@@ -18,6 +18,16 @@ Changes Log: **[CHANGELOG.md](https://github.com/gessnerfl/terraform-provider-in
           - [Custom Event Specification with System Rules](#custom-event-specification-with-system-rules)
           - [Custom Event Specification with Entity Verification Rules](#custom-event-specification-with-entity-verification-rules)
           - [Custom Event Specification with Threshold Rules](#custom-event-specification-with-threshold-rules)
+        - [Alerting Channels](#alerting-channels)
+          - [Email](#email)
+          - [Google Chat](#google-chat)
+          - [Office 365](#office-365)
+          - [OpsGenie](#opsgenie)
+          - [Pager Duty](#pager-duty)
+          - [Slack](#slack)
+          - [Splunk](#splunk)
+          - [VictorOps](#victorops)
+          - [Generic Webhook](#generic-webhook)
       - [Settings](#settings)
         - [User Roles](#user-roles)
   - [Implementation Details](#implementation-details)
@@ -73,23 +83,23 @@ to the application config label when active.
 
 ```hcl
 resource "instana_application_config" "example" {
-  label = "label"
-  scope = "INCLUDE_ALL_DOWNSTREAM"
+  label               = "label"
+  scope               = "INCLUDE_ALL_DOWNSTREAM"  #Optional, default = INCLUDE_NO_DOWNSTREAM
   match_specification = "agent.tag.stage EQUALS 'test' OR aws.ec2.tag.stage EQUALS 'test' OR call.tag.stage EQUALS 'test'"
 }
 ```
 
 For **scope** the following three options are allowed:
 
-* INCLUDE_ALL_DOWNSTREAM
-* INCLUDE_NO_DOWNSTREAM
-* INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+- INCLUDE_ALL_DOWNSTREAM
+- INCLUDE_NO_DOWNSTREAM
+- INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
 
 The **match_specification** defines which entities should be included into the application. It supports:
 
-* logical AND and/or logical OR conjunctions whereas AND has higher precedence then OR
-* comparisons EQUALS, NOT_EQUAL, CONTAINS, NOT_CONTAIN
-* unary operators IS_EMPTY, NOT_EMPTY, IS_BLANK, NOT_BLANK.
+- logical AND and/or logical OR conjunctions whereas AND has higher precedence then OR
+- comparisons EQUALS, NOT_EQUAL, CONTAINS, NOT_CONTAIN
+- unary operators IS_EMPTY, NOT_EMPTY, IS_BLANK, NOT_BLANK.
 
 The **match_specification** is defined by the following eBNF:
 
@@ -106,7 +116,6 @@ key                       := [a-zA-Z][\.a-zA-Z0-9_\-]*
 value                     := "'" <string> "'"
 
 ```
-
 
 #### Event Settings
 
@@ -130,16 +139,18 @@ to the name of the custom event.
 
 ```hcl
 resource "instana_custom_event_spec_system_rule" "example" {
-  name = "name"
-  query = "query"
-  enabled = true
-  triggering = true
-  description = "description"
-  expiration_time = 60000
-  rule_severity = "warning"
+  name            = "name"
+  query           = "query"        #Optional
+  enabled         = true           #Optional, default = true
+  triggering      = true           #Optional, default = false
+  description     = "description"  #Optional
+  expiration_time = 60000          #Optional, only when triggering is active
+
+  rule_severity       = "warning"
   rule_system_rule_id = "system-rule-id"
-  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-  downstream_broadcast_to_all_alerting_configs = true
+
+  downstream_integration_ids                   = [ "integration-id-1", "integration-id-2" ] #Optional
+  downstream_broadcast_to_all_alerting_configs = true                                       #Optional, default = true
 }
 ```
 
@@ -149,19 +160,21 @@ Entity verification rules is a specialized system rule to check for hosts which 
 
 ```hcl
 resource "instana_custom_event_spec_entity_verification_rule" "example" {
-  name = "name"
-  query = "query"
-  enabled = true
-  triggering = true
-  description = "description"
-  expiration_time = 60000
-  rule_severity = "warning"
-  rule_matching_entity_type = "process"
-  rule_matching_operator = "is"
+  name            = "name"
+  query           = "query"        #Optional
+  enabled         = true           #Optional, default = true
+  triggering      = true           #Optional, default = false
+  description     = "description"  #Optional
+  expiration_time = 60000          #Optional, only when triggering is active
+
+  rule_severity              = "warning"
+  rule_matching_entity_type  = "process"
+  rule_matching_operator     = "is"
   rule_matching_entity_label = "entity-label"
-  rule_offline_duration = 60000
-  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-  downstream_broadcast_to_all_alerting_configs = true
+  rule_offline_duration      = 60000
+
+  downstream_integration_ids                   = [ "integration-id-1", "integration-id-2" ] #Optional
+  downstream_broadcast_to_all_alerting_configs = true                                       #Optional, default = true
 }
 ```
 
@@ -170,29 +183,146 @@ resource "instana_custom_event_spec_entity_verification_rule" "example" {
 A threshold rule is verifies if a certain condition applies to a given metric. Therefore you can either use `rule_rollup` or `rule_window` or
 both to define the data points which should be evaluated. Instana API always returns max. 600 data points for validation.
 
-* `rule_window` = the time frame in seconds where the aggregation is applied to
-* `rule_rollup` = the resolution of the data points which are considered for this event (See also https://instana.github.io/openapi/#tag/Infrastructure-Metrics)
+- `rule_window` = the time frame in seconds where the aggregation is applied to
+- `rule_rollup` = the resolution of the data points which are considered for this event (See also <https://instana.github.io/openapi/#tag/Infrastructure-Metrics>)
 
 Both are optional in the Instana API. Usually configurations define a **window** for calculating the event.
 
 ```hcl
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name"
-  entity_type = "entity_type"
-  query = "query"
-  enabled = true
-  triggering = true
-  description = "description"
-  expiration_time = 60000
-  rule_severity = "warning"
-  rule_metric_name = "metric_name"
-  rule_window = 60000
-  rule_rollup = 500
-  rule_aggregation = "sum"
+  name            = "name"
+  query           = "query"        #Optional
+  enabled         = true           #Optional, default = true
+  triggering      = true           #Optional, default = false
+  description     = "description"  #Optional
+  expiration_time = 60000          #Optional, only when triggering is active
+  entity_type     = "entity_type"
+
+  rule_severity           = "warning"
+  rule_metric_name        = "metric_name"
+  rule_window             = 60000          #Optional
+  rule_rollup             = 500            #Optional
+  rule_aggregation        = "sum"          #Optional depending on metric type
   rule_condition_operator = "=="
-  rule_condition_value = 1.2
-  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-  downstream_broadcast_to_all_alerting_configs = true
+  rule_condition_value    = 1.2
+
+  downstream_integration_ids                   = [ "integration-id-1", "integration-id-2" ] #Optional
+  downstream_broadcast_to_all_alerting_configs = true                                       #Optional, default = true
+}
+```
+
+##### Alerting Channels
+
+Management of Alerting channels in Instana. A dedicated terraform resource type is  available for each altering channel type.
+
+API Documentation: <https://instana.github.io/openapi/#operation/getAlertingChannels>
+
+###### Email
+
+Alerting channel configuration for notifications to a specified list of email addresses.
+
+```hcl
+resource "instana_alerting_channel_email" "example" {
+  name = "my-email-alerting-channel"
+  emails = [ "email1@example.com", "email2@example.com" ]
+}
+```
+
+###### Google Chat
+
+Alerting channel configuration for notifications to Google Chat.
+
+```hcl
+resource "instana_alerting_channel_google_chat" "example" {
+  name        = "my-google-chat-alerting-channel"
+  webhook_url = "https://my.google.chat.weebhook.exmaple.com/"
+}
+```
+
+###### Office 365
+
+Alerting channel configuration for notifications to Office356.
+
+```hcl
+resource "instana_alerting_channel_office_365" "example" {
+  name        = "my-office365-alerting-channel"
+  webhook_url = "https://my.office365.weebhook.exmaple.com/"
+}
+```
+
+###### OpsGenie
+
+Alerting channel configuration integration with OpsGenie.
+
+```hcl
+resource "instana_alerting_channel_ops_genie" "example" {
+  name = "my-ops-genie-alerting-channel"
+  api_key = "my-secure-api-key"
+  tags = [ "tag1", "tag2" ]
+  region = "EU"
+}
+```
+
+###### Pager Duty
+
+Alerting channel configuration integration with PagerDuty.
+
+```hcl
+resource "instana_alerting_channel_pager_duty" "example" {
+  name = "my-pager-duty-alerting-channel"
+  service_integration_key = "my-service-integration-key"
+}
+```
+
+###### Slack
+
+Alerting channel configuration notifications to Slack.
+
+```hcl
+resource "instana_alerting_channel_slack" "example" {
+  name        = "my-slack-alerting-channel"
+  webhook_url = "https://my.slack.weebhook.exmaple.com/"
+  icon_url    = "https://my.slack.icon.exmaple.com/"   #Optional
+  channel     = "my-channel"                           #Optional
+}
+```
+
+###### Splunk
+
+Alerting channel configuration to integrate with Splunk.
+
+```hcl
+resource "instana_alerting_channel_splunk" "example" {
+  name  = "my-splunk-alerting-channel"
+  url   = "https://my.splunk.url.example.com"
+  token = "my-splunk-token"
+}
+```
+
+###### VictorOps
+
+Alerting channel configuration to integrate with VictorOps.
+
+```hcl
+resource "instana_alerting_channel_victor_ops" "example" {
+  name        = "my-victor-ops-alerting-channel"
+  api_key     = "my-victor-ops-api-key"
+  routing_key = "my-victor-ops-routing-key"
+}
+```
+
+###### Generic Webhook
+
+Alerting channel configuration to integrate with WebHooks.
+
+```hcl
+resource "instana_alerting_channel_webhook" "example" {
+  name         = "my-generic-webhook-alerting-channel"
+  webhook_urls = [ "https://my.weebhook1.exmaple.com/", "https://my.weebhook2.exmaple.com/" ]
+  http_headers = {      #Optional
+    header1 = "headerValue1"
+    header2 = "headerValue2"
+  }
 }
 ```
 
@@ -208,24 +338,24 @@ The resource does NOT support `default_name_prefix` and `default_name_suffix`.
 
 ```hcl
 resource "instana_user_role" "example" {
-  name = "name"
-  implicit_view_filter = "view filter"
-  can_configure_service_mapping = true
-  can_configure_eum_applications = true
-  can_configure_users = true
-  can_install_new_agents = true
-  can_see_usage_information = true
-  can_configure_integrations = true
-  can_see_on_premise_license_information = true
-  can_configure_roles = true
-  can_configure_custom_alerts = true
-  can_configure_api_tokens = true
-  can_configure_agent_run_mode = true
-  can_view_audit_log = true
-  can_configure_objectives = true
-  can_configure_agents = true
-  can_configure_authentication_methods = true
-  can_configure_applications = true
+  name                                   = "name"
+  implicit_view_filter                   = "view filter" #Optional
+  can_configure_service_mapping          = true          #Optional, default = false
+  can_configure_eum_applications         = true          #Optional, default = false
+  can_configure_users                    = true          #Optional, default = false
+  can_install_new_agents                 = true          #Optional, default = false
+  can_see_usage_information              = true          #Optional, default = false
+  can_configure_integrations             = true          #Optional, default = false
+  can_see_on_premise_license_information = true          #Optional, default = false
+  can_configure_roles                    = true          #Optional, default = false
+  can_configure_custom_alerts            = true          #Optional, default = false
+  can_configure_api_tokens               = true          #Optional, default = false
+  can_configure_agent_run_mode           = true          #Optional, default = false
+  can_view_audit_log                     = true          #Optional, default = false
+  can_configure_objectives               = true          #Optional, default = false
+  can_configure_agents                   = true          #Optional, default = false
+  can_configure_authentication_methods   = true          #Optional, default = false
+  can_configure_applications             = true          #Optional, default = false
 }
 ```
 

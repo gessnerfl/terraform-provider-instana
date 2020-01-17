@@ -28,7 +28,7 @@ provider "instana" {
 }
 
 resource "instana_alerting_channel_slack" "example" {
-  name        = "name {{ITERATOR}}"
+  	name        = "name {{ITERATOR}}"
 	webhook_url = "webhook url"
 	icon_url    = "icon url"
 	channel     = "channel"
