@@ -50,3 +50,58 @@ resource "instana_custom_event_spec_entity_verification_rule" "example" {
   downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
   downstream_broadcast_to_all_alerting_configs = true
 }
+
+resource "instana_alerting_channel_email" "example" {
+  name = "my-email-alerting-channel"
+  emails = [ "email1@example.com", "email2@example.com" ]
+}
+
+resource "instana_alerting_channel_google_chat" "example" {
+  name        = "my-google-chat-alerting-channel"
+  webhook_url = "https://my.google.chat.weebhook.exmaple.com/"
+}
+
+resource "instana_alerting_channel_office_365" "example" {
+  name        = "my-office365-alerting-channel"
+  webhook_url = "https://my.office365.weebhook.exmaple.com/"
+}
+
+resource "instana_alerting_channel_ops_genie" "example" {
+  name = "my-ops-genie-alerting-channel"
+  api_key = "my-secure-api-key"
+  tags = [ "tag1", "tag2" ]
+  region = "EU"
+}
+
+resource "instana_alerting_channel_pager_duty" "example" {
+  name = "my-pager-duty-alerting-channel"
+  service_integration_key = "my-service-integration-key"
+}
+
+resource "instana_alerting_channel_slack" "example" {
+  name        = "my-slack-alerting-channel"
+  webhook_url = "https://my.slack.weebhook.exmaple.com/"
+  icon_url    = "https://my.slack.icon.exmaple.com/"   #Optional
+  channel     = "my-channel"                           #Optional
+}
+
+resource "instana_alerting_channel_splunk" "example" {
+  name  = "my-splunk-alerting-channel"
+  url   = "https://my.splunk.url.example.com"
+  token = "my-splunk-token"
+}
+
+resource "instana_alerting_channel_victor_ops" "example" {
+  name        = "my-victor-ops-alerting-channel"
+  api_key     = "my-victor-ops-api-key"
+  routing_key = "my-victor-ops-routing-key"
+}
+
+resource "instana_alerting_channel_webhook" "example" {
+  name         = "my-generic-webhook-alerting-channel"
+  webhook_urls = [ "https://my.weebhook1.exmaple.com/", "https://my.weebhook2.exmaple.com/" ]
+  http_headers = {      #Optional
+    header1 = "headerValue1"
+    header2 = "headerValue2"
+  }
+}
