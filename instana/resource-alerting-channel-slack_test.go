@@ -109,3 +109,11 @@ func TestResourceAlertingChannelSlackDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(AlertingChannelSlackFieldIconURL)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(AlertingChannelSlackFieldChannel)
 }
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelSlack(t *testing.T) {
+	name := NewAlertingChannelSlackResourceHandle().GetResourceName()
+
+	if name != "instana_alerting_channel_slack" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_slack")
+	}
+}

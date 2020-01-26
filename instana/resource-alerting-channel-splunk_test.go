@@ -104,3 +104,11 @@ func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelSplunkFieldURL)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelSplunkFieldToken)
 }
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelSplunk(t *testing.T) {
+	name := NewAlertingChannelSplunkResourceHandle().GetResourceName()
+
+	if name != "instana_alerting_channel_splunk" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_splunk")
+	}
+}

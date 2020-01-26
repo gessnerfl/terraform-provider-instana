@@ -101,3 +101,11 @@ func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelEmailFieldEmails)
 }
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelEmail(t *testing.T) {
+	name := NewAlertingChannelEmailResourceHandle().GetResourceName()
+
+	if name != "instana_alerting_channel_email" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_email")
+	}
+}

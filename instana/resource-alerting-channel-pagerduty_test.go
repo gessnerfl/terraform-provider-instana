@@ -99,3 +99,11 @@ func TestResourceAlertingChannelPagerDutyDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelPagerDutyFieldServiceIntegrationKey)
 }
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelPagerDuty(t *testing.T) {
+	name := NewAlertingChannelPagerDutyResourceHandle().GetResourceName()
+
+	if name != "instana_alerting_channel_pager_duty" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_pager_duty")
+	}
+}

@@ -110,3 +110,11 @@ func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelWebhookFieldWebhookURLs)
 }
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelWebhook(t *testing.T) {
+	name := NewAlertingChannelWebhookResourceHandle().GetResourceName()
+
+	if name != "instana_alerting_channel_webhook" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_webhook")
+	}
+}

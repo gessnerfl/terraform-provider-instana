@@ -105,7 +105,7 @@ func TestShouldFailToValidateAlteringChannelWhenKindIsNotValid(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Kind") {
+	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "unsupported alerting channel type") {
 		t.Fatal("Expected validate to fail as kind is not valid")
 	}
 }

@@ -104,3 +104,11 @@ func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelVictorOpsFieldAPIKey)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelVictorOpsFieldRoutingKey)
 }
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelVictorOps(t *testing.T) {
+	name := NewAlertingChannelVictorOpsResourceHandle().GetResourceName()
+
+	if name != "instana_alerting_channel_victor_ops" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_victor_ops")
+	}
+}

@@ -112,3 +112,15 @@ func TestResourceAlertingChannelWebhookBasedDefinition(t *testing.T) {
 		})
 	}
 }
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelWebhookBased(t *testing.T) {
+	for _, channelType := range supportedAlertingChannelWebhookTypes {
+		t.Run(fmt.Sprintf("TestShouldReturnCorrectResourceNameForAlertingChannelWebhookBased%s", channelType), func(t *testing.T) {
+			name := NewAlertingChannelWebhookBasedResourceHandle(channelType).GetResourceName()
+
+			if name != fmt.Sprintf("instana_alerting_channel_%s", strings.ToLower(string(channelType))) {
+				t.Fatalf("Expected resource name to be instana_alerting_channel_%s", channelType)
+			}
+		})
+	}
+}

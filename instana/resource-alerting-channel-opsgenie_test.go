@@ -107,3 +107,11 @@ func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelOpsGenieFieldRegion)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelOpsGenieFieldTags)
 }
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelOpsGenie(t *testing.T) {
+	name := NewAlertingChannelOpsGenieResourceHandle().GetResourceName()
+
+	if name != "instana_alerting_channel_ops_genie" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_ops_genie")
+	}
+}
