@@ -1,8 +1,10 @@
 package services_test
 
 import (
+	"github.com/google/go-cmp/cmp"
 	"testing"
 
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/services"
 )
 
@@ -27,4 +29,79 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 			t.Fatal("Expected instance of ApplicationConfigResource to be returned")
 		}
 	})
+	t.Run("Should return AlertingChannelResource instance", func(t *testing.T) {
+		alertingChannelResource := api.AlertingChannels()
+		if alertingChannelResource == nil {
+			t.Fatal("Expected instance of AlertingChannelResource to be returned")
+		}
+	})
+}
+
+//Add tests for unmarshal
+
+func TestShouldSuccessfullyUnmarshalAlertingChannel(t *testing.T) {
+	response := `{
+		"id" : "test-id",
+		"name" : "test-name",
+		"kind" : "EMAIL",
+		"emails" : ["test-email1","test-email2"]
+	}`
+
+	result, err := UnmarshalAlertingChannel([]byte(response))
+
+	if err != nil {
+		t.Fatalf("Expected to successfully unmarshal alerting channel response; %s", err)
+	}
+
+	alertingChannel, ok := result.(restapi.AlertingChannel)
+	if !ok {
+		t.Fatal("Expected result to be a alerting channel")
+	}
+
+	if alertingChannel.ID != "test-id" {
+		t.Fatal("Expected ID to be properly mapped")
+	}
+	if alertingChannel.Name != "test-name" {
+		t.Fatal("Expected name to be properly mapped")
+	}
+	if alertingChannel.Kind != restapi.EmailChannelType {
+		t.Fatal("Expected kind to be properly mapped")
+	}
+	if !cmp.Equal(alertingChannel.Emails, []string{"test-email1", "test-email2"}) {
+		t.Fatal("Expected emails to be properly mapped")
+	}
+}
+
+func TestShouldFailToUnmarshalJsonResponseWhenJsonArrayIsProvided(t *testing.T) {
+	response := `["test-email1","test-email2"]`
+
+	_, err := UnmarshalAlertingChannel([]byte(response))
+
+	if err == nil {
+		t.Fatal("Expected unmarshalling to fail")
+	}
+}
+
+func TestShouldFailToUnmarshalJsonResponseWhenNoJsonIsProvided(t *testing.T) {
+	response := `foo bar`
+
+	_, err := UnmarshalAlertingChannel([]byte(response))
+
+	if err == nil {
+		t.Fatal("Expected unmarshalling to fail")
+	}
+}
+
+func TestShouldReturnEmptyAlertingChannelWhenJsonObjectIsReturnWhereNoFiledMatches(t *testing.T) {
+	response := `{"foo" : "bar" }`
+
+	result, err := UnmarshalAlertingChannel([]byte(response))
+
+	if err != nil {
+		t.Fatalf("Expected to successfully unmarshal alerting channel response, %s", err)
+	}
+
+	if !cmp.Equal(result, restapi.AlertingChannel{}) {
+		t.Fatal("Expected empty alerting channel")
+	}
 }

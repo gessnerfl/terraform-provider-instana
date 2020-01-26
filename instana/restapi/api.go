@@ -17,6 +17,9 @@ const EventSettingsBasePath = EventsBasePath + settingsPathElement
 //EventSpecificationBasePath path to Event Specification settings of Instana RESTful API
 const EventSpecificationBasePath = EventSettingsBasePath + "/event-specifications"
 
+//AlertingChannelsResourcePath path to Alerting channels resource of Instana RESTful API
+const AlertingChannelsResourcePath = EventSettingsBasePath + "/alertingChannels"
+
 //CustomEventSpecificationResourcePath path to Custom Event Specification settings resource of Instana RESTful API
 const CustomEventSpecificationResourcePath = EventSpecificationBasePath + "/custom"
 
@@ -66,11 +69,20 @@ type RestClient interface {
 	Delete(resourceID string, resourceBasePath string) error
 }
 
+//RestResource interface definition of a instana REST resource.
+type RestResource interface {
+	GetOne(id string) (InstanaDataObject, error)
+	Upsert(data InstanaDataObject) (InstanaDataObject, error)
+	Delete(data InstanaDataObject) error
+	DeleteByID(id string) error
+}
+
 //InstanaAPI is the interface to all resources of the Instana Rest API
 type InstanaAPI interface {
 	CustomEventSpecifications() CustomEventSpecificationResource
 	UserRoles() UserRoleResource
 	ApplicationConfigs() ApplicationConfigResource
+	AlertingChannels() RestResource
 }
 
 //ErrEntityNotFound error message which is returned when the entity cannot be found at the server

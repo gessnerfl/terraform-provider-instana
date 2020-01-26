@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/hashicorp/terraform/terraform"
@@ -217,7 +218,7 @@ func createCustomEventSpecificationDeleteFunc(ruleSpecificationMapFunc func(*sch
 	}
 }
 
-func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter ResourceNameFormatter, ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error)) (restapi.CustomEventSpecification, error) {
+func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter utils.ResourceNameFormatter, ruleSpecificationMapFunc func(*schema.ResourceData) (restapi.RuleSpecification, error)) (restapi.CustomEventSpecification, error) {
 	name := computeFullCustomEventNameString(d, formatter)
 
 	apiModel := restapi.CustomEventSpecification{
@@ -247,14 +248,14 @@ func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, form
 	return apiModel, nil
 }
 
-func computeFullCustomEventNameString(d *schema.ResourceData, formatter ResourceNameFormatter) string {
+func computeFullCustomEventNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
 	if d.HasChange(CustomEventSpecificationFieldName) {
 		return formatter.Format(d.Get(CustomEventSpecificationFieldName).(string))
 	}
 	return d.Get(CustomEventSpecificationFieldFullName).(string)
 }
 
-func updateCustomEventSpecificationState(d *schema.ResourceData, spec restapi.CustomEventSpecification, formatter ResourceNameFormatter, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
+func updateCustomEventSpecificationState(d *schema.ResourceData, spec restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter, ruleSpecificMappingFunc func(*schema.ResourceData, restapi.CustomEventSpecification) error) error {
 	d.Set(CustomEventSpecificationFieldFullName, spec.Name)
 	d.Set(CustomEventSpecificationFieldQuery, spec.Query)
 	d.Set(CustomEventSpecificationFieldEntityType, spec.EntityType)

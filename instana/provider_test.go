@@ -44,8 +44,8 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	if len(resourceMap) != 5 {
-		t.Fatal("Expected 5 resources to be configured")
+	if len(resourceMap) != 14 {
+		t.Fatal("Expected 14 resources to be configured")
 	}
 
 	if resourceMap[ResourceInstanaUserRole] == nil {
@@ -62,6 +62,33 @@ func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T)
 	}
 	if resourceMap[ResourceInstanaCustomEventSpecificationEntityVerificationRule] == nil {
 		t.Fatal("Expected a resources to be configured for instana custom event specification entity verification rule")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelEmail] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel email")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelGoogleChat] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel google chat")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelSlack] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel slack")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelOffice365] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel office 365")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelOpsGenie] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel OpsGenie")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelPagerDuty] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel PagerDuty")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelSplunk] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel Splunk")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelVictorOps] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel VictorOps")
+	}
+	if resourceMap[ResourceInstanaAlertingChannelWebhook] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting channel webhhok")
 	}
 }
 

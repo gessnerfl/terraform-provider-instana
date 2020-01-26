@@ -1,9 +1,9 @@
-package instana_test
+package utils_test
 
 import (
 	"testing"
 
-	. "github.com/gessnerfl/terraform-provider-instana/instana"
+	. "github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const input = "Test String"

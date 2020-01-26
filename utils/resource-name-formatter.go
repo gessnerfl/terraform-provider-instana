@@ -1,4 +1,4 @@
-package instana
+package utils
 
 import (
 	"strings"
