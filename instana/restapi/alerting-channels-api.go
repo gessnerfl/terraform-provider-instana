@@ -43,20 +43,6 @@ var SupportedAlertingChannels = []AlertingChannelType{
 	WebhookChannelType,
 }
 
-//IsSupportedAlertingChannelType checks if the given alerting channels is supported by Instana
-func IsSupportedAlertingChannelType(alertingChannel AlertingChannelType) bool {
-	return isInAlertingChannelTypeSlice(SupportedAlertingChannels, alertingChannel)
-}
-
-func isInAlertingChannelTypeSlice(allAlertingChannels []AlertingChannelType, alertingChannel AlertingChannelType) bool {
-	for _, v := range allAlertingChannels {
-		if v == alertingChannel {
-			return true
-		}
-	}
-	return false
-}
-
 //OpsGenieRegionType type of the OpsGenie region
 type OpsGenieRegionType string
 
@@ -120,9 +106,6 @@ func (r AlertingChannel) Validate() error {
 	if len(r.Kind) == 0 {
 		return errors.New("Kind is missing")
 	}
-	if !IsSupportedAlertingChannelType(r.Kind) {
-		return errors.New("Kind is not a valid alerting channel")
-	}
 
 	switch r.Kind {
 	case EmailChannelType:
@@ -140,7 +123,7 @@ func (r AlertingChannel) Validate() error {
 	case WebhookChannelType:
 		return r.validateGenericWebHookIntegration()
 	default:
-		return fmt.Errorf("unsupported integration type %s", r.Kind)
+		return fmt.Errorf("unsupported alerting channel type %s", r.Kind)
 	}
 }
 
