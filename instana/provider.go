@@ -64,6 +64,9 @@ const ResourceInstanaAlertingChannelSplunk = "instana_alerting_channel_splunk"
 //ResourceInstanaAlertingChannelVictorOps the name of the terraform-provider-instana resource to manage alerting channels of type VictorOps
 const ResourceInstanaAlertingChannelVictorOps = "instana_alerting_channel_victor_ops"
 
+//ResourceInstanaAlertingChannelWebhook the name of the terraform-provider-instana resource to manage alerting channels of type webhook
+const ResourceInstanaAlertingChannelWebhook = "instana_alerting_channel_webhook"
+
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
@@ -122,6 +125,7 @@ func providerResources() map[string]*schema.Resource {
 		ResourceInstanaAlertingChannelPagerDuty:                       NewAlertingChannelPagerDutyResource().ToSchemaResource(),
 		ResourceInstanaAlertingChannelSplunk:                          NewAlertingChannelSplunkResource().ToSchemaResource(),
 		ResourceInstanaAlertingChannelVictorOps:                       NewAlertingChannelVictorOpsResource().ToSchemaResource(),
+		ResourceInstanaAlertingChannelWebhook:                         NewAlertingChannelWebhookResource().ToSchemaResource(),
 	}
 }
 

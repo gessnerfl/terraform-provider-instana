@@ -41,7 +41,7 @@ func (client *restClientImpl) GetOne(id string, resourcePath string) ([]byte, er
 		return emptyResponse, restapi.ErrEntityNotFound
 	}
 	if statusCode < 200 || statusCode >= 300 {
-		return emptyResponse, fmt.Errorf("failed to send HTTP GET request to Instana API; status code = %d; status message = %s", statusCode, resp.Status())
+		return emptyResponse, fmt.Errorf("failed to send HTTP GET request to Instana API; status code = %d; status message = %s\nBody: %s", statusCode, resp.Status(), resp.Body())
 	}
 	return resp.Body(), nil
 }
@@ -56,7 +56,7 @@ func (client *restClientImpl) Put(data restapi.InstanaDataObject, resourcePath s
 	}
 	statusCode := resp.StatusCode()
 	if statusCode < 200 || statusCode >= 300 {
-		return emptyResponse, fmt.Errorf("failed to send HTTP PUT request to Instana API; status code = %d; status message = %s", statusCode, resp.Status())
+		return emptyResponse, fmt.Errorf("failed to send HTTP PUT request to Instana API; status code = %d; status message = %s\nBody: %s", statusCode, resp.Status(), resp.Body())
 	}
 	return resp.Body(), nil
 }
@@ -72,7 +72,7 @@ func (client *restClientImpl) Delete(resourceID string, resourceBasePath string)
 	}
 	statusCode := resp.StatusCode()
 	if statusCode < 200 || statusCode >= 300 {
-		return fmt.Errorf("failed to send HTTP DELETE request to Instana API; status code = %d; status message = %s", statusCode, resp.Status())
+		return fmt.Errorf("failed to send HTTP DELETE request to Instana API; status code = %d; status message = %s\nBody: %s", statusCode, resp.Status(), resp.Body())
 	}
 	return nil
 }
