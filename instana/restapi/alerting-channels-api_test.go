@@ -21,6 +21,19 @@ const (
 	routingKeyFieldValue            = "routingKeyFieldValue"
 )
 
+func TestShouldReturnIDOfAlteringChannel(t *testing.T) {
+	alertingChannel := AlertingChannel{
+		ID:     idFieldValue,
+		Name:   nameFieldValue,
+		Kind:   EmailChannelType,
+		Emails: []string{email1FieldValue, email2FieldValue},
+	}
+
+	if idFieldValue != alertingChannel.GetID() {
+		t.Fatal("GetID should return id value of alerting channel")
+	}
+}
+
 func TestShouldSuccussullyValidateConsistentEmailAlteringChannel(t *testing.T) {
 	alertingChannel := AlertingChannel{
 		ID:     idFieldValue,
