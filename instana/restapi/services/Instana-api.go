@@ -24,8 +24,17 @@ func (api *baseInstanaAPI) CustomEventSpecifications() restapi.CustomEventSpecif
 }
 
 //UserRoles implementation of InstanaAPI interface
-func (api *baseInstanaAPI) UserRoles() restapi.UserRoleResource {
-	return resources.NewUserRoleResource(api.client)
+func (api *baseInstanaAPI) UserRoles() restapi.RestResource {
+	return NewRestResource(restapi.UserRolesResourcePath, UnmarshalUserRole, api.client)
+}
+
+//UnmarshalUserRole unmarshal the JSON response of an user role to an UserRole struct
+func UnmarshalUserRole(data []byte) (restapi.InstanaDataObject, error) {
+	userRole := restapi.UserRole{}
+	if err := json.Unmarshal(data, &userRole); err != nil {
+		return userRole, fmt.Errorf("failed to parse json; %s", err)
+	}
+	return userRole, nil
 }
 
 //ApplicationConfigs implementation of InstanaAPI interface

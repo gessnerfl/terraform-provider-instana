@@ -247,10 +247,10 @@ func (mr *MockInstanaAPIMockRecorder) CustomEventSpecifications() *gomock.Call {
 }
 
 // UserRoles mocks base method
-func (m *MockInstanaAPI) UserRoles() restapi.UserRoleResource {
+func (m *MockInstanaAPI) UserRoles() restapi.RestResource {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UserRoles")
-	ret0, _ := ret[0].(restapi.UserRoleResource)
+	ret0, _ := ret[0].(restapi.RestResource)
 	return ret0
 }
 

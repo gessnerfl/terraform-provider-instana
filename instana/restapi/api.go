@@ -80,7 +80,7 @@ type RestResource interface {
 //InstanaAPI is the interface to all resources of the Instana Rest API
 type InstanaAPI interface {
 	CustomEventSpecifications() CustomEventSpecificationResource
-	UserRoles() UserRoleResource
+	UserRoles() RestResource
 	ApplicationConfigs() ApplicationConfigResource
 	AlertingChannels() RestResource
 }

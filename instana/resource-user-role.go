@@ -188,7 +188,7 @@ func ReadUserRole(d *schema.ResourceData, meta interface{}) error {
 		}
 		return err
 	}
-	updateUserRoleState(d, rule)
+	updateUserRoleState(d, rule.(restapi.UserRole))
 	return nil
 }
 
@@ -201,7 +201,7 @@ func UpdateUserRole(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	updateUserRoleState(d, updatedUserRole)
+	updateUserRoleState(d, updatedUserRole.(restapi.UserRole))
 	return nil
 }
 
