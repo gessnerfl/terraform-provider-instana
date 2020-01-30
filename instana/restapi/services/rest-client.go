@@ -50,7 +50,7 @@ func (client *restClientImpl) GetOne(id string, resourcePath string) ([]byte, er
 func (client *restClientImpl) Put(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, data.GetID())
 	log.Infof("Call PUT %s", url)
-	resp, err := client.createRequest().SetBody(data).Put(url)
+	resp, err := client.createRequest().SetHeader("Content-Type", "application/json; charset=utf-8").SetBody(data).Put(url)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("failed to send HTTP PUT request to Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}
