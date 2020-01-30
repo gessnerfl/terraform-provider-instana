@@ -2,14 +2,6 @@ package restapi
 
 import "errors"
 
-//CustomEventSpecificationResource represents the REST resource of custom event specification at Instana
-type CustomEventSpecificationResource interface {
-	GetOne(id string) (CustomEventSpecification, error)
-	Upsert(spec CustomEventSpecification) (CustomEventSpecification, error)
-	Delete(spec CustomEventSpecification) error
-	DeleteByID(specID string) error
-}
-
 //RuleType custom type representing the type of the custom event specification rule
 type RuleType string
 

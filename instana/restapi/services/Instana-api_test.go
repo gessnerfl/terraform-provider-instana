@@ -72,7 +72,75 @@ func TestShouldSuccessfullyUnmarshalAlertingChannel(t *testing.T) {
 	}
 }
 
-func TestShouldFailToUnmarshalJsonResponseWhenJsonArrayIsProvided(t *testing.T) {
+func TestShouldFailToUnmarshalCustomEventSpecificationWhenResponseIsAJsonArray(t *testing.T) {
+	response := `["foo","bar"]`
+
+	_, err := UnmarshalCustomEventSpecification([]byte(response))
+
+	if err == nil {
+		t.Fatal("Expected unmarshalling to fail")
+	}
+}
+
+func TestShouldFailToUnmarshalCustomEventSpecificationsWhenResponseIsNotAJsonMessage(t *testing.T) {
+	response := `foo bar`
+
+	_, err := UnmarshalCustomEventSpecification([]byte(response))
+
+	if err == nil {
+		t.Fatal("Expected unmarshalling to fail")
+	}
+}
+
+func TestShouldReturnEmptyCustomEventSpecificationWhenJsonObjectIsReturnWhereNoFiledMatches(t *testing.T) {
+	response := `{"foo" : "bar" }`
+
+	result, err := UnmarshalCustomEventSpecification([]byte(response))
+
+	if err != nil {
+		t.Fatalf("Expected to successfully unmarshal custom event specification response, %s", err)
+	}
+
+	if !cmp.Equal(result, restapi.CustomEventSpecification{}) {
+		t.Fatal("Expected empty custom event specification")
+	}
+}
+
+func TestShouldFailToUnmarshalUserRoleWhenResponseIsAJsonArray(t *testing.T) {
+	response := `["foo","bar"]`
+
+	_, err := UnmarshalUserRole([]byte(response))
+
+	if err == nil {
+		t.Fatal("Expected unmarshalling to fail")
+	}
+}
+
+func TestShouldFailToUnmarshalUserRoleWhenResponseIsNotAJsonMessage(t *testing.T) {
+	response := `foo bar`
+
+	_, err := UnmarshalUserRole([]byte(response))
+
+	if err == nil {
+		t.Fatal("Expected unmarshalling to fail")
+	}
+}
+
+func TestShouldReturnEmptyUserRoleWhenJsonObjectIsReturnWhereNoFiledMatches(t *testing.T) {
+	response := `{"foo" : "bar" }`
+
+	result, err := UnmarshalUserRole([]byte(response))
+
+	if err != nil {
+		t.Fatalf("Expected to successfully unmarshal user role response, %s", err)
+	}
+
+	if !cmp.Equal(result, restapi.UserRole{}) {
+		t.Fatal("Expected empty user role")
+	}
+}
+
+func TestShouldFailToUnmarshalAlertingChannelWhenResponseIsAJsonArray(t *testing.T) {
 	response := `["test-email1","test-email2"]`
 
 	_, err := UnmarshalAlertingChannel([]byte(response))
@@ -82,7 +150,7 @@ func TestShouldFailToUnmarshalJsonResponseWhenJsonArrayIsProvided(t *testing.T) 
 	}
 }
 
-func TestShouldFailToUnmarshalJsonResponseWhenNoJsonIsProvided(t *testing.T) {
+func TestShouldFailToUnmarshalAlertingChannelWhenResponseIsNotAJsonMessage(t *testing.T) {
 	response := `foo bar`
 
 	_, err := UnmarshalAlertingChannel([]byte(response))

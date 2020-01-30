@@ -164,7 +164,7 @@ func createCustomEventSpecificationReadFunc(ruleSpecificMappingFunc func(*schema
 		if len(specID) == 0 {
 			return errors.New("ID of custom event specification is missing")
 		}
-		spec, err := instanaAPI.CustomEventSpecifications().GetOne(specID)
+		response, err := instanaAPI.CustomEventSpecifications().GetOne(specID)
 		if err != nil {
 			if err == restapi.ErrEntityNotFound {
 				d.SetId("")
@@ -172,7 +172,7 @@ func createCustomEventSpecificationReadFunc(ruleSpecificMappingFunc func(*schema
 			}
 			return err
 		}
-		return updateCustomEventSpecificationState(d, spec, providerMeta.ResourceNameFormatter, ruleSpecificMappingFunc)
+		return updateCustomEventSpecificationState(d, response.(restapi.CustomEventSpecification), providerMeta.ResourceNameFormatter, ruleSpecificMappingFunc)
 	}
 }
 
@@ -193,11 +193,11 @@ func createCustomEventSpecificationUpdateFunc(ruleSpecificationMapFunc func(*sch
 		if err != nil {
 			return err
 		}
-		updatedCustomEventSpecification, err := instanaAPI.CustomEventSpecifications().Upsert(spec)
+		response, err := instanaAPI.CustomEventSpecifications().Upsert(spec)
 		if err != nil {
 			return err
 		}
-		return updateCustomEventSpecificationState(d, updatedCustomEventSpecification, providerMeta.ResourceNameFormatter, ruleSpecificResourceMappingFunc)
+		return updateCustomEventSpecificationState(d, response.(restapi.CustomEventSpecification), providerMeta.ResourceNameFormatter, ruleSpecificResourceMappingFunc)
 	}
 }
 

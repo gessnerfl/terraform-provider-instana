@@ -233,10 +233,10 @@ func (m *MockInstanaAPI) EXPECT() *MockInstanaAPIMockRecorder {
 }
 
 // CustomEventSpecifications mocks base method
-func (m *MockInstanaAPI) CustomEventSpecifications() restapi.CustomEventSpecificationResource {
+func (m *MockInstanaAPI) CustomEventSpecifications() restapi.RestResource {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CustomEventSpecifications")
-	ret0, _ := ret[0].(restapi.CustomEventSpecificationResource)
+	ret0, _ := ret[0].(restapi.RestResource)
 	return ret0
 }
 

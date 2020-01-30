@@ -185,7 +185,7 @@ func testShouldSuccessfullyReadCustomEventSpecificationWithEntityVerificationRul
 		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData()
 		resourceData.SetId(customEntityVerificationEventID)
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEntityVerificationEventID)).Return(expectedModel, nil).Times(1)
@@ -208,7 +208,7 @@ func TestShouldFailToReadCustomEventSpecificationWithEntityVerificationRuleFromI
 		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData()
 		resourceData.SetId(customEntityVerificationEventID)
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEntityVerificationEventID)).Return(expectedModel, nil).Times(1)
@@ -242,7 +242,7 @@ func TestShouldFailToReadCustomEventSpecificationWithEntityVerificationRuleFromI
 		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData()
 		resourceData.SetId(customEntityVerificationEventID)
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEntityVerificationEventID)).Return(restapi.CustomEventSpecification{}, restapi.ErrEntityNotFound).Times(1)
@@ -266,7 +266,7 @@ func TestShouldFailToReadCustomEventSpecificationWithEntityVerificationRuleFromI
 		resourceData.SetId(customEntityVerificationEventID)
 		expectedError := errors.New("test")
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEntityVerificationEventID)).Return(restapi.CustomEventSpecification{}, expectedError).Times(1)
@@ -290,7 +290,7 @@ func TestShouldCreateCustomEventSpecificationWithEntityVerificationRuleThroughIn
 		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
 		expectedModel := createTestCustomEventSpecificationWithEntityVerificationRuleModelWithFullDataSet()
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
@@ -313,7 +313,7 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithEntityVerificati
 		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
 		expectedError := errors.New("test")
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
@@ -354,7 +354,7 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithEntityVerificati
 		expectedModel := createTestCustomEventSpecificationWithEntityVerificationRuleModelWithFullDataSet()
 		expectedModel.Rules[0].Severity = 999
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
@@ -376,7 +376,7 @@ func TestShouldDeleteCustomEventSpecificationWithEntityVerificationRuleThroughIn
 		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
 		resourceData.SetId(customEntityVerificationEventID)
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
@@ -402,7 +402,7 @@ func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithEntityVerificati
 		resourceData.SetId(customEntityVerificationEventID)
 		expectedError := errors.New("test")
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)

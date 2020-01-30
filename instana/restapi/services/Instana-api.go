@@ -19,8 +19,17 @@ type baseInstanaAPI struct {
 }
 
 //CustomEventSpecifications implementation of InstanaAPI interface
-func (api *baseInstanaAPI) CustomEventSpecifications() restapi.CustomEventSpecificationResource {
-	return resources.NewCustomEventSpecificationResource(api.client)
+func (api *baseInstanaAPI) CustomEventSpecifications() restapi.RestResource {
+	return NewRestResource(restapi.CustomEventSpecificationResourcePath, UnmarshalCustomEventSpecification, api.client)
+}
+
+//UnmarshalCustomEventSpecification unmarshal the JSON response of an custom event specification to an CustomEventSpecification struct
+func UnmarshalCustomEventSpecification(data []byte) (restapi.InstanaDataObject, error) {
+	customEventSpecification := restapi.CustomEventSpecification{}
+	if err := json.Unmarshal(data, &customEventSpecification); err != nil {
+		return customEventSpecification, fmt.Errorf("failed to parse json; %s", err)
+	}
+	return customEventSpecification, nil
 }
 
 //UserRoles implementation of InstanaAPI interface

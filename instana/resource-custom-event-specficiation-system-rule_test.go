@@ -174,7 +174,7 @@ func testShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstana
 		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
 		resourceData.SetId(customSystemEventID)
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(expectedModel, nil).Times(1)
@@ -197,7 +197,7 @@ func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhe
 		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
 		resourceData.SetId(customSystemEventID)
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(expectedModel, nil).Times(1)
@@ -231,7 +231,7 @@ func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIAnd
 		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
 		resourceData.SetId(customSystemEventID)
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(restapi.CustomEventSpecification{}, restapi.ErrEntityNotFound).Times(1)
@@ -255,7 +255,7 @@ func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIAnd
 		resourceData.SetId(customSystemEventID)
 		expectedError := errors.New("test")
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(restapi.CustomEventSpecification{}, expectedError).Times(1)
@@ -279,7 +279,7 @@ func TestShouldCreateCustomEventSpecificationWithSystemRuleThroughInstanaAPI(t *
 		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
 		expectedModel := createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet()
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
@@ -302,7 +302,7 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithSystemRuleFailsT
 		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
 		expectedError := errors.New("test")
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
@@ -343,7 +343,7 @@ func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithSystemRuleFailsB
 		expectedModel := createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet()
 		expectedModel.Rules[0].Severity = 999
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
@@ -365,7 +365,7 @@ func TestShouldDeleteCustomEventSpecificationWithSystemRuleThroughInstanaAPI(t *
 		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
 		resourceData.SetId(customSystemEventID)
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
@@ -391,7 +391,7 @@ func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithSystemRuleFailsT
 		resourceData.SetId(customSystemEventID)
 		expectedError := errors.New("test")
 
-		mockCustomEventAPI := mocks.NewMockCustomEventSpecificationResource(ctrl)
+		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
