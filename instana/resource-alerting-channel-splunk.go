@@ -11,12 +11,9 @@ const (
 	AlertingChannelSplunkFieldURL = "url"
 	//AlertingChannelSplunkFieldToken const for the token field of the Splunk alerting channel
 	AlertingChannelSplunkFieldToken = "token"
+	//ResourceInstanaAlertingChannelSplunk the name of the terraform-provider-instana resource to manage alerting channels of type Splunk
+	ResourceInstanaAlertingChannelSplunk = "instana_alerting_channel_splunk"
 )
-
-//NewAlertingChannelSplunkResource creates the terraform resource for Alerting Channels of type Splunk
-func NewAlertingChannelSplunkResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelSplunkResourceHandle())
-}
 
 //NewAlertingChannelSplunkResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelSplunkResourceHandle() ResourceHandle {
@@ -47,7 +44,7 @@ func (h *alertingChannelSplunkResourceHandle) GetSchema() map[string]*schema.Sch
 }
 
 func (h *alertingChannelSplunkResourceHandle) GetResourceName() string {
-	return "instana_alerting_channel_splunk"
+	return ResourceInstanaAlertingChannelSplunk
 }
 
 func (h *alertingChannelSplunkResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {

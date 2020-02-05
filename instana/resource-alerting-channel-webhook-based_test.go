@@ -98,29 +98,35 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 	}
 }
 
-func TestResourceAlertingChannelWebhookBasedDefinition(t *testing.T) {
-	for _, channelType := range supportedAlertingChannelWebhookTypes {
-		t.Run(fmt.Sprintf("TestResourceAlertingChannelWebhookBasedDefinition%s", channelType), func(t *testing.T) {
-			resource := NewAlertingChannelWebhookBasedResourceHandle(channelType)
+func TestResourceAlertingChannelGoogleChatDefinition(t *testing.T) {
+	testResourceAlertingChannelWebhookBasedDefinition(t, NewAlertingChannelGoogleChatResourceHandle())
+}
 
-			schemaMap := resource.GetSchema()
+func TestResourceAlertingChannelOffice365Definition(t *testing.T) {
+	testResourceAlertingChannelWebhookBasedDefinition(t, NewAlertingChannelOffice356ResourceHandle())
+}
 
-			schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
-			schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
-			schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
-			schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelWebhookBasedFieldWebhookURL)
-		})
+func testResourceAlertingChannelWebhookBasedDefinition(t *testing.T, resourceHandle ResourceHandle) {
+	schemaMap := resourceHandle.GetSchema()
+
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelWebhookBasedFieldWebhookURL)
+}
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelGoogleChat(t *testing.T) {
+	name := NewAlertingChannelGoogleChatResourceHandle().GetResourceName()
+
+	if name != "instana_alerting_channel_google_chat" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_google_chat")
 	}
 }
 
-func TestShouldReturnCorrectResourceNameForAlertingChannelWebhookBased(t *testing.T) {
-	for _, channelType := range supportedAlertingChannelWebhookTypes {
-		t.Run(fmt.Sprintf("TestShouldReturnCorrectResourceNameForAlertingChannelWebhookBased%s", channelType), func(t *testing.T) {
-			name := NewAlertingChannelWebhookBasedResourceHandle(channelType).GetResourceName()
+func TestShouldReturnCorrectResourceNameForAlertingChannelOffice365(t *testing.T) {
+	name := NewAlertingChannelOffice356ResourceHandle().GetResourceName()
 
-			if name != fmt.Sprintf("instana_alerting_channel_%s", strings.ToLower(string(channelType))) {
-				t.Fatalf("Expected resource name to be instana_alerting_channel_%s", channelType)
-			}
-		})
+	if name != "instana_alerting_channel_office_365" {
+		t.Fatal("Expected resource name to be instana_alerting_channel_office_365")
 	}
 }

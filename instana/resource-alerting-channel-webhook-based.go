@@ -2,7 +2,6 @@ package instana
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -12,25 +11,29 @@ import (
 const (
 	//AlertingChannelWebhookBasedFieldWebhookURL const for the webhookUrl field of the alerting channel
 	AlertingChannelWebhookBasedFieldWebhookURL = "webhook_url"
+	//ResourceInstanaAlertingChannelOffice365 the name of the terraform-provider-instana resource to manage alerting channels of type Office 365
+	ResourceInstanaAlertingChannelOffice365 = "instana_alerting_channel_office_365"
+	//ResourceInstanaAlertingChannelGoogleChat the name of the terraform-provider-instana resource to manage alerting channels of type Google Chat
+	ResourceInstanaAlertingChannelGoogleChat = "instana_alerting_channel_google_chat"
 )
 
-//NewAlertingChannelGoogleChatResource creates the terraform resource for Alerting Channels of type Google Chat
-func NewAlertingChannelGoogleChatResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelWebhookBasedResourceHandle(restapi.GoogleChatChannelType))
+//NewAlertingChannelGoogleChatResourceHandle creates the terraform resource for Alerting Channels of type Google Chat
+func NewAlertingChannelGoogleChatResourceHandle() ResourceHandle {
+	return newAlertingChannelWebhookBasedResourceHandle(restapi.GoogleChatChannelType, ResourceInstanaAlertingChannelGoogleChat)
 }
 
-//NewAlertingChannelOffice356Resource creates the terraform resource for Alerting Channels of type Office 356
-func NewAlertingChannelOffice356Resource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelWebhookBasedResourceHandle(restapi.Office365ChannelType))
+//NewAlertingChannelOffice356ResourceHandle creates the terraform resource for Alerting Channels of type Office 356
+func NewAlertingChannelOffice356ResourceHandle() ResourceHandle {
+	return newAlertingChannelWebhookBasedResourceHandle(restapi.Office365ChannelType, ResourceInstanaAlertingChannelOffice365)
 }
 
-//NewAlertingChannelWebhookBasedResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingChannelType) ResourceHandle {
-	return &alertingChannelWebhookBasedResourceHandle{channelType: channelType}
+func newAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingChannelType, resourceName string) ResourceHandle {
+	return &alertingChannelWebhookBasedResourceHandle{channelType: channelType, resourceName: resourceName}
 }
 
 type alertingChannelWebhookBasedResourceHandle struct {
-	channelType restapi.AlertingChannelType
+	channelType  restapi.AlertingChannelType
+	resourceName string
 }
 
 func (h *alertingChannelWebhookBasedResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
@@ -50,7 +53,7 @@ func (h *alertingChannelWebhookBasedResourceHandle) GetSchema() map[string]*sche
 }
 
 func (h *alertingChannelWebhookBasedResourceHandle) GetResourceName() string {
-	return "instana_alerting_channel_" + strings.ToLower(string(h.channelType))
+	return h.resourceName
 }
 
 func (h *alertingChannelWebhookBasedResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {

@@ -13,12 +13,9 @@ const (
 	AlertingChannelSlackFieldIconURL = "icon_url"
 	//AlertingChannelSlackFieldChannel const for the channel field of the Slack alerting channel
 	AlertingChannelSlackFieldChannel = "channel"
+	//ResourceInstanaAlertingChannelSlack the name of the terraform-provider-instana resource to manage alerting channels of type Slack
+	ResourceInstanaAlertingChannelSlack = "instana_alerting_channel_slack"
 )
-
-//NewAlertingChannelSlackResource creates the terraform resource for Alerting Channels of type Slack
-func NewAlertingChannelSlackResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelSlackResourceHandle())
-}
 
 //NewAlertingChannelSlackResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelSlackResourceHandle() ResourceHandle {
@@ -54,7 +51,7 @@ func (h *alertingChannelSlackResourceHandle) GetSchema() map[string]*schema.Sche
 }
 
 func (h *alertingChannelSlackResourceHandle) GetResourceName() string {
-	return "instana_alerting_channel_slack"
+	return ResourceInstanaAlertingChannelSlack
 }
 
 func (h *alertingChannelSlackResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {

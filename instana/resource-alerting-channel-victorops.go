@@ -11,12 +11,9 @@ const (
 	AlertingChannelVictorOpsFieldAPIKey = "api_key"
 	//AlertingChannelVictorOpsFieldRoutingKey const for the routingKey field of the VictorOps alerting channel
 	AlertingChannelVictorOpsFieldRoutingKey = "routing_key"
+	//ResourceInstanaAlertingChannelVictorOps the name of the terraform-provider-instana resource to manage alerting channels of type VictorOps
+	ResourceInstanaAlertingChannelVictorOps = "instana_alerting_channel_victor_ops"
 )
-
-//NewAlertingChannelVictorOpsResource creates the terraform resource for Alerting Channels of type VictorOps
-func NewAlertingChannelVictorOpsResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelVictorOpsResourceHandle())
-}
 
 //NewAlertingChannelVictorOpsResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelVictorOpsResourceHandle() ResourceHandle {
@@ -47,7 +44,7 @@ func (h *alertingChannelVictorOpsResourceHandle) GetSchema() map[string]*schema.
 }
 
 func (h *alertingChannelVictorOpsResourceHandle) GetResourceName() string {
-	return "instana_alerting_channel_victor_ops"
+	return ResourceInstanaAlertingChannelVictorOps
 }
 
 func (h *alertingChannelVictorOpsResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {

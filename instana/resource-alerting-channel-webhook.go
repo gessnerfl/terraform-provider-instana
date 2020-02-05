@@ -13,12 +13,9 @@ const (
 	AlertingChannelWebhookFieldWebhookURLs = "webhook_urls"
 	//AlertingChannelWebhookFieldHTTPHeaders const for the http headers field of the Webhook alerting channel
 	AlertingChannelWebhookFieldHTTPHeaders = "http_headers"
+	//ResourceInstanaAlertingChannelWebhook the name of the terraform-provider-instana resource to manage alerting channels of type webhook
+	ResourceInstanaAlertingChannelWebhook = "instana_alerting_channel_webhook"
 )
-
-//NewAlertingChannelWebhookResource creates the terraform resource for Alerting Channels of type Webhook
-func NewAlertingChannelWebhookResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelWebhookResourceHandle())
-}
 
 //NewAlertingChannelWebhookResourceHandle creates the resource handle for Alerting Channels of type Webhook
 func NewAlertingChannelWebhookResourceHandle() ResourceHandle {
@@ -57,7 +54,7 @@ func (h *alertingChannelWebhookResourceHandle) GetSchema() map[string]*schema.Sc
 }
 
 func (h *alertingChannelWebhookResourceHandle) GetResourceName() string {
-	return "instana_alerting_channel_webhook"
+	return ResourceInstanaAlertingChannelWebhook
 }
 
 func (h *alertingChannelWebhookResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {

@@ -16,14 +16,11 @@ const (
 	AlertingChannelOpsGenieFieldTags = "tags"
 	//AlertingChannelOpsGenieFieldRegion const for the region field of the alerting channel OpsGenie
 	AlertingChannelOpsGenieFieldRegion = "region"
+	//ResourceInstanaAlertingChannelOpsGenie the name of the terraform-provider-instana resource to manage alerting channels of type OpsGenie
+	ResourceInstanaAlertingChannelOpsGenie = "instana_alerting_channel_ops_genie"
 )
 
 var opsGenieRegions = convertOpsGenieRegionsToStringSlice()
-
-//NewAlertingChannelOpsGenieResource creates the terraform resource for Alerting Channels of type OpsGenie
-func NewAlertingChannelOpsGenieResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelOpsGenieResourceHandle())
-}
 
 //NewAlertingChannelOpsGenieResourceHandle creates the resource handle for Alerting Channels of type OpsGenie
 func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle {
@@ -65,7 +62,7 @@ func (h *alertingChannelOpsGenieResourceHandle) GetSchema() map[string]*schema.S
 }
 
 func (h *alertingChannelOpsGenieResourceHandle) GetResourceName() string {
-	return "instana_alerting_channel_ops_genie"
+	return ResourceInstanaAlertingChannelOpsGenie
 }
 
 func (h *alertingChannelOpsGenieResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {

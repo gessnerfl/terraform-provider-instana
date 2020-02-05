@@ -9,12 +9,9 @@ import (
 const (
 	//AlertingChannelEmailFieldEmails const for the emails field of the alerting channel
 	AlertingChannelEmailFieldEmails = "emails"
+	//ResourceInstanaAlertingChannelEmail the name of the terraform-provider-instana resource to manage alerting channels of type email
+	ResourceInstanaAlertingChannelEmail = "instana_alerting_channel_email"
 )
-
-//NewAlertingChannelEmailResource creates the terraform resource for Alerting Channels of type Email
-func NewAlertingChannelEmailResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelEmailResourceHandle())
-}
 
 //NewAlertingChannelEmailResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelEmailResourceHandle() ResourceHandle {
@@ -45,7 +42,7 @@ func (h *alertingChannelEmailResourceHandle) GetSchema() map[string]*schema.Sche
 }
 
 func (h *alertingChannelEmailResourceHandle) GetResourceName() string {
-	return "instana_alerting_channel_email"
+	return ResourceInstanaAlertingChannelEmail
 }
 
 func (h *alertingChannelEmailResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {

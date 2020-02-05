@@ -40,33 +40,6 @@ const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_eve
 //ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
 const ResourceInstanaCustomEventSpecificationEntityVerificationRule = "instana_custom_event_spec_entity_verification_rule"
 
-//ResourceInstanaAlertingChannelEmail the name of the terraform-provider-instana resource to manage alerting channels of type email
-const ResourceInstanaAlertingChannelEmail = "instana_alerting_channel_email"
-
-//ResourceInstanaAlertingChannelGoogleChat the name of the terraform-provider-instana resource to manage alerting channels of type Google Chat
-const ResourceInstanaAlertingChannelGoogleChat = "instana_alerting_channel_google_chat"
-
-//ResourceInstanaAlertingChannelSlack the name of the terraform-provider-instana resource to manage alerting channels of type Slack
-const ResourceInstanaAlertingChannelSlack = "instana_alerting_channel_slack"
-
-//ResourceInstanaAlertingChannelOffice365 the name of the terraform-provider-instana resource to manage alerting channels of type Office 365
-const ResourceInstanaAlertingChannelOffice365 = "instana_alerting_channel_office_365"
-
-//ResourceInstanaAlertingChannelOpsGenie the name of the terraform-provider-instana resource to manage alerting channels of type OpsGenie
-const ResourceInstanaAlertingChannelOpsGenie = "instana_alerting_channel_ops_genie"
-
-//ResourceInstanaAlertingChannelPagerDuty the name of the terraform-provider-instana resource to manage alerting channels of type PagerDuty
-const ResourceInstanaAlertingChannelPagerDuty = "instana_alerting_channel_pager_duty"
-
-//ResourceInstanaAlertingChannelSplunk the name of the terraform-provider-instana resource to manage alerting channels of type Splunk
-const ResourceInstanaAlertingChannelSplunk = "instana_alerting_channel_splunk"
-
-//ResourceInstanaAlertingChannelVictorOps the name of the terraform-provider-instana resource to manage alerting channels of type VictorOps
-const ResourceInstanaAlertingChannelVictorOps = "instana_alerting_channel_victor_ops"
-
-//ResourceInstanaAlertingChannelWebhook the name of the terraform-provider-instana resource to manage alerting channels of type webhook
-const ResourceInstanaAlertingChannelWebhook = "instana_alerting_channel_webhook"
-
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
@@ -111,22 +84,27 @@ func providerSchema() map[string]*schema.Schema {
 }
 
 func providerResources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{
-		ResourceInstanaUserRole:                                       CreateResourceUserRole(),
-		ResourceInstanaApplicationConfig:                              CreateResourceApplicationConfig(),
-		ResourceInstanaCustomEventSpecificationSystemRule:             CreateResourceCustomEventSpecificationWithSystemRule(),
-		ResourceInstanaCustomEventSpecificationThresholdRule:          CreateResourceCustomEventSpecificationWithThresholdRule(),
-		ResourceInstanaCustomEventSpecificationEntityVerificationRule: CreateResourceCustomEventSpecificationWithEntityVerificationRule(),
-		ResourceInstanaAlertingChannelEmail:                           NewAlertingChannelEmailResource().ToSchemaResource(),
-		ResourceInstanaAlertingChannelGoogleChat:                      NewAlertingChannelGoogleChatResource().ToSchemaResource(),
-		ResourceInstanaAlertingChannelOffice365:                       NewAlertingChannelOffice356Resource().ToSchemaResource(),
-		ResourceInstanaAlertingChannelSlack:                           NewAlertingChannelSlackResource().ToSchemaResource(),
-		ResourceInstanaAlertingChannelOpsGenie:                        NewAlertingChannelOpsGenieResource().ToSchemaResource(),
-		ResourceInstanaAlertingChannelPagerDuty:                       NewAlertingChannelPagerDutyResource().ToSchemaResource(),
-		ResourceInstanaAlertingChannelSplunk:                          NewAlertingChannelSplunkResource().ToSchemaResource(),
-		ResourceInstanaAlertingChannelVictorOps:                       NewAlertingChannelVictorOpsResource().ToSchemaResource(),
-		ResourceInstanaAlertingChannelWebhook:                         NewAlertingChannelWebhookResource().ToSchemaResource(),
-	}
+	resources := make(map[string]*schema.Resource)
+
+	resources[ResourceInstanaUserRole] = CreateResourceUserRole()
+	resources[ResourceInstanaApplicationConfig] = CreateResourceApplicationConfig()
+	resources[ResourceInstanaCustomEventSpecificationSystemRule] = CreateResourceCustomEventSpecificationWithSystemRule()
+	resources[ResourceInstanaCustomEventSpecificationThresholdRule] = CreateResourceCustomEventSpecificationWithThresholdRule()
+	resources[ResourceInstanaCustomEventSpecificationEntityVerificationRule] = CreateResourceCustomEventSpecificationWithEntityVerificationRule()
+	bindResourceHandle(resources, NewAlertingChannelEmailResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelGoogleChatResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelOffice356ResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelSlackResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelOpsGenieResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelPagerDutyResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelSplunkResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelVictorOpsResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelWebhookResourceHandle())
+	return resources
+}
+
+func bindResourceHandle(resources map[string]*schema.Resource, resourceHandle ResourceHandle) {
+	resources[resourceHandle.GetResourceName()] = NewTerraformResource(resourceHandle).ToSchemaResource()
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {

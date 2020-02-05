@@ -9,12 +9,9 @@ import (
 const (
 	//AlertingChannelPagerDutyFieldServiceIntegrationKey const for the emails field of the alerting channel
 	AlertingChannelPagerDutyFieldServiceIntegrationKey = "service_integration_key"
+	//ResourceInstanaAlertingChannelPagerDuty the name of the terraform-provider-instana resource to manage alerting channels of type PagerDuty
+	ResourceInstanaAlertingChannelPagerDuty = "instana_alerting_channel_pager_duty"
 )
-
-//NewAlertingChannelPagerDutyResource creates the terraform resource for Alerting Channels of type PagerDuty
-func NewAlertingChannelPagerDutyResource() TerraformResource {
-	return NewTerraformResource(NewAlertingChannelPagerDutyResourceHandle())
-}
 
 //NewAlertingChannelPagerDutyResourceHandle creates the resource handle for Alerting Channels of type PagerDuty
 func NewAlertingChannelPagerDutyResourceHandle() ResourceHandle {
@@ -41,7 +38,7 @@ func (h *alertingChannelPagerDutyResourceHandle) GetSchema() map[string]*schema.
 }
 
 func (h *alertingChannelPagerDutyResourceHandle) GetResourceName() string {
-	return "instana_alerting_channel_pager_duty"
+	return ResourceInstanaAlertingChannelPagerDuty
 }
 
 func (h *alertingChannelPagerDutyResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
