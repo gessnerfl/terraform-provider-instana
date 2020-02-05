@@ -40,7 +40,9 @@ func makeTestObject() *testObject {
 	return &testObject{ID: testObjectID, Name: testObjectName}
 }
 
-func testObjectUnmarshallingFunc(data []byte) (restapi.InstanaDataObject, error) {
+type testUnmarshaller struct{}
+
+func (t *testUnmarshaller) Unmarshal(data []byte) (restapi.InstanaDataObject, error) {
 	obj := testObject{}
 	if err := json.Unmarshal(data, &obj); err != nil {
 		return &obj, fmt.Errorf("failed to parse json; %s", err)
@@ -49,7 +51,8 @@ func testObjectUnmarshallingFunc(data []byte) (restapi.InstanaDataObject, error)
 }
 
 func makeInstanaRestResourceSUT(client restapi.RestClient) restapi.RestResource {
-	return NewRestResource(testObjectResourcePath, testObjectUnmarshallingFunc, client)
+	unmarshaller := &testUnmarshaller{}
+	return NewRestResource(testObjectResourcePath, unmarshaller, client)
 }
 
 func TestSuccessfulGetOneTestObject(t *testing.T) {

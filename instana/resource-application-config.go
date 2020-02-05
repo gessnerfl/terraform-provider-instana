@@ -111,7 +111,7 @@ func ReadApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	if len(applicationConfigID) == 0 {
 		return errors.New("ID of application config is missing")
 	}
-	applicationConfig, err := instanaAPI.ApplicationConfigs().GetOne(applicationConfigID)
+	response, err := instanaAPI.ApplicationConfigs().GetOne(applicationConfigID)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
@@ -119,7 +119,7 @@ func ReadApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 		}
 		return err
 	}
-	return updateApplicationConfigState(d, applicationConfig, providerMeta.ResourceNameFormatter)
+	return updateApplicationConfigState(d, response.(restapi.ApplicationConfig), providerMeta.ResourceNameFormatter)
 }
 
 //UpdateApplicationConfig defines the update operation for the resource instana_application_config
@@ -130,11 +130,11 @@ func UpdateApplicationConfig(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	updatedApplicationConfig, err := instanaAPI.ApplicationConfigs().Upsert(applicationConfig)
+	response, err := instanaAPI.ApplicationConfigs().Upsert(applicationConfig)
 	if err != nil {
 		return err
 	}
-	return updateApplicationConfigState(d, updatedApplicationConfig, providerMeta.ResourceNameFormatter)
+	return updateApplicationConfigState(d, response.(restapi.ApplicationConfig), providerMeta.ResourceNameFormatter)
 }
 
 //DeleteApplicationConfig defines the delete operation for the resource instana_application_config

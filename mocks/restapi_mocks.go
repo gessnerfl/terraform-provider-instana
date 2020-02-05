@@ -261,10 +261,10 @@ func (mr *MockInstanaAPIMockRecorder) UserRoles() *gomock.Call {
 }
 
 // ApplicationConfigs mocks base method
-func (m *MockInstanaAPI) ApplicationConfigs() restapi.ApplicationConfigResource {
+func (m *MockInstanaAPI) ApplicationConfigs() restapi.RestResource {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ApplicationConfigs")
-	ret0, _ := ret[0].(restapi.ApplicationConfigResource)
+	ret0, _ := ret[0].(restapi.RestResource)
 	return ret0
 }
 

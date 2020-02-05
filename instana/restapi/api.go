@@ -81,7 +81,7 @@ type RestResource interface {
 type InstanaAPI interface {
 	CustomEventSpecifications() RestResource
 	UserRoles() RestResource
-	ApplicationConfigs() ApplicationConfigResource
+	ApplicationConfigs() RestResource
 	AlertingChannels() RestResource
 }
 
