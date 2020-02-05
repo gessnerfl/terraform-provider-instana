@@ -43,15 +43,15 @@ const (
 	NotEmptyOperator = MatcherOperator("NOT_EMPTY")
 	//IsBlankOperator constant for the IS_BLANK operator
 	IsBlankOperator = MatcherOperator("IS_BLANK")
-	//NotBalnkOperator constant for the NOT_BLANK operator
-	NotBalnkOperator = MatcherOperator("NOT_BLANK")
+	//NotBlankOperator constant for the NOT_BLANK operator
+	NotBlankOperator = MatcherOperator("NOT_BLANK")
 )
 
 //SupportedComparisionOperators list of supported comparision operators of Instana API
 var SupportedComparisionOperators = []MatcherOperator{EqualsOperator, NotEqualOperator, ContainsOperator, NotContainOperator}
 
 //SupportedUnaryOperatorExpressionOperators list of supported unary expression operators of Instana API
-var SupportedUnaryOperatorExpressionOperators = []MatcherOperator{IsEmptyOperator, NotEmptyOperator, IsBlankOperator, NotBalnkOperator}
+var SupportedUnaryOperatorExpressionOperators = []MatcherOperator{IsEmptyOperator, NotEmptyOperator, IsBlankOperator, NotBlankOperator}
 
 //SupportedConjunctionTypes list of supported binary expression operators of Instana API
 var SupportedConjunctionTypes = []ConjunctionType{LogicalAnd, LogicalOr}

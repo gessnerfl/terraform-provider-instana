@@ -45,7 +45,7 @@ func TestShouldSuccessfullyUnmarshalApplicationConfig(t *testing.T) {
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 id,
 		Label:              label,
-		MatchSpecification: restapi.NewComparisionExpression("key", restapi.EqualsOperator, "value"),
+		MatchSpecification: restapi.NewBinaryOperator(restapi.NewComparisionExpression("key", restapi.EqualsOperator, "value"), restapi.LogicalAnd, restapi.NewUnaryOperationExpression("key", restapi.NotBlankOperator)),
 		Scope:              "scope",
 	}
 
