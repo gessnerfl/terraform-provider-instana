@@ -5,6 +5,15 @@ import (
 	"fmt"
 )
 
+const (
+	//ApplicationMonitoringBasePath path to application monitoring resource of Instana RESTful API
+	ApplicationMonitoringBasePath = InstanaAPIBasePath + "/application-monitoring"
+	//ApplicationMonitoringSettingsBasePath path to application monitoring settings resource of Instana RESTful API
+	ApplicationMonitoringSettingsBasePath = ApplicationMonitoringBasePath + settingsPathElement
+	//ApplicationConfigsResourcePath path to application config resource of Instana RESTful API
+	ApplicationConfigsResourcePath = ApplicationMonitoringSettingsBasePath + "/application"
+)
+
 //MatchExpressionType type for MatchExpression discriminator type
 type MatchExpressionType string
 

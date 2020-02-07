@@ -1,16 +1,26 @@
-package services
+package restapi
 
-import (
-	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-)
+//InstanaDataObject is a marker interface for any data object provided by any resource of the Instana REST API
+type InstanaDataObject interface {
+	GetID() string
+	Validate() error
+}
+
+//RestResource interface definition of a instana REST resource.
+type RestResource interface {
+	GetOne(id string) (InstanaDataObject, error)
+	Upsert(data InstanaDataObject) (InstanaDataObject, error)
+	Delete(data InstanaDataObject) error
+	DeleteByID(id string) error
+}
 
 //Unmarshaller interface definition for unmarshalling the binary data to the desired struct
 type Unmarshaller interface {
-	Unmarshal(data []byte) (restapi.InstanaDataObject, error)
+	Unmarshal(data []byte) (InstanaDataObject, error)
 }
 
 //NewRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject
-func NewRestResource(resourcePath string, unmarshaller Unmarshaller, client restapi.RestClient) restapi.RestResource {
+func NewRestResource(resourcePath string, unmarshaller Unmarshaller, client RestClient) RestResource {
 	return &genericRestResource{
 		resourcePath: resourcePath,
 		unmarshaller: unmarshaller,
@@ -21,10 +31,10 @@ func NewRestResource(resourcePath string, unmarshaller Unmarshaller, client rest
 type genericRestResource struct {
 	resourcePath string
 	unmarshaller Unmarshaller
-	client       restapi.RestClient
+	client       RestClient
 }
 
-func (r *genericRestResource) GetOne(id string) (restapi.InstanaDataObject, error) {
+func (r *genericRestResource) GetOne(id string) (InstanaDataObject, error) {
 	data, err := r.client.GetOne(id, r.resourcePath)
 	if err != nil {
 		return nil, err
@@ -32,7 +42,7 @@ func (r *genericRestResource) GetOne(id string) (restapi.InstanaDataObject, erro
 	return r.validateResponseAndConvertToStruct(data)
 }
 
-func (r *genericRestResource) Upsert(data restapi.InstanaDataObject) (restapi.InstanaDataObject, error) {
+func (r *genericRestResource) Upsert(data InstanaDataObject) (InstanaDataObject, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
@@ -43,7 +53,7 @@ func (r *genericRestResource) Upsert(data restapi.InstanaDataObject) (restapi.In
 	return r.validateResponseAndConvertToStruct(response)
 }
 
-func (r *genericRestResource) validateResponseAndConvertToStruct(data []byte) (restapi.InstanaDataObject, error) {
+func (r *genericRestResource) validateResponseAndConvertToStruct(data []byte) (InstanaDataObject, error) {
 	object, err := r.unmarshaller.Unmarshal(data)
 	if err != nil {
 		return object, err
@@ -55,7 +65,7 @@ func (r *genericRestResource) validateResponseAndConvertToStruct(data []byte) (r
 	return object, nil
 }
 
-func (r *genericRestResource) Delete(data restapi.InstanaDataObject) error {
+func (r *genericRestResource) Delete(data InstanaDataObject) error {
 	return r.DeleteByID(data.GetID())
 }
 

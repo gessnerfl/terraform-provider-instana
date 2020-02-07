@@ -1,12 +1,12 @@
-package services_test
+package restapi_test
 
 import (
 	"encoding/json"
-	"github.com/google/go-cmp/cmp"
 	"testing"
 
-	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/services"
+	"github.com/google/go-cmp/cmp"
+
+	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
 func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
@@ -42,10 +42,10 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 func TestShouldSuccessfullyUnmarshalApplicationConfig(t *testing.T) {
 	id := "test-application-config-id"
 	label := "Test Application Config Label"
-	applicationConfig := restapi.ApplicationConfig{
+	applicationConfig := ApplicationConfig{
 		ID:                 id,
 		Label:              label,
-		MatchSpecification: restapi.NewBinaryOperator(restapi.NewComparisionExpression("key", restapi.EqualsOperator, "value"), restapi.LogicalAnd, restapi.NewUnaryOperationExpression("key", restapi.NotBlankOperator)),
+		MatchSpecification: NewBinaryOperator(NewComparisionExpression("key", EqualsOperator, "value"), LogicalAnd, NewUnaryOperationExpression("key", NotBlankOperator)),
 		Scope:              "scope",
 	}
 
@@ -93,12 +93,12 @@ func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsNotAValidJson(t *t
 
 func TestShouldFailToUnmarashalApplicationConfigWhenExpressionTypeIsNotSupported(t *testing.T) {
 	//config is invalid because there is no DType for the match specification.
-	applicationConfig := restapi.ApplicationConfig{
+	applicationConfig := ApplicationConfig{
 		ID:    "id",
 		Label: "label",
-		MatchSpecification: restapi.TagMatcherExpression{
+		MatchSpecification: TagMatcherExpression{
 			Key:      "foo",
-			Operator: restapi.NotEmptyOperator,
+			Operator: NotEmptyOperator,
 		},
 		Scope: "scope",
 	}
@@ -112,28 +112,28 @@ func TestShouldFailToUnmarashalApplicationConfigWhenExpressionTypeIsNotSupported
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenLeftSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
-	left := restapi.TagMatcherExpression{
+	left := TagMatcherExpression{
 		Key:      "foo",
-		Operator: restapi.NotEmptyOperator,
+		Operator: NotEmptyOperator,
 	}
-	right := restapi.NewUnaryOperationExpression("foo", restapi.IsEmptyOperator)
+	right := NewUnaryOperationExpression("foo", IsEmptyOperator)
 	testShouldFailToUnmarashalApplicationConfigWhenOneSideOfBinaryExpressionIsNotValid(left, right, t)
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenRightSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
-	left := restapi.NewUnaryOperationExpression("foo", restapi.IsEmptyOperator)
-	right := restapi.TagMatcherExpression{
+	left := NewUnaryOperationExpression("foo", IsEmptyOperator)
+	right := TagMatcherExpression{
 		Key:      "foo",
-		Operator: restapi.NotEmptyOperator,
+		Operator: NotEmptyOperator,
 	}
 	testShouldFailToUnmarashalApplicationConfigWhenOneSideOfBinaryExpressionIsNotValid(left, right, t)
 }
 
-func testShouldFailToUnmarashalApplicationConfigWhenOneSideOfBinaryExpressionIsNotValid(left restapi.MatchExpression, right restapi.MatchExpression, t *testing.T) {
-	applicationConfig := restapi.ApplicationConfig{
+func testShouldFailToUnmarashalApplicationConfigWhenOneSideOfBinaryExpressionIsNotValid(left MatchExpression, right MatchExpression, t *testing.T) {
+	applicationConfig := ApplicationConfig{
 		ID:                 "id",
 		Label:              "label",
-		MatchSpecification: restapi.NewBinaryOperator(left, restapi.LogicalOr, right),
+		MatchSpecification: NewBinaryOperator(left, LogicalOr, right),
 		Scope:              "scope",
 	}
 	serializedJSON, _ := json.Marshal(applicationConfig)
@@ -149,8 +149,8 @@ func TestShouldSuccessfullyUnmarshalCustomEventSpecifications(t *testing.T) {
 	description := "event-description"
 	query := "event-query"
 	expirationTime := 60000
-	systemRule := restapi.NewSystemRuleSpecification("system-rule-id", restapi.SeverityWarning.GetAPIRepresentation())
-	customEventSpecification := restapi.CustomEventSpecification{
+	systemRule := NewSystemRuleSpecification("system-rule-id", SeverityWarning.GetAPIRepresentation())
+	customEventSpecification := CustomEventSpecification{
 		ID:             "event-id",
 		Name:           "event-name",
 		EntityType:     "entity-type",
@@ -159,7 +159,7 @@ func TestShouldSuccessfullyUnmarshalCustomEventSpecifications(t *testing.T) {
 		Description:    &description,
 		ExpirationTime: &expirationTime,
 		Query:          &query,
-		Rules:          []restapi.RuleSpecification{systemRule},
+		Rules:          []RuleSpecification{systemRule},
 	}
 
 	serializedJSON, _ := json.Marshal(customEventSpecification)
@@ -204,13 +204,13 @@ func TestShouldReturnEmptyCustomEventSpecificationWhenJsonObjectIsReturnWhereNoF
 		t.Fatalf("Expected to successfully unmarshal custom event specification response, %s", err)
 	}
 
-	if !cmp.Equal(result, restapi.CustomEventSpecification{}) {
+	if !cmp.Equal(result, CustomEventSpecification{}) {
 		t.Fatal("Expected empty custom event specification")
 	}
 }
 
 func TestShouldSuccessfullyUnmarshalUserRole(t *testing.T) {
-	userRole := restapi.UserRole{
+	userRole := UserRole{
 		ID:                                "role-id",
 		Name:                              "role-name",
 		ImplicitViewFilter:                "Test view filter",
@@ -274,7 +274,7 @@ func TestShouldReturnEmptyUserRoleWhenJsonObjectIsReturnWhereNoFiledMatches(t *t
 		t.Fatalf("Expected to successfully unmarshal user role response, %s", err)
 	}
 
-	if !cmp.Equal(result, restapi.UserRole{}) {
+	if !cmp.Equal(result, UserRole{}) {
 		t.Fatal("Expected empty user role")
 	}
 }
@@ -293,7 +293,7 @@ func TestShouldSuccessfullyUnmarshalAlertingChannel(t *testing.T) {
 		t.Fatalf("Expected to successfully unmarshal alerting channel response; %s", err)
 	}
 
-	alertingChannel, ok := result.(restapi.AlertingChannel)
+	alertingChannel, ok := result.(AlertingChannel)
 	if !ok {
 		t.Fatal("Expected result to be a alerting channel")
 	}
@@ -304,7 +304,7 @@ func TestShouldSuccessfullyUnmarshalAlertingChannel(t *testing.T) {
 	if alertingChannel.Name != "test-name" {
 		t.Fatal("Expected name to be properly mapped")
 	}
-	if alertingChannel.Kind != restapi.EmailChannelType {
+	if alertingChannel.Kind != EmailChannelType {
 		t.Fatal("Expected kind to be properly mapped")
 	}
 	if !cmp.Equal(alertingChannel.Emails, []string{"test-email1", "test-email2"}) {
@@ -341,7 +341,7 @@ func TestShouldReturnEmptyAlertingChannelWhenJsonObjectIsReturnWhereNoFiledMatch
 		t.Fatalf("Expected to successfully unmarshal alerting channel response, %s", err)
 	}
 
-	if !cmp.Equal(result, restapi.AlertingChannel{}) {
+	if !cmp.Equal(result, AlertingChannel{}) {
 		t.Fatal("Expected empty alerting channel")
 	}
 }

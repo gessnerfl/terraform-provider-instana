@@ -2,7 +2,6 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/instana/restapi/services"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -112,7 +111,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	endpoint := d.Get(SchemaFieldEndpoint).(string)
 	defaultNamePrefix := d.Get(SchemaFieldDefaultNamePrefix).(string)
 	defaultNameSuffix := d.Get(SchemaFieldDefaultNameSuffix).(string)
-	instanaAPI := services.NewInstanaAPI(apiToken, endpoint)
+	instanaAPI := restapi.NewInstanaAPI(apiToken, endpoint)
 	formatter := utils.NewResourceNameFormatter(defaultNamePrefix, defaultNameSuffix)
 	return &ProviderMeta{
 		InstanaAPI:            instanaAPI,

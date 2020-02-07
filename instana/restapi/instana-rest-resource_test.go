@@ -1,4 +1,4 @@
-package services_test
+package restapi_test
 
 import (
 	"encoding/json"
@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/services"
+	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
@@ -42,7 +41,7 @@ func makeTestObject() *testObject {
 
 type testUnmarshaller struct{}
 
-func (t *testUnmarshaller) Unmarshal(data []byte) (restapi.InstanaDataObject, error) {
+func (t *testUnmarshaller) Unmarshal(data []byte) (InstanaDataObject, error) {
 	obj := testObject{}
 	if err := json.Unmarshal(data, &obj); err != nil {
 		return &obj, fmt.Errorf("failed to parse json; %s", err)
@@ -50,7 +49,7 @@ func (t *testUnmarshaller) Unmarshal(data []byte) (restapi.InstanaDataObject, er
 	return &obj, nil
 }
 
-func makeInstanaRestResourceSUT(client restapi.RestClient) restapi.RestResource {
+func makeInstanaRestResourceSUT(client RestClient) RestResource {
 	unmarshaller := &testUnmarshaller{}
 	return NewRestResource(testObjectResourcePath, unmarshaller, client)
 }

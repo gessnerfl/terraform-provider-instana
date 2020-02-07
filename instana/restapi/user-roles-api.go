@@ -2,6 +2,9 @@ package restapi
 
 import "errors"
 
+//UserRolesResourcePath path to User Role resource of Instana RESTful API
+const UserRolesResourcePath = SettingsBasePath + "/roles"
+
 //UserRole is the representation of a user role in Instana
 type UserRole struct {
 	ID                                string `json:"id"`
