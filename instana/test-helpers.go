@@ -28,6 +28,7 @@ type TestHelper interface {
 	CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData() *schema.ResourceData
 	CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData
+	CreateEmptyResourceDataForResourceHandle(resourceHandle ResourceHandle) *schema.ResourceData
 }
 
 type testHelperImpl struct {
@@ -100,4 +101,9 @@ func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithEntityVerific
 func (inst *testHelperImpl) CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData {
 	schemaMap := CreateResourceCustomEventSpecificationWithEntityVerificationRule().Schema
 	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
+}
+
+func (inst *testHelperImpl) CreateEmptyResourceDataForResourceHandle(resourceHandle ResourceHandle) *schema.ResourceData {
+	data := make(map[string]interface{})
+	return schema.TestResourceDataRaw(inst.t, resourceHandle.GetSchema(), data)
 }

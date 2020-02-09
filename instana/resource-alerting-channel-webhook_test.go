@@ -9,10 +9,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testAlertingChannelWebhookProviders = map[string]terraform.ResourceProvider{
@@ -111,10 +113,96 @@ func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelWebhookFieldWebhookURLs)
 }
 
+func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenNoHeaderIsProvided(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelWebhookResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	webhookURLs := []string{"url1", "url2"}
+	data := restapi.AlertingChannel{
+		ID:          "id",
+		Name:        "name",
+		WebhookURLs: webhookURLs,
+	}
+
+	resourceHandle.UpdateState(resourceData, data)
+
+	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
+	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	assert.Equal(t, []interface{}{"url1", "url2"}, resourceData.Get(AlertingChannelWebhookFieldWebhookURLs), "webhook urls should be equal")
+	assert.Equal(t, make(map[string]interface{}), resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
+}
+
+func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenHeadersAreProvided(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelWebhookResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	webhookURLs := []string{"url1", "url2"}
+	headers := []string{"key1: value1", "key2: value2"}
+	expectedHeaderMap := map[string]interface{}{
+		"key1": "value1",
+		"key2": "value2",
+	}
+	data := restapi.AlertingChannel{
+		ID:          "id",
+		Name:        "name",
+		WebhookURLs: webhookURLs,
+		Headers:     headers,
+	}
+
+	resourceHandle.UpdateState(resourceData, data)
+
+	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
+	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	assert.Equal(t, []interface{}{"url1", "url2"}, resourceData.Get(AlertingChannelWebhookFieldWebhookURLs), "webhook urls should be equal")
+	assert.Equal(t, expectedHeaderMap, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
+}
+
+func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenHeaderValueIsNotDefined(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelWebhookResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	webhookURLs := []string{"url1", "url2"}
+	headers := []string{"key1", "key2:"}
+	expectedHeaderMap := map[string]interface{}{
+		"key1": "",
+		"key2": "",
+	}
+	data := restapi.AlertingChannel{
+		ID:          "id",
+		Name:        "name",
+		WebhookURLs: webhookURLs,
+		Headers:     headers,
+	}
+
+	resourceHandle.UpdateState(resourceData, data)
+
+	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
+	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	assert.Equal(t, []interface{}{"url1", "url2"}, resourceData.Get(AlertingChannelWebhookFieldWebhookURLs), "webhook urls should be equal")
+	assert.Equal(t, expectedHeaderMap, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
+}
+
+func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvailable(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelWebhookResourceHandle()
+	webhookURLs := []string{"url1", "url2"}
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId("id")
+	resourceData.Set(AlertingChannelFieldName, "name")
+	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelWebhookFieldWebhookURLs, webhookURLs)
+
+	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.Equal(t, "id", model.GetID())
+	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Equal(t, webhookURLs, model.(restapi.AlertingChannel).WebhookURLs, "webhook urls should be equal")
+	assert.Equal(t, []string{}, model.(restapi.AlertingChannel).Headers, "There should be no headers")
+}
+
 func TestShouldReturnCorrectResourceNameForAlertingChannelWebhook(t *testing.T) {
 	name := NewAlertingChannelWebhookResourceHandle().GetResourceName()
 
-	if name != "instana_alerting_channel_webhook" {
-		t.Fatal("Expected resource name to be instana_alerting_channel_webhook")
-	}
+	assert.Equal(t, name, "instana_alerting_channel_webhook")
 }

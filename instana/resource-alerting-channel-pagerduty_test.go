@@ -9,10 +9,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testAlertingChannelPagerDutyProviders = map[string]terraform.ResourceProvider{
@@ -100,10 +102,44 @@ func TestResourceAlertingChannelPagerDutyDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelPagerDutyFieldServiceIntegrationKey)
 }
 
+func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelPagerDutyResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	integrationKey := "integration key"
+	data := restapi.AlertingChannel{
+		ID:                    "id",
+		Name:                  "name",
+		ServiceIntegrationKey: &integrationKey,
+	}
+
+	resourceHandle.UpdateState(resourceData, data)
+
+	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
+	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	assert.Equal(t, integrationKey, resourceData.Get(AlertingChannelPagerDutyFieldServiceIntegrationKey), "service integration key should be equal")
+}
+
+func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelPagerDutyResourceHandle()
+	integrationKey := "integration key"
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId("id")
+	resourceData.Set(AlertingChannelFieldName, "name")
+	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, integrationKey)
+
+	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.Equal(t, "id", model.GetID())
+	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Equal(t, integrationKey, *model.(restapi.AlertingChannel).ServiceIntegrationKey, "service integration key should be equal")
+}
+
 func TestShouldReturnCorrectResourceNameForAlertingChannelPagerDuty(t *testing.T) {
 	name := NewAlertingChannelPagerDutyResourceHandle().GetResourceName()
 
-	if name != "instana_alerting_channel_pager_duty" {
-		t.Fatal("Expected resource name to be instana_alerting_channel_pager_duty")
-	}
+	assert.Equal(t, name, "instana_alerting_channel_pager_duty")
 }

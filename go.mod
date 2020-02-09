@@ -10,5 +10,6 @@ require (
 	github.com/hashicorp/terraform v0.12.18
 	github.com/rs/xid v1.2.1
 	github.com/sirupsen/logrus v1.4.2
+	github.com/stretchr/testify v1.4.0
 	gopkg.in/resty.v1 v1.12.0
 )

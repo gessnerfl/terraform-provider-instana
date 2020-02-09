@@ -9,10 +9,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testAlertingChannelSlackProviders = map[string]terraform.ResourceProvider{
@@ -110,10 +112,56 @@ func TestResourceAlertingChannelSlackDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(AlertingChannelSlackFieldChannel)
 }
 
+func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelSlackResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	webhookURL := "webhook url"
+	iconURL := "icon url"
+	channel := "channel"
+	data := restapi.AlertingChannel{
+		ID:         "id",
+		Name:       "name",
+		WebhookURL: &webhookURL,
+		IconURL:    &iconURL,
+		Channel:    &channel,
+	}
+
+	resourceHandle.UpdateState(resourceData, data)
+
+	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
+	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	assert.Equal(t, webhookURL, resourceData.Get(AlertingChannelSlackFieldWebhookURL), "webhook url should be equal")
+	assert.Equal(t, iconURL, resourceData.Get(AlertingChannelSlackFieldIconURL), "icon url should be equal")
+	assert.Equal(t, channel, resourceData.Get(AlertingChannelSlackFieldChannel), "channel should be equal")
+}
+
+func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelSlackResourceHandle()
+	webhookURL := "webhook url"
+	iconURL := "icon url"
+	channel := "channel"
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId("id")
+	resourceData.Set(AlertingChannelFieldName, "name")
+	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelSlackFieldWebhookURL, webhookURL)
+	resourceData.Set(AlertingChannelSlackFieldIconURL, iconURL)
+	resourceData.Set(AlertingChannelSlackFieldChannel, channel)
+
+	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.Equal(t, "id", model.GetID())
+	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Equal(t, webhookURL, *model.(restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
+	assert.Equal(t, iconURL, *model.(restapi.AlertingChannel).IconURL, "icon url should be equal")
+	assert.Equal(t, channel, *model.(restapi.AlertingChannel).Channel, "channel should be equal")
+}
+
 func TestShouldReturnCorrectResourceNameForAlertingChannelSlack(t *testing.T) {
 	name := NewAlertingChannelSlackResourceHandle().GetResourceName()
 
-	if name != "instana_alerting_channel_slack" {
-		t.Fatal("Expected resource name to be instana_alerting_channel_slack")
-	}
+	assert.Equal(t, name, "instana_alerting_channel_slack")
 }

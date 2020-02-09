@@ -13,6 +13,9 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var testAlertingChannelEmailProviders = map[string]terraform.ResourceProvider{
@@ -102,10 +105,43 @@ func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelEmailFieldEmails)
 }
 
+func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelEmailResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	data := restapi.AlertingChannel{
+		ID:     "id",
+		Name:   "name",
+		Emails: []string{"email1", "email2"},
+	}
+
+	resourceHandle.UpdateState(resourceData, data)
+
+	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
+	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	assert.Equal(t, []interface{}{"email1", "email2"}, resourceData.Get(AlertingChannelEmailFieldEmails), "list of emails should be equal")
+}
+
+func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelEmailResourceHandle()
+	emails := []string{"email1", "email2"}
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId("id")
+	resourceData.Set(AlertingChannelFieldName, "name")
+	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelEmailFieldEmails, emails)
+
+	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.Equal(t, "id", model.GetID())
+	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Equal(t, emails, model.(restapi.AlertingChannel).Emails, "list of emails should be equal")
+}
+
 func TestShouldReturnCorrectResourceNameForAlertingChannelEmail(t *testing.T) {
 	name := NewAlertingChannelEmailResourceHandle().GetResourceName()
 
-	if name != "instana_alerting_channel_email" {
-		t.Fatal("Expected resource name to be instana_alerting_channel_email")
-	}
+	assert.Equal(t, "instana_alerting_channel_email", name, "Expected resource name to be instana_alerting_channel_email")
 }

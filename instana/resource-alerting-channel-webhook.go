@@ -2,10 +2,11 @@ package instana
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
-	"strings"
 )
 
 const (
@@ -74,7 +75,7 @@ func (h *alertingChannelWebhookResourceHandle) createHeaderMapFromList(headers [
 		if len(keyValue) == 2 {
 			result[strings.TrimSpace(keyValue[0])] = strings.TrimSpace(keyValue[1])
 		} else {
-			result[header] = "<undefined>"
+			result[strings.TrimSpace(keyValue[0])] = ""
 		}
 	}
 	return result
@@ -105,5 +106,5 @@ func (h *alertingChannelWebhookResourceHandle) createHeaderListFromMap(d *schema
 
 		return result
 	}
-	return nil
+	return []string{}
 }
