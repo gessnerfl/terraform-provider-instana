@@ -26,6 +26,16 @@ func TestShouldReturnDataForSuccessfulGetOneRequest(t *testing.T) {
 	verifySuccessfullGetOrPut(response, err, t)
 }
 
+func TestShouldReturnDataForSuccessfulGetOneRequestWhenResourcePathEndsWithASlash(t *testing.T) {
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, testPathWithID)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	response, err := restClient.GetOne(testID, testPath+"/")
+
+	verifySuccessfullGetOrPut(response, err, t)
+}
+
 func TestShouldReturnErrorMessageForGetOneRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
 	httpServer := setupAndStartHttpServer(http.MethodGet, testPathWithID, statusCode)

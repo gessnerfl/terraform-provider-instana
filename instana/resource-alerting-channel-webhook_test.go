@@ -114,64 +114,37 @@ func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenNoHeaderIsProvided(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	resourceHandle := NewAlertingChannelWebhookResourceHandle()
-	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	webhookURLs := []string{"url1", "url2"}
-	data := restapi.AlertingChannel{
-		ID:          "id",
-		Name:        "name",
-		WebhookURLs: webhookURLs,
-	}
-
-	resourceHandle.UpdateState(resourceData, data)
-
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
-	assert.Equal(t, []interface{}{"url1", "url2"}, resourceData.Get(AlertingChannelWebhookFieldWebhookURLs), "webhook urls should be equal")
-	assert.Equal(t, make(map[string]interface{}), resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
+	testShouldUpdateResourceStateForAlertingChanneWebhook(t, []string{}, make(map[string]interface{}))
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenHeadersAreProvided(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	resourceHandle := NewAlertingChannelWebhookResourceHandle()
-	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	webhookURLs := []string{"url1", "url2"}
 	headers := []string{"key1: value1", "key2: value2"}
 	expectedHeaderMap := map[string]interface{}{
 		"key1": "value1",
 		"key2": "value2",
 	}
-	data := restapi.AlertingChannel{
-		ID:          "id",
-		Name:        "name",
-		WebhookURLs: webhookURLs,
-		Headers:     headers,
-	}
-
-	resourceHandle.UpdateState(resourceData, data)
-
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
-	assert.Equal(t, []interface{}{"url1", "url2"}, resourceData.Get(AlertingChannelWebhookFieldWebhookURLs), "webhook urls should be equal")
-	assert.Equal(t, expectedHeaderMap, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
+	testShouldUpdateResourceStateForAlertingChanneWebhook(t, headers, expectedHeaderMap)
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenHeaderValueIsNotDefined(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	resourceHandle := NewAlertingChannelWebhookResourceHandle()
-	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	webhookURLs := []string{"url1", "url2"}
 	headers := []string{"key1", "key2:"}
 	expectedHeaderMap := map[string]interface{}{
 		"key1": "",
 		"key2": "",
 	}
+	testShouldUpdateResourceStateForAlertingChanneWebhook(t, headers, expectedHeaderMap)
+}
+
+func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headersFromApi []string, headersMapped map[string]interface{}) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelWebhookResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	webhookURLs := []string{"url1", "url2"}
 	data := restapi.AlertingChannel{
 		ID:          "id",
 		Name:        "name",
 		WebhookURLs: webhookURLs,
-		Headers:     headers,
+		Headers:     headersFromApi,
 	}
 
 	resourceHandle.UpdateState(resourceData, data)
@@ -179,7 +152,7 @@ func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenHeaderValueIsNotDe
 	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
 	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
 	assert.Equal(t, []interface{}{"url1", "url2"}, resourceData.Get(AlertingChannelWebhookFieldWebhookURLs), "webhook urls should be equal")
-	assert.Equal(t, expectedHeaderMap, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
+	assert.Equal(t, headersMapped, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
 }
 
 func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvailable(t *testing.T) {

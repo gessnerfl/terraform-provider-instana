@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/google/go-cmp/cmp"
@@ -35,6 +36,16 @@ const (
 	messagePartIntegrationId     = "integration id"
 	messagePartConditionOperator = "condition operator"
 )
+
+func TestShouldReturnTheProperRespresentationsForSeverityWarning(t *testing.T) {
+	assert.Equal(t, 5, SeverityWarning.GetAPIRepresentation())
+	assert.Equal(t, "warning", SeverityWarning.GetTerraformRepresentation())
+}
+
+func TestShouldReturnTheProperRespresentationsForSeverityCritical(t *testing.T) {
+	assert.Equal(t, 10, SeverityCritical.GetAPIRepresentation())
+	assert.Equal(t, "critical", SeverityCritical.GetTerraformRepresentation())
+}
 
 func TestShouldValidateMinimalCustemEventSpecificationWithSystemRule(t *testing.T) {
 	systemRuleId := customEventSystemRuleID
