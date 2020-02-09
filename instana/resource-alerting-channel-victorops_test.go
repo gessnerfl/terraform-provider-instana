@@ -48,6 +48,8 @@ const alertingChannelVictorOpsServerResponseTemplate = `
 
 const alertingChannelVictorOpsApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelVictorOpsDefinition = "instana_alerting_channel_victor_ops.example"
+const testAlertingChannelVictorOpsRoutingKey = "routing key"
+const testAlertingChannelVictorOpsApiKey = "api key"
 
 func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -77,8 +79,8 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldName, "name 0"),
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, "api key"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, "routing key"),
+					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, testAlertingChannelVictorOpsApiKey),
+					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
 				),
 			},
 			resource.TestStep{
@@ -87,8 +89,8 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldName, "name 1"),
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, "api key"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, "routing key"),
+					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, testAlertingChannelVictorOpsApiKey),
+					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
 				),
 			},
 		},
@@ -111,8 +113,8 @@ func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewAlertingChannelVictorOpsResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	apiKey := "api key"
-	routingKey := "routing key"
+	apiKey := testAlertingChannelVictorOpsApiKey
+	routingKey := testAlertingChannelVictorOpsRoutingKey
 	data := restapi.AlertingChannel{
 		ID:         "id",
 		Name:       "name",
@@ -131,8 +133,8 @@ func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
 func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewAlertingChannelVictorOpsResourceHandle()
-	apiKey := "api key"
-	routingKey := "routing key"
+	apiKey := testAlertingChannelVictorOpsApiKey
+	routingKey := testAlertingChannelVictorOpsRoutingKey
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")

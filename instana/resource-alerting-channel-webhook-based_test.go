@@ -47,6 +47,7 @@ const alertingChannelWebhookBasedServerResponseTemplate = `
 
 const alertingChannelWebhookBasedApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelWebhookBasedDefinition = "instana_alerting_channel_%s.example"
+const alertingChannelWebhookBasedWebhookUrl = "webhook url"
 
 var supportedAlertingChannelWebhookTypes = []restapi.AlertingChannelType{restapi.GoogleChatChannelType, restapi.Office365ChannelType}
 
@@ -82,7 +83,7 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 							resource.TestCheckResourceAttrSet(resourceName, "id"),
 							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldName, "name 0"),
 							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-							resource.TestCheckResourceAttr(resourceName, AlertingChannelWebhookBasedFieldWebhookURL, "webhook url"),
+							resource.TestCheckResourceAttr(resourceName, AlertingChannelWebhookBasedFieldWebhookURL, alertingChannelWebhookBasedWebhookUrl),
 						),
 					},
 					resource.TestStep{
@@ -91,7 +92,7 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 							resource.TestCheckResourceAttrSet(resourceName, "id"),
 							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldName, "name 1"),
 							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-							resource.TestCheckResourceAttr(resourceName, AlertingChannelWebhookBasedFieldWebhookURL, "webhook url"),
+							resource.TestCheckResourceAttr(resourceName, AlertingChannelWebhookBasedFieldWebhookURL, alertingChannelWebhookBasedWebhookUrl),
 						),
 					},
 				},
@@ -129,7 +130,7 @@ func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewAlertingChannelGoogleChatResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	webhookURL := "webhook url"
+	webhookURL := alertingChannelWebhookBasedWebhookUrl
 	data := restapi.AlertingChannel{
 		ID:         "id",
 		Name:       "name",
@@ -146,7 +147,7 @@ func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {
 func TestShouldConvertStateOfAlertingChannelWebhookBasedToDataModel(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewAlertingChannelGoogleChatResourceHandle()
-	webhookURL := "webhook url"
+	webhookURL := alertingChannelWebhookBasedWebhookUrl
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")

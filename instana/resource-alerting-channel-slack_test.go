@@ -50,6 +50,9 @@ const alertingChannelSlackServerResponseTemplate = `
 
 const alertingChannelSlackApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelSlackDefinition = "instana_alerting_channel_slack.example"
+const testAlertingChannelSlackWebhookURL = "webhook url"
+const testAlertingChannelSlackIconURL = "icon url"
+const testAlertingChannelSlackChannel = "channel"
 
 func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -79,9 +82,9 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelSlackDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelFieldName, "name 0"),
 					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldWebhookURL, "webhook url"),
-					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldIconURL, "icon url"),
-					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldChannel, "channel"),
+					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldWebhookURL, testAlertingChannelSlackWebhookURL),
+					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldIconURL, testAlertingChannelSlackIconURL),
+					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldChannel, testAlertingChannelSlackChannel),
 				),
 			},
 			resource.TestStep{
@@ -90,9 +93,9 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelSlackDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelFieldName, "name 1"),
 					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldWebhookURL, "webhook url"),
-					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldIconURL, "icon url"),
-					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldChannel, "channel"),
+					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldWebhookURL, testAlertingChannelSlackWebhookURL),
+					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldIconURL, testAlertingChannelSlackIconURL),
+					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldChannel, testAlertingChannelSlackChannel),
 				),
 			},
 		},
@@ -116,9 +119,9 @@ func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewAlertingChannelSlackResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	webhookURL := "webhook url"
-	iconURL := "icon url"
-	channel := "channel"
+	webhookURL := testAlertingChannelSlackWebhookURL
+	iconURL := testAlertingChannelSlackIconURL
+	channel := testAlertingChannelSlackChannel
 	data := restapi.AlertingChannel{
 		ID:         "id",
 		Name:       "name",
@@ -139,9 +142,9 @@ func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
 func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewAlertingChannelSlackResourceHandle()
-	webhookURL := "webhook url"
-	iconURL := "icon url"
-	channel := "channel"
+	webhookURL := testAlertingChannelSlackWebhookURL
+	iconURL := testAlertingChannelSlackIconURL
+	channel := testAlertingChannelSlackChannel
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
