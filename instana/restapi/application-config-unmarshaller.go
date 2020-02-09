@@ -59,10 +59,7 @@ func (u *applicationConfigUnmarshaller) unmarshalBinaryOperator(raw json.RawMess
 		Right: &rightRaw,
 	}
 
-	if err := json.Unmarshal(raw, &temp); err != nil {
-		return BinaryOperator{}, err
-	}
-
+	json.Unmarshal(raw, &temp) //cannot fail as already successfully unmarshalled in unmarshalMatchSpecification
 	left, err := u.unmarshalMatchSpecification(leftRaw)
 	if err != nil {
 		return BinaryOperator{}, err
@@ -82,8 +79,6 @@ func (u *applicationConfigUnmarshaller) unmarshalBinaryOperator(raw json.RawMess
 
 func (u *applicationConfigUnmarshaller) unmarshalTagMatcherExpression(raw json.RawMessage) (TagMatcherExpression, error) {
 	data := TagMatcherExpression{}
-	if err := json.Unmarshal(raw, &data); err != nil {
-		return TagMatcherExpression{}, err
-	}
+	json.Unmarshal(raw, &data) //cannot fail as already successfully unmarshalled in unmarshalMatchSpecification
 	return data, nil
 }
