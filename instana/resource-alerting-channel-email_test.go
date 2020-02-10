@@ -97,7 +97,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 	resource := NewAlertingChannelEmailResourceHandle()
 
-	schemaMap := resource.GetSchema()
+	schemaMap := resource.Schema()
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -140,8 +140,16 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	assert.Equal(t, emails, model.(restapi.AlertingChannel).Emails, "list of emails should be equal")
 }
 
+func TestAlertingChannelEmailShouldHaveSchemaVersionZero(t *testing.T) {
+	assert.Equal(t, 0, NewAlertingChannelEmailResourceHandle().SchemaVersion())
+}
+
+func TestAlertingChannelEmailShouldHaveNoStateUpgrader(t *testing.T) {
+	assert.Equal(t, 0, len(NewAlertingChannelEmailResourceHandle().StateUpgraders()))
+}
+
 func TestShouldReturnCorrectResourceNameForAlertingChannelEmail(t *testing.T) {
-	name := NewAlertingChannelEmailResourceHandle().GetResourceName()
+	name := NewAlertingChannelEmailResourceHandle().ResourceName()
 
 	assert.Equal(t, "instana_alerting_channel_email", name, "Expected resource name to be instana_alerting_channel_email")
 }

@@ -2,11 +2,12 @@ package instana
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"strings"
 )
 
 const (
@@ -30,11 +31,11 @@ func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle {
 type alertingChannelOpsGenieResourceHandle struct {
 }
 
-func (h *alertingChannelOpsGenieResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+func (h *alertingChannelOpsGenieResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
 	return api.AlertingChannels()
 }
 
-func (h *alertingChannelOpsGenieResourceHandle) GetSchema() map[string]*schema.Schema {
+func (h *alertingChannelOpsGenieResourceHandle) Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		AlertingChannelFieldName:     alertingChannelNameSchemaField,
 		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
@@ -61,7 +62,15 @@ func (h *alertingChannelOpsGenieResourceHandle) GetSchema() map[string]*schema.S
 	}
 }
 
-func (h *alertingChannelOpsGenieResourceHandle) GetResourceName() string {
+func (h *alertingChannelOpsGenieResourceHandle) SchemaVersion() int {
+	return 0
+}
+
+func (h *alertingChannelOpsGenieResourceHandle) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (h *alertingChannelOpsGenieResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelOpsGenie
 }
 

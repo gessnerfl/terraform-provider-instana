@@ -22,11 +22,11 @@ func NewAlertingChannelVictorOpsResourceHandle() ResourceHandle {
 
 type alertingChannelVictorOpsResourceHandle struct{}
 
-func (h *alertingChannelVictorOpsResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+func (h *alertingChannelVictorOpsResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
 	return api.AlertingChannels()
 }
 
-func (h *alertingChannelVictorOpsResourceHandle) GetSchema() map[string]*schema.Schema {
+func (h *alertingChannelVictorOpsResourceHandle) Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		AlertingChannelFieldName:     alertingChannelNameSchemaField,
 		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
@@ -43,7 +43,15 @@ func (h *alertingChannelVictorOpsResourceHandle) GetSchema() map[string]*schema.
 	}
 }
 
-func (h *alertingChannelVictorOpsResourceHandle) GetResourceName() string {
+func (h *alertingChannelVictorOpsResourceHandle) SchemaVersion() int {
+	return 0
+}
+
+func (h *alertingChannelVictorOpsResourceHandle) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (h *alertingChannelVictorOpsResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelVictorOps
 }
 

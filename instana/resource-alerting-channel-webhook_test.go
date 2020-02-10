@@ -105,7 +105,7 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 	resource := NewAlertingChannelWebhookResourceHandle()
 
-	schemaMap := resource.GetSchema()
+	schemaMap := resource.Schema()
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -174,8 +174,16 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	assert.Equal(t, []string{}, model.(restapi.AlertingChannel).Headers, "There should be no headers")
 }
 
+func TestAlertingChannelWebhookShouldHaveSchemaVersionZero(t *testing.T) {
+	assert.Equal(t, 0, NewAlertingChannelWebhookResourceHandle().SchemaVersion())
+}
+
+func TestAlertingChannelWebhookShouldHaveNoStateUpgrader(t *testing.T) {
+	assert.Equal(t, 0, len(NewAlertingChannelWebhookResourceHandle().StateUpgraders()))
+}
+
 func TestShouldReturnCorrectResourceNameForAlertingChannelWebhook(t *testing.T) {
-	name := NewAlertingChannelWebhookResourceHandle().GetResourceName()
+	name := NewAlertingChannelWebhookResourceHandle().ResourceName()
 
 	assert.Equal(t, name, "instana_alerting_channel_webhook")
 }

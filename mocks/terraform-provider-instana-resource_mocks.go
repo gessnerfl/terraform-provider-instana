@@ -5,11 +5,12 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	restapi "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	utils "github.com/gessnerfl/terraform-provider-instana/utils"
 	gomock "github.com/golang/mock/gomock"
 	schema "github.com/hashicorp/terraform/helper/schema"
-	reflect "reflect"
 )
 
 // MockResourceHandle is a mock of ResourceHandle interface
@@ -35,46 +36,46 @@ func (m *MockResourceHandle) EXPECT() *MockResourceHandleMockRecorder {
 	return m.recorder
 }
 
-// GetResource mocks base method
-func (m *MockResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+// GetResourceFrom mocks base method
+func (m *MockResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResource", api)
+	ret := m.ctrl.Call(m, "GetResourceFrom", api)
 	ret0, _ := ret[0].(restapi.RestResource)
 	return ret0
 }
 
-// GetResource indicates an expected call of GetResource
-func (mr *MockResourceHandleMockRecorder) GetResource(api interface{}) *gomock.Call {
+// GetResourceFrom indicates an expected call of GetResourceFrom
+func (mr *MockResourceHandleMockRecorder) GetResourceFrom(api interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResource", reflect.TypeOf((*MockResourceHandle)(nil).GetResource), api)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResourceFrom", reflect.TypeOf((*MockResourceHandle)(nil).GetResourceFrom), api)
 }
 
-// GetSchema mocks base method
-func (m *MockResourceHandle) GetSchema() map[string]*schema.Schema {
+// Schema mocks base method
+func (m *MockResourceHandle) Schema() map[string]*schema.Schema {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSchema")
+	ret := m.ctrl.Call(m, "Schema")
 	ret0, _ := ret[0].(map[string]*schema.Schema)
 	return ret0
 }
 
-// GetSchema indicates an expected call of GetSchema
-func (mr *MockResourceHandleMockRecorder) GetSchema() *gomock.Call {
+// Schema indicates an expected call of Schema
+func (mr *MockResourceHandleMockRecorder) Schema() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSchema", reflect.TypeOf((*MockResourceHandle)(nil).GetSchema))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Schema", reflect.TypeOf((*MockResourceHandle)(nil).Schema))
 }
 
-// GetResourceName mocks base method
-func (m *MockResourceHandle) GetResourceName() string {
+// ResourceName mocks base method
+func (m *MockResourceHandle) ResourceName() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResourceName")
+	ret := m.ctrl.Call(m, "ResourceName")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GetResourceName indicates an expected call of GetResourceName
-func (mr *MockResourceHandleMockRecorder) GetResourceName() *gomock.Call {
+// ResourceName indicates an expected call of ResourceName
+func (mr *MockResourceHandleMockRecorder) ResourceName() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResourceName", reflect.TypeOf((*MockResourceHandle)(nil).GetResourceName))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResourceName", reflect.TypeOf((*MockResourceHandle)(nil).ResourceName))
 }
 
 // UpdateState mocks base method

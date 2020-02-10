@@ -22,11 +22,11 @@ func NewAlertingChannelSplunkResourceHandle() ResourceHandle {
 
 type alertingChannelSplunkResourceHandle struct{}
 
-func (h *alertingChannelSplunkResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+func (h *alertingChannelSplunkResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
 	return api.AlertingChannels()
 }
 
-func (h *alertingChannelSplunkResourceHandle) GetSchema() map[string]*schema.Schema {
+func (h *alertingChannelSplunkResourceHandle) Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		AlertingChannelFieldName:     alertingChannelNameSchemaField,
 		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
@@ -43,7 +43,15 @@ func (h *alertingChannelSplunkResourceHandle) GetSchema() map[string]*schema.Sch
 	}
 }
 
-func (h *alertingChannelSplunkResourceHandle) GetResourceName() string {
+func (h *alertingChannelSplunkResourceHandle) SchemaVersion() int {
+	return 0
+}
+
+func (h *alertingChannelSplunkResourceHandle) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (h *alertingChannelSplunkResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelSplunk
 }
 

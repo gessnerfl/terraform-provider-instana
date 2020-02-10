@@ -110,7 +110,7 @@ func TestResourceAlertingChannelOffice365Definition(t *testing.T) {
 }
 
 func testResourceAlertingChannelWebhookBasedDefinition(t *testing.T, resourceHandle ResourceHandle) {
-	schemaMap := resourceHandle.GetSchema()
+	schemaMap := resourceHandle.Schema()
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -119,7 +119,7 @@ func testResourceAlertingChannelWebhookBasedDefinition(t *testing.T, resourceHan
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelGoogleChat(t *testing.T) {
-	name := NewAlertingChannelGoogleChatResourceHandle().GetResourceName()
+	name := NewAlertingChannelGoogleChatResourceHandle().ResourceName()
 
 	if name != "instana_alerting_channel_google_chat" {
 		t.Fatal("Expected resource name to be instana_alerting_channel_google_chat")
@@ -162,8 +162,16 @@ func TestShouldConvertStateOfAlertingChannelWebhookBasedToDataModel(t *testing.T
 	assert.Equal(t, webhookURL, *model.(restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
 }
 
+func TestAlertingChannelWebhookBasedShouldHaveSchemaVersionZero(t *testing.T) {
+	assert.Equal(t, 0, NewAlertingChannelOffice356ResourceHandle().SchemaVersion())
+}
+
+func TestAlertingChannelWebhookBasedShouldHaveNoStateUpgrader(t *testing.T) {
+	assert.Equal(t, 0, len(NewAlertingChannelOffice356ResourceHandle().StateUpgraders()))
+}
+
 func TestShouldReturnCorrectResourceNameForAlertingChannelOffice365(t *testing.T) {
-	name := NewAlertingChannelOffice356ResourceHandle().GetResourceName()
+	name := NewAlertingChannelOffice356ResourceHandle().ResourceName()
 
 	assert.Equal(t, name, "instana_alerting_channel_office_365")
 }

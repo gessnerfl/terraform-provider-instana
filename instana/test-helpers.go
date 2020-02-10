@@ -105,5 +105,5 @@ func (inst *testHelperImpl) CreateCustomEventSpecificationWithEntityVerification
 
 func (inst *testHelperImpl) CreateEmptyResourceDataForResourceHandle(resourceHandle ResourceHandle) *schema.ResourceData {
 	data := make(map[string]interface{})
-	return schema.TestResourceDataRaw(inst.t, resourceHandle.GetSchema(), data)
+	return schema.TestResourceDataRaw(inst.t, resourceHandle.Schema(), data)
 }

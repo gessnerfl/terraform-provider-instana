@@ -24,11 +24,11 @@ func NewAlertingChannelSlackResourceHandle() ResourceHandle {
 
 type alertingChannelSlackResourceHandle struct{}
 
-func (h *alertingChannelSlackResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+func (h *alertingChannelSlackResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
 	return api.AlertingChannels()
 }
 
-func (h *alertingChannelSlackResourceHandle) GetSchema() map[string]*schema.Schema {
+func (h *alertingChannelSlackResourceHandle) Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		AlertingChannelFieldName:     alertingChannelNameSchemaField,
 		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
@@ -50,7 +50,15 @@ func (h *alertingChannelSlackResourceHandle) GetSchema() map[string]*schema.Sche
 	}
 }
 
-func (h *alertingChannelSlackResourceHandle) GetResourceName() string {
+func (h *alertingChannelSlackResourceHandle) SchemaVersion() int {
+	return 0
+}
+
+func (h *alertingChannelSlackResourceHandle) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (h *alertingChannelSlackResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelSlack
 }
 

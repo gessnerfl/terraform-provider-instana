@@ -103,7 +103,7 @@ func providerResources() map[string]*schema.Resource {
 }
 
 func bindResourceHandle(resources map[string]*schema.Resource, resourceHandle ResourceHandle) {
-	resources[resourceHandle.GetResourceName()] = NewTerraformResource(resourceHandle).ToSchemaResource()
+	resources[resourceHandle.ResourceName()] = NewTerraformResource(resourceHandle).ToSchemaResource()
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {

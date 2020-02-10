@@ -26,11 +26,11 @@ func NewAlertingChannelWebhookResourceHandle() ResourceHandle {
 type alertingChannelWebhookResourceHandle struct {
 }
 
-func (h *alertingChannelWebhookResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+func (h *alertingChannelWebhookResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
 	return api.AlertingChannels()
 }
 
-func (h *alertingChannelWebhookResourceHandle) GetSchema() map[string]*schema.Schema {
+func (h *alertingChannelWebhookResourceHandle) Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		AlertingChannelFieldName:     alertingChannelNameSchemaField,
 		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
@@ -54,7 +54,15 @@ func (h *alertingChannelWebhookResourceHandle) GetSchema() map[string]*schema.Sc
 	}
 }
 
-func (h *alertingChannelWebhookResourceHandle) GetResourceName() string {
+func (h *alertingChannelWebhookResourceHandle) SchemaVersion() int {
+	return 0
+}
+
+func (h *alertingChannelWebhookResourceHandle) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (h *alertingChannelWebhookResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelWebhook
 }
 

@@ -220,6 +220,6 @@ func createEmptyAlertingChannelEmailResourceData(t *testing.T) *schema.ResourceD
 }
 
 func createAlertingChannelEmailResourceData(data map[string]interface{}, t *testing.T) *schema.ResourceData {
-	schemaMap := NewAlertingChannelEmailResourceHandle().GetSchema()
+	schemaMap := NewAlertingChannelEmailResourceHandle().Schema()
 	return schema.TestResourceDataRaw(t, schemaMap, data)
 }

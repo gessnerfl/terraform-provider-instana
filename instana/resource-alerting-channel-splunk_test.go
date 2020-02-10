@@ -98,7 +98,7 @@ func TestCRUDOfAlertingChannelSplunkResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {
 	resource := NewAlertingChannelSplunkResourceHandle()
 
-	schemaMap := resource.GetSchema()
+	schemaMap := resource.Schema()
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -149,8 +149,16 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 	assert.Equal(t, token, *model.(restapi.AlertingChannel).Token, "token should be equal")
 }
 
+func TestAlertingChannelSplunkkShouldHaveSchemaVersionZero(t *testing.T) {
+	assert.Equal(t, 0, NewAlertingChannelSplunkResourceHandle().SchemaVersion())
+}
+
+func TestAlertingChannelSplunkShouldHaveNoStateUpgrader(t *testing.T) {
+	assert.Equal(t, 0, len(NewAlertingChannelSplunkResourceHandle().StateUpgraders()))
+}
+
 func TestShouldReturnCorrectResourceNameForAlertingChannelSplunk(t *testing.T) {
-	name := NewAlertingChannelSplunkResourceHandle().GetResourceName()
+	name := NewAlertingChannelSplunkResourceHandle().ResourceName()
 
 	assert.Equal(t, name, "instana_alerting_channel_splunk")
 }

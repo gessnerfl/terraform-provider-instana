@@ -10,9 +10,11 @@ import (
 
 //ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
 type ResourceHandle interface {
-	GetResource(api restapi.InstanaAPI) restapi.RestResource
-	GetSchema() map[string]*schema.Schema
-	GetResourceName() string
+	GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource
+	Schema() map[string]*schema.Schema
+	SchemaVersion() int
+	StateUpgraders() []schema.StateUpgrader
+	ResourceName() string
 
 	UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject)
 	ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject
@@ -50,9 +52,9 @@ func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) e
 	instanaAPI := providerMeta.InstanaAPI
 	id := d.Id()
 	if len(id) == 0 {
-		return fmt.Errorf("ID of %s is missing", r.resourceHandle.GetResourceName())
+		return fmt.Errorf("ID of %s is missing", r.resourceHandle.ResourceName())
 	}
-	obj, err := r.resourceHandle.GetResource(instanaAPI).GetOne(id)
+	obj, err := r.resourceHandle.GetResourceFrom(instanaAPI).GetOne(id)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
@@ -70,7 +72,7 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	instanaAPI := providerMeta.InstanaAPI
 
 	obj := r.resourceHandle.ConvertStateToDataObject(d, providerMeta.ResourceNameFormatter)
-	updatedObject, err := r.resourceHandle.GetResource(instanaAPI).Upsert(obj)
+	updatedObject, err := r.resourceHandle.GetResourceFrom(instanaAPI).Upsert(obj)
 	if err != nil {
 		return err
 	}
@@ -84,7 +86,7 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 	instanaAPI := providerMeta.InstanaAPI
 
 	object := r.resourceHandle.ConvertStateToDataObject(d, providerMeta.ResourceNameFormatter)
-	err := r.resourceHandle.GetResource(instanaAPI).DeleteByID(object.GetID())
+	err := r.resourceHandle.GetResourceFrom(instanaAPI).DeleteByID(object.GetID())
 	if err != nil {
 		return err
 	}
@@ -94,10 +96,12 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 
 func (r *terraformResourceImpl) ToSchemaResource() *schema.Resource {
 	return &schema.Resource{
-		Create: r.Create,
-		Read:   r.Read,
-		Update: r.Update,
-		Delete: r.Delete,
-		Schema: r.resourceHandle.GetSchema(),
+		Create:         r.Create,
+		Read:           r.Read,
+		Update:         r.Update,
+		Delete:         r.Delete,
+		Schema:         r.resourceHandle.Schema(),
+		SchemaVersion:  r.resourceHandle.SchemaVersion(),
+		StateUpgraders: r.resourceHandle.StateUpgraders(),
 	}
 }

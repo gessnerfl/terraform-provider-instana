@@ -21,11 +21,11 @@ func NewAlertingChannelPagerDutyResourceHandle() ResourceHandle {
 type alertingChannelPagerDutyResourceHandle struct {
 }
 
-func (h *alertingChannelPagerDutyResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+func (h *alertingChannelPagerDutyResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
 	return api.AlertingChannels()
 }
 
-func (h *alertingChannelPagerDutyResourceHandle) GetSchema() map[string]*schema.Schema {
+func (h *alertingChannelPagerDutyResourceHandle) Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		AlertingChannelFieldName:     alertingChannelNameSchemaField,
 		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
@@ -37,7 +37,15 @@ func (h *alertingChannelPagerDutyResourceHandle) GetSchema() map[string]*schema.
 	}
 }
 
-func (h *alertingChannelPagerDutyResourceHandle) GetResourceName() string {
+func (h *alertingChannelPagerDutyResourceHandle) SchemaVersion() int {
+	return 0
+}
+
+func (h *alertingChannelPagerDutyResourceHandle) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (h *alertingChannelPagerDutyResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelPagerDuty
 }
 

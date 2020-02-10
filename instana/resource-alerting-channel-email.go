@@ -21,11 +21,11 @@ func NewAlertingChannelEmailResourceHandle() ResourceHandle {
 type alertingChannelEmailResourceHandle struct {
 }
 
-func (h *alertingChannelEmailResourceHandle) GetResource(api restapi.InstanaAPI) restapi.RestResource {
+func (h *alertingChannelEmailResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
 	return api.AlertingChannels()
 }
 
-func (h *alertingChannelEmailResourceHandle) GetSchema() map[string]*schema.Schema {
+func (h *alertingChannelEmailResourceHandle) Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		AlertingChannelFieldName:     alertingChannelNameSchemaField,
 		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
@@ -41,7 +41,15 @@ func (h *alertingChannelEmailResourceHandle) GetSchema() map[string]*schema.Sche
 	}
 }
 
-func (h *alertingChannelEmailResourceHandle) GetResourceName() string {
+func (h *alertingChannelEmailResourceHandle) SchemaVersion() int {
+	return 0
+}
+
+func (h *alertingChannelEmailResourceHandle) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (h *alertingChannelEmailResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelEmail
 }
 
