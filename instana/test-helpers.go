@@ -18,8 +18,6 @@ type TestHelper interface {
 	WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter))
 	CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceNameFormatter)
 
-	CreateEmptyApplicationConfigResourceData() *schema.ResourceData
-	CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData
 	CreateCustomEventSpecificationWithSystemRuleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData
@@ -50,16 +48,6 @@ func (inst *testHelperImpl) CreateProviderMetaMock(ctrl *gomock.Controller) (*Pr
 		ResourceNameFormatter: mockResourceNameFormatter,
 	}
 	return providerMeta, mockInstanaAPI, mockResourceNameFormatter
-}
-
-func (inst *testHelperImpl) CreateEmptyApplicationConfigResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateApplicationConfigResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceApplicationConfig().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }
 
 func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData {

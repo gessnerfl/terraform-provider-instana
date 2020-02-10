@@ -18,15 +18,6 @@ const SchemaFieldDefaultNamePrefix = "default_name_prefix"
 //SchemaFieldDefaultNameSuffix the default prefix which should be added to all resource names/labels
 const SchemaFieldDefaultNameSuffix = "default_name_suffix"
 
-//ResourceInstanaRule the name of the terraform-provider-instana resource to manage rules
-const ResourceInstanaRule = "instana_rule"
-
-//ResourceInstanaRuleBinding the name of the terraform-provider-instana resource to manage rule bindings
-const ResourceInstanaRuleBinding = "instana_rule_binding"
-
-//ResourceInstanaApplicationConfig the name of the terraform-provider-instana resource to manage application config
-const ResourceInstanaApplicationConfig = "instana_application_config"
-
 //ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
 const ResourceInstanaCustomEventSpecificationSystemRule = "instana_custom_event_spec_system_rule"
 
@@ -83,7 +74,7 @@ func providerResources() map[string]*schema.Resource {
 	resources := make(map[string]*schema.Resource)
 
 	bindResourceHandle(resources, NewUserRoleResourceHandle())
-	resources[ResourceInstanaApplicationConfig] = CreateResourceApplicationConfig()
+	bindResourceHandle(resources, NewApplicationConfigResourceHandle())
 	resources[ResourceInstanaCustomEventSpecificationSystemRule] = CreateResourceCustomEventSpecificationWithSystemRule()
 	resources[ResourceInstanaCustomEventSpecificationThresholdRule] = CreateResourceCustomEventSpecificationWithThresholdRule()
 	resources[ResourceInstanaCustomEventSpecificationEntityVerificationRule] = CreateResourceCustomEventSpecificationWithEntityVerificationRule()

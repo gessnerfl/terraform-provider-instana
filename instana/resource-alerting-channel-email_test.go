@@ -115,8 +115,9 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 		Emails: []string{"email1", "email2"},
 	}
 
-	resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, data)
 
+	assert.Nil(t, err)
 	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
 	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
 	assert.Equal(t, []interface{}{"email1", "email2"}, resourceData.Get(AlertingChannelEmailFieldEmails), "list of emails should be equal")
@@ -132,8 +133,9 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
 	resourceData.Set(AlertingChannelEmailFieldEmails, emails)
 
-	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
+	assert.Nil(t, err)
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
 	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")

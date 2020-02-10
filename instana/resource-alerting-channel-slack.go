@@ -62,16 +62,17 @@ func (h *alertingChannelSlackResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelSlack
 }
 
-func (h *alertingChannelSlackResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+func (h *alertingChannelSlackResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelSlackFieldWebhookURL, alertingChannel.WebhookURL)
 	d.Set(AlertingChannelSlackFieldIconURL, alertingChannel.IconURL)
 	d.Set(AlertingChannelSlackFieldChannel, alertingChannel.Channel)
 	d.SetId(alertingChannel.ID)
+	return nil
 }
 
-func (h *alertingChannelSlackResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
+func (h *alertingChannelSlackResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	webhookURL := d.Get(AlertingChannelSlackFieldWebhookURL).(string)
 	iconURL := d.Get(AlertingChannelSlackFieldIconURL).(string)
@@ -83,5 +84,5 @@ func (h *alertingChannelSlackResourceHandle) ConvertStateToDataObject(d *schema.
 		WebhookURL: &webhookURL,
 		IconURL:    &iconURL,
 		Channel:    &channel,
-	}
+	}, nil
 }

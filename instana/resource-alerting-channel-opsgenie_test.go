@@ -119,8 +119,9 @@ func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenSingleTagIsProvi
 	data := createAlertingChannelEmailModelForResourceUpdateWithoutTags()
 	data.Tags = &tags
 
-	resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, data)
 
+	assert.Nil(t, err)
 	assertBasicAlertingChannelEmailsFieldsSet(t, resourceData)
 	assert.Equal(t, []interface{}{"tag1"}, resourceData.Get(AlertingChannelOpsGenieFieldTags), "list of tags should be equal")
 }
@@ -133,8 +134,9 @@ func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenMultipleTagsAreP
 	data := createAlertingChannelEmailModelForResourceUpdateWithoutTags()
 	data.Tags = &tags
 
-	resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, data)
 
+	assert.Nil(t, err)
 	assertBasicAlertingChannelEmailsFieldsSet(t, resourceData)
 	assert.Equal(t, []interface{}{"tag1", "tag2"}, resourceData.Get(AlertingChannelOpsGenieFieldTags), "list of tags should be equal")
 }
@@ -169,8 +171,9 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	resourceData.Set(AlertingChannelOpsGenieFieldRegion, "EU")
 	resourceData.Set(AlertingChannelOpsGenieFieldTags, tags)
 
-	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
+	assert.Nil(t, err)
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
 	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")

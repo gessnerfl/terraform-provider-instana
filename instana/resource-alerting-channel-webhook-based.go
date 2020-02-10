@@ -64,14 +64,15 @@ func (h *alertingChannelWebhookBasedResourceHandle) ResourceName() string {
 	return h.resourceName
 }
 
-func (h *alertingChannelWebhookBasedResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+func (h *alertingChannelWebhookBasedResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelWebhookBasedFieldWebhookURL, alertingChannel.WebhookURL)
 	d.SetId(alertingChannel.ID)
+	return nil
 }
 
-func (h *alertingChannelWebhookBasedResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
+func (h *alertingChannelWebhookBasedResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	webhookURL := d.Get(AlertingChannelWebhookBasedFieldWebhookURL).(string)
 	return restapi.AlertingChannel{
@@ -79,5 +80,5 @@ func (h *alertingChannelWebhookBasedResourceHandle) ConvertStateToDataObject(d *
 		Name:       name,
 		Kind:       h.channelType,
 		WebhookURL: &webhookURL,
-	}
+	}, nil
 }

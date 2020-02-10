@@ -183,7 +183,7 @@ func (h *userRoleResourceHandle) ResourceName() string {
 	return ResourceInstanaUserRole
 }
 
-func (h *userRoleResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+func (h *userRoleResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	userRole := obj.(restapi.UserRole)
 	d.Set(UserRoleFieldName, userRole.Name)
 	d.Set(UserRoleFieldImplicitViewFilter, userRole.ImplicitViewFilter)
@@ -205,9 +205,10 @@ func (h *userRoleResourceHandle) UpdateState(d *schema.ResourceData, obj restapi
 	d.Set(UserRoleFieldCanConfigureApplications, userRole.CanConfigureApplications)
 
 	d.SetId(userRole.ID)
+	return nil
 }
 
-func (h *userRoleResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
+func (h *userRoleResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	return restapi.UserRole{
 		ID:                                d.Id(),
 		Name:                              d.Get(UserRoleFieldName).(string),
@@ -228,5 +229,5 @@ func (h *userRoleResourceHandle) ConvertStateToDataObject(d *schema.ResourceData
 		CanConfigureAgents:                d.Get(UserRoleFieldCanConfigureAgents).(bool),
 		CanConfigureAuthenticationMethods: d.Get(UserRoleFieldCanConfigureAuthenticationMethods).(bool),
 		CanConfigureApplications:          d.Get(UserRoleFieldCanConfigureApplications).(bool),
-	}
+	}, nil
 }

@@ -55,15 +55,16 @@ func (h *alertingChannelSplunkResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelSplunk
 }
 
-func (h *alertingChannelSplunkResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+func (h *alertingChannelSplunkResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelSplunkFieldURL, alertingChannel.URL)
 	d.Set(AlertingChannelSplunkFieldToken, alertingChannel.Token)
 	d.SetId(alertingChannel.ID)
+	return nil
 }
 
-func (h *alertingChannelSplunkResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
+func (h *alertingChannelSplunkResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	url := d.Get(AlertingChannelSplunkFieldURL).(string)
 	token := d.Get(AlertingChannelSplunkFieldToken).(string)
@@ -73,5 +74,5 @@ func (h *alertingChannelSplunkResourceHandle) ConvertStateToDataObject(d *schema
 		Kind:  restapi.SplunkChannelType,
 		URL:   &url,
 		Token: &token,
-	}
+	}, nil
 }

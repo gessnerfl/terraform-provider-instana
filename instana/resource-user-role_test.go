@@ -194,8 +194,9 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForUserRole(t *
 		ImplicitViewFilter: viewFilterFieldValue,
 	}
 
-	sut.UpdateState(resourceData, userRole)
+	err := sut.UpdateState(resourceData, userRole)
 
+	assert.Nil(t, err)
 	assert.Equal(t, userRoleID, resourceData.Id())
 	assert.Equal(t, userRoleNameFieldValue, resourceData.Get(UserRoleFieldName))
 	assert.Equal(t, viewFilterFieldValue, resourceData.Get(UserRoleFieldImplicitViewFilter))
@@ -219,7 +220,7 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForUserRole(t *
 
 func TestShouldUpdateCanConfigureServiceMappingPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                         "id",
+		ID:                         userRoleID,
 		Name:                       userRoleNameFieldValue,
 		ImplicitViewFilter:         viewFilterFieldValue,
 		CanConfigureServiceMapping: true,
@@ -230,7 +231,7 @@ func TestShouldUpdateCanConfigureServiceMappingPermissionOfTerraformResourceStat
 
 func TestShouldUpdateCanConfigureEumApplicationsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                          "id",
+		ID:                          userRoleID,
 		Name:                        userRoleNameFieldValue,
 		ImplicitViewFilter:          viewFilterFieldValue,
 		CanConfigureEumApplications: true,
@@ -241,7 +242,7 @@ func TestShouldUpdateCanConfigureEumApplicationsPermissionOfTerraformResourceSta
 
 func TestShouldUpdateCanConfigureUsersPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                 "id",
+		ID:                 userRoleID,
 		Name:               userRoleNameFieldValue,
 		ImplicitViewFilter: viewFilterFieldValue,
 		CanConfigureUsers:  true,
@@ -252,7 +253,7 @@ func TestShouldUpdateCanConfigureUsersPermissionOfTerraformResourceStateFromMode
 
 func TestShouldUpdateCanInstallNewAgentsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                  "id",
+		ID:                  userRoleID,
 		Name:                userRoleNameFieldValue,
 		ImplicitViewFilter:  viewFilterFieldValue,
 		CanInstallNewAgents: true,
@@ -263,7 +264,7 @@ func TestShouldUpdateCanInstallNewAgentsPermissionOfTerraformResourceStateFromMo
 
 func TestShouldUpdateCanSeeUsageInformationPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                     "id",
+		ID:                     userRoleID,
 		Name:                   userRoleNameFieldValue,
 		ImplicitViewFilter:     viewFilterFieldValue,
 		CanSeeUsageInformation: true,
@@ -274,7 +275,7 @@ func TestShouldUpdateCanSeeUsageInformationPermissionOfTerraformResourceStateFro
 
 func TestShouldUpdateCanConfigureIntegrationsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                       "id",
+		ID:                       userRoleID,
 		Name:                     userRoleNameFieldValue,
 		ImplicitViewFilter:       viewFilterFieldValue,
 		CanConfigureIntegrations: true,
@@ -285,7 +286,7 @@ func TestShouldUpdateCanConfigureIntegrationsPermissionOfTerraformResourceStateF
 
 func TestShouldUpdateCanSeeOnPremiseLicenseInformationPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                                "id",
+		ID:                                userRoleID,
 		Name:                              userRoleNameFieldValue,
 		ImplicitViewFilter:                viewFilterFieldValue,
 		CanSeeOnPremiseLicenseInformation: true,
@@ -296,7 +297,7 @@ func TestShouldUpdateCanSeeOnPremiseLicenseInformationPermissionOfTerraformResou
 
 func TestShouldUpdateCanConfigureRolesPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                 "id",
+		ID:                 userRoleID,
 		Name:               userRoleNameFieldValue,
 		ImplicitViewFilter: viewFilterFieldValue,
 		CanConfigureRoles:  true,
@@ -307,7 +308,7 @@ func TestShouldUpdateCanConfigureRolesPermissionOfTerraformResourceStateFromMode
 
 func TestShouldUpdateCanConfigureCustomAlertsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                       "id",
+		ID:                       userRoleID,
 		Name:                     userRoleNameFieldValue,
 		ImplicitViewFilter:       viewFilterFieldValue,
 		CanConfigureCustomAlerts: true,
@@ -318,7 +319,7 @@ func TestShouldUpdateCanConfigureCustomAlertsPermissionOfTerraformResourceStateF
 
 func TestShouldUpdateCanConfigureAPITokensPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                    "id",
+		ID:                    userRoleID,
 		Name:                  userRoleNameFieldValue,
 		ImplicitViewFilter:    viewFilterFieldValue,
 		CanConfigureAPITokens: true,
@@ -329,7 +330,7 @@ func TestShouldUpdateCanConfigureAPITokensPermissionOfTerraformResourceStateFrom
 
 func TestShouldUpdateCanConfigureAgentRunModePermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                       "id",
+		ID:                       userRoleID,
 		Name:                     userRoleNameFieldValue,
 		ImplicitViewFilter:       viewFilterFieldValue,
 		CanConfigureAgentRunMode: true,
@@ -340,7 +341,7 @@ func TestShouldUpdateCanConfigureAgentRunModePermissionOfTerraformResourceStateF
 
 func TestShouldUpdateCanViewAuditLogPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                 "id",
+		ID:                 userRoleID,
 		Name:               userRoleNameFieldValue,
 		ImplicitViewFilter: viewFilterFieldValue,
 		CanViewAuditLog:    true,
@@ -351,7 +352,7 @@ func TestShouldUpdateCanViewAuditLogPermissionOfTerraformResourceStateFromModelF
 
 func TestShouldUpdateCanConfigureObjectivesPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                     "id",
+		ID:                     userRoleID,
 		Name:                   userRoleNameFieldValue,
 		ImplicitViewFilter:     viewFilterFieldValue,
 		CanConfigureObjectives: true,
@@ -362,7 +363,7 @@ func TestShouldUpdateCanConfigureObjectivesPermissionOfTerraformResourceStateFro
 
 func TestShouldUpdateCanConfigureAgentsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                 "id",
+		ID:                 userRoleID,
 		Name:               userRoleNameFieldValue,
 		ImplicitViewFilter: viewFilterFieldValue,
 		CanConfigureAgents: true,
@@ -373,7 +374,7 @@ func TestShouldUpdateCanConfigureAgentsPermissionOfTerraformResourceStateFromMod
 
 func TestShouldUpdateCanConfigureAuthenticationMethodsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                                "id",
+		ID:                                userRoleID,
 		Name:                              userRoleNameFieldValue,
 		ImplicitViewFilter:                viewFilterFieldValue,
 		CanConfigureAuthenticationMethods: true,
@@ -384,7 +385,7 @@ func TestShouldUpdateCanConfigureAuthenticationMethodsPermissionOfTerraformResou
 
 func TestShouldUpdateCanConfigureApplicationsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	userRole := restapi.UserRole{
-		ID:                       "id",
+		ID:                       userRoleID,
 		Name:                     userRoleNameFieldValue,
 		ImplicitViewFilter:       viewFilterFieldValue,
 		CanConfigureApplications: true,
@@ -399,8 +400,9 @@ func testSingleUserRolePermissionSet(t *testing.T, userRole restapi.UserRole, ex
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	sut.UpdateState(resourceData, userRole)
+	err := sut.UpdateState(resourceData, userRole)
 
+	assert.Nil(t, err)
 	assert.True(t, resourceData.Get(expectedPermissionField).(bool))
 	for _, permissionField := range userRolePermissionFields {
 		if permissionField != expectedPermissionField {
@@ -434,8 +436,9 @@ func TestShouldConvertStateOfUserRoleTerraformResourceToDataModel(t *testing.T) 
 	resourceData.Set(UserRoleFieldCanConfigureAuthenticationMethods, true)
 	resourceData.Set(UserRoleFieldCanConfigureApplications, true)
 
-	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
+	assert.Nil(t, err)
 	assert.IsType(t, restapi.UserRole{}, model, "Model should be an alerting channel")
 	assert.Equal(t, userRoleID, model.GetID())
 	assert.Equal(t, userRoleNameFieldValue, model.(restapi.UserRole).Name)

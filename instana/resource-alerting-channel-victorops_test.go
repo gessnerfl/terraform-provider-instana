@@ -122,8 +122,9 @@ func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
 		RoutingKey: &routingKey,
 	}
 
-	resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, data)
 
+	assert.Nil(t, err)
 	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
 	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
 	assert.Equal(t, apiKey, resourceData.Get(AlertingChannelVictorOpsFieldAPIKey), "api key should be equal")
@@ -142,8 +143,9 @@ func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 	resourceData.Set(AlertingChannelVictorOpsFieldAPIKey, apiKey)
 	resourceData.Set(AlertingChannelVictorOpsFieldRoutingKey, routingKey)
 
-	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
+	assert.Nil(t, err)
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
 	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")

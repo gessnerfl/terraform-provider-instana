@@ -53,20 +53,21 @@ func (h *alertingChannelEmailResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelEmail
 }
 
-func (h *alertingChannelEmailResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+func (h *alertingChannelEmailResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(restapi.AlertingChannel)
 	emails := alertingChannel.Emails
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelEmailFieldEmails, emails)
 	d.SetId(alertingChannel.ID)
+	return nil
 }
 
-func (h *alertingChannelEmailResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
+func (h *alertingChannelEmailResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	return restapi.AlertingChannel{
 		ID:     d.Id(),
 		Name:   name,
 		Kind:   restapi.EmailChannelType,
 		Emails: ReadStringArrayParameterFromResource(d, AlertingChannelEmailFieldEmails),
-	}
+	}, nil
 }

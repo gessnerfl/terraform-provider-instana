@@ -55,15 +55,16 @@ func (h *alertingChannelVictorOpsResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelVictorOps
 }
 
-func (h *alertingChannelVictorOpsResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+func (h *alertingChannelVictorOpsResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelVictorOpsFieldAPIKey, alertingChannel.APIKey)
 	d.Set(AlertingChannelVictorOpsFieldRoutingKey, alertingChannel.RoutingKey)
 	d.SetId(alertingChannel.ID)
+	return nil
 }
 
-func (h *alertingChannelVictorOpsResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
+func (h *alertingChannelVictorOpsResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	apiKey := d.Get(AlertingChannelVictorOpsFieldAPIKey).(string)
 	routingKey := d.Get(AlertingChannelVictorOpsFieldRoutingKey).(string)
@@ -73,5 +74,5 @@ func (h *alertingChannelVictorOpsResourceHandle) ConvertStateToDataObject(d *sch
 		Kind:       restapi.VictorOpsChannelType,
 		APIKey:     &apiKey,
 		RoutingKey: &routingKey,
-	}
+	}, nil
 }

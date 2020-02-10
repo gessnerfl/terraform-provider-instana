@@ -16,8 +16,8 @@ type ResourceHandle interface {
 	StateUpgraders() []schema.StateUpgrader
 	ResourceName() string
 
-	UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject)
-	ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject
+	UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error
+	ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error)
 }
 
 //NewTerraformResource creates a new terraform resource for the given handle
@@ -71,7 +71,10 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
-	obj := r.resourceHandle.ConvertStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	obj, err := r.resourceHandle.ConvertStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	if err != nil {
+		return err
+	}
 	updatedObject, err := r.resourceHandle.GetResourceFrom(instanaAPI).Upsert(obj)
 	if err != nil {
 		return err
@@ -85,8 +88,11 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
-	object := r.resourceHandle.ConvertStateToDataObject(d, providerMeta.ResourceNameFormatter)
-	err := r.resourceHandle.GetResourceFrom(instanaAPI).DeleteByID(object.GetID())
+	object, err := r.resourceHandle.ConvertStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	if err != nil {
+		return err
+	}
+	err = r.resourceHandle.GetResourceFrom(instanaAPI).DeleteByID(object.GetID())
 	if err != nil {
 		return err
 	}

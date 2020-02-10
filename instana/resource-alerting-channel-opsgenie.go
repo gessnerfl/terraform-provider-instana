@@ -74,7 +74,7 @@ func (h *alertingChannelOpsGenieResourceHandle) ResourceName() string {
 	return ResourceInstanaAlertingChannelOpsGenie
 }
 
-func (h *alertingChannelOpsGenieResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+func (h *alertingChannelOpsGenieResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(restapi.AlertingChannel)
 	tags := convertCommaSeparatedListToSlice(*alertingChannel.Tags)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
@@ -82,9 +82,10 @@ func (h *alertingChannelOpsGenieResourceHandle) UpdateState(d *schema.ResourceDa
 	d.Set(AlertingChannelOpsGenieFieldRegion, alertingChannel.Region)
 	d.Set(AlertingChannelOpsGenieFieldTags, tags)
 	d.SetId(alertingChannel.ID)
+	return nil
 }
 
-func (h *alertingChannelOpsGenieResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
+func (h *alertingChannelOpsGenieResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	apiKey := d.Get(AlertingChannelOpsGenieFieldAPIKey).(string)
 	region := restapi.OpsGenieRegionType(d.Get(AlertingChannelOpsGenieFieldRegion).(string))
@@ -97,7 +98,7 @@ func (h *alertingChannelOpsGenieResourceHandle) ConvertStateToDataObject(d *sche
 		APIKey: &apiKey,
 		Region: &region,
 		Tags:   &tags,
-	}
+	}, nil
 }
 
 func convertCommaSeparatedListToSlice(csv string) []string {
