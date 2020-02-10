@@ -18,8 +18,6 @@ type TestHelper interface {
 	WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter))
 	CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceNameFormatter)
 
-	CreateEmptyUserRoleResourceData() *schema.ResourceData
-	CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyApplicationConfigResourceData() *schema.ResourceData
 	CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData
@@ -29,6 +27,7 @@ type TestHelper interface {
 	CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData() *schema.ResourceData
 	CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyResourceDataForResourceHandle(resourceHandle ResourceHandle) *schema.ResourceData
+	CreateResourceDataForResourceHandle(resourceHandle ResourceHandle, data map[string]interface{}) *schema.ResourceData
 }
 
 type testHelperImpl struct {
@@ -51,16 +50,6 @@ func (inst *testHelperImpl) CreateProviderMetaMock(ctrl *gomock.Controller) (*Pr
 		ResourceNameFormatter: mockResourceNameFormatter,
 	}
 	return providerMeta, mockInstanaAPI, mockResourceNameFormatter
-}
-
-func (inst *testHelperImpl) CreateEmptyUserRoleResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateUserRoleResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceUserRole().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }
 
 func (inst *testHelperImpl) CreateEmptyApplicationConfigResourceData() *schema.ResourceData {
@@ -105,5 +94,9 @@ func (inst *testHelperImpl) CreateCustomEventSpecificationWithEntityVerification
 
 func (inst *testHelperImpl) CreateEmptyResourceDataForResourceHandle(resourceHandle ResourceHandle) *schema.ResourceData {
 	data := make(map[string]interface{})
+	return inst.CreateResourceDataForResourceHandle(resourceHandle, data)
+}
+
+func (inst *testHelperImpl) CreateResourceDataForResourceHandle(resourceHandle ResourceHandle, data map[string]interface{}) *schema.ResourceData {
 	return schema.TestResourceDataRaw(inst.t, resourceHandle.Schema(), data)
 }

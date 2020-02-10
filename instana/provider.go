@@ -24,9 +24,6 @@ const ResourceInstanaRule = "instana_rule"
 //ResourceInstanaRuleBinding the name of the terraform-provider-instana resource to manage rule bindings
 const ResourceInstanaRuleBinding = "instana_rule_binding"
 
-//ResourceInstanaUserRole the name of the terraform-provider-instana resource to manage user roles
-const ResourceInstanaUserRole = "instana_user_role"
-
 //ResourceInstanaApplicationConfig the name of the terraform-provider-instana resource to manage application config
 const ResourceInstanaApplicationConfig = "instana_application_config"
 
@@ -85,7 +82,7 @@ func providerSchema() map[string]*schema.Schema {
 func providerResources() map[string]*schema.Resource {
 	resources := make(map[string]*schema.Resource)
 
-	resources[ResourceInstanaUserRole] = CreateResourceUserRole()
+	bindResourceHandle(resources, NewUserRoleResourceHandle())
 	resources[ResourceInstanaApplicationConfig] = CreateResourceApplicationConfig()
 	resources[ResourceInstanaCustomEventSpecificationSystemRule] = CreateResourceCustomEventSpecificationWithSystemRule()
 	resources[ResourceInstanaCustomEventSpecificationThresholdRule] = CreateResourceCustomEventSpecificationWithThresholdRule()

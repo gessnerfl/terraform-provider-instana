@@ -1,22 +1,20 @@
 package instana_test
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testUserRoleProviders = map[string]terraform.ResourceProvider{
@@ -57,6 +55,25 @@ const valueTrue = "true"
 const userRoleID = "user-role-id"
 const viewFilterFieldValue = "view filter"
 const userRoleNameFieldValue = "name"
+
+var userRolePermissionFields = []string{
+	UserRoleFieldCanConfigureServiceMapping,
+	UserRoleFieldCanConfigureEumApplications,
+	UserRoleFieldCanConfigureUsers,
+	UserRoleFieldCanInstallNewAgents,
+	UserRoleFieldCanSeeUsageInformation,
+	UserRoleFieldCanConfigureIntegrations,
+	UserRoleFieldCanSeeOnPremiseLicenseInformation,
+	UserRoleFieldCanConfigureRoles,
+	UserRoleFieldCanConfigureCustomAlerts,
+	UserRoleFieldCanConfigureAPITokens,
+	UserRoleFieldCanConfigureAgentRunMode,
+	UserRoleFieldCanViewAuditLog,
+	UserRoleFieldCanConfigureObjectives,
+	UserRoleFieldCanConfigureAgents,
+	UserRoleFieldCanConfigureAuthenticationMethods,
+	UserRoleFieldCanConfigureApplications,
+}
 
 func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -128,27 +145,10 @@ func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func TestResourceUserRoleDefinition(t *testing.T) {
-	resource := CreateResourceUserRole()
+func TestUserRoleSchemaDefinitionIsValid(t *testing.T) {
+	schema := NewUserRoleResourceHandle().Schema()
 
-	validateUserRoleResourceSchema(resource.Schema, t)
-
-	if resource.Create == nil {
-		t.Fatal("Create function expected")
-	}
-	if resource.Update == nil {
-		t.Fatal("Update function expected")
-	}
-	if resource.Read == nil {
-		t.Fatal("Read function expected")
-	}
-	if resource.Delete == nil {
-		t.Fatal("Delete function expected")
-	}
-}
-
-func validateUserRoleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(UserRoleFieldName)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(UserRoleFieldImplicitViewFilter)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureServiceMapping, false)
@@ -167,300 +167,293 @@ func validateUserRoleResourceSchema(schemaMap map[string]*schema.Schema, t *test
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureAgents, false)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureAuthenticationMethods, false)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureApplications, false)
-
 }
 
-func TestShouldSuccessfullyReadUserRoleFromInstanaAPIWhenMinimalDataIsReturned(t *testing.T) {
-	expectedModel := createMinimalTestUserRoleModel()
-	testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel, t)
+func TestUserRoleResourceShouldHaveSchemaVersionZero(t *testing.T) {
+	assert.Equal(t, 0, NewUserRoleResourceHandle().SchemaVersion())
 }
 
-func TestShouldSuccessfullyReadUserRoleFromInstanaAPIWhenFullDataIsReturned(t *testing.T) {
-	expectedModel := createFullTestUserRoleModel()
-	testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel, t)
+func TestUserRoleResourceShouldHaveNoStateUpgrader(t *testing.T) {
+	assert.Equal(t, 0, len(NewUserRoleResourceHandle().StateUpgraders()))
 }
 
-func testShouldSuccessfullyReadUserRoleFromInstanaAPI(expectedModel restapi.UserRole, t *testing.T) {
+func TestShouldReturnCorrectResourceNameForUserroleResource(t *testing.T) {
+	name := NewUserRoleResourceHandle().ResourceName()
+
+	assert.Equal(t, name, "instana_user_role")
+}
+
+func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyUserRoleResourceData()
-		resourceData.SetId(userRoleID)
+	sut := NewUserRoleResourceHandle()
 
-		mockUserRoleApi := mocks.NewMockRestResource(ctrl)
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+	userRole := restapi.UserRole{
+		ID:                 userRoleID,
+		Name:               userRoleNameFieldValue,
+		ImplicitViewFilter: viewFilterFieldValue,
+	}
 
-		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-		mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(expectedModel, nil).Times(1)
+	sut.UpdateState(resourceData, userRole)
 
-		err := ReadUserRole(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyUserRoleModelAppliedToResource(expectedModel, resourceData, t)
-	})
+	assert.Equal(t, userRoleID, resourceData.Id())
+	assert.Equal(t, userRoleNameFieldValue, resourceData.Get(UserRoleFieldName))
+	assert.Equal(t, viewFilterFieldValue, resourceData.Get(UserRoleFieldImplicitViewFilter))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureServiceMapping).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureEumApplications).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureUsers).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanInstallNewAgents).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanSeeUsageInformation).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureIntegrations).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanSeeOnPremiseLicenseInformation).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureRoles).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureCustomAlerts).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureAPITokens).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureAgentRunMode).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanViewAuditLog).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureObjectives).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureAgents).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureAuthenticationMethods).(bool))
+	assert.False(t, resourceData.Get(UserRoleFieldCanConfigureApplications).(bool))
 }
 
-func TestShouldFailToReadUserRoleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
+func TestShouldUpdateCanConfigureServiceMappingPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                         "id",
+		Name:                       userRoleNameFieldValue,
+		ImplicitViewFilter:         viewFilterFieldValue,
+		CanConfigureServiceMapping: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureServiceMapping)
+}
+
+func TestShouldUpdateCanConfigureEumApplicationsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                          "id",
+		Name:                        userRoleNameFieldValue,
+		ImplicitViewFilter:          viewFilterFieldValue,
+		CanConfigureEumApplications: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureEumApplications)
+}
+
+func TestShouldUpdateCanConfigureUsersPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                 "id",
+		Name:               userRoleNameFieldValue,
+		ImplicitViewFilter: viewFilterFieldValue,
+		CanConfigureUsers:  true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureUsers)
+}
+
+func TestShouldUpdateCanInstallNewAgentsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                  "id",
+		Name:                userRoleNameFieldValue,
+		ImplicitViewFilter:  viewFilterFieldValue,
+		CanInstallNewAgents: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanInstallNewAgents)
+}
+
+func TestShouldUpdateCanSeeUsageInformationPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                     "id",
+		Name:                   userRoleNameFieldValue,
+		ImplicitViewFilter:     viewFilterFieldValue,
+		CanSeeUsageInformation: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanSeeUsageInformation)
+}
+
+func TestShouldUpdateCanConfigureIntegrationsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                       "id",
+		Name:                     userRoleNameFieldValue,
+		ImplicitViewFilter:       viewFilterFieldValue,
+		CanConfigureIntegrations: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureIntegrations)
+}
+
+func TestShouldUpdateCanSeeOnPremiseLicenseInformationPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                                "id",
+		Name:                              userRoleNameFieldValue,
+		ImplicitViewFilter:                viewFilterFieldValue,
+		CanSeeOnPremiseLicenseInformation: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanSeeOnPremiseLicenseInformation)
+}
+
+func TestShouldUpdateCanConfigureRolesPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                 "id",
+		Name:               userRoleNameFieldValue,
+		ImplicitViewFilter: viewFilterFieldValue,
+		CanConfigureRoles:  true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureRoles)
+}
+
+func TestShouldUpdateCanConfigureCustomAlertsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                       "id",
+		Name:                     userRoleNameFieldValue,
+		ImplicitViewFilter:       viewFilterFieldValue,
+		CanConfigureCustomAlerts: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureCustomAlerts)
+}
+
+func TestShouldUpdateCanConfigureAPITokensPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                    "id",
+		Name:                  userRoleNameFieldValue,
+		ImplicitViewFilter:    viewFilterFieldValue,
+		CanConfigureAPITokens: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureAPITokens)
+}
+
+func TestShouldUpdateCanConfigureAgentRunModePermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                       "id",
+		Name:                     userRoleNameFieldValue,
+		ImplicitViewFilter:       viewFilterFieldValue,
+		CanConfigureAgentRunMode: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureAgentRunMode)
+}
+
+func TestShouldUpdateCanViewAuditLogPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                 "id",
+		Name:               userRoleNameFieldValue,
+		ImplicitViewFilter: viewFilterFieldValue,
+		CanViewAuditLog:    true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanViewAuditLog)
+}
+
+func TestShouldUpdateCanConfigureObjectivesPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                     "id",
+		Name:                   userRoleNameFieldValue,
+		ImplicitViewFilter:     viewFilterFieldValue,
+		CanConfigureObjectives: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureObjectives)
+}
+
+func TestShouldUpdateCanConfigureAgentsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                 "id",
+		Name:               userRoleNameFieldValue,
+		ImplicitViewFilter: viewFilterFieldValue,
+		CanConfigureAgents: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureAgents)
+}
+
+func TestShouldUpdateCanConfigureAuthenticationMethodsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                                "id",
+		Name:                              userRoleNameFieldValue,
+		ImplicitViewFilter:                viewFilterFieldValue,
+		CanConfigureAuthenticationMethods: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureAuthenticationMethods)
+}
+
+func TestShouldUpdateCanConfigureApplicationsPermissionOfTerraformResourceStateFromModelForUserRole(t *testing.T) {
+	userRole := restapi.UserRole{
+		ID:                       "id",
+		Name:                     userRoleNameFieldValue,
+		ImplicitViewFilter:       viewFilterFieldValue,
+		CanConfigureApplications: true,
+	}
+
+	testSingleUserRolePermissionSet(t, userRole, UserRoleFieldCanConfigureApplications)
+}
+
+func testSingleUserRolePermissionSet(t *testing.T, userRole restapi.UserRole, expectedPermissionField string) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyUserRoleResourceData()
+	sut := NewUserRoleResourceHandle()
 
-		err := ReadUserRole(resourceData, providerMeta)
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		if err == nil || !strings.HasPrefix(err.Error(), "ID of user role") {
-			t.Fatal("Expected error to occur because of missing id")
+	sut.UpdateState(resourceData, userRole)
+
+	assert.True(t, resourceData.Get(expectedPermissionField).(bool))
+	for _, permissionField := range userRolePermissionFields {
+		if permissionField != expectedPermissionField {
+			assert.False(t, resourceData.Get(permissionField).(bool))
 		}
-	})
+	}
 }
 
-func TestShouldFailToReadUserRoleFromInstanaAPIAndDeleteResourceWhenUserRoleDoesNotExist(t *testing.T) {
+func TestShouldConvertStateOfUserRoleTerraformResourceToDataModel(t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyUserRoleResourceData()
-		resourceData.SetId(userRoleID)
+	resourceHandle := NewUserRoleResourceHandle()
 
-		mockUserRoleApi := mocks.NewMockRestResource(ctrl)
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId(userRoleID)
+	resourceData.Set(UserRoleFieldName, userRoleNameFieldValue)
+	resourceData.Set(UserRoleFieldImplicitViewFilter, viewFilterFieldValue)
+	resourceData.Set(UserRoleFieldCanConfigureServiceMapping, true)
+	resourceData.Set(UserRoleFieldCanConfigureEumApplications, true)
+	resourceData.Set(UserRoleFieldCanConfigureUsers, true)
+	resourceData.Set(UserRoleFieldCanInstallNewAgents, true)
+	resourceData.Set(UserRoleFieldCanSeeUsageInformation, true)
+	resourceData.Set(UserRoleFieldCanConfigureIntegrations, true)
+	resourceData.Set(UserRoleFieldCanSeeOnPremiseLicenseInformation, true)
+	resourceData.Set(UserRoleFieldCanConfigureRoles, true)
+	resourceData.Set(UserRoleFieldCanConfigureCustomAlerts, true)
+	resourceData.Set(UserRoleFieldCanConfigureAPITokens, true)
+	resourceData.Set(UserRoleFieldCanConfigureAgentRunMode, true)
+	resourceData.Set(UserRoleFieldCanViewAuditLog, true)
+	resourceData.Set(UserRoleFieldCanConfigureObjectives, true)
+	resourceData.Set(UserRoleFieldCanConfigureAgents, true)
+	resourceData.Set(UserRoleFieldCanConfigureAuthenticationMethods, true)
+	resourceData.Set(UserRoleFieldCanConfigureApplications, true)
 
-		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-		mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(restapi.UserRole{}, restapi.ErrEntityNotFound).Times(1)
+	model := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
-		err := ReadUserRole(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldFailToReadUserRoleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyUserRoleResourceData()
-		resourceData.SetId(userRoleID)
-		expectedError := errors.New("test")
-
-		mockUserRoleApi := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-		mockUserRoleApi.EXPECT().GetOne(gomock.Eq(userRoleID)).Return(restapi.UserRole{}, expectedError).Times(1)
-
-		err := ReadUserRole(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error should be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID should still be set")
-		}
-	})
-}
-
-func TestShouldCreateUserRoleThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestUserRoleData()
-		resourceData := testHelper.CreateUserRoleResourceData(data)
-		expectedModel := createFullTestUserRoleModel()
-
-		mockUserRoleApi := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-		mockUserRoleApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.UserRole{})).Return(expectedModel, nil).Times(1)
-
-		err := CreateUserRole(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyUserRoleModelAppliedToResource(expectedModel, resourceData, t)
-	})
-}
-
-func TestShouldReturnErrorWhenCreateUserRoleFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestUserRoleData()
-		resourceData := testHelper.CreateUserRoleResourceData(data)
-		expectedError := errors.New("test")
-
-		mockUserRoleApi := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-		mockUserRoleApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.UserRole{})).Return(restapi.UserRole{}, expectedError).Times(1)
-
-		err := CreateUserRole(resourceData, providerMeta)
-
-		if err == nil || expectedError != err {
-			t.Fatal("Expected definned error to be returned")
-		}
-	})
-}
-
-func TestShouldDeleteUserRoleThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		id := "test-id"
-		data := createFullTestUserRoleData()
-		resourceData := testHelper.CreateUserRoleResourceData(data)
-		resourceData.SetId(id)
-
-		mockUserRoleApi := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-		mockUserRoleApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
-
-		err := DeleteUserRole(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenDeleteUserRoleFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		id := "test-id"
-		data := createFullTestUserRoleData()
-		resourceData := testHelper.CreateUserRoleResourceData(data)
-		resourceData.SetId(id)
-		expectedError := errors.New("test")
-
-		mockUserRoleApi := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().UserRoles().Return(mockUserRoleApi).Times(1)
-		mockUserRoleApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
-
-		err := DeleteUserRole(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error to be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
-		}
-	})
-}
-
-func verifyUserRoleModelAppliedToResource(model restapi.UserRole, resourceData *schema.ResourceData, t *testing.T) {
-	verifyBasicUserRoleFiledsAppliedToResource(model, resourceData, t)
-	verifyPermissionOfUserRoleAppliedToResource(model, resourceData, t)
-}
-
-func verifyBasicUserRoleFiledsAppliedToResource(model restapi.UserRole, resourceData *schema.ResourceData, t *testing.T) {
-	if model.ID != resourceData.Id() {
-		t.Fatal("Expected ID to be identical")
-	}
-	if model.Name != resourceData.Get(UserRoleFieldName).(string) {
-		t.Fatal("Expected Name to be identical")
-	}
-	if model.ImplicitViewFilter != resourceData.Get(UserRoleFieldImplicitViewFilter).(string) {
-		t.Fatal("Expected ImplicitViewFilter to be identical")
-	}
-}
-
-func verifyPermissionOfUserRoleAppliedToResource(model restapi.UserRole, resourceData *schema.ResourceData, t *testing.T) {
-	if model.CanConfigureServiceMapping != resourceData.Get(UserRoleFieldCanConfigureServiceMapping).(bool) {
-		t.Fatal("Expected CanConfigureServiceMapping to be identical")
-	}
-	if model.CanConfigureEumApplications != resourceData.Get(UserRoleFieldCanConfigureEumApplications).(bool) {
-		t.Fatal("Expected CanConfigureEumApplications to be identical")
-	}
-	if model.CanConfigureUsers != resourceData.Get(UserRoleFieldCanConfigureUsers).(bool) {
-		t.Fatal("Expected CanConfigureUsers to be identical")
-	}
-	if model.CanInstallNewAgents != resourceData.Get(UserRoleFieldCanInstallNewAgents).(bool) {
-		t.Fatal("Expected CanInstallNewAgents to be identical")
-	}
-	if model.CanSeeUsageInformation != resourceData.Get(UserRoleFieldCanSeeUsageInformation).(bool) {
-		t.Fatal("Expected CanSeeUsageInformation to be identical")
-	}
-	if model.CanConfigureIntegrations != resourceData.Get(UserRoleFieldCanConfigureIntegrations).(bool) {
-		t.Fatal("Expected CanConfigureIntegrations to be identical")
-	}
-	if model.CanSeeOnPremiseLicenseInformation != resourceData.Get(UserRoleFieldCanSeeOnPremiseLicenseInformation).(bool) {
-		t.Fatal("Expected CanSeeOnPremiseLicenseInformation to be identical")
-	}
-	if model.CanConfigureCustomAlerts != resourceData.Get(UserRoleFieldCanConfigureCustomAlerts).(bool) {
-		t.Fatal("Expected CanConfigureCustomAlerts to be identical")
-	}
-	if model.CanConfigureAPITokens != resourceData.Get(UserRoleFieldCanConfigureAPITokens).(bool) {
-		t.Fatal("Expected CanConfigureAPITokens to be identical")
-	}
-	if model.CanConfigureAgentRunMode != resourceData.Get(UserRoleFieldCanConfigureAgentRunMode).(bool) {
-		t.Fatal("Expected CanConfigureAgentRunMode to be identical")
-	}
-	if model.CanViewAuditLog != resourceData.Get(UserRoleFieldCanViewAuditLog).(bool) {
-		t.Fatal("Expected CanViewAuditLog to be identical")
-	}
-	if model.CanConfigureObjectives != resourceData.Get(UserRoleFieldCanConfigureObjectives).(bool) {
-		t.Fatal("Expected CanConfigureObjectives to be identical")
-	}
-	if model.CanConfigureAgents != resourceData.Get(UserRoleFieldCanConfigureAgents).(bool) {
-		t.Fatal("Expected CanConfigureAgents to be identical")
-	}
-	if model.CanConfigureAuthenticationMethods != resourceData.Get(UserRoleFieldCanConfigureAuthenticationMethods).(bool) {
-		t.Fatal("Expected CanConfigureAuthenticationMethods to be identical")
-	}
-	if model.CanConfigureApplications != resourceData.Get(UserRoleFieldCanConfigureApplications).(bool) {
-		t.Fatal("Expected CanConfigureApplications to be identical")
-	}
-}
-
-func createFullTestUserRoleModel() restapi.UserRole {
-	data := createMinimalTestUserRoleModel()
-	data.ImplicitViewFilter = viewFilterFieldValue
-	data.CanConfigureServiceMapping = true
-	data.CanConfigureEumApplications = true
-	data.CanConfigureUsers = true
-	data.CanInstallNewAgents = true
-	data.CanSeeUsageInformation = true
-	data.CanConfigureIntegrations = true
-	data.CanSeeOnPremiseLicenseInformation = true
-	data.CanConfigureRoles = true
-	data.CanConfigureCustomAlerts = true
-	data.CanConfigureAPITokens = true
-	data.CanConfigureAgentRunMode = true
-	data.CanViewAuditLog = true
-	data.CanConfigureObjectives = true
-	data.CanConfigureAgents = true
-	data.CanConfigureAuthenticationMethods = true
-	data.CanConfigureApplications = true
-	return data
-}
-
-func createMinimalTestUserRoleModel() restapi.UserRole {
-	return restapi.UserRole{
-		ID:   "id",
-		Name: userRoleNameFieldValue,
-	}
-}
-
-func createFullTestUserRoleData() map[string]interface{} {
-	data := make(map[string]interface{})
-	data[UserRoleFieldName] = userRoleNameFieldValue
-	data[UserRoleFieldImplicitViewFilter] = viewFilterFieldValue
-	data[UserRoleFieldCanConfigureServiceMapping] = true
-	data[UserRoleFieldCanConfigureEumApplications] = true
-	data[UserRoleFieldCanConfigureUsers] = true
-	data[UserRoleFieldCanInstallNewAgents] = true
-	data[UserRoleFieldCanSeeUsageInformation] = true
-	data[UserRoleFieldCanConfigureIntegrations] = true
-	data[UserRoleFieldCanSeeOnPremiseLicenseInformation] = true
-	data[UserRoleFieldCanConfigureRoles] = true
-	data[UserRoleFieldCanConfigureCustomAlerts] = true
-	data[UserRoleFieldCanConfigureAPITokens] = true
-	data[UserRoleFieldCanConfigureAgentRunMode] = true
-	data[UserRoleFieldCanViewAuditLog] = true
-	data[UserRoleFieldCanConfigureObjectives] = true
-	data[UserRoleFieldCanConfigureAgents] = true
-	data[UserRoleFieldCanConfigureAuthenticationMethods] = true
-	data[UserRoleFieldCanConfigureApplications] = true
-	return data
+	assert.IsType(t, restapi.UserRole{}, model, "Model should be an alerting channel")
+	assert.Equal(t, userRoleID, model.GetID())
+	assert.Equal(t, userRoleNameFieldValue, model.(restapi.UserRole).Name)
+	assert.Equal(t, viewFilterFieldValue, model.(restapi.UserRole).ImplicitViewFilter)
+	assert.True(t, model.(restapi.UserRole).CanConfigureServiceMapping)
+	assert.True(t, model.(restapi.UserRole).CanConfigureEumApplications)
+	assert.True(t, model.(restapi.UserRole).CanConfigureUsers)
+	assert.True(t, model.(restapi.UserRole).CanInstallNewAgents)
+	assert.True(t, model.(restapi.UserRole).CanSeeUsageInformation)
+	assert.True(t, model.(restapi.UserRole).CanConfigureIntegrations)
+	assert.True(t, model.(restapi.UserRole).CanSeeOnPremiseLicenseInformation)
+	assert.True(t, model.(restapi.UserRole).CanConfigureRoles)
+	assert.True(t, model.(restapi.UserRole).CanConfigureCustomAlerts)
+	assert.True(t, model.(restapi.UserRole).CanConfigureAPITokens)
+	assert.True(t, model.(restapi.UserRole).CanConfigureAgentRunMode)
+	assert.True(t, model.(restapi.UserRole).CanViewAuditLog)
+	assert.True(t, model.(restapi.UserRole).CanConfigureObjectives)
+	assert.True(t, model.(restapi.UserRole).CanConfigureAgents)
+	assert.True(t, model.(restapi.UserRole).CanConfigureAuthenticationMethods)
+	assert.True(t, model.(restapi.UserRole).CanConfigureApplications)
 }

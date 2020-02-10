@@ -1,11 +1,13 @@
 package instana
 
 import (
-	"errors"
-
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
 )
+
+//ResourceInstanaUserRole the name of the terraform-provider-instana resource to manage user roles
+const ResourceInstanaUserRole = "instana_user_role"
 
 const (
 	//UserRoleFieldName constant value for the schema field name
@@ -46,179 +48,166 @@ const (
 	UserRoleFieldCanConfigureApplications = "can_configure_applications"
 )
 
-//CreateResourceUserRole creates the resource definition for the resource instana_user_role
-func CreateResourceUserRole() *schema.Resource {
-	return &schema.Resource{
-		Create: CreateUserRole,
-		Read:   ReadUserRole,
-		Update: UpdateUserRole,
-		Delete: DeleteUserRole,
+//NewUserRoleResourceHandle creates a ResourceHandle instance for the terraform resource user role
+func NewUserRoleResourceHandle() ResourceHandle {
+	return &userRoleResourceHandle{}
+}
 
-		Schema: map[string]*schema.Schema{
-			UserRoleFieldName: &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the user role",
-			},
-			UserRoleFieldImplicitViewFilter: &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    false,
-				Optional:    true,
-				Description: "The an implicit view filter which is applied for users of the given role",
-			},
-			UserRoleFieldCanConfigureServiceMapping: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure service mappings",
-			},
-			UserRoleFieldCanConfigureEumApplications: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure End User Monitoring applications",
-			},
-			UserRoleFieldCanConfigureUsers: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure users",
-			},
-			UserRoleFieldCanInstallNewAgents: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to install new agents",
-			},
-			UserRoleFieldCanSeeUsageInformation: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to see usage information",
-			},
-			UserRoleFieldCanConfigureIntegrations: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure integrations",
-			},
-			UserRoleFieldCanSeeOnPremiseLicenseInformation: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to see onPremise license information",
-			},
-			UserRoleFieldCanConfigureRoles: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure user roles",
-			},
-			UserRoleFieldCanConfigureCustomAlerts: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure custom alerts",
-			},
-			UserRoleFieldCanConfigureAPITokens: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure API tokens",
-			},
-			UserRoleFieldCanConfigureAgentRunMode: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure agent run mode",
-			},
-			UserRoleFieldCanViewAuditLog: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to view the audit log",
-			},
-			UserRoleFieldCanConfigureObjectives: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure objectives",
-			},
-			UserRoleFieldCanConfigureAgents: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure agents",
-			},
-			UserRoleFieldCanConfigureAuthenticationMethods: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure authentication methods",
-			},
-			UserRoleFieldCanConfigureApplications: &schema.Schema{
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure applications",
-			},
+type userRoleResourceHandle struct{}
+
+func (h *userRoleResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
+	return api.UserRoles()
+}
+
+func (h *userRoleResourceHandle) Schema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		UserRoleFieldName: &schema.Schema{
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The name of the user role",
+		},
+		UserRoleFieldImplicitViewFilter: &schema.Schema{
+			Type:        schema.TypeString,
+			Required:    false,
+			Optional:    true,
+			Description: "The an implicit view filter which is applied for users of the given role",
+		},
+		UserRoleFieldCanConfigureServiceMapping: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure service mappings",
+		},
+		UserRoleFieldCanConfigureEumApplications: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure End User Monitoring applications",
+		},
+		UserRoleFieldCanConfigureUsers: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure users",
+		},
+		UserRoleFieldCanInstallNewAgents: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to install new agents",
+		},
+		UserRoleFieldCanSeeUsageInformation: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to see usage information",
+		},
+		UserRoleFieldCanConfigureIntegrations: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure integrations",
+		},
+		UserRoleFieldCanSeeOnPremiseLicenseInformation: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to see onPremise license information",
+		},
+		UserRoleFieldCanConfigureRoles: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure user roles",
+		},
+		UserRoleFieldCanConfigureCustomAlerts: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure custom alerts",
+		},
+		UserRoleFieldCanConfigureAPITokens: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure API tokens",
+		},
+		UserRoleFieldCanConfigureAgentRunMode: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure agent run mode",
+		},
+		UserRoleFieldCanViewAuditLog: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to view the audit log",
+		},
+		UserRoleFieldCanConfigureObjectives: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure objectives",
+		},
+		UserRoleFieldCanConfigureAgents: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure agents",
+		},
+		UserRoleFieldCanConfigureAuthenticationMethods: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure authentication methods",
+		},
+		UserRoleFieldCanConfigureApplications: &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Configures if users of the role are allowed to configure applications",
 		},
 	}
 }
 
-//CreateUserRole defines the create operation for the resource instana_user_role
-func CreateUserRole(d *schema.ResourceData, meta interface{}) error {
-	d.SetId(RandomID())
-	return UpdateUserRole(d, meta)
+func (h *userRoleResourceHandle) SchemaVersion() int {
+	return 0
 }
 
-//ReadUserRole defines the read operation for the resource instana_user_role
-func ReadUserRole(d *schema.ResourceData, meta interface{}) error {
-	providerMeta := meta.(*ProviderMeta)
-	instanaAPI := providerMeta.InstanaAPI
-	ruleID := d.Id()
-	if len(ruleID) == 0 {
-		return errors.New("ID of user role is missing")
-	}
-	rule, err := instanaAPI.UserRoles().GetOne(ruleID)
-	if err != nil {
-		if err == restapi.ErrEntityNotFound {
-			d.SetId("")
-			return nil
-		}
-		return err
-	}
-	updateUserRoleState(d, rule.(restapi.UserRole))
-	return nil
+func (h *userRoleResourceHandle) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
 }
 
-//UpdateUserRole defines the update operation for the resource instana_user_role
-func UpdateUserRole(d *schema.ResourceData, meta interface{}) error {
-	providerMeta := meta.(*ProviderMeta)
-	instanaAPI := providerMeta.InstanaAPI
-	rule := createUserRoleFromResourceData(d)
-	updatedUserRole, err := instanaAPI.UserRoles().Upsert(rule)
-	if err != nil {
-		return err
-	}
-	updateUserRoleState(d, updatedUserRole.(restapi.UserRole))
-	return nil
+func (h *userRoleResourceHandle) ResourceName() string {
+	return ResourceInstanaUserRole
 }
 
-//DeleteUserRole defines the delete operation for the resource instana_user_role
-func DeleteUserRole(d *schema.ResourceData, meta interface{}) error {
-	providerMeta := meta.(*ProviderMeta)
-	instanaAPI := providerMeta.InstanaAPI
-	userRole := createUserRoleFromResourceData(d)
-	err := instanaAPI.UserRoles().DeleteByID(userRole.ID)
-	if err != nil {
-		return err
-	}
-	d.SetId("")
-	return nil
+func (h *userRoleResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) {
+	userRole := obj.(restapi.UserRole)
+	d.Set(UserRoleFieldName, userRole.Name)
+	d.Set(UserRoleFieldImplicitViewFilter, userRole.ImplicitViewFilter)
+	d.Set(UserRoleFieldCanConfigureServiceMapping, userRole.CanConfigureServiceMapping)
+	d.Set(UserRoleFieldCanConfigureEumApplications, userRole.CanConfigureEumApplications)
+	d.Set(UserRoleFieldCanConfigureUsers, userRole.CanConfigureUsers)
+	d.Set(UserRoleFieldCanInstallNewAgents, userRole.CanInstallNewAgents)
+	d.Set(UserRoleFieldCanSeeUsageInformation, userRole.CanSeeUsageInformation)
+	d.Set(UserRoleFieldCanConfigureIntegrations, userRole.CanConfigureIntegrations)
+	d.Set(UserRoleFieldCanSeeOnPremiseLicenseInformation, userRole.CanSeeOnPremiseLicenseInformation)
+	d.Set(UserRoleFieldCanConfigureRoles, userRole.CanConfigureRoles)
+	d.Set(UserRoleFieldCanConfigureCustomAlerts, userRole.CanConfigureCustomAlerts)
+	d.Set(UserRoleFieldCanConfigureAPITokens, userRole.CanConfigureAPITokens)
+	d.Set(UserRoleFieldCanConfigureAgentRunMode, userRole.CanConfigureAgentRunMode)
+	d.Set(UserRoleFieldCanViewAuditLog, userRole.CanViewAuditLog)
+	d.Set(UserRoleFieldCanConfigureObjectives, userRole.CanConfigureObjectives)
+	d.Set(UserRoleFieldCanConfigureAgents, userRole.CanConfigureAgents)
+	d.Set(UserRoleFieldCanConfigureAuthenticationMethods, userRole.CanConfigureAuthenticationMethods)
+	d.Set(UserRoleFieldCanConfigureApplications, userRole.CanConfigureApplications)
+
+	d.SetId(userRole.ID)
 }
 
-func createUserRoleFromResourceData(d *schema.ResourceData) restapi.UserRole {
+func (h *userRoleResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.InstanaDataObject {
 	return restapi.UserRole{
 		ID:                                d.Id(),
 		Name:                              d.Get(UserRoleFieldName).(string),
@@ -240,27 +229,4 @@ func createUserRoleFromResourceData(d *schema.ResourceData) restapi.UserRole {
 		CanConfigureAuthenticationMethods: d.Get(UserRoleFieldCanConfigureAuthenticationMethods).(bool),
 		CanConfigureApplications:          d.Get(UserRoleFieldCanConfigureApplications).(bool),
 	}
-}
-
-func updateUserRoleState(d *schema.ResourceData, userRole restapi.UserRole) {
-	d.Set(UserRoleFieldName, userRole.Name)
-	d.Set(UserRoleFieldImplicitViewFilter, userRole.ImplicitViewFilter)
-	d.Set(UserRoleFieldCanConfigureServiceMapping, userRole.CanConfigureServiceMapping)
-	d.Set(UserRoleFieldCanConfigureEumApplications, userRole.CanConfigureEumApplications)
-	d.Set(UserRoleFieldCanConfigureUsers, userRole.CanConfigureUsers)
-	d.Set(UserRoleFieldCanInstallNewAgents, userRole.CanInstallNewAgents)
-	d.Set(UserRoleFieldCanSeeUsageInformation, userRole.CanSeeUsageInformation)
-	d.Set(UserRoleFieldCanConfigureIntegrations, userRole.CanConfigureIntegrations)
-	d.Set(UserRoleFieldCanSeeOnPremiseLicenseInformation, userRole.CanSeeOnPremiseLicenseInformation)
-	d.Set(UserRoleFieldCanConfigureRoles, userRole.CanConfigureRoles)
-	d.Set(UserRoleFieldCanConfigureCustomAlerts, userRole.CanConfigureCustomAlerts)
-	d.Set(UserRoleFieldCanConfigureAPITokens, userRole.CanConfigureAPITokens)
-	d.Set(UserRoleFieldCanConfigureAgentRunMode, userRole.CanConfigureAgentRunMode)
-	d.Set(UserRoleFieldCanViewAuditLog, userRole.CanViewAuditLog)
-	d.Set(UserRoleFieldCanConfigureObjectives, userRole.CanConfigureObjectives)
-	d.Set(UserRoleFieldCanConfigureAgents, userRole.CanConfigureAgents)
-	d.Set(UserRoleFieldCanConfigureAuthenticationMethods, userRole.CanConfigureAuthenticationMethods)
-	d.Set(UserRoleFieldCanConfigureApplications, userRole.CanConfigureApplications)
-
-	d.SetId(userRole.ID)
 }
