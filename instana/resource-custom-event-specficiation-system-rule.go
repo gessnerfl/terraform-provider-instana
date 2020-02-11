@@ -2,9 +2,12 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 )
+
+//ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
+const ResourceInstanaCustomEventSpecificationSystemRule = "instana_custom_event_spec_system_rule"
 
 const (
 	//SystemRuleSpecificationSystemRuleID constant value for the schema field system_rule_id of a rule specification
@@ -27,49 +30,31 @@ var systemRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//CreateResourceCustomEventSpecificationWithSystemRule creates the resource definition for the instana api endpoint for Custom Event Specifications for System rules
-func CreateResourceCustomEventSpecificationWithSystemRule() *schema.Resource {
-	return &schema.Resource{
-		Read:   createReadCustomEventSpecificationWithSystemRule(),
-		Create: createCreateCustomEventSpecificationWithSystemRule(),
-		Update: createUpdateCustomEventSpecificationWithSystemRule(),
-		Delete: createDeleteCustomEventSpecificationWithSystemRule(),
-
+//NewCustomEventSpecificationWithSystemRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
+func NewCustomEventSpecificationWithSystemRuleResourceHandle() *ResourceHandle {
+	return &ResourceHandle{
+		ResourceName:  ResourceInstanaCustomEventSpecificationSystemRule,
 		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, systemRuleSchemaFields),
 		SchemaVersion: 1,
-		MigrateState:  CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error)))),
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    customEventSpecificationWithSystemRuleSchemaV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateCustomEventConfigFullNameInStateFromV0toV1,
+				Version: 0,
+			},
+		},
+		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.CustomEventSpecifications() },
+		UpdateState:          updateStateForCustomEventSpecificationWithSystemRule,
+		MapStateToDataObject: mapStateToDataObjectForCustomEventSpecificationWithSystemRule,
+		SetComputedFields: func(d *schema.ResourceData) {
+			d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
+		},
 	}
 }
 
-func createReadCustomEventSpecificationWithSystemRule() func(*schema.ResourceData, interface{}) error {
-	return createCustomEventSpecificationReadFunc(mapSystemRuleToTerraformState)
-}
-
-func createCreateCustomEventSpecificationWithSystemRule() func(*schema.ResourceData, interface{}) error {
-	return func(d *schema.ResourceData, meta interface{}) error {
-		updateFunc := createCustomEventSpecificationUpdateFunc(mapSystemRuleToInstanaAPIModel, mapSystemRuleToTerraformState)
-
-		d.SetId(RandomID())
-		d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
-		return updateFunc(d, meta)
-	}
-}
-
-func createUpdateCustomEventSpecificationWithSystemRule() func(*schema.ResourceData, interface{}) error {
-	return createCustomEventSpecificationUpdateFunc(mapSystemRuleToInstanaAPIModel, mapSystemRuleToTerraformState)
-}
-
-func createDeleteCustomEventSpecificationWithSystemRule() func(*schema.ResourceData, interface{}) error {
-	return createCustomEventSpecificationDeleteFunc(mapSystemRuleToInstanaAPIModel)
-}
-
-func mapSystemRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpecification, error) {
-	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
-	if err != nil {
-		return restapi.RuleSpecification{}, err
-	}
-	systemRuleID := d.Get(SystemRuleSpecificationSystemRuleID).(string)
-	return restapi.NewSystemRuleSpecification(systemRuleID, severity), nil
+func updateStateForCustomEventSpecificationWithSystemRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+	customEventSpecification := obj.(restapi.CustomEventSpecification)
+	return updateStateForBasicCustomEventSpecification(d, customEventSpecification, mapSystemRuleToTerraformState)
 }
 
 func mapSystemRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEventSpecification) error {
@@ -82,4 +67,23 @@ func mapSystemRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEv
 	d.Set(CustomEventSpecificationRuleSeverity, severity)
 	d.Set(SystemRuleSpecificationSystemRuleID, ruleSpec.SystemRuleID)
 	return nil
+}
+
+func mapStateToDataObjectForCustomEventSpecificationWithSystemRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+	return createCustomEventSpecificationFromResourceData(d, formatter, mapSystemRuleToInstanaAPIModel)
+}
+
+func mapSystemRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
+	systemRuleID := d.Get(SystemRuleSpecificationSystemRuleID).(string)
+	return restapi.NewSystemRuleSpecification(systemRuleID, severity), nil
+}
+
+func customEventSpecificationWithSystemRuleSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV0, systemRuleSchemaFields),
+	}
 }

@@ -1,23 +1,20 @@
 package instana_test
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testCustomEventSpecificationWithSystemRuleProviders = map[string]terraform.ResourceProvider{
@@ -123,27 +120,10 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 	})
 }
 
-func TestResourceCustomEventSpecificationWithSystemRuleDefinition(t *testing.T) {
-	resource := CreateResourceCustomEventSpecificationWithSystemRule()
+func TestCustomEventSpecificationWithSystemRuleSchemaDefinitionIsValid(t *testing.T) {
+	schema := NewCustomEventSpecificationWithSystemRuleResourceHandle().Schema
 
-	validateCustomEventSpecificationWithSystemRuleResourceSchema(resource.Schema, t)
-
-	if resource.Create == nil {
-		t.Fatal("Create function expected")
-	}
-	if resource.Update == nil {
-		t.Fatal("Update function expected")
-	}
-	if resource.Read == nil {
-		t.Fatal("Read function expected")
-	}
-	if resource.Delete == nil {
-		t.Fatal("Delete function expected")
-	}
-}
-
-func validateCustomEventSpecificationWithSystemRuleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldFullName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldEntityType)
@@ -158,412 +138,129 @@ func validateCustomEventSpecificationWithSystemRuleResourceSchema(schemaMap map[
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SystemRuleSpecificationSystemRuleID)
 }
 
-func TestShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
-	expectedModel := createBaseTestCustomEventSpecificationWithSystemRuleModel()
-	testShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstanaAPI(expectedModel, t)
+func TestCustomEventSpecificationWithSystemRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
+	assert.Equal(t, 1, NewCustomEventSpecificationWithSystemRuleResourceHandle().SchemaVersion)
 }
 
-func TestShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhenFullDataIsReturned(t *testing.T) {
-	expectedModel := createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet()
-	testShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstanaAPI(expectedModel, t)
+func TestCustomEventSpecificationWithSystemRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+	resourceHandler := NewCustomEventSpecificationWithSystemRuleResourceHandle()
+
+	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
 }
 
-func testShouldSuccessfullyReadCustomEventSpecificationWithSystemRuleFromInstanaAPI(expectedModel restapi.CustomEventSpecification, t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
-		resourceData.SetId(customSystemEventID)
+func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
+	name := "Test Name"
+	rawData := make(map[string]interface{})
+	rawData[CustomEventSpecificationFieldName] = name
+	meta := "dummy"
 
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
 
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(expectedModel, nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(expectedModel, resourceData, t)
-	})
+	assert.Nil(t, err)
+	assert.Equal(t, name, result[CustomEventSpecificationFieldFullName])
 }
 
-func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhenSeverityFromAPICannotBeMappedToSeverityOfTerraformState(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		expectedModel := createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet()
-		expectedModel.Rules[0].Severity = 999
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
-		resourceData.SetId(customSystemEventID)
+func TestShouldMigrateEmptyCustomEventSpecificationWithSystemRuleStateFromVersion0To1(t *testing.T) {
+	rawData := make(map[string]interface{})
+	meta := "dummy"
 
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
 
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(expectedModel, nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
-			t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
-		}
-	})
+	assert.Nil(t, err)
+	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
 }
 
-func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
+func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithSystemRuleResource(t *testing.T) {
+	name := NewCustomEventSpecificationWithSystemRuleResourceHandle().ResourceName
 
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err == nil || !strings.HasPrefix(err.Error(), "ID of custom event specification") {
-			t.Fatal("Expected error to occur because of missing id")
-		}
-	})
+	assert.Equal(t, name, "instana_custom_event_spec_system_rule")
 }
 
-func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIAndDeleteResourceWhenCustomEventDoesNotExist(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
-		resourceData.SetId(customSystemEventID)
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(restapi.CustomEventSpecification{}, restapi.ErrEntityNotFound).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldFailToReadCustomEventSpecificationWithSystemRuleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
-		resourceData.SetId(customSystemEventID)
-		expectedError := errors.New("test")
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customSystemEventID)).Return(restapi.CustomEventSpecification{}, expectedError).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error should be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID should still be set")
-		}
-	})
-}
-
-func TestShouldCreateCustomEventSpecificationWithSystemRuleThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithSystemRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-		expectedModel := createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet()
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(expectedModel, nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Create(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(expectedModel, resourceData, t)
-	})
-}
-
-func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithSystemRuleFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithSystemRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-		expectedError := errors.New("test")
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(restapi.CustomEventSpecification{}, expectedError).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Create(resourceData, providerMeta)
-
-		if err == nil || expectedError != err {
-			t.Fatal("Expected definned error to be returned")
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithSystemRuleFailsBecauseOfInvalidSeverityConfiguredInTerraform(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithSystemRuleData()
-		data[CustomEventSpecificationRuleSeverity] = "invalid"
-		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Create(resourceData, providerMeta)
-
-		if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
-			t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithSystemRuleFailsBecauseOfInvalidSeverityReturnedFromInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithSystemRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-		expectedModel := createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet()
-		expectedModel.Rules[0].Severity = 999
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(expectedModel, nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Create(resourceData, providerMeta)
-
-		if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
-			t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
-		}
-	})
-}
-
-func TestShouldDeleteCustomEventSpecificationWithSystemRuleThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithSystemRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-		resourceData.SetId(customSystemEventID)
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(customSystemEventID)).Return(nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Delete(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithSystemRuleFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithSystemRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-		resourceData.SetId(customSystemEventID)
-		expectedError := errors.New("test")
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(customSystemEventID)).Return(expectedError).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Delete(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error to be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
-		}
-	})
-}
-
-func TestShouldFailToDeleteCustomEventSpecificationWithSystemRuleWhenInvalidSeverityIsConfiguredInTerraform(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithSystemRuleData()
-		data[CustomEventSpecificationRuleSeverity] = "invalid"
-		resourceData := testHelper.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-		resourceData.SetId(customSystemEventID)
-
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithSystemRule()
-		err := resource.Delete(resourceData, providerMeta)
-
-		if err == nil || !strings.Contains(err.Error(), customSystemEventMessageNotAValidSeverity) {
-			t.Fatal(customSystemEventTestMessageExpectedInvalidSeverity)
-		}
-	})
-}
-
-func verifyCustomEventSpecificationWithSystemRuleModelAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
-	verifyCustomEventSpecificationModelAppliedToResource(model, resourceData, t)
-	verifyCustomEventSpecificationDownstreamModelAppliedToResource(model, resourceData, t)
-
-	convertedSeverity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(model.Rules[0].Severity)
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	if convertedSeverity != resourceData.Get(CustomEventSpecificationRuleSeverity).(string) {
-		t.Fatal("Expected Severity to be identical")
-	}
-
-	if *model.Rules[0].SystemRuleID != resourceData.Get(SystemRuleSpecificationSystemRuleID).(string) {
-		t.Fatal("Expected System Rule ID to be identical")
-	}
-}
-
-func verifyCustomEventSpecificationModelAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
-	if model.ID != resourceData.Id() {
-		t.Fatal("Expected ID to be identical")
-	}
-	if model.Name != resourceData.Get(CustomEventSpecificationFieldFullName).(string) {
-		t.Fatal("Expected Full Name to be identical")
-	}
-	if model.EntityType != resourceData.Get(CustomEventSpecificationFieldEntityType).(string) {
-		t.Fatal("Expected EntityType to be identical")
-	}
-	verifyCustomEventSpecificationQueryAppliedToResource(model, resourceData, t)
-	if model.Triggering != resourceData.Get(CustomEventSpecificationFieldTriggering).(bool) {
-		t.Fatal("Expected Triggering to be identical")
-	}
-	verifyCustomEventSpecificationDescriptionAppliedToResource(model, resourceData, t)
-	verifyCustomEventSpecificationExpirationTimeAppliedToResource(model, resourceData, t)
-	if model.Enabled != resourceData.Get(CustomEventSpecificationFieldEnabled).(bool) {
-		t.Fatal("Expected Enabled to be identical")
-	}
-}
-
-func verifyCustomEventSpecificationQueryAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
-	if model.Query != nil {
-		if *model.Query != resourceData.Get(CustomEventSpecificationFieldQuery).(string) {
-			t.Fatal("Expected Query to be identical")
-		}
-	} else {
-		if _, ok := resourceData.GetOk(CustomEventSpecificationFieldQuery); ok {
-			t.Fatal("Expected Query not to be defined")
-		}
-	}
-}
-
-func verifyCustomEventSpecificationDescriptionAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
-	if model.Description != nil {
-		if *model.Description != resourceData.Get(CustomEventSpecificationFieldDescription).(string) {
-			t.Fatal("Expected Description to be identical")
-		}
-	} else {
-		if _, ok := resourceData.GetOk(CustomEventSpecificationFieldDescription); ok {
-			t.Fatal("Expected Description not to be defined")
-		}
-	}
-}
-
-func verifyCustomEventSpecificationExpirationTimeAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
-	if model.ExpirationTime != nil {
-		if *model.ExpirationTime != resourceData.Get(CustomEventSpecificationFieldExpirationTime).(int) {
-			t.Fatal("Expected Expiration Time to be identical")
-		}
-	} else {
-		if _, ok := resourceData.GetOk(CustomEventSpecificationFieldExpirationTime); ok {
-			t.Fatal("Expected Expiration Time not to be defined")
-		}
-	}
-}
-
-func verifyCustomEventSpecificationDownstreamModelAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
-	if model.Downstream != nil {
-		if !cmp.Equal(model.Downstream.IntegrationIds, ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)) {
-			t.Fatal("Expected Integration IDs to be identical")
-		}
-		if model.Downstream.BroadcastToAllAlertingConfigs != resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool) {
-			t.Fatal("Expected Broadcast to All Alert Configs to be identical")
-		}
-	} else {
-		if _, ok := resourceData.GetOk(CustomEventSpecificationDownstreamIntegrationIds); ok {
-			t.Fatal("Expected Integration IDs not to be defined")
-		}
-		if !resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool) {
-			t.Fatalf("Expected Broadcast to All Alert Configs to have the default value set")
-		}
-	}
-}
-
-func createTestCustomEventSpecificationWithSystemRuleModelWithFullDataSet() restapi.CustomEventSpecification {
+func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApiObject(t *testing.T) {
 	description := customSystemEventDescription
 	expirationTime := customSystemEventExpirationTime
 	query := customSystemEventQuery
-
-	data := createBaseTestCustomEventSpecificationWithSystemRuleModel()
-	data.Query = &query
-	data.Description = &description
-	data.ExpirationTime = &expirationTime
-	data.Downstream = &restapi.EventSpecificationDownstream{
-		IntegrationIds:                []string{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2},
-		BroadcastToAllAlertingConfigs: true,
-	}
-	return data
-}
-
-func createBaseTestCustomEventSpecificationWithSystemRuleModel() restapi.CustomEventSpecification {
-	return restapi.CustomEventSpecification{
-		ID:         customSystemEventID,
-		Name:       customSystemEventName,
-		EntityType: SystemRuleEntityType,
-		Triggering: false,
-		Enabled:    true,
+	spec := restapi.CustomEventSpecification{
+		ID:             customSystemEventID,
+		Name:           customSystemEventName,
+		EntityType:     SystemRuleEntityType,
+		Query:          &query,
+		Description:    &description,
+		ExpirationTime: &expirationTime,
+		Triggering:     true,
+		Enabled:        true,
 		Rules: []restapi.RuleSpecification{
 			restapi.NewSystemRuleSpecification(customSystemEventRuleSystemRuleId, restapi.SeverityWarning.GetAPIRepresentation()),
 		},
+		Downstream: &restapi.EventSpecificationDownstream{
+			IntegrationIds:                []string{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2},
+			BroadcastToAllAlertingConfigs: true,
+		},
 	}
+
+	testHelper := NewTestHelper(t)
+	sut := NewCustomEventSpecificationWithSystemRuleResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, spec)
+
+	assert.Nil(t, err)
+	assert.Equal(t, customSystemEventID, resourceData.Id())
+	assert.Equal(t, customSystemEventName, resourceData.Get(CustomEventSpecificationFieldFullName))
+	assert.Equal(t, SystemRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
+	assert.Equal(t, customSystemEventQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
+	assert.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
+	assert.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
+	assert.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+
+	assert.Equal(t, customSystemEventRuleSystemRuleId, resourceData.Get(SystemRuleSpecificationSystemRuleID))
+	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
+
+	assert.True(t, resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool))
+	assert.Equal(t, []interface{}{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2}, resourceData.Get(CustomEventSpecificationDownstreamIntegrationIds))
 }
 
-func createFullTestCustomEventSpecificationWithSystemRuleData() map[string]interface{} {
-	data := make(map[string]interface{})
-	data[CustomEventSpecificationFieldName] = customSystemEventName
-	data[CustomEventSpecificationFieldEntityType] = SystemRuleEntityType
-	data[CustomEventSpecificationFieldQuery] = customSystemEventQuery
-	data[CustomEventSpecificationFieldTriggering] = "true"
-	data[CustomEventSpecificationFieldDescription] = customSystemEventDescription
-	data[CustomEventSpecificationFieldExpirationTime] = customSystemEventExpirationTime
-	data[CustomEventSpecificationFieldEnabled] = "true"
+func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToDataModel(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewCustomEventSpecificationWithSystemRuleResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	resourceData.SetId(customSystemEventID)
+	resourceData.Set(CustomEventSpecificationFieldFullName, customSystemEventName)
+	resourceData.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
+	resourceData.Set(CustomEventSpecificationFieldQuery, customSystemEventQuery)
+	resourceData.Set(CustomEventSpecificationFieldTriggering, true)
+	resourceData.Set(CustomEventSpecificationFieldDescription, customSystemEventDescription)
+	resourceData.Set(CustomEventSpecificationFieldExpirationTime, customSystemEventExpirationTime)
+	resourceData.Set(CustomEventSpecificationFieldEnabled, true)
 	integrationIds := make([]interface{}, 2)
 	integrationIds[0] = customSystemEventDownStringIntegrationId1
 	integrationIds[1] = customSystemEventDownStringIntegrationId2
-	data[CustomEventSpecificationDownstreamIntegrationIds] = integrationIds
-	data[CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs] = "true"
-	data[CustomEventSpecificationRuleSeverity] = customSystemEventRuleSeverity
-	data[SystemRuleSpecificationSystemRuleID] = customSystemEventRuleSystemRuleId
-	return data
+	resourceData.Set(CustomEventSpecificationDownstreamIntegrationIds, integrationIds)
+	resourceData.Set(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, true)
+	resourceData.Set(CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity)
+	resourceData.Set(SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId)
+
+	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.Nil(t, err)
+	assert.IsType(t, restapi.CustomEventSpecification{}, result)
+	customEventSpec := result.(restapi.CustomEventSpecification)
+	assert.Equal(t, customSystemEventID, customEventSpec.GetID())
+	assert.Equal(t, customSystemEventName, customEventSpec.Name)
+	assert.Equal(t, SystemRuleEntityType, customEventSpec.EntityType)
+	assert.Equal(t, customSystemEventQuery, *customEventSpec.Query)
+	assert.Equal(t, customSystemEventDescription, *customEventSpec.Description)
+	assert.Equal(t, customSystemEventExpirationTime, *customEventSpec.ExpirationTime)
+	assert.True(t, customEventSpec.Triggering)
+	assert.True(t, customEventSpec.Enabled)
+
+	assert.Equal(t, 1, len(customEventSpec.Rules))
+	assert.Equal(t, customSystemEventRuleSystemRuleId, *customEventSpec.Rules[0].SystemRuleID)
+	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+
+	assert.True(t, customEventSpec.Downstream.BroadcastToAllAlertingConfigs)
+	assert.Equal(t, []string{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2}, customEventSpec.Downstream.IntegrationIds)
 }

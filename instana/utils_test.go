@@ -22,7 +22,7 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 	ruleIds[1] = "test2"
 	data := make(map[string]interface{})
 	data[CustomEventSpecificationDownstreamIntegrationIds] = ruleIds
-	resourceData := NewTestHelper(t).CreateCustomEventSpecificationWithSystemRuleResourceData(data)
+	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewCustomEventSpecificationWithSystemRuleResourceHandle(), data)
 	result := ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)
 
 	if result == nil {
@@ -41,7 +41,7 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 }
 
 func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyCustomEventSpecificationWithSystemRuleResourceData()
+	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewCustomEventSpecificationWithSystemRuleResourceHandle())
 	result := ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)
 
 	if result != nil {

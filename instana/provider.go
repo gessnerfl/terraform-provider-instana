@@ -18,9 +18,6 @@ const SchemaFieldDefaultNamePrefix = "default_name_prefix"
 //SchemaFieldDefaultNameSuffix the default prefix which should be added to all resource names/labels
 const SchemaFieldDefaultNameSuffix = "default_name_suffix"
 
-//ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
-const ResourceInstanaCustomEventSpecificationSystemRule = "instana_custom_event_spec_system_rule"
-
 //ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
 const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_event_spec_threshold_rule"
 
@@ -72,7 +69,7 @@ func providerResources() map[string]*schema.Resource {
 
 	bindResourceHandle(resources, NewUserRoleResourceHandle())
 	bindResourceHandle(resources, NewApplicationConfigResourceHandle())
-	resources[ResourceInstanaCustomEventSpecificationSystemRule] = CreateResourceCustomEventSpecificationWithSystemRule()
+	bindResourceHandle(resources, NewCustomEventSpecificationWithSystemRuleResourceHandle())
 	resources[ResourceInstanaCustomEventSpecificationThresholdRule] = CreateResourceCustomEventSpecificationWithThresholdRule()
 	bindResourceHandle(resources, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelEmailResourceHandle())
