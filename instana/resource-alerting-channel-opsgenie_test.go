@@ -8,11 +8,14 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testAlertingChannelOpsGenieProviders = map[string]terraform.ResourceProvider{
@@ -98,7 +101,7 @@ func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {
 	resource := NewAlertingChannelOpsGenieResourceHandle()
 
-	schemaMap := resource.GetSchema()
+	schemaMap := resource.Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -108,10 +111,87 @@ func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelOpsGenieFieldTags)
 }
 
-func TestShouldReturnCorrectResourceNameForAlertingChannelOpsGenie(t *testing.T) {
-	name := NewAlertingChannelOpsGenieResourceHandle().GetResourceName()
+func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenSingleTagIsProvided(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelOpsGenieResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	tags := "tag1"
+	data := createAlertingChannelEmailModelForResourceUpdateWithoutTags()
+	data.Tags = &tags
 
-	if name != "instana_alerting_channel_ops_genie" {
-		t.Fatal("Expected resource name to be instana_alerting_channel_ops_genie")
+	err := resourceHandle.UpdateState(resourceData, data)
+
+	assert.Nil(t, err)
+	assertBasicAlertingChannelEmailsFieldsSet(t, resourceData)
+	assert.Equal(t, []interface{}{"tag1"}, resourceData.Get(AlertingChannelOpsGenieFieldTags), "list of tags should be equal")
+}
+
+func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenMultipleTagsAreProvided(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelOpsGenieResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	tags := "tag1, tag2"
+	data := createAlertingChannelEmailModelForResourceUpdateWithoutTags()
+	data.Tags = &tags
+
+	err := resourceHandle.UpdateState(resourceData, data)
+
+	assert.Nil(t, err)
+	assertBasicAlertingChannelEmailsFieldsSet(t, resourceData)
+	assert.Equal(t, []interface{}{"tag1", "tag2"}, resourceData.Get(AlertingChannelOpsGenieFieldTags), "list of tags should be equal")
+}
+
+func assertBasicAlertingChannelEmailsFieldsSet(t *testing.T, resourceData *schema.ResourceData) {
+	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
+	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	assert.Equal(t, "apiKey", resourceData.Get(AlertingChannelOpsGenieFieldAPIKey), "api key should be equal")
+	assert.Equal(t, "EU", resourceData.Get(AlertingChannelOpsGenieFieldRegion), "region should be EU")
+}
+
+func createAlertingChannelEmailModelForResourceUpdateWithoutTags() restapi.AlertingChannel {
+	apiKey := "apiKey"
+	region := restapi.EuOpsGenieRegion
+	return restapi.AlertingChannel{
+		ID:     "id",
+		Name:   "name",
+		APIKey: &apiKey,
+		Region: &region,
 	}
+}
+
+func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelOpsGenieResourceHandle()
+	tags := []string{"tag1", "tag2"}
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId("id")
+	resourceData.Set(AlertingChannelFieldName, "name")
+	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelOpsGenieFieldAPIKey, "api key")
+	resourceData.Set(AlertingChannelOpsGenieFieldRegion, "EU")
+	resourceData.Set(AlertingChannelOpsGenieFieldTags, tags)
+
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.Nil(t, err)
+	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.Equal(t, "id", model.GetID())
+	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Equal(t, "api key", *model.(restapi.AlertingChannel).APIKey, "api key should be equal")
+	assert.Equal(t, restapi.EuOpsGenieRegion, *model.(restapi.AlertingChannel).Region, "region should be EU")
+	assert.Equal(t, "tag1,tag2", *model.(restapi.AlertingChannel).Tags, "tags should be equal")
+}
+
+func TestAlertingChannelOpsGenieShouldHaveSchemaVersionZero(t *testing.T) {
+	assert.Equal(t, 0, NewAlertingChannelOpsGenieResourceHandle().SchemaVersion)
+}
+
+func TestAlertingChannelOpsGenieShouldHaveNoStateUpgrader(t *testing.T) {
+	assert.Equal(t, 0, len(NewAlertingChannelOpsGenieResourceHandle().StateUpgraders))
+}
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelOpsGenie(t *testing.T) {
+	name := NewAlertingChannelOpsGenieResourceHandle().ResourceName
+
+	assert.Equal(t, name, "instana_alerting_channel_ops_genie")
 }

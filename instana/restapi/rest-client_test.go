@@ -1,4 +1,4 @@
-package services_test
+package restapi_test
 
 import (
 	"fmt"
@@ -7,8 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi/services"
+	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
@@ -23,6 +22,16 @@ func TestShouldReturnDataForSuccessfulGetOneRequest(t *testing.T) {
 
 	restClient := createSut(httpServer)
 	response, err := restClient.GetOne(testID, testPath)
+
+	verifySuccessfullGetOrPut(response, err, t)
+}
+
+func TestShouldReturnDataForSuccessfulGetOneRequestWhenResourcePathEndsWithASlash(t *testing.T) {
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, testPathWithID)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	response, err := restClient.GetOne(testID, testPath+"/")
 
 	verifySuccessfullGetOrPut(response, err, t)
 }
@@ -123,12 +132,12 @@ func setupAndStartHttpServer(httpMethod string, fullPath string, statusCode int)
 	return httpServer
 }
 
-func createSut(httpServer *testutils.TestHTTPServer) restapi.RestClient {
+func createSut(httpServer *testutils.TestHTTPServer) RestClient {
 	return NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
 }
 
 func verifyNotFoundResponse(data []byte, err error, t *testing.T) {
-	if err != restapi.ErrEntityNotFound {
+	if err != ErrEntityNotFound {
 		t.Fatal("Expected error entity not found")
 	}
 

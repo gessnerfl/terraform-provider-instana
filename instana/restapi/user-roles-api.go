@@ -2,13 +2,8 @@ package restapi
 
 import "errors"
 
-//UserRoleResource represents the REST resource of user role at Instana
-type UserRoleResource interface {
-	GetOne(id string) (UserRole, error)
-	Upsert(role UserRole) (UserRole, error)
-	Delete(role UserRole) error
-	DeleteByID(roleID string) error
-}
+//UserRolesResourcePath path to User Role resource of Instana RESTful API
+const UserRolesResourcePath = SettingsBasePath + "/roles"
 
 //UserRole is the representation of a user role in Instana
 type UserRole struct {

@@ -3,8 +3,12 @@ package restapi
 import (
 	"errors"
 	"fmt"
+
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
+
+//AlertingChannelsResourcePath path to Alerting channels resource of Instana RESTful API
+const AlertingChannelsResourcePath = EventSettingsBasePath + "/alertingChannels"
 
 //AlertingChannelType type of the alerting channel
 type AlertingChannelType string

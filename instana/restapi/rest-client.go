@@ -1,16 +1,26 @@
-package services
+package restapi
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	log "github.com/sirupsen/logrus"
 	resty "gopkg.in/resty.v1"
 )
 
+//ErrEntityNotFound error message which is returned when the entity cannot be found at the server
+var ErrEntityNotFound = errors.New("Failed to get resource from Instana API. 404 - Resource not found")
+
+//RestClient interface to access REST resources of the Instana API
+type RestClient interface {
+	GetOne(id string, resourcePath string) ([]byte, error)
+	Put(data InstanaDataObject, resourcePath string) ([]byte, error)
+	Delete(resourceID string, resourceBasePath string) error
+}
+
 //NewClient creates a new instance of the Instana REST API client
-func NewClient(apiToken string, host string) restapi.RestClient {
+func NewClient(apiToken string, host string) RestClient {
 	restyClient := resty.New()
 
 	return &restClientImpl{
@@ -38,7 +48,7 @@ func (client *restClientImpl) GetOne(id string, resourcePath string) ([]byte, er
 	}
 	statusCode := resp.StatusCode()
 	if statusCode == 404 {
-		return emptyResponse, restapi.ErrEntityNotFound
+		return emptyResponse, ErrEntityNotFound
 	}
 	if statusCode < 200 || statusCode >= 300 {
 		return emptyResponse, fmt.Errorf("failed to send HTTP GET request to Instana API; status code = %d; status message = %s\nBody: %s", statusCode, resp.Status(), resp.Body())
@@ -47,10 +57,10 @@ func (client *restClientImpl) GetOne(id string, resourcePath string) ([]byte, er
 }
 
 //Put executes a HTTP PUT request to create or update the given resource
-func (client *restClientImpl) Put(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
+func (client *restClientImpl) Put(data InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, data.GetID())
 	log.Infof("Call PUT %s", url)
-	resp, err := client.createRequest().SetBody(data).Put(url)
+	resp, err := client.createRequest().SetHeader("Content-Type", "application/json; charset=utf-8").SetBody(data).Put(url)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("failed to send HTTP PUT request to Instana API; status code = %d; status message = %s, %s", resp.StatusCode(), resp.Status(), err)
 	}

@@ -17,17 +17,8 @@ func NewTestHelper(t *testing.T) TestHelper {
 type TestHelper interface {
 	WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter))
 	CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceNameFormatter)
-
-	CreateEmptyUserRoleResourceData() *schema.ResourceData
-	CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData
-	CreateEmptyApplicationConfigResourceData() *schema.ResourceData
-	CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData
-	CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData
-	CreateCustomEventSpecificationWithSystemRuleResourceData(data map[string]interface{}) *schema.ResourceData
-	CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData
-	CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData
-	CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData() *schema.ResourceData
-	CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData
+	CreateEmptyResourceDataForResourceHandle(resourceHandle *ResourceHandle) *schema.ResourceData
+	CreateResourceDataForResourceHandle(resourceHandle *ResourceHandle, data map[string]interface{}) *schema.ResourceData
 }
 
 type testHelperImpl struct {
@@ -52,52 +43,11 @@ func (inst *testHelperImpl) CreateProviderMetaMock(ctrl *gomock.Controller) (*Pr
 	return providerMeta, mockInstanaAPI, mockResourceNameFormatter
 }
 
-func (inst *testHelperImpl) CreateEmptyUserRoleResourceData() *schema.ResourceData {
+func (inst *testHelperImpl) CreateEmptyResourceDataForResourceHandle(resourceHandle *ResourceHandle) *schema.ResourceData {
 	data := make(map[string]interface{})
-	return inst.CreateUserRoleResourceData(data)
+	return inst.CreateResourceDataForResourceHandle(resourceHandle, data)
 }
 
-func (inst *testHelperImpl) CreateUserRoleResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceUserRole().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
-}
-
-func (inst *testHelperImpl) CreateEmptyApplicationConfigResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateApplicationConfigResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateApplicationConfigResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceApplicationConfig().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
-}
-
-func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithSystemRuleResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateCustomEventSpecificationWithSystemRuleResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateCustomEventSpecificationWithSystemRuleResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceCustomEventSpecificationWithSystemRule().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
-}
-
-func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateCustomEventSpecificationWithThresholdRuleResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceCustomEventSpecificationWithThresholdRule().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
-}
-
-func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceCustomEventSpecificationWithEntityVerificationRule().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
+func (inst *testHelperImpl) CreateResourceDataForResourceHandle(resourceHandle *ResourceHandle, data map[string]interface{}) *schema.ResourceData {
+	return schema.TestResourceDataRaw(inst.t, resourceHandle.Schema, data)
 }

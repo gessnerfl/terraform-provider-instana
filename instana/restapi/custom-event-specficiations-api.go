@@ -2,13 +2,30 @@ package restapi
 
 import "errors"
 
-//CustomEventSpecificationResource represents the REST resource of custom event specification at Instana
-type CustomEventSpecificationResource interface {
-	GetOne(id string) (CustomEventSpecification, error)
-	Upsert(spec CustomEventSpecification) (CustomEventSpecification, error)
-	Delete(spec CustomEventSpecification) error
-	DeleteByID(specID string) error
+const (
+	//EventSpecificationBasePath path to Event Specification settings of Instana RESTful API
+	EventSpecificationBasePath = EventSettingsBasePath + "/event-specifications"
+	//CustomEventSpecificationResourcePath path to Custom Event Specification settings resource of Instana RESTful API
+	CustomEventSpecificationResourcePath = EventSpecificationBasePath + "/custom"
+)
+
+//Severity representation of the severity in both worlds Instana API and Terraform Provider
+type Severity struct {
+	apiRepresentation       int
+	terraformRepresentation string
 }
+
+//GetAPIRepresentation returns the integer representation of the Instana API
+func (s Severity) GetAPIRepresentation() int { return s.apiRepresentation }
+
+//GetTerraformRepresentation returns the string representation of the Terraform Provider
+func (s Severity) GetTerraformRepresentation() string { return s.terraformRepresentation }
+
+//SeverityCritical representation of the critical severity
+var SeverityCritical = Severity{apiRepresentation: 10, terraformRepresentation: "critical"}
+
+//SeverityWarning representation of the warning severity
+var SeverityWarning = Severity{apiRepresentation: 5, terraformRepresentation: "warning"}
 
 //RuleType custom type representing the type of the custom event specification rule
 type RuleType string

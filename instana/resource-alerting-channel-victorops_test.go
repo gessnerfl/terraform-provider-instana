@@ -9,10 +9,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testAlertingChannelVictorOpsProviders = map[string]terraform.ResourceProvider{
@@ -46,6 +48,8 @@ const alertingChannelVictorOpsServerResponseTemplate = `
 
 const alertingChannelVictorOpsApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelVictorOpsDefinition = "instana_alerting_channel_victor_ops.example"
+const testAlertingChannelVictorOpsRoutingKey = "routing key"
+const testAlertingChannelVictorOpsApiKey = "api key"
 
 func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -75,8 +79,8 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldName, "name 0"),
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, "api key"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, "routing key"),
+					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, testAlertingChannelVictorOpsApiKey),
+					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
 				),
 			},
 			resource.TestStep{
@@ -85,8 +89,8 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldName, "name 1"),
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, "api key"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, "routing key"),
+					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, testAlertingChannelVictorOpsApiKey),
+					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
 				),
 			},
 		},
@@ -96,7 +100,7 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {
 	resource := NewAlertingChannelVictorOpsResourceHandle()
 
-	schemaMap := resource.GetSchema()
+	schemaMap := resource.Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -105,10 +109,60 @@ func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelVictorOpsFieldRoutingKey)
 }
 
-func TestShouldReturnCorrectResourceNameForAlertingChannelVictorOps(t *testing.T) {
-	name := NewAlertingChannelVictorOpsResourceHandle().GetResourceName()
-
-	if name != "instana_alerting_channel_victor_ops" {
-		t.Fatal("Expected resource name to be instana_alerting_channel_victor_ops")
+func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelVictorOpsResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	apiKey := testAlertingChannelVictorOpsApiKey
+	routingKey := testAlertingChannelVictorOpsRoutingKey
+	data := restapi.AlertingChannel{
+		ID:         "id",
+		Name:       "name",
+		APIKey:     &apiKey,
+		RoutingKey: &routingKey,
 	}
+
+	err := resourceHandle.UpdateState(resourceData, data)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
+	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	assert.Equal(t, apiKey, resourceData.Get(AlertingChannelVictorOpsFieldAPIKey), "api key should be equal")
+	assert.Equal(t, routingKey, resourceData.Get(AlertingChannelVictorOpsFieldRoutingKey), "routing key should be equal")
+}
+
+func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewAlertingChannelVictorOpsResourceHandle()
+	apiKey := testAlertingChannelVictorOpsApiKey
+	routingKey := testAlertingChannelVictorOpsRoutingKey
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId("id")
+	resourceData.Set(AlertingChannelFieldName, "name")
+	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelVictorOpsFieldAPIKey, apiKey)
+	resourceData.Set(AlertingChannelVictorOpsFieldRoutingKey, routingKey)
+
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.Nil(t, err)
+	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.Equal(t, "id", model.GetID())
+	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Equal(t, apiKey, *model.(restapi.AlertingChannel).APIKey, "api key should be equal")
+	assert.Equal(t, routingKey, *model.(restapi.AlertingChannel).RoutingKey, "routing key should be equal")
+}
+
+func TestAlertingChannelVictorOpskShouldHaveSchemaVersionZero(t *testing.T) {
+	assert.Equal(t, 0, NewAlertingChannelVictorOpsResourceHandle().SchemaVersion)
+}
+
+func TestAlertingChannelVictorOpsShouldHaveNoStateUpgrader(t *testing.T) {
+	assert.Equal(t, 0, len(NewAlertingChannelVictorOpsResourceHandle().StateUpgraders))
+}
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelVictorOps(t *testing.T) {
+	name := NewAlertingChannelVictorOpsResourceHandle().ResourceName
+
+	assert.Equal(t, name, "instana_alerting_channel_victor_ops")
 }

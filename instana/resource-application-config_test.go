@@ -1,23 +1,20 @@
 package instana_test
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testApplicationConfigProviders = map[string]terraform.ResourceProvider{
@@ -76,6 +73,16 @@ const serverResponseTemplate = `
 const applicationConfigApiPath = restapi.ApplicationConfigsResourcePath + "/{id}"
 const testApplicationConfigDefinition = "instana_application_config.example"
 const defaultMatchSpecification = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type EQUALS 'elasticsearch'"
+
+var defaultMatchSpecificationModel = restapi.NewBinaryOperator(
+	restapi.NewBinaryOperator(
+		restapi.NewComparisionExpression("entity.name", restapi.ContainsOperator, "foo"),
+		restapi.LogicalAnd,
+		restapi.NewComparisionExpression("entity.type", restapi.EqualsOperator, "mysql"),
+	),
+	restapi.LogicalOr,
+	restapi.NewComparisionExpression("entity.type", restapi.EqualsOperator, "elasticsearch"))
+
 const applicationConfigID = "application-config-id"
 
 func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
@@ -129,293 +136,129 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func TestResourceApplicationConfigDefinition(t *testing.T) {
-	resource := CreateResourceApplicationConfig()
+func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
+	schema := NewApplicationConfigResourceHandle().Schema
 
-	validateApplicationConfigResourceSchema(resource.Schema, t)
-
-	if resource.Create == nil {
-		t.Fatal("Create function expected")
-	}
-	if resource.Update == nil {
-		t.Fatal("Update function expected")
-	}
-	if resource.Read == nil {
-		t.Fatal("Read function expected")
-	}
-	if resource.Delete == nil {
-		t.Fatal("Delete function expected")
-	}
-}
-
-func validateApplicationConfigResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldLabel)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(ApplicationConfigFieldFullLabel)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldMatchSpecification)
 }
 
-func TestShouldFailToMigrateApplicationConfigStateFromVersionOtherThan0(t *testing.T) {
-	for i := 1; i <= 10; i++ {
-		t.Run(fmt.Sprintf("TestShouldFailToMigrateStateFromVersionOtherThan0_%d", i), func(t *testing.T) {
-			state := &terraform.InstanceState{}
+func TestUserRoleResourceShouldHaveSchemaVersionOne(t *testing.T) {
+	assert.Equal(t, 1, NewApplicationConfigResourceHandle().SchemaVersion)
+}
 
-			_, err := MigrateApplicationConfigState(i, state, &ProviderMeta{})
+func TestUserRoleResourceShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+	resourceHandler := NewApplicationConfigResourceHandle()
 
-			if err == nil {
-				t.Fatalf("Expected error when triggering migration of state from for unknown version %d", i)
-			}
-		})
-	}
+	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
 }
 
 func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelWhenMigratingFromVersion0To1(t *testing.T) {
 	label := "Test Label"
-	data := make(map[string]string)
-	data[ApplicationConfigFieldLabel] = label
-	state := &terraform.InstanceState{}
-	state.ID = "TEST_ID"
-	state.Attributes = data
+	rawData := make(map[string]interface{})
+	rawData[ApplicationConfigFieldLabel] = label
+	meta := "dummy"
 
-	result, err := MigrateApplicationConfigState(0, state, &ProviderMeta{})
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
 
-	if err != nil {
-		t.Fatalf("No error expected during migration of state from version 0 to 1 but got %s", err)
-	}
-
-	if result.Attributes[ApplicationConfigFieldFullLabel] != label {
-		t.Fatal("Full label should be initialized with value of label when migrating from version 0 to 1")
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, label, result[ApplicationConfigFieldFullLabel])
 }
 
 func TestShouldMigrateEmptyApplicationConfigStateFromVersion0To1(t *testing.T) {
-	state := &terraform.InstanceState{}
+	rawData := make(map[string]interface{})
+	meta := "dummy"
 
-	result, err := MigrateApplicationConfigState(0, state, &ProviderMeta{})
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
 
-	if err != nil {
-		t.Fatalf("No error expected during migration of state from version 0 to 1 but got %s", err)
+	assert.Nil(t, err)
+	assert.Nil(t, result[ApplicationConfigFieldFullLabel])
+}
+
+func TestShouldReturnCorrectResourceNameForApplicationConfigResource(t *testing.T) {
+	name := NewApplicationConfigResourceHandle().ResourceName
+
+	assert.Equal(t, name, "instana_application_config")
+}
+
+func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing.T) {
+	label := "label"
+	applicationConfig := restapi.ApplicationConfig{
+		ID:                 applicationConfigID,
+		Label:              label,
+		MatchSpecification: defaultMatchSpecificationModel,
+		Scope:              ApplicationConfigScopeIncludeNoDownstream,
 	}
 
-	if result.Attributes != nil {
-		t.Fatal("No changes should be applied during migration of an empty state from version 0 to 1")
+	testHelper := NewTestHelper(t)
+	sut := NewApplicationConfigResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, applicationConfig)
+
+	assert.Nil(t, err)
+	assert.Equal(t, applicationConfigID, resourceData.Id())
+	assert.Equal(t, label, resourceData.Get(ApplicationConfigFieldFullLabel))
+	assert.Equal(t, defaultMatchSpecification, resourceData.Get(ApplicationConfigFieldMatchSpecification))
+	assert.Equal(t, ApplicationConfigScopeIncludeNoDownstream, resourceData.Get(ApplicationConfigFieldScope))
+}
+
+func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsNotalid(t *testing.T) {
+	comparision := restapi.NewComparisionExpression("entity.name", "INVALID", "foo")
+	label := "label"
+	applicationConfig := restapi.ApplicationConfig{
+		ID:                 applicationConfigID,
+		Label:              label,
+		MatchSpecification: comparision,
+		Scope:              ApplicationConfigScopeIncludeNoDownstream,
 	}
-}
 
-func TestShouldSuccessfullyReadApplicationConfigFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
-	expectedModel := createBaseTestApplicationConfigModel()
-	testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel, t)
-}
-
-func TestShouldSuccessfullyReadApplicationConfigFromInstanaAPIWhenBaseDataWithScopeIsReturned(t *testing.T) {
-	expectedModel := createTestApplicationConfigModelWithRollup()
-	testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel, t)
-}
-
-func testShouldSuccessfullyReadApplicationConfigFromInstanaAPI(expectedModel restapi.ApplicationConfig, t *testing.T) {
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyApplicationConfigResourceData()
-		resourceData.SetId(applicationConfigID)
-		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
+	sut := NewApplicationConfigResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockApplicationConfigApi.EXPECT().GetOne(gomock.Eq(applicationConfigID)).Return(expectedModel, nil).Times(1)
+	err := sut.UpdateState(resourceData, applicationConfig)
 
-		err := ReadApplicationConfig(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyApplicationConfigModelAppliedToResource(expectedModel, resourceData, t)
-	})
+	assert.NotNil(t, err)
 }
 
-func TestShouldFailToReadApplicationConfigFromInstanaAPIWhenIDIsMissing(t *testing.T) {
+func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T) {
+	label := "label"
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyApplicationConfigResourceData()
+	resourceHandle := NewApplicationConfigResourceHandle()
 
-		err := ReadApplicationConfig(resourceData, providerMeta)
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId(applicationConfigID)
+	resourceData.Set(ApplicationConfigFieldFullLabel, label)
+	resourceData.Set(ApplicationConfigFieldMatchSpecification, defaultMatchSpecification)
+	resourceData.Set(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
 
-		if err == nil || !strings.HasPrefix(err.Error(), "ID of application config") {
-			t.Fatal("Expected error to occur because of missing id")
-		}
-	})
+	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.Nil(t, err)
+	assert.IsType(t, restapi.ApplicationConfig{}, result)
+	assert.Equal(t, applicationConfigID, result.GetID())
+	assert.Equal(t, label, result.(restapi.ApplicationConfig).Label)
+	assert.Equal(t, defaultMatchSpecificationModel, result.(restapi.ApplicationConfig).MatchSpecification)
+	assert.Equal(t, ApplicationConfigScopeIncludeNoDownstream, result.(restapi.ApplicationConfig).Scope)
 }
 
-func TestShouldFailToReadApplicationConfigFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist(t *testing.T) {
+func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsNotValid(t *testing.T) {
+	label := "label"
 	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyApplicationConfigResourceData()
-		resourceData.SetId(applicationConfigID)
-		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
+	resourceHandle := NewApplicationConfigResourceHandle()
 
-		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockApplicationConfigApi.EXPECT().GetOne(gomock.Eq(applicationConfigID)).Return(restapi.ApplicationConfig{}, restapi.ErrEntityNotFound).Times(1)
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId(applicationConfigID)
+	resourceData.Set(ApplicationConfigFieldFullLabel, label)
+	resourceData.Set(ApplicationConfigFieldMatchSpecification, "INVALID")
+	resourceData.Set(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
 
-		err := ReadApplicationConfig(resourceData, providerMeta)
+	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldFailToReadApplicationConfigFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyApplicationConfigResourceData()
-		resourceData.SetId(applicationConfigID)
-		expectedError := errors.New("test")
-		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
-
-		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockApplicationConfigApi.EXPECT().GetOne(gomock.Eq(applicationConfigID)).Return(restapi.ApplicationConfig{}, expectedError).Times(1)
-
-		err := ReadApplicationConfig(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error should be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID should still be set")
-		}
-	})
-}
-
-func TestShouldCreateApplicationConfigThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestApplicationConfigData()
-		resourceData := testHelper.CreateApplicationConfigResourceData(data)
-		expectedModel := createTestApplicationConfigModelWithRollup()
-		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
-
-		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
-		mockApplicationConfigApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.ApplicationConfig{})).Return(expectedModel, nil).Times(1)
-
-		err := CreateApplicationConfig(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyApplicationConfigModelAppliedToResource(expectedModel, resourceData, t)
-	})
-}
-
-func TestShouldReturnErrorWhenCreateApplicationConfigFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestApplicationConfigData()
-		resourceData := testHelper.CreateApplicationConfigResourceData(data)
-		expectedError := errors.New("test")
-		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
-
-		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
-		mockApplicationConfigApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.ApplicationConfig{})).Return(restapi.ApplicationConfig{}, expectedError).Times(1)
-
-		err := CreateApplicationConfig(resourceData, providerMeta)
-
-		if err == nil || expectedError != err {
-			t.Fatal("Expected definned error to be returned")
-		}
-	})
-}
-
-func TestShouldDeleteApplicationConfigThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		id := "test-id"
-		data := createFullTestApplicationConfigData()
-		resourceData := testHelper.CreateApplicationConfigResourceData(data)
-		resourceData.SetId(id)
-		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
-
-		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
-		mockApplicationConfigApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
-
-		err := DeleteApplicationConfig(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenDeleteApplicationConfigFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		id := "test-id"
-		data := createFullTestApplicationConfigData()
-		resourceData := testHelper.CreateApplicationConfigResourceData(data)
-		resourceData.SetId(id)
-		expectedError := errors.New("test")
-		mockApplicationConfigApi := mocks.NewMockApplicationConfigResource(ctrl)
-
-		mockInstanaAPI.EXPECT().ApplicationConfigs().Return(mockApplicationConfigApi).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[ApplicationConfigFieldLabel]).Return(data[ApplicationConfigFieldLabel]).Times(1)
-		mockApplicationConfigApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
-
-		err := DeleteApplicationConfig(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error to be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
-		}
-	})
-}
-
-func verifyApplicationConfigModelAppliedToResource(model restapi.ApplicationConfig, resourceData *schema.ResourceData, t *testing.T) {
-	if model.ID != resourceData.Id() {
-		t.Fatal("Expected ID to be identical")
-	}
-	if model.Label != resourceData.Get(ApplicationConfigFieldFullLabel).(string) {
-		t.Fatal("Expected Full Label to match label of API")
-	}
-	if model.Scope != resourceData.Get(ApplicationConfigFieldScope).(string) {
-		t.Fatal("Expected Scope to be identical")
-	}
-	if resourceData.Get(ApplicationConfigFieldMatchSpecification).(string) != defaultMatchSpecification {
-		t.Fatal("Expected MatchSpecification to be identical")
-	}
-}
-
-func createTestApplicationConfigModelWithRollup() restapi.ApplicationConfig {
-	cfg := createBaseTestApplicationConfigModel()
-	cfg.Scope = ApplicationConfigScopeIncludeNoDownstream
-	return cfg
-}
-
-func createBaseTestApplicationConfigModel() restapi.ApplicationConfig {
-	comparision1 := restapi.NewComparisionExpression("entity.name", restapi.ContainsOperator, "foo")
-	comparision2 := restapi.NewComparisionExpression("entity.type", restapi.EqualsOperator, "mysql")
-	comparision3 := restapi.NewComparisionExpression("entity.type", restapi.EqualsOperator, "elasticsearch")
-	logicalAnd := restapi.NewBinaryOperator(comparision1, restapi.LogicalAnd, comparision2)
-	logicalOr := restapi.NewBinaryOperator(logicalAnd, restapi.LogicalOr, comparision3)
-	return restapi.ApplicationConfig{
-		ID:                 "id",
-		Label:              "label",
-		MatchSpecification: logicalOr,
-	}
-}
-
-func createFullTestApplicationConfigData() map[string]interface{} {
-	data := make(map[string]interface{})
-	data[ApplicationConfigFieldLabel] = "label"
-	data[ApplicationConfigFieldScope] = ApplicationConfigScopeIncludeNoDownstream
-	data[ApplicationConfigFieldMatchSpecification] = defaultMatchSpecification
-	return data
+	assert.NotNil(t, err)
 }
