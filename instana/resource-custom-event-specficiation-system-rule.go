@@ -54,11 +54,9 @@ func NewCustomEventSpecificationWithSystemRuleResourceHandle() *ResourceHandle {
 
 func updateStateForCustomEventSpecificationWithSystemRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	customEventSpecification := obj.(restapi.CustomEventSpecification)
-	return updateStateForBasicCustomEventSpecification(d, customEventSpecification, mapSystemRuleToTerraformState)
-}
+	updateStateForBasicCustomEventSpecification(d, customEventSpecification)
 
-func mapSystemRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEventSpecification) error {
-	ruleSpec := spec.Rules[0]
+	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
 	if err != nil {
 		return err
@@ -70,16 +68,16 @@ func mapSystemRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEv
 }
 
 func mapStateToDataObjectForCustomEventSpecificationWithSystemRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	return createCustomEventSpecificationFromResourceData(d, formatter, mapSystemRuleToInstanaAPIModel)
-}
-
-func mapSystemRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
-		return restapi.RuleSpecification{}, err
+		return restapi.CustomEventSpecification{}, err
 	}
 	systemRuleID := d.Get(SystemRuleSpecificationSystemRuleID).(string)
-	return restapi.NewSystemRuleSpecification(systemRuleID, severity), nil
+	rule := restapi.NewSystemRuleSpecification(systemRuleID, severity)
+
+	customEventSpecification := createCustomEventSpecificationFromResourceData(d, formatter)
+	customEventSpecification.Rules = []restapi.RuleSpecification{rule}
+	return customEventSpecification, nil
 }
 
 func customEventSpecificationWithSystemRuleSchemaV0() *schema.Resource {

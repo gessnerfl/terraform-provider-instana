@@ -77,11 +77,9 @@ func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() *Reso
 
 func updateStateForCustomEventSpecificationWithEntityVerificationRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	customEventSpecification := obj.(restapi.CustomEventSpecification)
-	return updateStateForBasicCustomEventSpecification(d, customEventSpecification, mapEntityVerificationRuleToTerraformState)
-}
+	updateStateForBasicCustomEventSpecification(d, customEventSpecification)
 
-func mapEntityVerificationRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEventSpecification) error {
-	ruleSpec := spec.Rules[0]
+	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
 	if err != nil {
 		return err
@@ -95,20 +93,20 @@ func mapEntityVerificationRuleToTerraformState(d *schema.ResourceData, spec rest
 }
 
 func mapStateToDataObjectForCustomEventSpecificationWithEntityVerificationRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	return createCustomEventSpecificationFromResourceData(d, formatter, mapEntityVerificationRuleToInstanaAPIModel)
-}
-
-func mapEntityVerificationRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
-		return restapi.RuleSpecification{}, err
+		return restapi.CustomEventSpecification{}, err
 	}
 	entityLabel := d.Get(EntityVerificationRuleFieldMatchingEntityLabel).(string)
 	entityType := d.Get(EntityVerificationRuleFieldMatchingEntityType).(string)
 	operator := restapi.MatchingOperatorType(d.Get(EntityVerificationRuleFieldMatchingOperator).(string))
 	offlineDuration := d.Get(EntityVerificationRuleFieldOfflineDuration).(int)
 
-	return restapi.NewEntityVerificationRuleSpecification(entityLabel, entityType, operator, offlineDuration, severity), nil
+	rule := restapi.NewEntityVerificationRuleSpecification(entityLabel, entityType, operator, offlineDuration, severity)
+
+	customEventSpecification := createCustomEventSpecificationFromResourceData(d, formatter)
+	customEventSpecification.Rules = []restapi.RuleSpecification{rule}
+	return customEventSpecification, nil
 }
 
 func customEventSpecificationWithEntityVerificationRuleSchemaV0() *schema.Resource {

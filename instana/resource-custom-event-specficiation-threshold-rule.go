@@ -89,11 +89,9 @@ func NewCustomEventSpecificationWithThresholdRuleResourceHandle() *ResourceHandl
 
 func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	customEventSpecification := obj.(restapi.CustomEventSpecification)
-	return updateStateForBasicCustomEventSpecification(d, customEventSpecification, mapThresholdRuleToTerraformState)
-}
+	updateStateForBasicCustomEventSpecification(d, customEventSpecification)
 
-func mapThresholdRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEventSpecification) error {
-	ruleSpec := spec.Rules[0]
+	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
 	if err != nil {
 		return err
@@ -110,17 +108,13 @@ func mapThresholdRuleToTerraformState(d *schema.ResourceData, spec restapi.Custo
 }
 
 func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	return createCustomEventSpecificationFromResourceData(d, formatter, mapThresholdRuleToInstanaAPIModel)
-}
-
-func mapThresholdRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
-		return restapi.RuleSpecification{}, err
+		return restapi.CustomEventSpecification{}, err
 	}
 	metricName := d.Get(ThresholdRuleFieldMetricName).(string)
 	conditionOperator := restapi.ConditionOperatorType(d.Get(ThresholdRuleFieldConditionOperator).(string))
-	return restapi.RuleSpecification{
+	rule := restapi.RuleSpecification{
 		DType:             restapi.ThresholdRuleType,
 		Severity:          severity,
 		MetricName:        &metricName,
@@ -129,7 +123,11 @@ func mapThresholdRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpec
 		Aggregation:       getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
 		ConditionOperator: &conditionOperator,
 		ConditionValue:    GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
-	}, nil
+	}
+
+	customEventSpecification := createCustomEventSpecificationFromResourceData(d, formatter)
+	customEventSpecification.Rules = []restapi.RuleSpecification{rule}
+	return customEventSpecification, nil
 }
 
 func getAggregationTypePointerFromResourceData(d *schema.ResourceData, key string) *restapi.AggregationType {
