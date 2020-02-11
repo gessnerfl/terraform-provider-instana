@@ -22,8 +22,6 @@ type TestHelper interface {
 	CreateCustomEventSpecificationWithSystemRuleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData
 	CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData
-	CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData() *schema.ResourceData
-	CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyResourceDataForResourceHandle(resourceHandle *ResourceHandle) *schema.ResourceData
 	CreateResourceDataForResourceHandle(resourceHandle *ResourceHandle, data map[string]interface{}) *schema.ResourceData
 }
@@ -67,16 +65,6 @@ func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithThresholdRule
 
 func (inst *testHelperImpl) CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData {
 	schemaMap := CreateResourceCustomEventSpecificationWithThresholdRule().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
-}
-
-func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceCustomEventSpecificationWithEntityVerificationRule().Schema
 	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }
 

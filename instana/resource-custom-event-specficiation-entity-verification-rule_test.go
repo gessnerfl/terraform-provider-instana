@@ -1,22 +1,20 @@
 package instana_test
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 var testCustomEventSpecificationWithEntityVerificationRuleProviders = map[string]terraform.ResourceProvider{
@@ -131,27 +129,10 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 	})
 }
 
-func TestResourceCustomEventSpecificationWithEntityVerificationRuleDefinition(t *testing.T) {
-	resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
+func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsValid(t *testing.T) {
+	schema := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().Schema
 
-	validateCustomEventSpecificationWithEntityVerificationRuleResourceSchema(resource.Schema, t)
-
-	if resource.Create == nil {
-		t.Fatal("Create function expected")
-	}
-	if resource.Update == nil {
-		t.Fatal("Update function expected")
-	}
-	if resource.Read == nil {
-		t.Fatal("Read function expected")
-	}
-	if resource.Delete == nil {
-		t.Fatal("Delete function expected")
-	}
-}
-
-func validateCustomEventSpecificationWithEntityVerificationRuleResourceSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldFullName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldEntityType)
@@ -169,325 +150,58 @@ func validateCustomEventSpecificationWithEntityVerificationRuleResourceSchema(sc
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(EntityVerificationRuleFieldOfflineDuration)
 }
 
-func TestShouldSuccessfullyReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
-	expectedModel := createBaseTestCustomEventSpecificationWithEntityVerificationRuleModel()
-	testShouldSuccessfullyReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPI(expectedModel, t)
+func TestCustomEventSpecificationWithEntityVerificationRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
+	assert.Equal(t, 1, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().SchemaVersion)
 }
 
-func TestShouldSuccessfullyReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPIWhenFullDataIsReturned(t *testing.T) {
-	expectedModel := createTestCustomEventSpecificationWithEntityVerificationRuleModelWithFullDataSet()
-	testShouldSuccessfullyReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPI(expectedModel, t)
+func TestCustomEventSpecificationWithEntityVerificationRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+	resourceHandler := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
+
+	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
 }
 
-func testShouldSuccessfullyReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPI(expectedModel restapi.CustomEventSpecification, t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData()
-		resourceData.SetId(customEntityVerificationEventID)
+func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
+	name := "Test Name"
+	rawData := make(map[string]interface{})
+	rawData[CustomEventSpecificationFieldName] = name
+	meta := "dummy"
 
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
 
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEntityVerificationEventID)).Return(expectedModel, nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyCustomEventSpecificationWithEntityVerificationRuleModelAppliedToResource(expectedModel, resourceData, t)
-	})
+	assert.Nil(t, err)
+	assert.Equal(t, name, result[CustomEventSpecificationFieldFullName])
 }
 
-func TestShouldFailToReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPIWhenSeverityFromAPICannotBeMappedToSeverityOfTerraformState(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		expectedModel := createTestCustomEventSpecificationWithEntityVerificationRuleModelWithFullDataSet()
-		expectedModel.Rules[0].Severity = 999
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData()
-		resourceData.SetId(customEntityVerificationEventID)
+func TestShouldMigrateEmptyCustomEventSpecificationWithEntityVerificationRuleStateFromVersion0To1(t *testing.T) {
+	rawData := make(map[string]interface{})
+	meta := "dummy"
 
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
 
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEntityVerificationEventID)).Return(expectedModel, nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err == nil || !strings.Contains(err.Error(), customEntityVerificationEventMessageNotAValidSeverity) {
-			t.Fatal(customEntityVerificationEventTestMessageExpectedInvalidSeverity)
-		}
-	})
+	assert.Nil(t, err)
+	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
 }
 
-func TestShouldFailToReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPIWhenIDIsMissing(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData()
+func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithEntityVerificationRuleResource(t *testing.T) {
+	name := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().ResourceName
 
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err == nil || !strings.HasPrefix(err.Error(), "ID of custom event specification") {
-			t.Fatal("Expected error to occur because of missing id")
-		}
-	})
+	assert.Equal(t, name, "instana_custom_event_spec_entity_verification_rule")
 }
 
-func TestShouldFailToReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPIAndDeleteResourceWhenCustomEventDoesNotExist(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData()
-		resourceData.SetId(customEntityVerificationEventID)
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEntityVerificationEventID)).Return(restapi.CustomEventSpecification{}, restapi.ErrEntityNotFound).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldFailToReadCustomEventSpecificationWithEntityVerificationRuleFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		resourceData := testHelper.CreateEmptyCustomEventSpecificationWithEntityVerificationRuleResourceData()
-		resourceData.SetId(customEntityVerificationEventID)
-		expectedError := errors.New("test")
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockCustomEventAPI.EXPECT().GetOne(gomock.Eq(customEntityVerificationEventID)).Return(restapi.CustomEventSpecification{}, expectedError).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Read(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error should be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID should still be set")
-		}
-	})
-}
-
-func TestShouldCreateCustomEventSpecificationWithEntityVerificationRuleThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithEntityVerificationRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-		expectedModel := createTestCustomEventSpecificationWithEntityVerificationRuleModelWithFullDataSet()
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(expectedModel, nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Create(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		verifyCustomEventSpecificationWithEntityVerificationRuleModelAppliedToResource(expectedModel, resourceData, t)
-	})
-}
-
-func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithEntityVerificationRuleFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithEntityVerificationRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-		expectedError := errors.New("test")
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(restapi.CustomEventSpecification{}, expectedError).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Create(resourceData, providerMeta)
-
-		if err == nil || expectedError != err {
-			t.Fatal("Expected definned error to be returned")
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithEntityVerificationRuleFailsBecauseOfInvalidSeverityConfiguredInTerraform(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithEntityVerificationRuleData()
-		data[CustomEventSpecificationRuleSeverity] = "invalid"
-		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Create(resourceData, providerMeta)
-
-		if err == nil || !strings.Contains(err.Error(), customEntityVerificationEventMessageNotAValidSeverity) {
-			t.Fatal(customEntityVerificationEventTestMessageExpectedInvalidSeverity)
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenCreateCustomEventSpecificationWithEntityVerificationRuleFailsBecauseOfInvalidSeverityReturnedFromInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithEntityVerificationRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-		expectedModel := createTestCustomEventSpecificationWithEntityVerificationRuleModelWithFullDataSet()
-		expectedModel.Rules[0].Severity = 999
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.CustomEventSpecification{})).Return(expectedModel, nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Create(resourceData, providerMeta)
-
-		if err == nil || !strings.Contains(err.Error(), customEntityVerificationEventMessageNotAValidSeverity) {
-			t.Fatal(customEntityVerificationEventTestMessageExpectedInvalidSeverity)
-		}
-	})
-}
-
-func TestShouldDeleteCustomEventSpecificationWithEntityVerificationRuleThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithEntityVerificationRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-		resourceData.SetId(customEntityVerificationEventID)
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(customEntityVerificationEventID)).Return(nil).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Delete(resourceData, providerMeta)
-
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
-	})
-}
-
-func TestShouldReturnErrorWhenDeleteCustomEventSpecificationWithEntityVerificationRuleFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithEntityVerificationRuleData()
-		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-		resourceData.SetId(customEntityVerificationEventID)
-		expectedError := errors.New("test")
-
-		mockCustomEventAPI := mocks.NewMockRestResource(ctrl)
-
-		mockInstanaAPI.EXPECT().CustomEventSpecifications().Return(mockCustomEventAPI).Times(1)
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-		mockCustomEventAPI.EXPECT().DeleteByID(gomock.Eq(customEntityVerificationEventID)).Return(expectedError).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Delete(resourceData, providerMeta)
-
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error to be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
-		}
-	})
-}
-
-func TestShouldFailToDeleteCustomEventSpecificationWithEntityVerificationRuleWhenInvalidSeverityIsConfiguredInTerraform(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
-		data := createFullTestCustomEventSpecificationWithEntityVerificationRuleData()
-		data[CustomEventSpecificationRuleSeverity] = "invalid"
-		resourceData := testHelper.CreateCustomEventSpecificationWithEntityVerificationRuleResourceData(data)
-		resourceData.SetId(customEntityVerificationEventID)
-
-		mockResourceNameFormatter.EXPECT().Format(data[CustomEventSpecificationFieldName]).Return(data[CustomEventSpecificationFieldName]).Times(1)
-
-		resource := CreateResourceCustomEventSpecificationWithEntityVerificationRule()
-		err := resource.Delete(resourceData, providerMeta)
-
-		if err == nil || !strings.Contains(err.Error(), customEntityVerificationEventMessageNotAValidSeverity) {
-			t.Fatal(customEntityVerificationEventTestMessageExpectedInvalidSeverity)
-		}
-	})
-}
-
-func verifyCustomEventSpecificationWithEntityVerificationRuleModelAppliedToResource(model restapi.CustomEventSpecification, resourceData *schema.ResourceData, t *testing.T) {
-	verifyCustomEventSpecificationModelAppliedToResource(model, resourceData, t)
-	verifyCustomEventSpecificationDownstreamModelAppliedToResource(model, resourceData, t)
-
-	convertedSeverity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(model.Rules[0].Severity)
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	if convertedSeverity != resourceData.Get(CustomEventSpecificationRuleSeverity).(string) {
-		t.Fatal("Expected Severity to be identical")
-	}
-
-	if *model.Rules[0].MatchingEntityLabel != resourceData.Get(EntityVerificationRuleFieldMatchingEntityLabel).(string) {
-		t.Fatal("Expected EntityVerification MatchingEntityLabel to be identical")
-	}
-	if *model.Rules[0].MatchingEntityType != resourceData.Get(EntityVerificationRuleFieldMatchingEntityType).(string) {
-		t.Fatal("Expected EntityVerification MatchingEntityType to be identical")
-	}
-	if string(*model.Rules[0].MatchingOperator) != resourceData.Get(EntityVerificationRuleFieldMatchingOperator).(string) {
-		t.Fatal("Expected EntityVerification MatchingOperator to be identical")
-	}
-	if *model.Rules[0].OfflineDuration != resourceData.Get(EntityVerificationRuleFieldOfflineDuration).(int) {
-		t.Fatal("Expected EntityVerification OfflineDuration to be identical")
-	}
-}
-
-func createTestCustomEventSpecificationWithEntityVerificationRuleModelWithFullDataSet() restapi.CustomEventSpecification {
+func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraformStateFromApiObject(t *testing.T) {
 	description := customEntityVerificationEventDescription
 	expirationTime := customEntityVerificationEventExpirationTime
 	query := customEntityVerificationEventQuery
-
-	data := createBaseTestCustomEventSpecificationWithEntityVerificationRuleModel()
-	data.Query = &query
-	data.Description = &description
-	data.ExpirationTime = &expirationTime
-	data.Downstream = &restapi.EventSpecificationDownstream{
-		IntegrationIds:                []string{customEntityVerificationEventDownStringIntegrationId1, customEntityVerificationEventDownStringIntegrationId2},
-		BroadcastToAllAlertingConfigs: true,
-	}
-	return data
-}
-
-func createBaseTestCustomEventSpecificationWithEntityVerificationRuleModel() restapi.CustomEventSpecification {
-	return restapi.CustomEventSpecification{
-		ID:         customEntityVerificationEventID,
-		Name:       customEntityVerificationEventName,
-		EntityType: EntityVerificationRuleEntityType,
-		Triggering: false,
-		Enabled:    true,
+	spec := restapi.CustomEventSpecification{
+		ID:             customEntityVerificationEventID,
+		Name:           customEntityVerificationEventName,
+		EntityType:     EntityVerificationRuleEntityType,
+		Query:          &query,
+		Description:    &description,
+		ExpirationTime: &expirationTime,
+		Triggering:     true,
+		Enabled:        true,
 		Rules: []restapi.RuleSpecification{
 			restapi.NewEntityVerificationRuleSpecification(customEntityVerificationEventRuleMatchingEntityLabel,
 				customEntityVerificationEventRuleMatchingEntityType,
@@ -495,26 +209,83 @@ func createBaseTestCustomEventSpecificationWithEntityVerificationRuleModel() res
 				customEntityVerificationEventRuleOfflineDuration,
 				restapi.SeverityWarning.GetAPIRepresentation()),
 		},
+		Downstream: &restapi.EventSpecificationDownstream{
+			IntegrationIds:                []string{customEntityVerificationEventDownStringIntegrationId1, customEntityVerificationEventDownStringIntegrationId2},
+			BroadcastToAllAlertingConfigs: true,
+		},
 	}
+
+	testHelper := NewTestHelper(t)
+	sut := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, spec)
+
+	assert.Nil(t, err)
+	assert.Equal(t, customEntityVerificationEventID, resourceData.Id())
+	assert.Equal(t, customEntityVerificationEventName, resourceData.Get(CustomEventSpecificationFieldFullName))
+	assert.Equal(t, EntityVerificationRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
+	assert.Equal(t, customEntityVerificationEventQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
+	assert.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
+	assert.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
+	assert.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+
+	assert.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, resourceData.Get(EntityVerificationRuleFieldMatchingEntityLabel))
+	assert.Equal(t, customEntityVerificationEventRuleMatchingEntityType, resourceData.Get(EntityVerificationRuleFieldMatchingEntityType))
+	assert.Equal(t, string(customEntityVerificationEventRuleMatchingOperator), resourceData.Get(EntityVerificationRuleFieldMatchingOperator))
+	assert.Equal(t, customEntityVerificationEventRuleOfflineDuration, resourceData.Get(EntityVerificationRuleFieldOfflineDuration))
+	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
+
+	assert.True(t, resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool))
+	assert.Equal(t, []interface{}{customEntityVerificationEventDownStringIntegrationId1, customEntityVerificationEventDownStringIntegrationId2}, resourceData.Get(CustomEventSpecificationDownstreamIntegrationIds))
 }
 
-func createFullTestCustomEventSpecificationWithEntityVerificationRuleData() map[string]interface{} {
-	data := make(map[string]interface{})
-	data[CustomEventSpecificationFieldName] = customEntityVerificationEventName
-	data[CustomEventSpecificationFieldEntityType] = EntityVerificationRuleEntityType
-	data[CustomEventSpecificationFieldQuery] = customEntityVerificationEventQuery
-	data[CustomEventSpecificationFieldTriggering] = "true"
-	data[CustomEventSpecificationFieldDescription] = customEntityVerificationEventDescription
-	data[CustomEventSpecificationFieldExpirationTime] = customEntityVerificationEventExpirationTime
-	data[CustomEventSpecificationFieldEnabled] = "true"
+func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModel(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	resourceData.SetId(customEntityVerificationEventID)
+	resourceData.Set(CustomEventSpecificationFieldFullName, customEntityVerificationEventName)
+	resourceData.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
+	resourceData.Set(CustomEventSpecificationFieldQuery, customEntityVerificationEventQuery)
+	resourceData.Set(CustomEventSpecificationFieldTriggering, true)
+	resourceData.Set(CustomEventSpecificationFieldDescription, customEntityVerificationEventDescription)
+	resourceData.Set(CustomEventSpecificationFieldExpirationTime, customEntityVerificationEventExpirationTime)
+	resourceData.Set(CustomEventSpecificationFieldEnabled, true)
 	integrationIds := make([]interface{}, 2)
 	integrationIds[0] = customEntityVerificationEventDownStringIntegrationId1
 	integrationIds[1] = customEntityVerificationEventDownStringIntegrationId2
-	data[CustomEventSpecificationDownstreamIntegrationIds] = integrationIds
-	data[CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs] = "true"
-	data[CustomEventSpecificationRuleSeverity] = customEntityVerificationEventRuleSeverity
-	data[EntityVerificationRuleFieldMatchingEntityLabel] = customEntityVerificationEventRuleMatchingEntityLabel
-	data[EntityVerificationRuleFieldMatchingEntityType] = customEntityVerificationEventRuleMatchingEntityType
-	data[EntityVerificationRuleFieldMatchingOperator] = string(customEntityVerificationEventRuleMatchingOperator)
-	return data
+	resourceData.Set(CustomEventSpecificationDownstreamIntegrationIds, integrationIds)
+	resourceData.Set(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, true)
+	resourceData.Set(CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
+	resourceData.Set(EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel)
+	resourceData.Set(EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType)
+	resourceData.Set(EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator))
+	resourceData.Set(EntityVerificationRuleFieldOfflineDuration, customEntityVerificationEventRuleOfflineDuration)
+
+	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.Nil(t, err)
+	assert.IsType(t, restapi.CustomEventSpecification{}, result)
+	customEventSpec := result.(restapi.CustomEventSpecification)
+	assert.Equal(t, customEntityVerificationEventID, customEventSpec.GetID())
+	assert.Equal(t, customEntityVerificationEventName, customEventSpec.Name)
+	assert.Equal(t, EntityVerificationRuleEntityType, customEventSpec.EntityType)
+	assert.Equal(t, customEntityVerificationEventQuery, *customEventSpec.Query)
+	assert.Equal(t, customEntityVerificationEventDescription, *customEventSpec.Description)
+	assert.Equal(t, customEntityVerificationEventExpirationTime, *customEventSpec.ExpirationTime)
+	assert.True(t, customEventSpec.Triggering)
+	assert.True(t, customEventSpec.Enabled)
+
+	assert.Equal(t, 1, len(customEventSpec.Rules))
+	assert.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, *customEventSpec.Rules[0].MatchingEntityLabel)
+	assert.Equal(t, customEntityVerificationEventRuleMatchingEntityType, *customEventSpec.Rules[0].MatchingEntityType)
+	assert.Equal(t, customEntityVerificationEventRuleMatchingOperator, *customEventSpec.Rules[0].MatchingOperator)
+	assert.Equal(t, customEntityVerificationEventRuleOfflineDuration, *customEventSpec.Rules[0].OfflineDuration)
+	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+
+	assert.True(t, customEventSpec.Downstream.BroadcastToAllAlertingConfigs)
+	assert.Equal(t, []string{customEntityVerificationEventDownStringIntegrationId1, customEntityVerificationEventDownStringIntegrationId2}, customEventSpec.Downstream.IntegrationIds)
 }

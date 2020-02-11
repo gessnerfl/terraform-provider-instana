@@ -24,9 +24,6 @@ const ResourceInstanaCustomEventSpecificationSystemRule = "instana_custom_event_
 //ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
 const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_event_spec_threshold_rule"
 
-//ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
-const ResourceInstanaCustomEventSpecificationEntityVerificationRule = "instana_custom_event_spec_entity_verification_rule"
-
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
@@ -77,7 +74,7 @@ func providerResources() map[string]*schema.Resource {
 	bindResourceHandle(resources, NewApplicationConfigResourceHandle())
 	resources[ResourceInstanaCustomEventSpecificationSystemRule] = CreateResourceCustomEventSpecificationWithSystemRule()
 	resources[ResourceInstanaCustomEventSpecificationThresholdRule] = CreateResourceCustomEventSpecificationWithThresholdRule()
-	resources[ResourceInstanaCustomEventSpecificationEntityVerificationRule] = CreateResourceCustomEventSpecificationWithEntityVerificationRule()
+	bindResourceHandle(resources, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelEmailResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelGoogleChatResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelOffice356ResourceHandle())

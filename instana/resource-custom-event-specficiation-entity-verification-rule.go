@@ -2,10 +2,13 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/hashicorp/terraform/terraform"
 )
+
+//ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
+const ResourceInstanaCustomEventSpecificationEntityVerificationRule = "instana_custom_event_spec_entity_verification_rule"
 
 const (
 	//EntityVerificationRuleFieldMatchingEntityType constant value for the schema field matching_entity_type
@@ -50,40 +53,49 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//CreateResourceCustomEventSpecificationWithEntityVerificationRule creates the resource definition for the instana api endpoint for Custom Event Specifications for Threshold rules
-func CreateResourceCustomEventSpecificationWithEntityVerificationRule() *schema.Resource {
-	return &schema.Resource{
-		Read:   createReadCustomEventSpecificationWithEntityVerificationRule(),
-		Create: createCreateCustomEventSpecificationWithEntityVerificationRule(),
-		Update: createUpdateCustomEventSpecificationWithEntityVerificationRule(),
-		Delete: createDeleteCustomEventSpecificationWithEntityVerificationRule(),
-
+//NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with entity verification rules
+func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() *ResourceHandle {
+	return &ResourceHandle{
+		ResourceName:  ResourceInstanaCustomEventSpecificationEntityVerificationRule,
 		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, entityVerificationRuleSchemaFields),
 		SchemaVersion: 1,
-		MigrateState:  CreateMigrateCustomEventConfigStateFunction(make(map[int](func(inst *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error)))),
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    customEventSpecificationWithEntityVerificationRuleSchemaV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateCustomEventConfigFullNameInStateFromV0toV1,
+				Version: 0,
+			},
+		},
+		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.CustomEventSpecifications() },
+		UpdateState:          updateStateForCustomEventSpecificationWithEntityVerificationRule,
+		MapStateToDataObject: mapStateToDataObjectForCustomEventSpecificationWithEntityVerificationRule,
+		SetComputedFields: func(d *schema.ResourceData) {
+			d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
+		},
 	}
 }
 
-func createReadCustomEventSpecificationWithEntityVerificationRule() func(*schema.ResourceData, interface{}) error {
-	return createCustomEventSpecificationReadFunc(mapEntityVerificationRuleToTerraformState)
+func updateStateForCustomEventSpecificationWithEntityVerificationRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+	customEventSpecification := obj.(restapi.CustomEventSpecification)
+	return updateStateForBasicCustomEventSpecification(d, customEventSpecification, mapEntityVerificationRuleToTerraformState)
 }
 
-func createCreateCustomEventSpecificationWithEntityVerificationRule() func(*schema.ResourceData, interface{}) error {
-	return func(d *schema.ResourceData, meta interface{}) error {
-		updateFunc := createCustomEventSpecificationUpdateFunc(mapEntityVerificationRuleToInstanaAPIModel, mapEntityVerificationRuleToTerraformState)
-
-		d.SetId(RandomID())
-		d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
-		return updateFunc(d, meta)
+func mapEntityVerificationRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEventSpecification) error {
+	ruleSpec := spec.Rules[0]
+	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
+	if err != nil {
+		return err
 	}
+	d.Set(CustomEventSpecificationRuleSeverity, severity)
+	d.Set(EntityVerificationRuleFieldMatchingEntityLabel, ruleSpec.MatchingEntityLabel)
+	d.Set(EntityVerificationRuleFieldMatchingEntityType, ruleSpec.MatchingEntityType)
+	d.Set(EntityVerificationRuleFieldMatchingOperator, ruleSpec.MatchingOperator)
+	d.Set(EntityVerificationRuleFieldOfflineDuration, ruleSpec.OfflineDuration)
+	return nil
 }
 
-func createUpdateCustomEventSpecificationWithEntityVerificationRule() func(*schema.ResourceData, interface{}) error {
-	return createCustomEventSpecificationUpdateFunc(mapEntityVerificationRuleToInstanaAPIModel, mapEntityVerificationRuleToTerraformState)
-}
-
-func createDeleteCustomEventSpecificationWithEntityVerificationRule() func(*schema.ResourceData, interface{}) error {
-	return createCustomEventSpecificationDeleteFunc(mapEntityVerificationRuleToInstanaAPIModel)
+func mapStateToDataObjectForCustomEventSpecificationWithEntityVerificationRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+	return createCustomEventSpecificationFromResourceData(d, formatter, mapEntityVerificationRuleToInstanaAPIModel)
 }
 
 func mapEntityVerificationRuleToInstanaAPIModel(d *schema.ResourceData) (restapi.RuleSpecification, error) {
@@ -99,17 +111,8 @@ func mapEntityVerificationRuleToInstanaAPIModel(d *schema.ResourceData) (restapi
 	return restapi.NewEntityVerificationRuleSpecification(entityLabel, entityType, operator, offlineDuration, severity), nil
 }
 
-func mapEntityVerificationRuleToTerraformState(d *schema.ResourceData, spec restapi.CustomEventSpecification) error {
-	ruleSpec := spec.Rules[0]
-	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
-	if err != nil {
-		return err
+func customEventSpecificationWithEntityVerificationRuleSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV0, entityVerificationRuleSchemaFields),
 	}
-
-	d.Set(CustomEventSpecificationRuleSeverity, severity)
-	d.Set(EntityVerificationRuleFieldMatchingEntityLabel, ruleSpec.MatchingEntityLabel)
-	d.Set(EntityVerificationRuleFieldMatchingEntityType, ruleSpec.MatchingEntityType)
-	d.Set(EntityVerificationRuleFieldMatchingOperator, ruleSpec.MatchingOperator)
-	d.Set(EntityVerificationRuleFieldOfflineDuration, ruleSpec.OfflineDuration)
-	return nil
 }

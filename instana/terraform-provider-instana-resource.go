@@ -8,6 +8,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+//SetComputedFieldsFunc function definition used by a ResourceHandle to set computed fieds of a terraform resource at the time of creation
+type SetComputedFieldsFunc func(d *schema.ResourceData)
+
 //UpdateStateFunc function definition used by a ResourceHandle to update the state of a terraform resource with the data provided by the InstanaDataObject
 type UpdateStateFunc func(d *schema.ResourceData, obj restapi.InstanaDataObject) error
 
@@ -27,6 +30,7 @@ type ResourceHandle struct {
 	RestResourceFactory  RestResourceFactoryFunc
 	UpdateState          UpdateStateFunc
 	MapStateToDataObject MapStateFunc
+	SetComputedFields    SetComputedFieldsFunc
 }
 
 //NewTerraformResource creates a new terraform resource for the given handle
@@ -52,6 +56,9 @@ type terraformResourceImpl struct {
 //Create defines the create operation for the terraform resource
 func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(RandomID())
+	if r.resourceHandle.SetComputedFields != nil {
+		r.resourceHandle.SetComputedFields(d)
+	}
 	return r.Update(d, meta)
 }
 
