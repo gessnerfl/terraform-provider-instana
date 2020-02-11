@@ -17,8 +17,6 @@ func NewTestHelper(t *testing.T) TestHelper {
 type TestHelper interface {
 	WithMocking(t *testing.T, testFunction func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter))
 	CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceNameFormatter)
-	CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData
-	CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData
 	CreateEmptyResourceDataForResourceHandle(resourceHandle *ResourceHandle) *schema.ResourceData
 	CreateResourceDataForResourceHandle(resourceHandle *ResourceHandle, data map[string]interface{}) *schema.ResourceData
 }
@@ -43,16 +41,6 @@ func (inst *testHelperImpl) CreateProviderMetaMock(ctrl *gomock.Controller) (*Pr
 		ResourceNameFormatter: mockResourceNameFormatter,
 	}
 	return providerMeta, mockInstanaAPI, mockResourceNameFormatter
-}
-
-func (inst *testHelperImpl) CreateEmptyCustomEventSpecificationWithThresholdRuleResourceData() *schema.ResourceData {
-	data := make(map[string]interface{})
-	return inst.CreateCustomEventSpecificationWithThresholdRuleResourceData(data)
-}
-
-func (inst *testHelperImpl) CreateCustomEventSpecificationWithThresholdRuleResourceData(data map[string]interface{}) *schema.ResourceData {
-	schemaMap := CreateResourceCustomEventSpecificationWithThresholdRule().Schema
-	return schema.TestResourceDataRaw(inst.t, schemaMap, data)
 }
 
 func (inst *testHelperImpl) CreateEmptyResourceDataForResourceHandle(resourceHandle *ResourceHandle) *schema.ResourceData {
