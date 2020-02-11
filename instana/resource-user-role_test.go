@@ -146,7 +146,7 @@ func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 }
 
 func TestUserRoleSchemaDefinitionIsValid(t *testing.T) {
-	schema := NewUserRoleResourceHandle().Schema()
+	schema := NewUserRoleResourceHandle().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(UserRoleFieldName)
@@ -170,15 +170,15 @@ func TestUserRoleSchemaDefinitionIsValid(t *testing.T) {
 }
 
 func TestUserRoleResourceShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewUserRoleResourceHandle().SchemaVersion())
+	assert.Equal(t, 0, NewUserRoleResourceHandle().SchemaVersion)
 }
 
 func TestUserRoleResourceShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewUserRoleResourceHandle().StateUpgraders()))
+	assert.Equal(t, 0, len(NewUserRoleResourceHandle().StateUpgraders))
 }
 
 func TestShouldReturnCorrectResourceNameForUserroleResource(t *testing.T) {
-	name := NewUserRoleResourceHandle().ResourceName()
+	name := NewUserRoleResourceHandle().ResourceName
 
 	assert.Equal(t, name, "instana_user_role")
 }
@@ -436,7 +436,7 @@ func TestShouldConvertStateOfUserRoleTerraformResourceToDataModel(t *testing.T) 
 	resourceData.Set(UserRoleFieldCanConfigureAuthenticationMethods, true)
 	resourceData.Set(UserRoleFieldCanConfigureApplications, true)
 
-	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.UserRole{}, model, "Model should be an alerting channel")

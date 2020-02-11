@@ -8,20 +8,29 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-//ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
-type ResourceHandle interface {
-	GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource
-	Schema() map[string]*schema.Schema
-	SchemaVersion() int
-	StateUpgraders() []schema.StateUpgrader
-	ResourceName() string
+//UpdateStateFunc function definition used by a ResourceHandle to update the state of a terraform resource with the data provided by the InstanaDataObject
+type UpdateStateFunc func(d *schema.ResourceData, obj restapi.InstanaDataObject) error
 
-	UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error
-	ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error)
+//MapStateFunc function definition used by a ResourceHandle to map the terraform state to the corresponting struct of type InstanaDataObject
+type MapStateFunc func(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error)
+
+//RestResourceFactoryFunc factory method definition to create/return the RestResource from the given InstanaAPI for a ResourceHandle
+type RestResourceFactoryFunc func(api restapi.InstanaAPI) restapi.RestResource
+
+//ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
+type ResourceHandle struct {
+	ResourceName   string
+	Schema         map[string]*schema.Schema
+	SchemaVersion  int
+	StateUpgraders []schema.StateUpgrader
+
+	RestResourceFactory  RestResourceFactoryFunc
+	UpdateState          UpdateStateFunc
+	MapStateToDataObject MapStateFunc
 }
 
 //NewTerraformResource creates a new terraform resource for the given handle
-func NewTerraformResource(handle ResourceHandle) TerraformResource {
+func NewTerraformResource(handle *ResourceHandle) TerraformResource {
 	return &terraformResourceImpl{
 		resourceHandle: handle,
 	}
@@ -37,7 +46,7 @@ type TerraformResource interface {
 }
 
 type terraformResourceImpl struct {
-	resourceHandle ResourceHandle
+	resourceHandle *ResourceHandle
 }
 
 //Create defines the create operation for the terraform resource
@@ -52,9 +61,9 @@ func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) e
 	instanaAPI := providerMeta.InstanaAPI
 	id := d.Id()
 	if len(id) == 0 {
-		return fmt.Errorf("ID of %s is missing", r.resourceHandle.ResourceName())
+		return fmt.Errorf("ID of %s is missing", r.resourceHandle.ResourceName)
 	}
-	obj, err := r.resourceHandle.GetResourceFrom(instanaAPI).GetOne(id)
+	obj, err := r.resourceHandle.RestResourceFactory(instanaAPI).GetOne(id)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
@@ -71,11 +80,11 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
-	obj, err := r.resourceHandle.ConvertStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	obj, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
 	if err != nil {
 		return err
 	}
-	updatedObject, err := r.resourceHandle.GetResourceFrom(instanaAPI).Upsert(obj)
+	updatedObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Upsert(obj)
 	if err != nil {
 		return err
 	}
@@ -88,11 +97,11 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
-	object, err := r.resourceHandle.ConvertStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	object, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
 	if err != nil {
 		return err
 	}
-	err = r.resourceHandle.GetResourceFrom(instanaAPI).DeleteByID(object.GetID())
+	err = r.resourceHandle.RestResourceFactory(instanaAPI).DeleteByID(object.GetID())
 	if err != nil {
 		return err
 	}
@@ -106,8 +115,8 @@ func (r *terraformResourceImpl) ToSchemaResource() *schema.Resource {
 		Read:           r.Read,
 		Update:         r.Update,
 		Delete:         r.Delete,
-		Schema:         r.resourceHandle.Schema(),
-		SchemaVersion:  r.resourceHandle.SchemaVersion(),
-		StateUpgraders: r.resourceHandle.StateUpgraders(),
+		Schema:         r.resourceHandle.Schema,
+		SchemaVersion:  r.resourceHandle.SchemaVersion,
+		StateUpgraders: r.resourceHandle.StateUpgraders,
 	}
 }

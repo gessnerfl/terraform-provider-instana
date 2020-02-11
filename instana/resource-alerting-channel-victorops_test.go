@@ -100,7 +100,7 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {
 	resource := NewAlertingChannelVictorOpsResourceHandle()
 
-	schemaMap := resource.Schema()
+	schemaMap := resource.Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -143,7 +143,7 @@ func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 	resourceData.Set(AlertingChannelVictorOpsFieldAPIKey, apiKey)
 	resourceData.Set(AlertingChannelVictorOpsFieldRoutingKey, routingKey)
 
-	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
@@ -154,15 +154,15 @@ func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 }
 
 func TestAlertingChannelVictorOpskShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelVictorOpsResourceHandle().SchemaVersion())
+	assert.Equal(t, 0, NewAlertingChannelVictorOpsResourceHandle().SchemaVersion)
 }
 
 func TestAlertingChannelVictorOpsShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelVictorOpsResourceHandle().StateUpgraders()))
+	assert.Equal(t, 0, len(NewAlertingChannelVictorOpsResourceHandle().StateUpgraders))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelVictorOps(t *testing.T) {
-	name := NewAlertingChannelVictorOpsResourceHandle().ResourceName()
+	name := NewAlertingChannelVictorOpsResourceHandle().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_victor_ops")
 }

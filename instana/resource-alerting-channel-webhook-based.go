@@ -18,53 +18,36 @@ const (
 )
 
 //NewAlertingChannelGoogleChatResourceHandle creates the terraform resource for Alerting Channels of type Google Chat
-func NewAlertingChannelGoogleChatResourceHandle() ResourceHandle {
+func NewAlertingChannelGoogleChatResourceHandle() *ResourceHandle {
 	return newAlertingChannelWebhookBasedResourceHandle(restapi.GoogleChatChannelType, ResourceInstanaAlertingChannelGoogleChat)
 }
 
 //NewAlertingChannelOffice356ResourceHandle creates the terraform resource for Alerting Channels of type Office 356
-func NewAlertingChannelOffice356ResourceHandle() ResourceHandle {
+func NewAlertingChannelOffice356ResourceHandle() *ResourceHandle {
 	return newAlertingChannelWebhookBasedResourceHandle(restapi.Office365ChannelType, ResourceInstanaAlertingChannelOffice365)
 }
 
-func newAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingChannelType, resourceName string) ResourceHandle {
-	return &alertingChannelWebhookBasedResourceHandle{channelType: channelType, resourceName: resourceName}
-}
-
-type alertingChannelWebhookBasedResourceHandle struct {
-	channelType  restapi.AlertingChannelType
-	resourceName string
-}
-
-func (h *alertingChannelWebhookBasedResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
-	return api.AlertingChannels()
-}
-
-func (h *alertingChannelWebhookBasedResourceHandle) Schema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		AlertingChannelFieldName:     alertingChannelNameSchemaField,
-		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-		AlertingChannelWebhookBasedFieldWebhookURL: &schema.Schema{
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: fmt.Sprintf("The webhook URL of the %s alerting channel", h.channelType),
+func newAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingChannelType, resourceName string) *ResourceHandle {
+	return &ResourceHandle{
+		ResourceName: resourceName,
+		Schema: map[string]*schema.Schema{
+			AlertingChannelFieldName:     alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+			AlertingChannelWebhookBasedFieldWebhookURL: &schema.Schema{
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: fmt.Sprintf("The webhook URL of the %s alerting channel", channelType),
+			},
+		},
+		RestResourceFactory: func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
+		UpdateState:         updateStateForWebhhookBasedAlertingChannel,
+		MapStateToDataObject: func(d *schema.ResourceData, f utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+			return mapStateToDataObjectForWebhhookBasedAlertingChannel(d, f, channelType)
 		},
 	}
 }
 
-func (h *alertingChannelWebhookBasedResourceHandle) SchemaVersion() int {
-	return 0
-}
-
-func (h *alertingChannelWebhookBasedResourceHandle) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
-}
-
-func (h *alertingChannelWebhookBasedResourceHandle) ResourceName() string {
-	return h.resourceName
-}
-
-func (h *alertingChannelWebhookBasedResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func updateStateForWebhhookBasedAlertingChannel(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelWebhookBasedFieldWebhookURL, alertingChannel.WebhookURL)
@@ -72,13 +55,13 @@ func (h *alertingChannelWebhookBasedResourceHandle) UpdateState(d *schema.Resour
 	return nil
 }
 
-func (h *alertingChannelWebhookBasedResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func mapStateToDataObjectForWebhhookBasedAlertingChannel(d *schema.ResourceData, formatter utils.ResourceNameFormatter, channelType restapi.AlertingChannelType) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	webhookURL := d.Get(AlertingChannelWebhookBasedFieldWebhookURL).(string)
 	return restapi.AlertingChannel{
 		ID:         d.Id(),
 		Name:       name,
-		Kind:       h.channelType,
+		Kind:       channelType,
 		WebhookURL: &webhookURL,
 	}, nil
 }

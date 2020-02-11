@@ -90,8 +90,8 @@ func providerResources() map[string]*schema.Resource {
 	return resources
 }
 
-func bindResourceHandle(resources map[string]*schema.Resource, resourceHandle ResourceHandle) {
-	resources[resourceHandle.ResourceName()] = NewTerraformResource(resourceHandle).ToSchemaResource()
+func bindResourceHandle(resources map[string]*schema.Resource, resourceHandle *ResourceHandle) {
+	resources[resourceHandle.ResourceName] = NewTerraformResource(resourceHandle).ToSchemaResource()
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {

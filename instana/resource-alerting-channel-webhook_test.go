@@ -105,7 +105,7 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 	resource := NewAlertingChannelWebhookResourceHandle()
 
-	schemaMap := resource.Schema()
+	schemaMap := resource.Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -166,7 +166,7 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
 	resourceData.Set(AlertingChannelWebhookFieldWebhookURLs, webhookURLs)
 
-	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
@@ -177,15 +177,15 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 }
 
 func TestAlertingChannelWebhookShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelWebhookResourceHandle().SchemaVersion())
+	assert.Equal(t, 0, NewAlertingChannelWebhookResourceHandle().SchemaVersion)
 }
 
 func TestAlertingChannelWebhookShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelWebhookResourceHandle().StateUpgraders()))
+	assert.Equal(t, 0, len(NewAlertingChannelWebhookResourceHandle().StateUpgraders))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelWebhook(t *testing.T) {
-	name := NewAlertingChannelWebhookResourceHandle().ResourceName()
+	name := NewAlertingChannelWebhookResourceHandle().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_webhook")
 }

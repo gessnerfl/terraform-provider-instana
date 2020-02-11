@@ -94,7 +94,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelPagerDutyDefinition(t *testing.T) {
 	resource := NewAlertingChannelPagerDutyResourceHandle()
 
-	schemaMap := resource.Schema()
+	schemaMap := resource.Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -131,7 +131,7 @@ func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
 	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
 	resourceData.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, integrationKey)
 
-	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
@@ -141,15 +141,15 @@ func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
 }
 
 func TestAlertingChannelPagerDutyShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelPagerDutyResourceHandle().SchemaVersion())
+	assert.Equal(t, 0, NewAlertingChannelPagerDutyResourceHandle().SchemaVersion)
 }
 
 func TestAlertingChannelPagerDutyShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelPagerDutyResourceHandle().StateUpgraders()))
+	assert.Equal(t, 0, len(NewAlertingChannelPagerDutyResourceHandle().StateUpgraders))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelPagerDuty(t *testing.T) {
-	name := NewAlertingChannelPagerDutyResourceHandle().ResourceName()
+	name := NewAlertingChannelPagerDutyResourceHandle().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_pager_duty")
 }

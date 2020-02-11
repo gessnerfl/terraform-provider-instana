@@ -16,46 +16,30 @@ const (
 )
 
 //NewAlertingChannelVictorOpsResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelVictorOpsResourceHandle() ResourceHandle {
-	return &alertingChannelVictorOpsResourceHandle{}
-}
-
-type alertingChannelVictorOpsResourceHandle struct{}
-
-func (h *alertingChannelVictorOpsResourceHandle) GetResourceFrom(api restapi.InstanaAPI) restapi.RestResource {
-	return api.AlertingChannels()
-}
-
-func (h *alertingChannelVictorOpsResourceHandle) Schema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		AlertingChannelFieldName:     alertingChannelNameSchemaField,
-		AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-		AlertingChannelVictorOpsFieldAPIKey: &schema.Schema{
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "The API Key of the VictorOps alerting channel",
+func NewAlertingChannelVictorOpsResourceHandle() *ResourceHandle {
+	return &ResourceHandle{
+		ResourceName: ResourceInstanaAlertingChannelVictorOps,
+		Schema: map[string]*schema.Schema{
+			AlertingChannelFieldName:     alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+			AlertingChannelVictorOpsFieldAPIKey: &schema.Schema{
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The API Key of the VictorOps alerting channel",
+			},
+			AlertingChannelVictorOpsFieldRoutingKey: &schema.Schema{
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The Routing Key of the VictorOps alerting channel",
+			},
 		},
-		AlertingChannelVictorOpsFieldRoutingKey: &schema.Schema{
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "The Routing Key of the VictorOps alerting channel",
-		},
+		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
+		UpdateState:          updateStateForAlertingChannelVictorOps,
+		MapStateToDataObject: mapStateToDataObjectForAlertingChannelVictorOps,
 	}
 }
 
-func (h *alertingChannelVictorOpsResourceHandle) SchemaVersion() int {
-	return 0
-}
-
-func (h *alertingChannelVictorOpsResourceHandle) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
-}
-
-func (h *alertingChannelVictorOpsResourceHandle) ResourceName() string {
-	return ResourceInstanaAlertingChannelVictorOps
-}
-
-func (h *alertingChannelVictorOpsResourceHandle) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func updateStateForAlertingChannelVictorOps(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelVictorOpsFieldAPIKey, alertingChannel.APIKey)
@@ -64,7 +48,7 @@ func (h *alertingChannelVictorOpsResourceHandle) UpdateState(d *schema.ResourceD
 	return nil
 }
 
-func (h *alertingChannelVictorOpsResourceHandle) ConvertStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func mapStateToDataObjectForAlertingChannelVictorOps(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	apiKey := d.Get(AlertingChannelVictorOpsFieldAPIKey).(string)
 	routingKey := d.Get(AlertingChannelVictorOpsFieldRoutingKey).(string)

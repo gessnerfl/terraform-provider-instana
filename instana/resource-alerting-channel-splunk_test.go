@@ -98,7 +98,7 @@ func TestCRUDOfAlertingChannelSplunkResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {
 	resource := NewAlertingChannelSplunkResourceHandle()
 
-	schemaMap := resource.Schema()
+	schemaMap := resource.Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -141,7 +141,7 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 	resourceData.Set(AlertingChannelSplunkFieldURL, url)
 	resourceData.Set(AlertingChannelSplunkFieldToken, token)
 
-	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
@@ -152,15 +152,15 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 }
 
 func TestAlertingChannelSplunkkShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelSplunkResourceHandle().SchemaVersion())
+	assert.Equal(t, 0, NewAlertingChannelSplunkResourceHandle().SchemaVersion)
 }
 
 func TestAlertingChannelSplunkShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelSplunkResourceHandle().StateUpgraders()))
+	assert.Equal(t, 0, len(NewAlertingChannelSplunkResourceHandle().StateUpgraders))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelSplunk(t *testing.T) {
-	name := NewAlertingChannelSplunkResourceHandle().ResourceName()
+	name := NewAlertingChannelSplunkResourceHandle().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_splunk")
 }

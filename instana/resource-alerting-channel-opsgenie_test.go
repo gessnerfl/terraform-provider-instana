@@ -101,7 +101,7 @@ func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {
 	resource := NewAlertingChannelOpsGenieResourceHandle()
 
-	schemaMap := resource.Schema()
+	schemaMap := resource.Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -171,7 +171,7 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	resourceData.Set(AlertingChannelOpsGenieFieldRegion, "EU")
 	resourceData.Set(AlertingChannelOpsGenieFieldTags, tags)
 
-	model, err := resourceHandle.ConvertStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
@@ -183,15 +183,15 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 }
 
 func TestAlertingChannelOpsGenieShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelOpsGenieResourceHandle().SchemaVersion())
+	assert.Equal(t, 0, NewAlertingChannelOpsGenieResourceHandle().SchemaVersion)
 }
 
 func TestAlertingChannelOpsGenieShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelOpsGenieResourceHandle().StateUpgraders()))
+	assert.Equal(t, 0, len(NewAlertingChannelOpsGenieResourceHandle().StateUpgraders))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelOpsGenie(t *testing.T) {
-	name := NewAlertingChannelOpsGenieResourceHandle().ResourceName()
+	name := NewAlertingChannelOpsGenieResourceHandle().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_ops_genie")
 }
