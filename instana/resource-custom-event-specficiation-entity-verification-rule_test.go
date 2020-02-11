@@ -289,3 +289,15 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	assert.True(t, customEventSpec.Downstream.BroadcastToAllAlertingConfigs)
 	assert.Equal(t, []string{customEntityVerificationEventDownStringIntegrationId1, customEntityVerificationEventDownStringIntegrationId2}, customEventSpec.Downstream.IntegrationIds)
 }
+
+func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.Set(CustomEventSpecificationRuleSeverity, "INVALID")
+
+	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.NotNil(t, err)
+}

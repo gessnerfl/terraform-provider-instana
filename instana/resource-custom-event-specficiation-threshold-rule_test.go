@@ -379,3 +379,15 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleState
 	assert.True(t, customEventSpec.Downstream.BroadcastToAllAlertingConfigs)
 	assert.Equal(t, []string{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2}, customEventSpec.Downstream.IntegrationIds)
 }
+
+func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.Set(CustomEventSpecificationRuleSeverity, "INVALID")
+
+	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.NotNil(t, err)
+}
