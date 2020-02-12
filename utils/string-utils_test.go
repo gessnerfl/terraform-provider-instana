@@ -1,8 +1,10 @@
 package utils_test
 
 import (
-	. "github.com/gessnerfl/terraform-provider-instana/utils"
 	"testing"
+
+	. "github.com/gessnerfl/terraform-provider-instana/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShouldReturnTrueWhenStringIsEmpty(t *testing.T) {
@@ -21,4 +23,8 @@ func TestShouldReturnFalseWhenStringContainsNonWhitespaceCharacters(t *testing.T
 	if IsBlank("  ba  ") {
 		t.Fatal("Expected to return false for string containing non whitespaces")
 	}
+}
+
+func TestShouldCreateRandomString(t *testing.T) {
+	assert.Equal(t, 64, len(RandomString(64)))
 }
