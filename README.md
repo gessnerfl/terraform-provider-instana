@@ -28,6 +28,7 @@ Changes Log: **[CHANGELOG.md](https://github.com/gessnerfl/terraform-provider-in
           - [Splunk](#splunk)
           - [VictorOps](#victorops)
           - [Generic Webhook](#generic-webhook)
+        - [Alerting Configuration](#alerting-configuration)
       - [Settings](#settings)
         - [User Roles](#user-roles)
   - [Implementation Details](#implementation-details)
@@ -213,7 +214,7 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 
 ##### Alerting Channels
 
-Management of Alerting channels in Instana. A dedicated terraform resource type is  available for each altering channel type.
+Management of Alerting channels in Instana. A dedicated terraform resource type is available for each altering channel type.
 
 API Documentation: <https://instana.github.io/openapi/#operation/getAlertingChannels>
 
@@ -325,6 +326,40 @@ resource "instana_alerting_channel_webhook" "example" {
   }
 }
 ```
+
+##### Alerting Configuration
+
+Management of alert configurations. Alert configurations define how either event types or 
+event (aka rules) are reported to integrated services (Alerting Channels).
+
+API Documentation: <https://instana.github.io/openapi/#operation/putAlert>
+
+The ID of the resource which is also used as unique identifier in Instana is auto generated!
+
+Alerting configurations support `default_name_prefix` and `default_name_suffix`. The string will be appended automatically
+to the alert_name.
+
+Configuration for an alert configuration using dedicated event/rule ids
+
+```hcl
+resource "instana_alerting_config" "example" {
+  alert_name            = "name"
+  integration_ids       = [ "alerting-channel-id1", "alerting-channel-id2" ]  # Optional, you can also use references to existing alerting channel configurations
+  event_filter_query    = "query"                                             # Optional
+  event_filter_rule_ids = [ "rule-1", "rule-2" ]                              # You can also use references to existing custom events
+}
+``` 
+
+Configuration for an alert configuration using event types
+
+```hcl
+resource "instana_alerting_config" "example" {
+  alert_name               = "name"
+  integration_ids          = [ "alerting-channel-id1", "alerting-channel-id2" ]  # Optional, you can also use references to existing alerting channel configurations
+  event_filter_query       = "query"                                             # Optional
+  event_filter_event_types = [ "incident", "critical" ]                          # Allowed values: incident, critical, warning, change, online, offline, none
+}
+``` 
 
 #### Settings
 
