@@ -19,8 +19,6 @@ const (
 	AlertingConfigFieldFullAlertName = "full_alert_name"
 	//AlertingConfigFieldIntegrationIds constant value for the schema field integration_ids
 	AlertingConfigFieldIntegrationIds = "integration_ids"
-	//AlertingConfigFieldCustomPayload constant value for the schema field custom_payload
-	AlertingConfigFieldCustomPayload = "custom_payload"
 	//AlertingConfigFieldEventFilterQuery constant value for the schema field event_filter_query
 	AlertingConfigFieldEventFilterQuery = "event_filter_query"
 	//AlertingConfigFieldEventFilterEventTypes constant value for the schema field event_filter_event_types
@@ -89,13 +87,6 @@ func NewAlertingConfigResourceHandle() *ResourceHandle {
 				ConflictsWith: []string{AlertingConfigFieldEventFilterEventTypes},
 				Description:   "Configures the list of Rule IDs which should trigger an alert.",
 			},
-			AlertingConfigFieldCustomPayload: &schema.Schema{
-				Type:         schema.TypeString,
-				Required:     false,
-				Optional:     true,
-				Description:  "Configures a custom payload for the alerting configuration",
-				ValidateFunc: validation.StringLenBetween(0, 65536),
-			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingConfigurations() },
 		UpdateState:          updateStateForAlertingConfig,
@@ -107,7 +98,6 @@ func updateStateForAlertingConfig(d *schema.ResourceData, obj restapi.InstanaDat
 	config := obj.(restapi.AlertingConfiguration)
 	d.Set(AlertingConfigFieldFullAlertName, config.AlertName)
 	d.Set(AlertingConfigFieldIntegrationIds, config.IntegrationIDs)
-	d.Set(AlertingConfigFieldCustomPayload, config.CustomPayload)
 	d.Set(AlertingConfigFieldEventFilterQuery, config.EventFilteringConfiguration.Query)
 	d.Set(AlertingConfigFieldEventFilterEventTypes, convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes))
 	d.Set(AlertingConfigFieldEventFilterRuleIDs, config.EventFilteringConfiguration.RuleIDs)
@@ -126,14 +116,12 @@ func convertEventTypesToHarmonizedStringRepresentation(input []restapi.AlertEven
 
 func mapStateToDataObjectForAlertingConfig(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingConfigAlertNameString(d, formatter)
-	customPayload := GetStringPointerFromResourceData(d, AlertingConfigFieldCustomPayload)
 	query := GetStringPointerFromResourceData(d, AlertingConfigFieldEventFilterQuery)
 
 	return restapi.AlertingConfiguration{
 		ID:             d.Id(),
 		AlertName:      name,
 		IntegrationIDs: ReadStringArrayParameterFromResource(d, AlertingConfigFieldIntegrationIds),
-		CustomPayload:  customPayload,
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:      query,
 			RuleIDs:    ReadStringArrayParameterFromResource(d, AlertingConfigFieldEventFilterRuleIDs),

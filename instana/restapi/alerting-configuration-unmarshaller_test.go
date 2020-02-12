@@ -12,7 +12,6 @@ func TestShouldSuccessfullyUnmarshalAlertingConfigWithRuleIds(t *testing.T) {
 	response := `{
 		"id" : "id",
 		"alertName" : "name",
-		"customPayload" : "custom",
 		"integrationIds" : [ "integrationId-1", "integrationId-2" ],
 		"eventFilteringConfiguration" : {
 			"query" : "query",
@@ -28,7 +27,6 @@ func TestShouldSuccessfullyUnmarshalAlertingConfigWithRuleIds(t *testing.T) {
 	config := result.(AlertingConfiguration)
 	assert.Equal(t, "id", config.ID)
 	assert.Equal(t, "name", config.AlertName)
-	assert.Equal(t, "custom", *config.CustomPayload)
 	assert.Equal(t, []string{"integrationId-1", "integrationId-2"}, config.IntegrationIDs)
 	assert.Equal(t, "query", *config.EventFilteringConfiguration.Query)
 	assert.Equal(t, []string{"rule-1", "rule-2"}, config.EventFilteringConfiguration.RuleIDs)
@@ -38,7 +36,6 @@ func TestShouldSuccessfullyUnmarshalAlertingConfigWithEventTypes(t *testing.T) {
 	response := `{
 		"id" : "id",
 		"alertName" : "name",
-		"customPayload" : "custom",
 		"integrationIds" : [ "integrationId-1", "integrationId-2" ],
 		"eventFilteringConfiguration" : {
 			"query" : "query",
@@ -54,7 +51,6 @@ func TestShouldSuccessfullyUnmarshalAlertingConfigWithEventTypes(t *testing.T) {
 	config := result.(AlertingConfiguration)
 	assert.Equal(t, "id", config.ID)
 	assert.Equal(t, "name", config.AlertName)
-	assert.Equal(t, "custom", *config.CustomPayload)
 	assert.Equal(t, []string{"integrationId-1", "integrationId-2"}, config.IntegrationIDs)
 	assert.Equal(t, "query", *config.EventFilteringConfiguration.Query)
 	assert.Equal(t, []AlertEventType{IncidentAlertEventType, CriticalAlertEventType}, config.EventFilteringConfiguration.EventTypes)

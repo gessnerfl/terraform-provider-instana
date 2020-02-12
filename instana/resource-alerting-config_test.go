@@ -33,7 +33,6 @@ provider "instana" {
 resource "instana_alerting_config" "rule_ids" {
   alert_name = "name {{ITERATOR}}"
   integration_ids = [ "integration_id1", "integration_id2" ]
-  custom_payload = "custom"
   event_filter_query = "query"
   event_filter_rule_ids = [ "rule-1", "rule-2" ]
 }
@@ -43,7 +42,6 @@ const alertingConfigServerResponseTemplateWithRuleIds = `
 {
 	"id" : "{{id}}",
 	"alertName" : "prefix name suffix",
-	"customPayload" : "custom",
 	"integrationIds" : [ "integration_id1", "integration_id2" ],
 	"eventFilteringConfiguration" : {
 		"query" : "query",
@@ -63,7 +61,6 @@ provider "instana" {
 resource "instana_alerting_config" "event_types" {
   alert_name = "name {{ITERATOR}}"
   integration_ids = [ "integration_id1", "integration_id2" ]
-  custom_payload = "custom"
   event_filter_query = "query"
   event_filter_event_types = [ "incident", "critical" ]
 }
@@ -73,7 +70,6 @@ const alertingConfigServerResponseTemplateWithEventTypes = `
 {
 	"id" : "{{id}}",
 	"alertName" : "prefix name suffix",
-	"customPayload" : "custom",
 	"integrationIds" : [ "integration_id1", "integration_id2" ],
 	"eventFilteringConfiguration" : {
 		"query" : "query",
@@ -179,7 +175,6 @@ func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration 
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldFullAlertName, fmt.Sprintf("prefix name %d suffix", iteration)),
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldIntegrationIds+".0", "integration_id1"),
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldIntegrationIds+".1", "integration_id2"),
-		resource.TestCheckResourceAttr(config, AlertingConfigFieldCustomPayload, "custom"),
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldEventFilterQuery, "query"),
 	)
 }
@@ -193,7 +188,6 @@ func TestResourceAlertingConfigDefinition(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingConfigFieldAlertName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingConfigFieldFullAlertName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingConfigFieldIntegrationIds)
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(AlertingConfigFieldCustomPayload)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(AlertingConfigFieldEventFilterQuery)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfStrings(AlertingConfigFieldEventFilterEventTypes)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfStrings(AlertingConfigFieldEventFilterRuleIDs)
@@ -221,7 +215,6 @@ const (
 	alertingConfigRuleId1        = "alerting-rule-id1"
 	alertingConfigRuleId2        = "alerting-rule-id2"
 	alertingConfigQuery          = "alerting-query"
-	alertingConfigCustomPayload  = "alerting-custom-payload"
 )
 
 func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
@@ -230,13 +223,11 @@ func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	query := alertingConfigQuery
-	customPayload := alertingConfigCustomPayload
 
 	data := restapi.AlertingConfiguration{
 		ID:             alertingConfigID,
 		AlertName:      alertingConfigName,
 		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
-		CustomPayload:  &customPayload,
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:   &query,
 			RuleIDs: []string{alertingConfigRuleId1, alertingConfigRuleId2},
@@ -249,7 +240,6 @@ func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
 	assert.Equal(t, alertingConfigID, resourceData.Id())
 	assert.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldFullAlertName))
 	assert.Equal(t, []interface{}{alertingConfigIntegrationId1, alertingConfigIntegrationId2}, resourceData.Get(AlertingConfigFieldIntegrationIds))
-	assert.Equal(t, alertingConfigCustomPayload, resourceData.Get(AlertingConfigFieldCustomPayload))
 	assert.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
 	assert.Equal(t, []interface{}{alertingConfigRuleId1, alertingConfigRuleId2}, resourceData.Get(AlertingConfigFieldEventFilterRuleIDs))
 }
@@ -260,13 +250,11 @@ func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	query := alertingConfigQuery
-	customPayload := alertingConfigCustomPayload
 
 	data := restapi.AlertingConfiguration{
 		ID:             alertingConfigID,
 		AlertName:      alertingConfigName,
 		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
-		CustomPayload:  &customPayload,
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:      &query,
 			EventTypes: []restapi.AlertEventType{restapi.IncidentAlertEventType, restapi.CriticalAlertEventType},
@@ -279,7 +267,6 @@ func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) 
 	assert.Equal(t, alertingConfigID, resourceData.Id())
 	assert.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldFullAlertName))
 	assert.Equal(t, []interface{}{alertingConfigIntegrationId1, alertingConfigIntegrationId2}, resourceData.Get(AlertingConfigFieldIntegrationIds))
-	assert.Equal(t, alertingConfigCustomPayload, resourceData.Get(AlertingConfigFieldCustomPayload))
 	assert.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
 	assert.Equal(t, []interface{}{string(restapi.IncidentAlertEventType), string(restapi.CriticalAlertEventType)}, resourceData.Get(AlertingConfigFieldEventFilterEventTypes))
 }
@@ -294,7 +281,6 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) 
 	resourceData.Set(AlertingConfigFieldAlertName, alertingConfigName)
 	resourceData.Set(AlertingConfigFieldFullAlertName, alertingConfigName)
 	resourceData.Set(AlertingConfigFieldIntegrationIds, integrationIds)
-	resourceData.Set(AlertingConfigFieldCustomPayload, alertingConfigCustomPayload)
 	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
 	resourceData.Set(AlertingConfigFieldEventFilterRuleIDs, ruleIds)
 
@@ -305,7 +291,6 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) 
 	assert.Equal(t, alertingConfigID, model.GetID())
 	assert.Equal(t, alertingConfigName, model.(restapi.AlertingConfiguration).AlertName)
 	assert.Equal(t, integrationIds, model.(restapi.AlertingConfiguration).IntegrationIDs)
-	assert.Equal(t, alertingConfigCustomPayload, *model.(restapi.AlertingConfiguration).CustomPayload)
 	assert.Equal(t, alertingConfigQuery, *model.(restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
 	assert.Equal(t, ruleIds, model.(restapi.AlertingConfiguration).EventFilteringConfiguration.RuleIDs)
 }
@@ -319,7 +304,6 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.
 	resourceData.Set(AlertingConfigFieldAlertName, alertingConfigName)
 	resourceData.Set(AlertingConfigFieldFullAlertName, alertingConfigName)
 	resourceData.Set(AlertingConfigFieldIntegrationIds, integrationIds)
-	resourceData.Set(AlertingConfigFieldCustomPayload, alertingConfigCustomPayload)
 	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
 	resourceData.Set(AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
 
@@ -330,7 +314,6 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.
 	assert.Equal(t, alertingConfigID, model.GetID())
 	assert.Equal(t, alertingConfigName, model.(restapi.AlertingConfiguration).AlertName)
 	assert.Equal(t, integrationIds, model.(restapi.AlertingConfiguration).IntegrationIDs)
-	assert.Equal(t, alertingConfigCustomPayload, *model.(restapi.AlertingConfiguration).CustomPayload)
 	assert.Equal(t, alertingConfigQuery, *model.(restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
 	assert.Equal(t, []restapi.AlertEventType{restapi.IncidentAlertEventType, restapi.CriticalAlertEventType}, model.(restapi.AlertingConfiguration).EventFilteringConfiguration.EventTypes)
 }

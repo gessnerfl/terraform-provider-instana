@@ -118,7 +118,6 @@ type AlertingConfiguration struct {
 	AlertName                   string                      `json:"alertName"`
 	IntegrationIDs              []string                    `json:"integrationIds"`
 	EventFilteringConfiguration EventFilteringConfiguration `json:"eventFilteringConfiguration"`
-	CustomPayload               *string                     `json:"customPayload"`
 }
 
 //GetID implemention of the interface InstanaDataObject
@@ -143,9 +142,6 @@ func (c AlertingConfiguration) Validate() error {
 
 	if !utils.StringSliceElementsAreUnique(c.IntegrationIDs) {
 		return errors.New("IntegrationIDs must be unique")
-	}
-	if c.CustomPayload != nil && len(*c.CustomPayload) > 65536 {
-		return errors.New("CustomPayload not valid; Maximum length of CustomPayload is 65536 characters")
 	}
 	return c.EventFilteringConfiguration.Validate()
 }

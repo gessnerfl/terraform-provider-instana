@@ -69,26 +69,10 @@ func TestShouldSuccessFullyValidateAlertingConfigurationWhenAnAdditionalQueryIsC
 }
 
 func TestShouldSuccessFullyValidateAlertingConfigurationWhenIntegrationIdsAreDefined(t *testing.T) {
-	customPayload := "foo"
 	config := AlertingConfiguration{
 		ID:             alertingConfigID,
 		AlertName:      alertingConfigName,
-		CustomPayload:  &customPayload,
 		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
-		EventFilteringConfiguration: EventFilteringConfiguration{
-			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
-		},
-	}
-
-	assert.Nil(t, config.Validate())
-}
-
-func TestShouldSuccessFullyValidateAlertingConfigurationWhenCustomPayloadIsDefined(t *testing.T) {
-	customPayload := "foo"
-	config := AlertingConfiguration{
-		ID:            alertingConfigID,
-		AlertName:     alertingConfigName,
-		CustomPayload: &customPayload,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
 		},
@@ -204,23 +188,6 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenIntegrationIDsAreNo
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "IntegrationID")
 	assert.Contains(t, err.Error(), "unique")
-}
-
-func TestShouldFailToValidateAlertingChannelConfigurationWhenCustomPayloadExceedsMaximumLength(t *testing.T) {
-	customPayload := utils.RandomString(65537)
-	config := AlertingConfiguration{
-		ID:        alertingConfigID,
-		AlertName: alertingConfigName,
-		EventFilteringConfiguration: EventFilteringConfiguration{
-			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
-		},
-		CustomPayload: &customPayload,
-	}
-
-	err := config.Validate()
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "CustomPayload")
-	assert.Contains(t, err.Error(), "length")
 }
 
 func TestShouldFailToValidateAlertingConfigurationWhenRuleIdsAndEventTypesAreConfigured(t *testing.T) {
