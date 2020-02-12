@@ -82,6 +82,7 @@ const alertingConfigServerResponseTemplateWithEventTypes = `
 }
 `
 
+const iteratorPlaceholder = "{{ITERATOR}}"
 const contentType = "Content-Type"
 const alertingConfigApiPath = restapi.AlertsResourcePath + "/{id}"
 const testAlertingConfigDefinitionWithRuleIds = "instana_alerting_config.rule_ids"
@@ -103,8 +104,8 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 	defer httpServer.Close()
 
 	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingConfigTerraformTemplateWithRuleIds, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, "{{ITERATOR}}", "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, "{{ITERATOR}}", "1")
+	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
+	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingConfigProviders,
@@ -145,8 +146,8 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 	defer httpServer.Close()
 
 	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingConfigTerraformTemplateWithEventTypes, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, "{{ITERATOR}}", "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, "{{ITERATOR}}", "1")
+	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
+	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingConfigProviders,

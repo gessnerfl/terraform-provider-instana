@@ -106,8 +106,8 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 		defaultMatchSpecification,
 	)
 
-	resourceDefinitionWithLabel0 := strings.ReplaceAll(resourceDefinitionWithoutLabel, "{{ITERATOR}}", "0")
-	resourceDefinitionWithLabel1 := strings.ReplaceAll(resourceDefinitionWithoutLabel, "{{ITERATOR}}", "1")
+	resourceDefinitionWithLabel0 := strings.ReplaceAll(resourceDefinitionWithoutLabel, iteratorPlaceholder, "0")
+	resourceDefinitionWithLabel1 := strings.ReplaceAll(resourceDefinitionWithoutLabel, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testApplicationConfigProviders,

@@ -63,8 +63,8 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelPagerDutyDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, "{{ITERATOR}}", "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, "{{ITERATOR}}", "1")
+	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
+	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingChannelPagerDutyProviders,
