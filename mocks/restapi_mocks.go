@@ -5,9 +5,10 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	restapi "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockInstanaDataObject is a mock of InstanaDataObject interface
@@ -286,4 +287,18 @@ func (m *MockInstanaAPI) AlertingChannels() restapi.RestResource {
 func (mr *MockInstanaAPIMockRecorder) AlertingChannels() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlertingChannels", reflect.TypeOf((*MockInstanaAPI)(nil).AlertingChannels))
+}
+
+// AlertingConfigurations mocks base method
+func (m *MockInstanaAPI) AlertingConfigurations() restapi.RestResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AlertingConfigurations")
+	ret0, _ := ret[0].(restapi.RestResource)
+	return ret0
+}
+
+// AlertingConfigurations indicates an expected call of AlertingConfigurations
+func (mr *MockInstanaAPIMockRecorder) AlertingConfigurations() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlertingConfigurations", reflect.TypeOf((*MockInstanaAPI)(nil).AlertingConfigurations))
 }

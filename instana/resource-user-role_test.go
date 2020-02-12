@@ -105,7 +105,7 @@ func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 			"canConfigureApplications" : true
 		}
 		`, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})

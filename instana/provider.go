@@ -63,7 +63,6 @@ func providerSchema() map[string]*schema.Schema {
 
 func providerResources() map[string]*schema.Resource {
 	resources := make(map[string]*schema.Resource)
-
 	bindResourceHandle(resources, NewUserRoleResourceHandle())
 	bindResourceHandle(resources, NewApplicationConfigResourceHandle())
 	bindResourceHandle(resources, NewCustomEventSpecificationWithSystemRuleResourceHandle())
@@ -78,6 +77,7 @@ func providerResources() map[string]*schema.Resource {
 	bindResourceHandle(resources, NewAlertingChannelSplunkResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelVictorOpsResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelWebhookResourceHandle())
+	bindResourceHandle(resources, NewAlertingConfigResourceHandle())
 	return resources
 }
 

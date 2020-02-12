@@ -17,7 +17,6 @@ func RandomID() string {
 
 //ReadStringArrayParameterFromResource reads a string array parameter from a resource
 func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []string {
-
 	if attr, ok := d.GetOk(key); ok {
 		var array []string
 		items := attr.([]interface{})
@@ -25,10 +24,8 @@ func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []
 			item := x.(string)
 			array = append(array, item)
 		}
-
 		return array
 	}
-
 	return nil
 }
 

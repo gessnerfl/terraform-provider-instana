@@ -44,7 +44,7 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	if len(resourceMap) != 14 {
+	if len(resourceMap) != 15 {
 		t.Fatal("Expected 14 resources to be configured")
 	}
 
@@ -54,6 +54,11 @@ func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T)
 	if resourceMap[ResourceInstanaApplicationConfig] == nil {
 		t.Fatal("Expected a resources to be configured for instana application config")
 	}
+	validateResourcesMapForCustomEvents(resourceMap, t)
+	validateResourcesMapForAlerting(resourceMap, t)
+}
+
+func validateResourcesMapForCustomEvents(resourceMap map[string]*schema.Resource, t *testing.T) {
 	if resourceMap[ResourceInstanaCustomEventSpecificationSystemRule] == nil {
 		t.Fatal("Expected a resources to be configured for instana custom event specification system rule")
 	}
@@ -63,6 +68,9 @@ func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T)
 	if resourceMap[ResourceInstanaCustomEventSpecificationEntityVerificationRule] == nil {
 		t.Fatal("Expected a resources to be configured for instana custom event specification entity verification rule")
 	}
+}
+
+func validateResourcesMapForAlerting(resourceMap map[string]*schema.Resource, t *testing.T) {
 	if resourceMap[ResourceInstanaAlertingChannelEmail] == nil {
 		t.Fatal("Expected a resources to be configured for instana alerting channel email")
 	}
@@ -89,6 +97,9 @@ func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T)
 	}
 	if resourceMap[ResourceInstanaAlertingChannelWebhook] == nil {
 		t.Fatal("Expected a resources to be configured for instana alerting channel webhhok")
+	}
+	if resourceMap[ResourceInstanaAlertingConfig] == nil {
+		t.Fatal("Expected a resources to be configured for instana alerting config")
 	}
 }
 

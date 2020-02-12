@@ -105,3 +105,27 @@ resource "instana_alerting_channel_webhook" "example" {
     header2 = "headerValue2"
   }
 }
+
+resource "instana_alerting_config" "alerting_for_rules" {
+  alert_name            = "name"
+  integration_ids       = [ 
+    "${instana_alerting_channel_email.example.id}", 
+    "${instana_alerting_channel_google_chat.example.id}" 
+    ] 
+  event_filter_query    = "entity.tag:stage=live-test"
+  event_filter_rule_ids = [ 
+    "${instana_custom_event_spec_system_rule.example.id}", 
+    "${instana_custom_event_spec_threshold_rule.example.id}", 
+    "${instana_custom_event_spec_entity_verification_rule.example.id}" 
+    ]
+}
+
+resource "instana_alerting_config" "alerting_for_event_types" {
+  alert_name               = "name"
+  integration_ids          = [ 
+    "${instana_alerting_channel_pager_duty.example.id}", 
+    "${instana_alerting_channel_email.example.id}" 
+    ]
+  event_filter_query       = "entity.tag:stage=live-test"
+  event_filter_event_types = [ "incident", "critical" ]
+}
