@@ -82,6 +82,7 @@ const alertingConfigServerResponseTemplateWithEventTypes = `
 }
 `
 
+const contentType = "Content-Type"
 const alertingConfigApiPath = restapi.AlertsResourcePath + "/{id}"
 const testAlertingConfigDefinitionWithRuleIds = "instana_alerting_config.rule_ids"
 const testAlertingConfigDefinitionWithEventTypes = "instana_alerting_config.event_types"
@@ -94,7 +95,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 	httpServer.AddRoute(http.MethodGet, alertingConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		json := strings.ReplaceAll(alertingConfigServerResponseTemplateWithRuleIds, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})
@@ -136,7 +137,7 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 	httpServer.AddRoute(http.MethodGet, alertingConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		json := strings.ReplaceAll(alertingConfigServerResponseTemplateWithEventTypes, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})

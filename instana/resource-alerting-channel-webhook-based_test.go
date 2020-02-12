@@ -61,7 +61,7 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 			httpServer.AddRoute(http.MethodGet, alertingChannelWebhookBasedApiPath, func(w http.ResponseWriter, r *http.Request) {
 				vars := mux.Vars(r)
 				json := strings.ReplaceAll(strings.ReplaceAll(alertingChannelWebhookBasedServerResponseTemplate, "{{id}}", vars["id"]), "{{type}}", string(channelType))
-				w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+				w.Header().Set(contentType, r.Header.Get(contentType))
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte(json))
 			})

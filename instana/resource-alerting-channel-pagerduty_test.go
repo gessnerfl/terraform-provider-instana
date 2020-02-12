@@ -55,7 +55,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodGet, alertingChannelPagerDutyApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		json := strings.ReplaceAll(alertingChannelPagerDutyServerResponseTemplate, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})

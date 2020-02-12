@@ -62,7 +62,7 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodGet, alertingChannelSlackApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		json := strings.ReplaceAll(alertingChannelSlackServerResponseTemplate, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})

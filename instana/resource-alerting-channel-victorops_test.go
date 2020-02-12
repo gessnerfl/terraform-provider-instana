@@ -59,7 +59,7 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodGet, alertingChannelVictorOpsApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		json := strings.ReplaceAll(alertingChannelVictorOpsServerResponseTemplate, "{{id}}", vars["id"])
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
 	})
