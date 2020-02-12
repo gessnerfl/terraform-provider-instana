@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -110,13 +111,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 			resource.TestStep{
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingConfigDefinitionWithRuleIds, "id"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldAlertName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldFullAlertName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldIntegrationIds+".0", "integration_id1"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldIntegrationIds+".1", "integration_id2"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldCustomPayload, "custom"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldEventFilterQuery, "query"),
+					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 0),
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldEventFilterRuleIDs+".0", "rule-1"),
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldEventFilterRuleIDs+".1", "rule-2"),
 				),
@@ -124,13 +119,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 			resource.TestStep{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingConfigDefinitionWithRuleIds, "id"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldAlertName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldFullAlertName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldIntegrationIds+".0", "integration_id1"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldIntegrationIds+".1", "integration_id2"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldCustomPayload, "custom"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldEventFilterQuery, "query"),
+					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 1),
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldEventFilterRuleIDs+".0", "rule-1"),
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, AlertingConfigFieldEventFilterRuleIDs+".1", "rule-2"),
 				),
@@ -164,13 +153,7 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 			resource.TestStep{
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingConfigDefinitionWithEventTypes, "id"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldAlertName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldFullAlertName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldIntegrationIds+".0", "integration_id1"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldIntegrationIds+".1", "integration_id2"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldCustomPayload, "custom"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterQuery, "query"),
+					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 0),
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".0", "INCIDENT"),
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".1", "CRITICAL"),
 				),
@@ -178,19 +161,25 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 			resource.TestStep{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingConfigDefinitionWithEventTypes, "id"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldAlertName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldFullAlertName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldIntegrationIds+".0", "integration_id1"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldIntegrationIds+".1", "integration_id2"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldCustomPayload, "custom"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterQuery, "query"),
+					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 1),
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".0", "INCIDENT"),
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".1", "CRITICAL"),
 				),
 			},
 		},
 	})
+}
+
+func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration int) resource.TestCheckFunc {
+	return resource.ComposeTestCheckFunc(
+		resource.TestCheckResourceAttrSet(config, "id"),
+		resource.TestCheckResourceAttr(config, AlertingConfigFieldAlertName, fmt.Sprintf("name %d", iteration)),
+		resource.TestCheckResourceAttr(config, AlertingConfigFieldFullAlertName, fmt.Sprintf("prefix name %d suffix", iteration)),
+		resource.TestCheckResourceAttr(config, AlertingConfigFieldIntegrationIds+".0", "integration_id1"),
+		resource.TestCheckResourceAttr(config, AlertingConfigFieldIntegrationIds+".1", "integration_id2"),
+		resource.TestCheckResourceAttr(config, AlertingConfigFieldCustomPayload, "custom"),
+		resource.TestCheckResourceAttr(config, AlertingConfigFieldEventFilterQuery, "query"),
+	)
 }
 
 func TestResourceAlertingConfigDefinition(t *testing.T) {
