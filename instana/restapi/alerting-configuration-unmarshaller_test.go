@@ -42,7 +42,7 @@ func TestShouldSuccessfullyUnmarshalAlertingConfigWithEventTypes(t *testing.T) {
 		"integrationIds" : [ "integrationId-1", "integrationId-2" ],
 		"eventFilteringConfiguration" : {
 			"query" : "query",
-			"eventTypes" : [ "INCIDENT", "CRITICAL" ]
+			"eventTypes" : [ "incident", "critical" ]
 		}
 	}`
 

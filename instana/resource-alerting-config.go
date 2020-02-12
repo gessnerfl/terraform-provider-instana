@@ -118,7 +118,7 @@ func updateStateForAlertingConfig(d *schema.ResourceData, obj restapi.InstanaDat
 func convertEventTypesToHarmonizedStringRepresentation(input []restapi.AlertEventType) []string {
 	result := make([]string, len(input))
 	for i, v := range input {
-		value := strings.ToUpper(string(v))
+		value := strings.ToLower(string(v))
 		result[i] = value
 	}
 	return result
@@ -146,7 +146,7 @@ func readEventTypesFromResourceData(d *schema.ResourceData) []restapi.AlertEvent
 	rawData := ReadStringArrayParameterFromResource(d, AlertingConfigFieldEventFilterEventTypes)
 	result := make([]restapi.AlertEventType, len(rawData))
 	for i, v := range rawData {
-		value := strings.ToUpper(v)
+		value := strings.ToLower(v)
 		result[i] = restapi.AlertEventType(value)
 	}
 	return result

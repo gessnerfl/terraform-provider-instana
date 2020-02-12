@@ -16,24 +16,24 @@ type AlertEventType string
 
 //Equals checks if the alert event type is equal to the provided alert event type. It compares the string representation of both case insensitive
 func (t AlertEventType) Equals(other AlertEventType) bool {
-	return strings.ToUpper(string(t)) == strings.ToUpper(string(other))
+	return strings.ToLower(string(t)) == strings.ToLower(string(other))
 }
 
 const (
-	//IncidentAlertEventType constant value for alert event type INCIDENT
-	IncidentAlertEventType = AlertEventType("INCIDENT")
-	//CriticalAlertEventType constant value for alert event type CRITICAL
-	CriticalAlertEventType = AlertEventType("CRITICAL")
-	//WarningAlertEventType constant value for alert event type WARNING
-	WarningAlertEventType = AlertEventType("WARNING")
-	//ChangeAlertEventType constant value for alert event type CHANGE
-	ChangeAlertEventType = AlertEventType("CHANGE")
-	//OnlineAlertEventType constant value for alert event type ONLINE
-	OnlineAlertEventType = AlertEventType("ONLINE")
-	//OfflineAlertEventType constant value for alert event type OFFLINE
-	OfflineAlertEventType = AlertEventType("OFFLINE")
-	//NoneAlertEventType constant value for alert event type NONE
-	NoneAlertEventType = AlertEventType("NONE")
+	//IncidentAlertEventType constant value for alert event type incident
+	IncidentAlertEventType = AlertEventType("incident")
+	//CriticalAlertEventType constant value for alert event type critical
+	CriticalAlertEventType = AlertEventType("critical")
+	//WarningAlertEventType constant value for alert event type warning
+	WarningAlertEventType = AlertEventType("warning")
+	//ChangeAlertEventType constant value for alert event type change
+	ChangeAlertEventType = AlertEventType("change")
+	//OnlineAlertEventType constant value for alert event type online
+	OnlineAlertEventType = AlertEventType("online")
+	//OfflineAlertEventType constant value for alert event type offline
+	OfflineAlertEventType = AlertEventType("offline")
+	//NoneAlertEventType constant value for alert event type none
+	NoneAlertEventType = AlertEventType("none")
 )
 
 //SupportedAlertEventTypes list of supported alert event types of Instana API

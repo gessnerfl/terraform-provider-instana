@@ -65,7 +65,7 @@ resource "instana_alerting_config" "event_types" {
   integration_ids = [ "integration_id1", "integration_id2" ]
   custom_payload = "custom"
   event_filter_query = "query"
-  event_filter_event_types = [ "INCIDENT", "CRITICAL" ]
+  event_filter_event_types = [ "incident", "critical" ]
 }
 `
 
@@ -156,16 +156,16 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 0),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".0", "INCIDENT"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".1", "CRITICAL"),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".0", "incident"),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".1", "critical"),
 				),
 			},
 			resource.TestStep{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".0", "INCIDENT"),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".1", "CRITICAL"),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".0", "incident"),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, AlertingConfigFieldEventFilterEventTypes+".1", "critical"),
 				),
 			},
 		},
@@ -321,7 +321,7 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.
 	resourceData.Set(AlertingConfigFieldIntegrationIds, integrationIds)
 	resourceData.Set(AlertingConfigFieldCustomPayload, alertingConfigCustomPayload)
 	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
-	resourceData.Set(AlertingConfigFieldEventFilterEventTypes, []string{"INCIDENT", "CRITICAL"})
+	resourceData.Set(AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
