@@ -20,9 +20,8 @@ const (
 
 func TestReturnIdOfAlertingConfig(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			RuleIDs: []string{alertingConfigRuleId1, alertingConfigRuleId2},
 		},
@@ -33,9 +32,8 @@ func TestReturnIdOfAlertingConfig(t *testing.T) {
 
 func TestShouldSuccessFullyValidateAlertingConfigurationWhenRuleIdsAreConfigured(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			RuleIDs: []string{alertingConfigRuleId1, alertingConfigRuleId2},
 		},
@@ -46,9 +44,8 @@ func TestShouldSuccessFullyValidateAlertingConfigurationWhenRuleIdsAreConfigured
 
 func TestShouldSuccessFullyValidateAlertingConfigurationWhenEventTypessAreConfigured(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
 		},
@@ -60,9 +57,8 @@ func TestShouldSuccessFullyValidateAlertingConfigurationWhenEventTypessAreConfig
 func TestShouldSuccessFullyValidateAlertingConfigurationWhenAnAdditionalQueryIsConfiguredForTheEventFilterConfig(t *testing.T) {
 	query := alertingConfigQuery
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			Query:      &query,
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
@@ -72,7 +68,7 @@ func TestShouldSuccessFullyValidateAlertingConfigurationWhenAnAdditionalQueryIsC
 	assert.Nil(t, config.Validate())
 }
 
-func TestShouldSuccessFullyValidateAlertingConfigurationWhenCustomPayloadIsDefined(t *testing.T) {
+func TestShouldSuccessFullyValidateAlertingConfigurationWhenIntegrationIdsAreDefined(t *testing.T) {
 	customPayload := "foo"
 	config := AlertingConfiguration{
 		ID:             alertingConfigID,
@@ -87,10 +83,23 @@ func TestShouldSuccessFullyValidateAlertingConfigurationWhenCustomPayloadIsDefin
 	assert.Nil(t, config.Validate())
 }
 
+func TestShouldSuccessFullyValidateAlertingConfigurationWhenCustomPayloadIsDefined(t *testing.T) {
+	customPayload := "foo"
+	config := AlertingConfiguration{
+		ID:            alertingConfigID,
+		AlertName:     alertingConfigName,
+		CustomPayload: &customPayload,
+		EventFilteringConfiguration: EventFilteringConfiguration{
+			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
+		},
+	}
+
+	assert.Nil(t, config.Validate())
+}
+
 func TestShouldFailToValidateAlertingChannelConfigurationWhenIDIsMissing(t *testing.T) {
 	config := AlertingConfiguration{
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
 		},
@@ -104,9 +113,8 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenIDIsMissing(t *test
 
 func TestShouldFailToValidateAlertingChannelConfigurationWhenIDIsBlank(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             "",
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        "",
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
 		},
@@ -120,8 +128,7 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenIDIsBlank(t *testin
 
 func TestShouldFailToValidateAlertingChannelConfigurationWhenAlertNameIsMissing(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID: alertingConfigID,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
 		},
@@ -135,9 +142,8 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenAlertNameIsMissing(
 
 func TestShouldFailToValidateAlertingChannelConfigurationWhenAlertNameIsBlank(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      "",
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: "",
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
 		},
@@ -151,9 +157,8 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenAlertNameIsBlank(t 
 
 func TestShouldFailToValidateAlertingChannelConfigurationWhenAlertNameExceedsMaxLength(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      utils.RandomString(1025),
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: utils.RandomString(1025),
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
 		},
@@ -163,21 +168,6 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenAlertNameExceedsMax
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "AlertName")
 	assert.Contains(t, err.Error(), "length")
-}
-
-func TestShouldFailToValidateAlertingChannelConfigurationWhenNoIntegrationIdIsProvided(t *testing.T) {
-	config := AlertingConfiguration{
-		ID:        alertingConfigID,
-		AlertName: alertingConfigName,
-		EventFilteringConfiguration: EventFilteringConfiguration{
-			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
-		},
-	}
-
-	err := config.Validate()
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "IntegrationID")
-	assert.Contains(t, err.Error(), "provided")
 }
 
 func TestShouldFailToValidateAlertingChannelConfigurationWhenTooManyIntegrationIDsAreProvided(t *testing.T) {
@@ -200,7 +190,7 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenTooManyIntegrationI
 	assert.Contains(t, err.Error(), "number")
 }
 
-func TestShouldFailToValidateAlertingChannelConfigurationWhenTooManyIntegrationIDsAreNotUnique(t *testing.T) {
+func TestShouldFailToValidateAlertingChannelConfigurationWhenIntegrationIDsAreNotUnique(t *testing.T) {
 	config := AlertingConfiguration{
 		ID:             alertingConfigID,
 		AlertName:      alertingConfigName,
@@ -219,9 +209,8 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenTooManyIntegrationI
 func TestShouldFailToValidateAlertingChannelConfigurationWhenCustomPayloadExceedsMaximumLength(t *testing.T) {
 	customPayload := utils.RandomString(65537)
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
 		},
@@ -236,9 +225,8 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenCustomPayloadExceed
 
 func TestShouldFailToValidateAlertingConfigurationWhenRuleIdsAndEventTypesAreConfigured(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			RuleIDs:    []string{alertingConfigRuleId1, alertingConfigRuleId2},
 			EventTypes: []AlertEventType{WarningAlertEventType, IncidentAlertEventType},
@@ -256,7 +244,6 @@ func TestShouldFailToValidateAlertingConfigurationWhenNeitherRuleIdsNorEventType
 	config := AlertingConfiguration{
 		ID:                          alertingConfigID,
 		AlertName:                   alertingConfigName,
-		IntegrationIDs:              []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
 		EventFilteringConfiguration: EventFilteringConfiguration{},
 	}
 
@@ -273,9 +260,8 @@ func TestShouldFailToValidateAlertingConfigurationWhenRuleIdsExceedTheMaximumNum
 		ruleIDs[i] = utils.RandomString(10)
 	}
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			RuleIDs: ruleIDs,
 		},
@@ -289,9 +275,8 @@ func TestShouldFailToValidateAlertingConfigurationWhenRuleIdsExceedTheMaximumNum
 
 func TestShouldFailToValidateAlertingConfigurationWhenRuleIdsAreNotUnique(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			RuleIDs: []string{alertingConfigRuleId1, alertingConfigRuleId2, alertingConfigRuleId1},
 		},
@@ -305,9 +290,8 @@ func TestShouldFailToValidateAlertingConfigurationWhenRuleIdsAreNotUnique(t *tes
 
 func TestShouldFailToValidateAlertingConfigurationWhenEventTypesExceedTheNumberOfAllowedEventTypes(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: SupportedAlertEventTypes,
 		},
@@ -321,9 +305,8 @@ func TestShouldFailToValidateAlertingConfigurationWhenEventTypesExceedTheNumberO
 
 func TestShouldFailToValidateAlertingConfigurationWhenEventTypesAreNotUnique(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{WarningAlertEventType, CriticalAlertEventType, WarningAlertEventType},
 		},
@@ -337,9 +320,8 @@ func TestShouldFailToValidateAlertingConfigurationWhenEventTypesAreNotUnique(t *
 
 func TestShouldFailToValidateAlertingConfigurationWhenEventTypeIsNotSupported(t *testing.T) {
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			EventTypes: []AlertEventType{AlertEventType("INVALID")},
 		},
@@ -352,12 +334,24 @@ func TestShouldFailToValidateAlertingConfigurationWhenEventTypeIsNotSupported(t 
 	assert.Contains(t, err.Error(), "supported")
 }
 
+func TestShouldSuccessfullyValidateAlertingConfigurationWithCasesInsensitveCheckForEventType(t *testing.T) {
+	config := AlertingConfiguration{
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
+		EventFilteringConfiguration: EventFilteringConfiguration{
+			EventTypes: []AlertEventType{AlertEventType("Critical")},
+		},
+	}
+
+	err := config.Validate()
+	assert.Nil(t, err)
+}
+
 func TestShouldFailToValidateAlertingConfigurationWhenQueryExceedsTheMaximumNumberOfCharacters(t *testing.T) {
 	query := utils.RandomString(2049)
 	config := AlertingConfiguration{
-		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
-		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
+		ID:        alertingConfigID,
+		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
 			Query:   &query,
 			RuleIDs: []string{alertingConfigRuleId1, alertingConfigRuleId2},

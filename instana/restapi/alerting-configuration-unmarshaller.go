@@ -7,7 +7,7 @@ import (
 
 //NewAlertingConfigurationUnmarshaller creates a new Unmarshaller instance for AlertingConfiguration
 func NewAlertingConfigurationUnmarshaller() Unmarshaller {
-	return &alertingChannelUnmarshaller{}
+	return &alertingConfigurationUnmarshaller{}
 }
 
 type alertingConfigurationUnmarshaller struct{}

@@ -3,6 +3,7 @@ package restapi
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
@@ -12,6 +13,11 @@ const AlertsResourcePath = EventSettingsBasePath + "/alerts"
 
 //AlertEventType type definition of EventTypes of an Instana Alert
 type AlertEventType string
+
+//Equals checks if the alert event type is equal to the provided alert event type. It compares the string representation of both case insensitive
+func (t AlertEventType) Equals(other AlertEventType) bool {
+	return strings.ToUpper(string(t)) == strings.ToUpper(string(other))
+}
 
 const (
 	//IncidentAlertEventType constant value for alert event type INCIDENT
@@ -44,7 +50,7 @@ var SupportedAlertEventTypes = []AlertEventType{
 //IsSupportedAlertEventType checks if the given alert type is supported by Instana API
 func IsSupportedAlertEventType(t AlertEventType) bool {
 	for _, supported := range SupportedAlertEventTypes {
-		if supported == t {
+		if supported.Equals(t) {
 			return true
 		}
 	}
@@ -53,9 +59,9 @@ func IsSupportedAlertEventType(t AlertEventType) bool {
 
 //EventFilteringConfiguration type definiton of an EventFilteringConfiguration of a AlertingConfiguration of the Instana ReST AOI
 type EventFilteringConfiguration struct {
-	Query      *string
-	RuleIDs    []string
-	EventTypes []AlertEventType
+	Query      *string          `json:"query"`
+	RuleIDs    []string         `json:"ruleIds"`
+	EventTypes []AlertEventType `json:"eventTypes"`
 }
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
@@ -108,11 +114,11 @@ func eventTypeSliceToStringSlice(input []AlertEventType) []string {
 
 //AlertingConfiguration type definition of an Alertinng Configruation in Instana REST API
 type AlertingConfiguration struct {
-	ID                          string
-	AlertName                   string
-	IntegrationIDs              []string
-	EventFilteringConfiguration EventFilteringConfiguration
-	CustomPayload               *string
+	ID                          string                      `json:"id"`
+	AlertName                   string                      `json:"alertName"`
+	IntegrationIDs              []string                    `json:"integrationIds"`
+	EventFilteringConfiguration EventFilteringConfiguration `json:"eventFilteringConfiguration"`
+	CustomPayload               *string                     `json:"customPayload"`
 }
 
 //GetID implemention of the interface InstanaDataObject
@@ -130,9 +136,6 @@ func (c AlertingConfiguration) Validate() error {
 	}
 	if len(c.AlertName) > 256 {
 		return errors.New("AlertName not valid; Maximum length of AlertName is 256 characters")
-	}
-	if len(c.IntegrationIDs) == 0 {
-		return errors.New("At least one IntegrationID must be provided")
 	}
 	if len(c.IntegrationIDs) > 1024 {
 		return errors.New("Too many IntegrationIDs; Maximum number of IntegrationIds is 1024")
