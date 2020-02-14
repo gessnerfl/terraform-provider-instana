@@ -1,5 +1,22 @@
 # Change Log
 
+## [v0.8.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.8.0) (2020-02-14)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.7.0...v0.8.0)
+
+**Closed issues:**
+
+- Migrate to new resource approach [\#35](https://github.com/gessnerfl/terraform-provider-instana/issues/35)
+- REST Client should support retries [\#32](https://github.com/gessnerfl/terraform-provider-instana/issues/32)
+- Alerting Configuration [\#30](https://github.com/gessnerfl/terraform-provider-instana/issues/30)
+- Alerting Channel Configuration [\#29](https://github.com/gessnerfl/terraform-provider-instana/issues/29)
+
+**Merged pull requests:**
+
+- Feature/32 rest throttling [\#38](https://github.com/gessnerfl/terraform-provider-instana/pull/38) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/30 alerting configuration [\#37](https://github.com/gessnerfl/terraform-provider-instana/pull/37) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/35 new resource approach [\#36](https://github.com/gessnerfl/terraform-provider-instana/pull/36) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/29 altering channels [\#34](https://github.com/gessnerfl/terraform-provider-instana/pull/34) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.7.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.7.0) (2019-12-17)
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.6.0...v0.7.0)
 
