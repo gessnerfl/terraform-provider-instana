@@ -78,7 +78,7 @@ func NewAlertingConfigResourceHandle() *ResourceHandle {
 			AlertingConfigFieldEventFilterRuleIDs: &schema.Schema{
 				Type:     schema.TypeList,
 				MinItems: 0,
-				MaxItems: 6,
+				MaxItems: 1024,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
