@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
@@ -30,13 +30,8 @@ func TestShouldSuccessfullyUnmarshalCustomEventSpecifications(t *testing.T) {
 
 	result, err := NewCustomEventSpecificationUnmarshaller().Unmarshal(serializedJSON)
 
-	if err != nil {
-		t.Fatal("Expected custom event specification to be successfully unmarshalled")
-	}
-
-	if !cmp.Equal(result, customEventSpecification) {
-		t.Fatalf("Expected custom event specification to be properly unmarshalled, %s", cmp.Diff(result, customEventSpecification))
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, customEventSpecification, result)
 }
 
 func TestShouldFailToUnmarshalCustomEventSpecificationWhenResponseIsAJsonArray(t *testing.T) {
@@ -44,9 +39,7 @@ func TestShouldFailToUnmarshalCustomEventSpecificationWhenResponseIsAJsonArray(t
 
 	_, err := NewCustomEventSpecificationUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToUnmarshalCustomEventSpecificationsWhenResponseIsNotAJsonMessage(t *testing.T) {
@@ -54,9 +47,7 @@ func TestShouldFailToUnmarshalCustomEventSpecificationsWhenResponseIsNotAJsonMes
 
 	_, err := NewCustomEventSpecificationUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldReturnEmptyCustomEventSpecificationWhenJsonObjectIsReturnWhereNoFiledMatches(t *testing.T) {
@@ -64,11 +55,6 @@ func TestShouldReturnEmptyCustomEventSpecificationWhenJsonObjectIsReturnWhereNoF
 
 	result, err := NewCustomEventSpecificationUnmarshaller().Unmarshal([]byte(response))
 
-	if err != nil {
-		t.Fatalf("Expected to successfully unmarshal custom event specification response, %s", err)
-	}
-
-	if !cmp.Equal(result, CustomEventSpecification{}) {
-		t.Fatal("Expected empty custom event specification")
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, CustomEventSpecification{}, result)
 }

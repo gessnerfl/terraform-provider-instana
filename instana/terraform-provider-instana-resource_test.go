@@ -2,16 +2,14 @@ package instana_test
 
 import (
 	"errors"
-	"strings"
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/stretchr/testify/assert"
 )
 
 const alertingChannelEmailID = "id"
@@ -30,9 +28,7 @@ func TestShouldSuccessfullyReadTestObjectFromInstanaAPIWhenBaseDataIsReturned(t 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
 
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
+		assert.Nil(t, err)
 		verifyTestObjectModelAppliedToResource(expectedModel, resourceData, t)
 	})
 }
@@ -45,9 +41,8 @@ func TestShouldFailToReadTestObjectFromInstanaAPIWhenIDIsMissing(t *testing.T) {
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
 
-		if err == nil || !strings.HasPrefix(err.Error(), "ID of instana_alerting_channel_email") {
-			t.Fatal("Expected error to occur because of missing id")
-		}
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "ID of instana_alerting_channel_email")
 	})
 }
 
@@ -64,12 +59,8 @@ func TestShouldFailToReadTestObjectFromInstanaAPIAndDeleteResourceWhenRoleDoesNo
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
 
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
+		assert.Nil(t, err)
+		assert.GreaterOrEqual(t, 0, len(resourceData.Id()))
 	})
 }
 
@@ -87,12 +78,8 @@ func TestShouldFailToReadTestObjectFromInstanaAPIAndReturnErrorWhenAPICallFails(
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
 
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error should be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID should still be set")
-		}
+		assert.Equal(t, expectedError, err)
+		assert.NotEqual(t, 0, len(resourceData.Id()))
 	})
 }
 
@@ -111,9 +98,7 @@ func TestShouldCreateTestObjectThroughInstanaAPI(t *testing.T) {
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Create(resourceData, providerMeta)
 
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
+		assert.Nil(t, err)
 		verifyTestObjectModelAppliedToResource(expectedModel, resourceData, t)
 	})
 }
@@ -133,9 +118,7 @@ func TestShouldReturnErrorWhenCreateTestObjectFailsThroughInstanaAPI(t *testing.
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Create(resourceData, providerMeta)
 
-		if err == nil || expectedError != err {
-			t.Fatal("Expected definned error to be returned")
-		}
+		assert.Equal(t, expectedError, err)
 	})
 }
 
@@ -155,12 +138,8 @@ func TestShouldDeleteTestObjectThroughInstanaAPI(t *testing.T) {
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Delete(resourceData, providerMeta)
 
-		if err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
-		if len(resourceData.Id()) > 0 {
-			t.Fatal("Expected ID to be cleaned to destroy resource")
-		}
+		assert.Nil(t, err)
+		assert.GreaterOrEqual(t, 0, len(resourceData.Id()))
 	})
 }
 
@@ -181,26 +160,15 @@ func TestShouldReturnErrorWhenDeleteTestObjectFailsThroughInstanaAPI(t *testing.
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Delete(resourceData, providerMeta)
 
-		if err == nil || err != expectedError {
-			t.Fatal("Expected error to be returned")
-		}
-		if len(resourceData.Id()) == 0 {
-			t.Fatal("Expected ID not to be cleaned to avoid resource is destroy")
-		}
+		assert.Equal(t, expectedError, err)
+		assert.NotEqual(t, 0, len(resourceData.Id()))
 	})
 }
 
 func verifyTestObjectModelAppliedToResource(model restapi.AlertingChannel, resourceData *schema.ResourceData, t *testing.T) {
-	if model.ID != resourceData.Id() {
-		t.Fatal("Expected ID to be identical")
-	}
-	if model.Name != resourceData.Get(AlertingChannelFieldFullName).(string) {
-		t.Fatal("Expected Full Name to match Name of API")
-	}
-	mails := ReadStringArrayParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
-	if !cmp.Equal(model.Emails, mails) {
-		t.Fatalf("Expected Emails to be identical %s vs %s", model.Emails, mails)
-	}
+	assert.Equal(t, model.ID, resourceData.Id())
+	assert.Equal(t, model.Name, resourceData.Get(AlertingChannelFieldFullName))
+	assert.Equal(t, model.Emails, ReadStringArrayParameterFromResource(resourceData, AlertingChannelEmailFieldEmails))
 }
 
 func createTestAlertingChannelEmailObject() restapi.AlertingChannel {

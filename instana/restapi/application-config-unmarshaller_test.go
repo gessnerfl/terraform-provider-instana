@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
@@ -23,13 +23,8 @@ func TestShouldSuccessfullyUnmarshalApplicationConfig(t *testing.T) {
 
 	result, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
 
-	if err != nil {
-		t.Fatal("Expected application config to be successfully unmarshalled")
-	}
-
-	if !cmp.Equal(result, applicationConfig) {
-		t.Fatalf("Expected application config to be properly unmarshalled, %s", cmp.Diff(result, applicationConfig))
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, applicationConfig, result)
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsAJsonArray(t *testing.T) {
@@ -37,18 +32,14 @@ func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsAJsonArray(t *test
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldReturnEmptyApplicationConfigWhenNoFieldOfResponseMatchesToModel(t *testing.T) {
 	response := `{"foo" : "bar"}`
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail when response is not matching application config")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsNotAValidJson(t *testing.T) {
@@ -56,9 +47,7 @@ func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsNotAValidJson(t *t
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenExpressionTypeIsNotSupported(t *testing.T) {
@@ -76,9 +65,7 @@ func TestShouldFailToUnmarashalApplicationConfigWhenExpressionTypeIsNotSupported
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail because of unsupported expression type")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenLeftSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
@@ -110,7 +97,5 @@ func testShouldFailToUnmarashalApplicationConfigWhenOneSideOfBinaryExpressionIsN
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail because of invalid binary expression")
-	}
+	assert.NotNil(t, err)
 }

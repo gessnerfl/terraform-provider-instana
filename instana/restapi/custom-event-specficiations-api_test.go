@@ -2,14 +2,11 @@ package restapi_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/google/go-cmp/cmp"
 )
 
 const (
@@ -56,13 +53,10 @@ func TestShouldValidateMinimalCustemEventSpecificationWithSystemRule(t *testing.
 		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
-	if err := spec.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := spec.Validate()
 
-	if customEventID != spec.GetID() {
-		t.Fatal("Expected GetID returns the correct id of the custom event specification")
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, customEventID, spec.GetID())
 }
 
 func TestShouldValidateFullCustomEventSpecificationWithSystemRule(t *testing.T) {
@@ -87,9 +81,9 @@ func TestShouldValidateFullCustomEventSpecificationWithSystemRule(t *testing.T) 
 		},
 	}
 
-	if err := spec.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := spec.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenIDIsMissing(t *testing.T) {
@@ -100,9 +94,10 @@ func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenIDIsMissing(t *
 		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
-		t.Fatal("Expected validate to fail as ID is not provided")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "ID")
 }
 
 func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenNameIsMissing(t *testing.T) {
@@ -113,9 +108,10 @@ func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenNameIsMissing(t
 		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "name") {
-		t.Fatal("Expected validate to fail as name is not provided")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "name")
 }
 
 func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenEntityTypeIsMissing(t *testing.T) {
@@ -126,9 +122,10 @@ func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenEntityTypeIsMis
 		Rules: []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "entity type") {
-		t.Fatal("Expected validate to fail as entity type is not provided")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "entity type")
 }
 
 func TestFailToValidateCustemEventSpecificationWhenNoRuleIsNil(t *testing.T) {
@@ -139,9 +136,10 @@ func TestFailToValidateCustemEventSpecificationWhenNoRuleIsNil(t *testing.T) {
 		Rules:      nil,
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartExactlyOneRule) {
-		t.Fatal("Expected validate to fail as no rule is provided")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartExactlyOneRule)
 }
 
 func TestFailToValidateCustemEventSpecificationWhenNoRuleIsProvided(t *testing.T) {
@@ -152,9 +150,10 @@ func TestFailToValidateCustemEventSpecificationWhenNoRuleIsProvided(t *testing.T
 		Rules:      []RuleSpecification{},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartExactlyOneRule) {
-		t.Fatal("Expected validate to fail as no rule is provided")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartExactlyOneRule)
 }
 
 func TestFailToValidateCustemEventSpecificationWhenMultipleRulesAreProvided(t *testing.T) {
@@ -166,9 +165,10 @@ func TestFailToValidateCustemEventSpecificationWhenMultipleRulesAreProvided(t *t
 		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}, RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartExactlyOneRule) {
-		t.Fatal("Expected validation to fail as multiple rules are provided")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartExactlyOneRule)
 }
 
 func TestFailToValidateCustemEventSpecificationWhenRuleTypeIsNotSupported(t *testing.T) {
@@ -179,9 +179,10 @@ func TestFailToValidateCustemEventSpecificationWhenRuleTypeIsNotSupported(t *tes
 		Rules:      []RuleSpecification{RuleSpecification{DType: "invalid"}},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "Unsupported rule type") {
-		t.Fatal("Expected validation to fail as rule type is not supported")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Unsupported rule type")
 }
 
 func TestFailToValidateCustemEventSpecificationWhenTheProvidedRuleIsNotValid(t *testing.T) {
@@ -192,9 +193,10 @@ func TestFailToValidateCustemEventSpecificationWhenTheProvidedRuleIsNotValid(t *
 		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType}},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), "id of system rule") {
-		t.Fatal("Expected validate to fail as no id of the second system rule is not provided")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "id of system rule")
 }
 
 func TestFailToValidateCustemEventSpecificationWhenDownstreamSpecificationIsNotValid(t *testing.T) {
@@ -207,34 +209,37 @@ func TestFailToValidateCustemEventSpecificationWhenDownstreamSpecificationIsNotV
 		Downstream: &EventSpecificationDownstream{},
 	}
 
-	if err := spec.Validate(); err == nil || !strings.Contains(err.Error(), messagePartIntegrationId) {
-		t.Fatal("Expected validate to fail as no integration id is provided for the downstream specification")
-	}
+	err := spec.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartIntegrationId)
 }
 
 func TestShouldSuccessfullyValidateSystemRule(t *testing.T) {
 	rule := NewSystemRuleSpecification(customEventSystemRuleID, 1000)
 
-	if err := rule.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := rule.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidateSystemRuleWhenSystemRuleIDIsMissing(t *testing.T) {
 	rule := RuleSpecification{DType: SystemRuleType}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "id of system rule") {
-		t.Fatal("Expected to fail to validate system rule as no system rule id is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "id of system rule")
 }
 
 func TestShouldFailToValidateSystemRuleWhenRuleTypeIsMissing(t *testing.T) {
 	systemRuleId := customEventSystemRuleID
 	rule := RuleSpecification{SystemRuleID: &systemRuleId}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "type of rule") {
-		t.Fatal("Expected to fail to validate system rule as no system rule id is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "type of rule")
 }
 
 func TestShouldSuccessfullyValidateEventSpecificationDownstream(t *testing.T) {
@@ -243,9 +248,9 @@ func TestShouldSuccessfullyValidateEventSpecificationDownstream(t *testing.T) {
 		BroadcastToAllAlertingConfigs: true,
 	}
 
-	if err := downstream.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := downstream.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDsAreNil(t *testing.T) {
@@ -253,9 +258,10 @@ func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDsAre
 		IntegrationIds: nil,
 	}
 
-	if err := downstream.Validate(); err == nil || !strings.Contains(err.Error(), messagePartIntegrationId) {
-		t.Fatal("Expected to fail to validate event specification downstream as integration ids is nil")
-	}
+	err := downstream.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartIntegrationId)
 }
 
 func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsProvided(t *testing.T) {
@@ -263,9 +269,10 @@ func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsPr
 		IntegrationIds: []string{},
 	}
 
-	if err := downstream.Validate(); err == nil || !strings.Contains(err.Error(), messagePartIntegrationId) {
-		t.Fatal("Expected to fail to validate event specification downstream as no integration id is provided")
-	}
+	err := downstream.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartIntegrationId)
 }
 
 func TestShouldValidateFullThresholdRuleSpecificationWithWindowRollupAndAggregation(t *testing.T) {
@@ -286,9 +293,9 @@ func TestShouldValidateFullThresholdRuleSpecificationWithWindowRollupAndAggregat
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := rule.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSupportedAggregations(t *testing.T) {
@@ -313,9 +320,9 @@ func createTestCaseForSuccessfullValidateMinimalThresholdRuleForAggregation(aggr
 			ConditionValue:    &conditionValue,
 		}
 
-		if err := rule.Validate(); err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
+		err := rule.Validate()
+
+		assert.Nil(t, err)
 	}
 }
 
@@ -342,9 +349,9 @@ func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperato
 			ConditionValue:    &conditionValue,
 		}
 
-		if err := rule.Validate(); err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
+		err := rule.Validate()
+
+		assert.Nil(t, err)
 	}
 }
 
@@ -362,9 +369,9 @@ func TestShouldValidateMinimalThresholdRuleSpecificationWithRollup(t *testing.T)
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := rule.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameIsMissing(t *testing.T) {
@@ -381,9 +388,10 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameI
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "metric name") {
-		t.Fatal("Expected to fail to validate threshold rule as no metric name is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "metric name")
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameIsBlank(t *testing.T) {
@@ -402,9 +410,10 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameI
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "metric name") {
-		t.Fatal("Expected to fail to validate threshold rule as no metric name is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "metric name")
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenNeitherRollupNorWindowIsDefined(t *testing.T) {
@@ -421,9 +430,10 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenNeitherRollupNorWindo
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "either rollup or window") {
-		t.Fatal("Expected to fail to validate threshold rule as no window is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "either rollup or window")
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithRollupAndWindowAreZero(t *testing.T) {
@@ -444,9 +454,10 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithRollupAndWindowAreZer
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "either rollup or window") {
-		t.Fatal("Expected to fail to validate threshold rule as no window is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "either rollup or window")
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsMissingConditionOperator(t *testing.T) {
@@ -463,9 +474,10 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregation
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "aggregation") {
-		t.Fatal("Expected to fail to validate threshold rule as no aggregation is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "aggregation")
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsNotValid(t *testing.T) {
@@ -484,9 +496,10 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregation
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "aggregation") {
-		t.Fatal("Expected to fail to validate threshold rule as no aggregation is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "aggregation")
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOperatorIsMissing(t *testing.T) {
@@ -503,9 +516,10 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 		ConditionValue: &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
-		t.Fatal("Expected to fail to validate threshold rule as no condition operator is provided")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartConditionOperator)
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOperatorIsNotValid(t *testing.T) {
@@ -524,9 +538,10 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 		ConditionValue:    &conditionValue,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), messagePartConditionOperator) {
-		t.Fatal("Expected to fail to validate threshold rule as no condition operator is not valid")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartConditionOperator)
 }
 
 func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsAreProvided(t *testing.T) {
@@ -543,9 +558,9 @@ func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsA
 		OfflineDuration:     &offlineDuration,
 	}
 
-	if err := rule.Validate(); err != nil {
-		t.Fatal("Expected to successfully validate entity verification rule")
-	}
+	err := rule.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsMissing(t *testing.T) {
@@ -559,9 +574,10 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabel
 		OfflineDuration:    &offlineDuration,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity label") {
-		t.Fatal("Expected to fail to validate entity verification rule as matching entity label is missing")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "matching entity label")
 }
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsBlank(t *testing.T) {
@@ -577,9 +593,10 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityLabel
 		OfflineDuration:     &offlineDuration,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity label") {
-		t.Fatal("Expected to fail to validate entity verification rule as matching entity label is blank")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "matching entity label")
 }
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsMissing(t *testing.T) {
@@ -593,9 +610,10 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeI
 		OfflineDuration:     &offlineDuration,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity type") {
-		t.Fatal("Expected to fail to validate entity verification rule as matching entity type is blank")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "matching entity type")
 }
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsBlank(t *testing.T) {
@@ -611,9 +629,10 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenEntityTypeI
 		OfflineDuration:     &offlineDuration,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching entity type") {
-		t.Fatal("Expected to fail to validate entity verification rule as matching entity type is blank")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "matching entity type")
 }
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOperatorIsMissing(t *testing.T) {
@@ -627,9 +646,10 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOpe
 		OfflineDuration:     &offlineDuration,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
-		t.Fatal("Expected to fail to validate entity verification rule as matching operator is missing")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "matching operator")
 }
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOpertatorIsNotSupported(t *testing.T) {
@@ -645,9 +665,10 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenMatchingOpe
 		OfflineDuration:     &offlineDuration,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "matching operator") {
-		t.Fatal("Expected to fail to validate entity verification rule as matching operator is not supported")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "matching operator")
 }
 
 func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenOfflineDurationIsNotSupported(t *testing.T) {
@@ -661,34 +682,29 @@ func TestShouldFaileToValidateEntityVerificationRuleSpecificationWhenOfflineDura
 		MatchingOperator:    &operator,
 	}
 
-	if err := rule.Validate(); err == nil || !strings.Contains(err.Error(), "offline duration") {
-		t.Fatal("Expected to fail to validate entity verification rule as offline duration is missing")
-	}
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "offline duration")
 }
 
 func TestShouldConvertSupportedAggregationTypesToSliceOfString(t *testing.T) {
 	expectedResult := []string{string(AggregationSum), string(AggregationAvg), string(AggregationMin), string(AggregationMax)}
 	result := SupportedAggregationTypes.ToStringSlice()
 
-	if !cmp.Equal(result, expectedResult) {
-		t.Fatal("Expected to get slice of strings for supported aggregations")
-	}
+	assert.Equal(t, expectedResult, result)
 }
 
 func TestShouldConvertSupportedConditionOperatorTypesToSliceOfString(t *testing.T) {
 	expectedResult := []string{string(ConditionOperatorEquals), string(ConditionOperatorNotEqual), string(ConditionOperatorLessThan), string(ConditionOperatorLessThanOrEqual), string(ConditionOperatorGreaterThan), string(ConditionOperatorGreaterThanOrEqual)}
 	result := SupportedConditionOperatorTypes.ToStringSlice()
 
-	if !cmp.Equal(result, expectedResult) {
-		t.Fatal("Expected to get slice of strings for supported condition operators")
-	}
+	assert.Equal(t, expectedResult, result)
 }
 
 func TestShouldConvertMatchingOperatorTypesToSliceOfString(t *testing.T) {
 	expectedResult := []string{string(MatchingOperatorIs), string(MatchingOperatorContains), string(MatchingOperatorStartsWith), string(MatchingOperatorEndsWith), string(MatchingOperatorNone)}
 	result := SupportedMatchingOperatorTypes.ToStringSlice()
 
-	if !cmp.Equal(result, expectedResult) {
-		t.Fatal("Expected to get slice of strings for supported matching operators")
-	}
+	assert.Equal(t, expectedResult, result)
 }

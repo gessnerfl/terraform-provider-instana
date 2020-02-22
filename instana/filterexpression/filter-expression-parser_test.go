@@ -4,10 +4,9 @@ import (
 	"testing"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
-	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/google/go-cmp/cmp"
 )
 
 const (
@@ -181,13 +180,8 @@ func shouldSuccessfullyParseExpression(input string, expectedResult *FilterExpre
 	sut := NewParser()
 	result, err := sut.Parse(input)
 
-	if err != nil {
-		t.Fatalf("Did not expected error but got %s", err)
-	}
-
-	if !cmp.Equal(expectedResult, result) {
-		t.Fatalf("Expected parse expression %v but got %v; diff %s", expectedResult, result, cmp.Diff(expectedResult, result))
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, expectedResult, result)
 }
 
 func TestShouldFailToParseInvalidExpression(t *testing.T) {
@@ -196,9 +190,7 @@ func TestShouldFailToParseInvalidExpression(t *testing.T) {
 	sut := NewParser()
 	_, err := sut.Parse(expression)
 
-	if err == nil {
-		t.Fatal("Expected parsing error")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
@@ -207,15 +199,10 @@ func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
 
 	sut := NewParser()
 	result, err := sut.Parse(expression)
-
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	assert.Nil(t, err)
 
 	rendered := result.Render()
-	if rendered != normalizedExpression {
-		t.Fatalf("Expected to get normalized expression rendered but got: %s", rendered)
-	}
+	assert.Equal(t, normalizedExpression, rendered)
 }
 
 func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
@@ -248,9 +235,7 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 
 	rendered := sut.Render()
 
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of logical OR but got:  %s", rendered)
-	}
+	assert.Equal(t, expectedResult, rendered)
 }
 
 func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIsSet(t *testing.T) {
@@ -268,9 +253,7 @@ func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIs
 
 	rendered := sut.Render()
 
-	if rendered != entityNameEqualsValueExpression {
-		t.Fatalf(messageExpectedNormalizedExpression, rendered)
-	}
+	assert.Equal(t, entityNameEqualsValueExpression, rendered)
 }
 
 func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
@@ -298,10 +281,7 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 	}
 
 	rendered := sut.Render()
-
-	if rendered != expectedResult {
-		t.Fatalf("Expected normalized rendered result of logical AND but got:  %s", rendered)
-	}
+	assert.Equal(t, expectedResult, rendered)
 }
 
 func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *testing.T) {
@@ -317,9 +297,7 @@ func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *t
 
 	rendered := sut.Render()
 
-	if rendered != entityNameEqualsValueExpression {
-		t.Fatalf(messageExpectedNormalizedExpression, rendered)
-	}
+	assert.Equal(t, entityNameEqualsValueExpression, rendered)
 }
 
 func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testing.T) {
@@ -333,9 +311,7 @@ func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testin
 
 	rendered := sut.Render()
 
-	if rendered != entityNameEqualsValueExpression {
-		t.Fatalf(messageExpectedNormalizedExpression, rendered)
-	}
+	assert.Equal(t, entityNameEqualsValueExpression, rendered)
 }
 
 func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperationIsSet(t *testing.T) {
@@ -350,7 +326,5 @@ func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperati
 
 	rendered := sut.Render()
 
-	if rendered != expectedResult {
-		t.Fatalf(messageExpectedNormalizedExpression, rendered)
-	}
+	assert.Equal(t, expectedResult, rendered)
 }

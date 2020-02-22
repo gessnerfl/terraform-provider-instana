@@ -7,35 +7,30 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestProviderShouldValidateInternally(t *testing.T) {
-	if err := Provider().InternalValidate(); err != nil {
-		t.Fatalf("Expected that provider configuration is valid but got error: %s", err)
-	}
+	err := Provider().InternalValidate()
+
+	assert.Nil(t, err)
 }
 
 func TestValidConfigurationOfProvider(t *testing.T) {
 	config := Provider()
-	if config.Schema == nil {
-		t.Fatal("Expected Schema to be configured")
-	}
+
+	assert.NotNil(t, config.Schema)
 	validateSchema(config.Schema, t)
 
-	if config.ResourcesMap == nil {
-		t.Fatal("Expected ResourcesMap to be configured")
-	}
+	assert.NotNil(t, config.ResourcesMap)
 	validateResourcesMap(config.ResourcesMap, t)
 
-	if config.ConfigureFunc == nil {
-		t.Fatal("Expected ConfigureFunc to be configured")
-	}
+	assert.NotNil(t, config.ConfigureFunc)
 }
 
 func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	if len(schemaMap) != 4 {
-		t.Fatal("Expected three configuration options for provider")
-	}
+	assert.Equal(t, 4, len(schemaMap))
+
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldAPIToken)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldEndpoint)
@@ -44,63 +39,32 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	if len(resourceMap) != 15 {
-		t.Fatal("Expected 14 resources to be configured")
-	}
+	assert.Equal(t, 15, len(resourceMap))
 
-	if resourceMap[ResourceInstanaUserRole] == nil {
-		t.Fatal("Expected a resources to be configured for instana user roles")
-	}
-	if resourceMap[ResourceInstanaApplicationConfig] == nil {
-		t.Fatal("Expected a resources to be configured for instana application config")
-	}
+	assert.NotNil(t, resourceMap[ResourceInstanaUserRole])
+	assert.NotNil(t, resourceMap[ResourceInstanaApplicationConfig])
+
 	validateResourcesMapForCustomEvents(resourceMap, t)
 	validateResourcesMapForAlerting(resourceMap, t)
 }
 
 func validateResourcesMapForCustomEvents(resourceMap map[string]*schema.Resource, t *testing.T) {
-	if resourceMap[ResourceInstanaCustomEventSpecificationSystemRule] == nil {
-		t.Fatal("Expected a resources to be configured for instana custom event specification system rule")
-	}
-	if resourceMap[ResourceInstanaCustomEventSpecificationThresholdRule] == nil {
-		t.Fatal("Expected a resources to be configured for instana custom event specification threshold rule")
-	}
-	if resourceMap[ResourceInstanaCustomEventSpecificationEntityVerificationRule] == nil {
-		t.Fatal("Expected a resources to be configured for instana custom event specification entity verification rule")
-	}
+	assert.NotNil(t, resourceMap[ResourceInstanaCustomEventSpecificationSystemRule])
+	assert.NotNil(t, resourceMap[ResourceInstanaCustomEventSpecificationThresholdRule])
+	assert.NotNil(t, resourceMap[ResourceInstanaCustomEventSpecificationEntityVerificationRule])
 }
 
 func validateResourcesMapForAlerting(resourceMap map[string]*schema.Resource, t *testing.T) {
-	if resourceMap[ResourceInstanaAlertingChannelEmail] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel email")
-	}
-	if resourceMap[ResourceInstanaAlertingChannelGoogleChat] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel google chat")
-	}
-	if resourceMap[ResourceInstanaAlertingChannelSlack] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel slack")
-	}
-	if resourceMap[ResourceInstanaAlertingChannelOffice365] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel office 365")
-	}
-	if resourceMap[ResourceInstanaAlertingChannelOpsGenie] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel OpsGenie")
-	}
-	if resourceMap[ResourceInstanaAlertingChannelPagerDuty] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel PagerDuty")
-	}
-	if resourceMap[ResourceInstanaAlertingChannelSplunk] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel Splunk")
-	}
-	if resourceMap[ResourceInstanaAlertingChannelVictorOps] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel VictorOps")
-	}
-	if resourceMap[ResourceInstanaAlertingChannelWebhook] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting channel webhhok")
-	}
-	if resourceMap[ResourceInstanaAlertingConfig] == nil {
-		t.Fatal("Expected a resources to be configured for instana alerting config")
-	}
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelEmail])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelGoogleChat])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelSlack])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelOffice365])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelOpsGenie])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelPagerDuty])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelSplunk])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelVictorOps])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelWebhook])
+	assert.NotNil(t, resourceMap[ResourceInstanaAlertingConfig])
 }
 
 func validateConfigureFunc(schemaMap map[string]*schema.Schema, configureFunc func(*schema.ResourceData) (interface{}, error), t *testing.T) {
@@ -111,10 +75,7 @@ func validateConfigureFunc(schemaMap map[string]*schema.Schema, configureFunc fu
 
 	result, err := configureFunc(resourceData)
 
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	if _, ok := result.(restapi.InstanaAPI); !ok {
-		t.Fatal("expected to get instance of InstanaAPI")
-	}
+	assert.Nil(t, err)
+	_, ok := result.(restapi.InstanaAPI)
+	assert.True(t, ok)
 }

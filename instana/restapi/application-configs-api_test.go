@@ -2,10 +2,9 @@ package restapi_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
@@ -21,8 +20,7 @@ const (
 	valueLeftFieldValue  = "valueLeft"
 	valueRightFieldValue = "valueRight"
 
-	operatorFieldName                = "operator"
-	messageExpectedInvalidTagMatcher = "Expected invalid tag matcher expression because of missing operator"
+	operatorFieldName = "operator"
 )
 
 func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
@@ -33,13 +31,10 @@ func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
 		Scope:              scopeFieldValue,
 	}
 
-	if err := config.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := config.Validate()
 
-	if config.GetID() != idFieldValue {
-		t.Fatal("Expected id to be valid")
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, idFieldValue, config.GetID())
 }
 
 func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
@@ -50,9 +45,10 @@ func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
 			Scope:              scopeFieldValue,
 		}
 
-	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "id") {
-		t.Fatal("Expected invalid application config because of missing ID")
-	}
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "id")
 }
 
 func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
@@ -63,9 +59,10 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 			Scope:              scopeFieldValue,
 		}
 
-	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "label") {
-		t.Fatal("Expected invalid application config because of missing label")
-	}
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "label")
 }
 
 func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t *testing.T) {
@@ -76,9 +73,10 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t 
 			Scope: scopeFieldValue,
 		}
 
-	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "match specification") {
-		t.Fatal("Expected invalid application config because of missing MatchSpecification")
-	}
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "match specification")
 }
 
 func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t *testing.T) {
@@ -89,9 +87,10 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t
 		Scope:              scopeFieldValue,
 	}
 
-	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "key") {
-		t.Fatal("Expected invalid application config because of invalid match specification")
-	}
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
@@ -102,9 +101,10 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
 		}
 
-	if err := config.Validate(); err == nil || !strings.Contains(err.Error(), "scope") {
-		t.Fatal("Expected invalid application config because of missing Scope")
-	}
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "scope")
 }
 
 func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
@@ -120,13 +120,10 @@ func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator Con
 
 		exp := NewBinaryOperator(left, operator, right)
 
-		if err := exp.Validate(); err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
+		err := exp.Validate()
 
-		if exp.GetType() != BinaryOperatorExpressionType {
-			t.Fatal("Expected type to be binary operator")
-		}
+		assert.Nil(t, err)
+		assert.Equal(t, BinaryOperatorExpressionType, exp.GetType())
 	}
 }
 
@@ -135,9 +132,10 @@ func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsMissing(t *testin
 
 	exp := NewBinaryOperator(nil, LogicalAnd, right)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "left") {
-		t.Fatal("Expected invalid application config because of missing Left operator")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "left")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testing.T) {
@@ -146,9 +144,10 @@ func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testi
 
 	exp := NewBinaryOperator(left, LogicalAnd, right)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "key") {
-		t.Fatal("Expected invalid application config because of invalid Left operator")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsNotValid(t *testing.T) {
@@ -157,9 +156,10 @@ func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsNotValid(t *testin
 
 	exp := NewBinaryOperator(left, "FOO", right)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "conjunction") {
-		t.Fatal("Expected invalid application config because of invalid conjunction")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "conjunction")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testing.T) {
@@ -167,9 +167,10 @@ func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testi
 
 	exp := NewBinaryOperator(left, LogicalAnd, nil)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "right") {
-		t.Fatal("Expected invalid application config because of missing right operator")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "right")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *testing.T) {
@@ -178,9 +179,10 @@ func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *test
 
 	exp := NewBinaryOperator(left, LogicalAnd, right)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "key") {
-		t.Fatal("Expected invalid application config because of invalid right operator")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsMissing(t *testing.T) {
@@ -189,9 +191,10 @@ func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsMissing(t *testing
 
 	exp := NewBinaryOperator(left, "", right)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "conjunction") {
-		t.Fatal("Expected invalid application config because of missing conjunction")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "conjunction")
 }
 
 func TestShouldCreateValidComparisionExpression(t *testing.T) {
@@ -204,46 +207,47 @@ func createTestShouldCreateValidComparisionExpression(operator MatcherOperator) 
 	return func(t *testing.T) {
 		exp := NewComparisionExpression(keyFieldValue, operator, valueFieldValue)
 
-		if err := exp.Validate(); err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
+		err := exp.Validate()
 
-		if exp.GetType() != LeafExpressionType {
-			t.Fatal("Expected leaf expression type")
-		}
+		assert.Nil(t, err)
+		assert.Equal(t, LeafExpressionType, exp.GetType())
 	}
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenKeyIsMissing(t *testing.T) {
 	exp := NewComparisionExpression("", EqualsOperator, valueFieldValue)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "key") {
-		t.Fatal("Expected invalid tag matcher expression because of missing key")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsMissing(t *testing.T) {
 	exp := NewComparisionExpression(keyFieldValue, "", valueFieldValue)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), operatorFieldName) {
-		t.Fatal(messageExpectedInvalidTagMatcher)
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), operatorFieldName)
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsNotValid(t *testing.T) {
 	exp := NewComparisionExpression(keyFieldValue, "FOO", valueFieldValue)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), operatorFieldName) {
-		t.Fatal(messageExpectedInvalidTagMatcher)
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), operatorFieldName)
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenValueIsMissing(t *testing.T) {
 	exp := NewComparisionExpression(keyFieldValue, EqualsOperator, "")
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "value") {
-		t.Fatal("Expected invalid tag matcher expression because of missing value")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "value")
 }
 
 func TestShouldCreateValidUnaryOperatorExpression(t *testing.T) {
@@ -256,44 +260,45 @@ func createTestShouldCreateValidUnaryOperatorExpression(operator MatcherOperator
 	return func(t *testing.T) {
 		exp := NewUnaryOperationExpression(keyFieldValue, operator)
 
-		if err := exp.Validate(); err != nil {
-			t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-		}
+		err := exp.Validate()
 
-		if exp.GetType() != LeafExpressionType {
-			t.Fatal("Expected leaf expression type")
-		}
+		assert.Nil(t, err)
+		assert.Equal(t, LeafExpressionType, exp.GetType())
 	}
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenKeyIsMissing(t *testing.T) {
 	exp := NewUnaryOperationExpression("", IsEmptyOperator)
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "key") {
-		t.Fatal("Expected invalid tag matcher expression because of missing key")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsMissing(t *testing.T) {
 	exp := NewUnaryOperationExpression(keyFieldValue, "")
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), operatorFieldName) {
-		t.Fatal(messageExpectedInvalidTagMatcher)
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), operatorFieldName)
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsNotValid(t *testing.T) {
 	exp := NewUnaryOperationExpression(keyFieldValue, "FOO")
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), operatorFieldName) {
-		t.Fatal(messageExpectedInvalidTagMatcher)
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), operatorFieldName)
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenValueIsSet(t *testing.T) {
 	exp := NewComparisionExpression(keyFieldValue, IsEmptyOperator, "")
 
-	if err := exp.Validate(); err == nil || !strings.Contains(err.Error(), "value") {
-		t.Fatal("Expected invalid tag matcher expression because of missing value")
-	}
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "value")
 }

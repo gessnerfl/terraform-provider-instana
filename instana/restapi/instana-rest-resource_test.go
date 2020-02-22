@@ -8,9 +8,8 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/golang/mock/gomock"
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -68,13 +67,8 @@ func TestSuccessfulGetOneTestObject(t *testing.T) {
 
 	data, err := sut.GetOne(testObject.ID)
 
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-
-	if !cmp.Equal(testObject, data) {
-		t.Fatalf(testutils.ExpectedUnmarshalledJSONWithStruct, testObject, data, cmp.Diff(testObject, data))
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, testObject, data)
 }
 
 func TestShouldFailToGetOneTestObjectWhenErrorIsRetrievedFromRestClient(t *testing.T) {
@@ -88,9 +82,7 @@ func TestShouldFailToGetOneTestObjectWhenErrorIsRetrievedFromRestClient(t *testi
 
 	_, err := sut.GetOne(testObjectID)
 
-	if err == nil {
-		t.Fatalf(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToGetOneTestObjectWhenResponseContainsAnInvalidJsonArray(t *testing.T) {
@@ -104,9 +96,7 @@ func TestShouldFailToGetOneTestObjectWhenResponseContainsAnInvalidJsonArray(t *t
 
 	_, err := sut.GetOne(testObjectID)
 
-	if err == nil {
-		t.Fatalf(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToGetOneTestObjectWhenResponseContainsAnInvalidJsonObject(t *testing.T) {
@@ -120,9 +110,7 @@ func TestShouldFailToGetOneTestObjectWhenResponseContainsAnInvalidJsonObject(t *
 
 	_, err := sut.GetOne(testObjectID)
 
-	if err == nil {
-		t.Fatalf(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToGetOneTestObjectWhenResponseIsNotAJsonObject(t *testing.T) {
@@ -136,9 +124,7 @@ func TestShouldFailToGetOneTestObjectWhenResponseIsNotAJsonObject(t *testing.T) 
 
 	_, err := sut.GetOne(testObjectID)
 
-	if err == nil {
-		t.Fatalf(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }
 
 func TestSuccessfulUpsertOfTestObject(t *testing.T) {
@@ -154,13 +140,8 @@ func TestSuccessfulUpsertOfTestObject(t *testing.T) {
 
 	result, err := sut.Upsert(testObject)
 
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-
-	if !cmp.Equal(testObject, result) {
-		t.Fatalf(testutils.ExpectedUnmarshalledJSONWithStruct, testObject, result, cmp.Diff(result, result))
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, testObject, result)
 }
 
 func TestShouldFailToUpsertTestObjectWhenErrorIsReturnedFromRestClient(t *testing.T) {
@@ -175,9 +156,7 @@ func TestShouldFailToUpsertTestObjectWhenErrorIsReturnedFromRestClient(t *testin
 
 	_, err := sut.Upsert(testObject)
 
-	if err == nil {
-		t.Fatal(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToUpsertTestObjectWhenResponseMessageIsNotAValidJsonObject(t *testing.T) {
@@ -192,9 +171,7 @@ func TestShouldFailToUpsertTestObjectWhenResponseMessageIsNotAValidJsonObject(t 
 
 	_, err := sut.Upsert(testObject)
 
-	if err == nil {
-		t.Fatalf(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToUpsertTestObjectWhenResponseMessageContainsAnInvalidTestObject(t *testing.T) {
@@ -209,9 +186,7 @@ func TestShouldFailToUpsertTestObjectWhenResponseMessageContainsAnInvalidTestObj
 
 	_, err := sut.Upsert(testObject)
 
-	if err == nil {
-		t.Fatalf(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailedToUpsertTestObjectWhenAnInvalidTestObjectIsProvided(t *testing.T) {
@@ -229,9 +204,7 @@ func TestShouldFailedToUpsertTestObjectWhenAnInvalidTestObjectIsProvided(t *test
 
 	_, err := sut.Upsert(testObject)
 
-	if err == nil {
-		t.Fatal(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }
 
 func TestSuccessfulDeleteOfTestObjectByObject(t *testing.T) {
@@ -246,9 +219,7 @@ func TestSuccessfulDeleteOfTestObjectByObject(t *testing.T) {
 
 	err := sut.Delete(testObject)
 
-	if err != nil {
-		t.Fatalf("Expected no error got %s", err)
-	}
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToDeleteTestObjectWhenErrorIsRetrunedFromRestClient(t *testing.T) {
@@ -263,7 +234,5 @@ func TestShouldFailToDeleteTestObjectWhenErrorIsRetrunedFromRestClient(t *testin
 
 	err := sut.Delete(testObject)
 
-	if err == nil {
-		t.Fatal(testutils.ExpectedError)
-	}
+	assert.NotNil(t, err)
 }

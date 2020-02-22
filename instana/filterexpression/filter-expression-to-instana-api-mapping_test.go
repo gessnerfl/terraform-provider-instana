@@ -6,7 +6,7 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShouldMapSimpleComparisionToRepresentationOfInstanaAPI(t *testing.T) {
@@ -118,7 +118,5 @@ func runTestCaseForMappingToAPI(input *FilterExpression, expectedResult restapi.
 	mapper := NewMapper()
 	result := mapper.ToAPIModel(input)
 
-	if !cmp.Equal(result, expectedResult) {
-		t.Fatalf("Parse result does not match; diff %s", cmp.Diff(expectedResult, result))
-	}
+	assert.Equal(t, expectedResult, result)
 }

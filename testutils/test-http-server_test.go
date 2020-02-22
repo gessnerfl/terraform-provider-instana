@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	testutils "github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing.T) {
@@ -22,28 +23,21 @@ func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing
 	testString := "test string"
 
 	resp, err := http.Post(url, "test/plain", strings.NewReader(testString))
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	if resp.StatusCode != 200 {
-		t.Fatalf("Expected http status code 200 but got %d", resp.StatusCode)
-	}
+
+	assert.Nil(t, err)
+	assert.Equal(t, 200, resp.StatusCode)
 
 	defer resp.Body.Close()
 	responseBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		t.Fatal("Expected to get http response")
-	}
+	assert.Nil(t, err)
 	responseString := string(responseBytes)
-	if testString != responseString {
-		t.Fatalf("Expected to get '%s' but got '%s'", testString, responseString)
-	}
+
+	assert.Equal(t, testString, responseString)
 }
 
 func TestShouldCreateRandomPortNumber(t *testing.T) {
 	result := testutils.RandomPort()
 
-	if result < testutils.MinPortNumber || result > testutils.MaxPortNumber {
-		t.Fatalf("Expected port number between %d and %d but got %d", testutils.MinPortNumber, testutils.MaxPortNumber, result)
-	}
+	assert.LessOrEqual(t, result, testutils.MaxPortNumber)
+	assert.GreaterOrEqual(t, result, testutils.MinPortNumber)
 }

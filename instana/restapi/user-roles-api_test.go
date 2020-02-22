@@ -1,10 +1,10 @@
 package restapi_test
 
 import (
-	"strings"
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -18,13 +18,10 @@ func TestValidMinimalUserRole(t *testing.T) {
 		Name: userRoleName,
 	}
 
-	if userRoleID != userRole.GetID() {
-		t.Fatalf("Expected to get correct ID but got %s", userRole.GetID())
-	}
+	assert.Equal(t, userRoleID, userRole.GetID())
 
-	if err := userRole.Validate(); err != nil {
-		t.Fatalf("Expected valid user role but got validation error %s", err)
-	}
+	err := userRole.Validate()
+	assert.Nil(t, err)
 }
 
 func TestValidFullUserRole(t *testing.T) {
@@ -50,13 +47,10 @@ func TestValidFullUserRole(t *testing.T) {
 		CanConfigureApplications:          true,
 	}
 
-	if userRoleID != userRole.GetID() {
-		t.Fatalf("Expected to get correct ID but got %s", userRole.GetID())
-	}
+	assert.Equal(t, userRoleID, userRole.GetID())
 
-	if err := userRole.Validate(); err != nil {
-		t.Fatalf("Expected valid user role but got validation error %s", err)
-	}
+	err := userRole.Validate()
+	assert.Nil(t, err)
 }
 
 func TestInvalidUserRoleBecauseOfMissingId(t *testing.T) {
@@ -64,9 +58,10 @@ func TestInvalidUserRoleBecauseOfMissingId(t *testing.T) {
 		Name: userRoleName,
 	}
 
-	if err := userRole.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
-		t.Fatalf("Expected invalid userRole because of missing ID")
-	}
+	err := userRole.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "ID")
 }
 
 func TestInvalidUserRoleBecauseOfMissingName(t *testing.T) {
@@ -74,7 +69,8 @@ func TestInvalidUserRoleBecauseOfMissingName(t *testing.T) {
 		ID: userRoleID,
 	}
 
-	if err := userRole.Validate(); err == nil || !strings.Contains(err.Error(), "Name") {
-		t.Fatalf("Expected invalid userRole because of missing Name")
-	}
+	err := userRole.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Name")
 }

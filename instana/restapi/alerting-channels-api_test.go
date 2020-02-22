@@ -2,11 +2,10 @@ package restapi_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -29,9 +28,7 @@ func TestShouldReturnIDOfAlteringChannel(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if idFieldValue != alertingChannel.GetID() {
-		t.Fatal("GetID should return id value of alerting channel")
-	}
+	assert.Equal(t, idFieldValue, alertingChannel.GetID())
 }
 
 func TestShouldSuccussullyValidateConsistentEmailAlteringChannel(t *testing.T) {
@@ -42,9 +39,8 @@ func TestShouldSuccussullyValidateConsistentEmailAlteringChannel(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if err := alertingChannel.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := alertingChannel.Validate()
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidateAlteringChannelWhenIdIsMissing(t *testing.T) {
@@ -54,9 +50,10 @@ func TestShouldFailToValidateAlteringChannelWhenIdIsMissing(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
-		t.Fatal("Expected validate to fail as ID is not provided")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "ID")
 }
 
 func TestShouldFailToValidateAlteringChannelWhenIdIsBlank(t *testing.T) {
@@ -67,9 +64,10 @@ func TestShouldFailToValidateAlteringChannelWhenIdIsBlank(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "ID") {
-		t.Fatal("Expected validate to fail as ID is not provided")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "ID")
 }
 
 func TestShouldFailToValidateAlteringChannelWhenNameIsMissing(t *testing.T) {
@@ -79,9 +77,10 @@ func TestShouldFailToValidateAlteringChannelWhenNameIsMissing(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Name") {
-		t.Fatal("Expected validate to fail as name is not provided")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Name")
 }
 
 func TestShouldFailToValidateAlteringChannelWhenNameIsBlank(t *testing.T) {
@@ -93,9 +92,10 @@ func TestShouldFailToValidateAlteringChannelWhenNameIsBlank(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Name") {
-		t.Fatal("Expected validate to fail as name is not provided")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Name")
 }
 
 func TestShouldFailToValidateAlteringChannelWhenKindIsMissing(t *testing.T) {
@@ -105,9 +105,10 @@ func TestShouldFailToValidateAlteringChannelWhenKindIsMissing(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Kind") {
-		t.Fatal("Expected validate to fail as kind is not provided")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Kind")
 }
 
 func TestShouldFailToValidateAlteringChannelWhenKindIsNotValid(t *testing.T) {
@@ -118,9 +119,10 @@ func TestShouldFailToValidateAlteringChannelWhenKindIsNotValid(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "unsupported alerting channel type") {
-		t.Fatal("Expected validate to fail as kind is not valid")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "unsupported alerting channel type")
 }
 func TestShouldFailToValidateEmailAlteringChannelWhenNoEmailIsProvided(t *testing.T) {
 	alertingChannel := AlertingChannel{
@@ -130,9 +132,10 @@ func TestShouldFailToValidateEmailAlteringChannelWhenNoEmailIsProvided(t *testin
 		Emails: []string{},
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Email addresses") {
-		t.Fatal("Expected validate to fail as at least one email is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Email addresses")
 }
 
 func TestShouldSuccussullyValidateConsistentWebhhokBasedAlteringChannel(t *testing.T) {
@@ -146,9 +149,9 @@ func TestShouldSuccussullyValidateConsistentWebhhokBasedAlteringChannel(t *testi
 				WebhookURL: &webhookURL,
 			}
 
-			if err := alertingChannel.Validate(); err != nil {
-				t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-			}
+			err := alertingChannel.Validate()
+
+			assert.Nil(t, err)
 		})
 	}
 }
@@ -162,9 +165,10 @@ func TestShouldFailToValidateWebhhokBasedAlteringChannelWhenWebhookUrlIsMissing(
 				Kind: channelType,
 			}
 
-			if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Webhook URL") {
-				t.Fatal("Expected validate to fail as webhook URL is missing")
-			}
+			err := alertingChannel.Validate()
+
+			assert.NotNil(t, err)
+			assert.Contains(t, err.Error(), "Webhook URL")
 		})
 	}
 }
@@ -180,9 +184,10 @@ func TestShouldFailToValidateWebhhokBasedAlteringChannelWhenWebhookUrlIsBlank(t 
 				WebhookURL: &webhookURL,
 			}
 
-			if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Webhook URL") {
-				t.Fatal("Expected validate to fail as webhook URL is missing")
-			}
+			err := alertingChannel.Validate()
+
+			assert.NotNil(t, err)
+			assert.Contains(t, err.Error(), "Webhook URL")
 		})
 	}
 }
@@ -201,9 +206,9 @@ func TestShouldSuccussullyValidateConsistentOpsGenieAlteringChannel(t *testing.T
 		Tags:   &tags,
 	}
 
-	if err := alertingChannel.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := alertingChannel.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelWhenApiKeyIsMissing(t *testing.T) {
@@ -218,9 +223,10 @@ func TestShouldFailToValidateOpsGenieAlteringChannelWhenApiKeyIsMissing(t *testi
 		Tags:   &tags,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "API key") {
-		t.Fatal("Expected validate to fail as API key is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "API key")
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelWhenApiKeyIsBlank(t *testing.T) {
@@ -237,9 +243,10 @@ func TestShouldFailToValidateOpsGenieAlteringChannelWhenApiKeyIsBlank(t *testing
 		Tags:   &tags,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "API key") {
-		t.Fatal("Expected validate to fail as API key is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "API key")
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelWhenRegionIsMissing(t *testing.T) {
@@ -254,9 +261,10 @@ func TestShouldFailToValidateOpsGenieAlteringChannelWhenRegionIsMissing(t *testi
 		Tags:   &tags,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Region") {
-		t.Fatal("Expected validate to fail as region is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Region")
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelWhenRegionIsNotValid(t *testing.T) {
@@ -273,9 +281,10 @@ func TestShouldFailToValidateOpsGenieAlteringChannelWhenRegionIsNotValid(t *test
 		Tags:   &tags,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Region") {
-		t.Fatal("Expected validate to fail as region is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Region")
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelWhenTagsAreMissing(t *testing.T) {
@@ -290,9 +299,10 @@ func TestShouldFailToValidateOpsGenieAlteringChannelWhenTagsAreMissing(t *testin
 		Region: &region,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Tags") {
-		t.Fatal("Expected validate to fail as tags are missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Tags")
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelWhenTagsAreBlank(t *testing.T) {
@@ -309,9 +319,10 @@ func TestShouldFailToValidateOpsGenieAlteringChannelWhenTagsAreBlank(t *testing.
 		Tags:   &tags,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Tags") {
-		t.Fatal("Expected validate to fail as tags are missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Tags")
 }
 
 func TestShouldSuccussullyValidateConsistentPagerDutyAlteringChannel(t *testing.T) {
@@ -324,9 +335,9 @@ func TestShouldSuccussullyValidateConsistentPagerDutyAlteringChannel(t *testing.
 		ServiceIntegrationKey: &integrationId,
 	}
 
-	if err := alertingChannel.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := alertingChannel.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidatePagerDutyAlteringChannelWhenServiceIntegrationKeyIsMissing(t *testing.T) {
@@ -336,9 +347,10 @@ func TestShouldFailToValidatePagerDutyAlteringChannelWhenServiceIntegrationKeyIs
 		Kind: PagerDutyChannelType,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Service integration key") {
-		t.Fatal("Expected validate to fail as service integration key is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Service integration key")
 }
 
 func TestShouldFailToValidatePagerdutyAlteringChannelWhenServiceIntegrationKeyIsBlank(t *testing.T) {
@@ -351,9 +363,10 @@ func TestShouldFailToValidatePagerdutyAlteringChannelWhenServiceIntegrationKeyIs
 		ServiceIntegrationKey: &integrationId,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Service integration key") {
-		t.Fatal("Expected validate to fail as service integration key is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Service integration key")
 }
 
 func TestShouldSuccussullyValidateConsistentSplunkAlteringChannel(t *testing.T) {
@@ -368,9 +381,9 @@ func TestShouldSuccussullyValidateConsistentSplunkAlteringChannel(t *testing.T) 
 		Token: &token,
 	}
 
-	if err := alertingChannel.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := alertingChannel.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidateSplunkAlteringChannelWhenUrlIsMissing(t *testing.T) {
@@ -383,9 +396,10 @@ func TestShouldFailToValidateSplunkAlteringChannelWhenUrlIsMissing(t *testing.T)
 		Token: &token,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "URL") {
-		t.Fatal("Expected validate to fail as URL is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "URL")
 }
 
 func TestShouldFailToValidateSplunkAlteringChannelWhenUrlIsBlank(t *testing.T) {
@@ -400,9 +414,10 @@ func TestShouldFailToValidateSplunkAlteringChannelWhenUrlIsBlank(t *testing.T) {
 		Token: &token,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "URL") {
-		t.Fatal("Expected validate to fail as URL is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "URL")
 }
 
 func TestShouldFailToValidateSplunkAlteringChannelWhenTokenIsMissing(t *testing.T) {
@@ -415,9 +430,10 @@ func TestShouldFailToValidateSplunkAlteringChannelWhenTokenIsMissing(t *testing.
 		URL:  &url,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Token") {
-		t.Fatal("Expected validate to fail as token is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Token")
 }
 
 func TestShouldFailToValidateSplunkAlteringChannelWhenTokenIsBlank(t *testing.T) {
@@ -432,9 +448,10 @@ func TestShouldFailToValidateSplunkAlteringChannelWhenTokenIsBlank(t *testing.T)
 		Token: &token,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Token") {
-		t.Fatal("Expected validate to fail as token is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Token")
 }
 
 func TestShouldSuccussullyValidateConsistentVictorOpsAlteringChannel(t *testing.T) {
@@ -449,9 +466,9 @@ func TestShouldSuccussullyValidateConsistentVictorOpsAlteringChannel(t *testing.
 		RoutingKey: &routingKey,
 	}
 
-	if err := alertingChannel.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := alertingChannel.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidateVictorOpsAlteringChannelWhenApiKeyIsMissing(t *testing.T) {
@@ -464,9 +481,10 @@ func TestShouldFailToValidateVictorOpsAlteringChannelWhenApiKeyIsMissing(t *test
 		RoutingKey: &routingKey,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "API Key") {
-		t.Fatal("Expected validate to fail as API Key is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "API Key")
 }
 
 func TestShouldFailToValidateVictorOpsAlteringChannelWhenApiKeyIsBlank(t *testing.T) {
@@ -481,9 +499,10 @@ func TestShouldFailToValidateVictorOpsAlteringChannelWhenApiKeyIsBlank(t *testin
 		RoutingKey: &routingKey,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "API Key") {
-		t.Fatal("Expected validate to fail as API Key is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "API Key")
 }
 
 func TestShouldFailToValidateVictorOpsAlteringChannelWhenRoutingKeyIsMissing(t *testing.T) {
@@ -496,9 +515,10 @@ func TestShouldFailToValidateVictorOpsAlteringChannelWhenRoutingKeyIsMissing(t *
 		APIKey: &apiKey,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Routing Key") {
-		t.Fatal("Expected validate to fail as Routing Key is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Routing Key")
 }
 
 func TestShouldFailToValidateVictorOpsAlteringChannelWhenRoutingKeyIsBlank(t *testing.T) {
@@ -513,9 +533,10 @@ func TestShouldFailToValidateVictorOpsAlteringChannelWhenRoutingKeyIsBlank(t *te
 		RoutingKey: &routingKey,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Routing Key") {
-		t.Fatal("Expected validate to fail as Routing Key is missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Routing Key")
 }
 
 func TestShouldSuccussullyValidateConsistentMinimalGenericWebhookAlteringChannel(t *testing.T) {
@@ -526,9 +547,9 @@ func TestShouldSuccussullyValidateConsistentMinimalGenericWebhookAlteringChannel
 		WebhookURLs: []string{"url"},
 	}
 
-	if err := alertingChannel.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := alertingChannel.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldSuccussullyValidateConsistentFullGenericWebhookAlteringChannel(t *testing.T) {
@@ -540,9 +561,9 @@ func TestShouldSuccussullyValidateConsistentFullGenericWebhookAlteringChannel(t 
 		Headers:     []string{"key1: value1", "key2: value2"},
 	}
 
-	if err := alertingChannel.Validate(); err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
+	err := alertingChannel.Validate()
+
+	assert.Nil(t, err)
 }
 
 func TestShouldFailToValidateGenericWebhookAlteringChannelWhenNoWebhookUrlIsProvided(t *testing.T) {
@@ -552,7 +573,8 @@ func TestShouldFailToValidateGenericWebhookAlteringChannelWhenNoWebhookUrlIsProv
 		Kind: WebhookChannelType,
 	}
 
-	if err := alertingChannel.Validate(); err == nil || !strings.Contains(err.Error(), "Webhook URLs") {
-		t.Fatal("Expected validate to fail as Webhook URLs are missing")
-	}
+	err := alertingChannel.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "Webhook URLs")
 }

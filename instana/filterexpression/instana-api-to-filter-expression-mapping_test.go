@@ -2,14 +2,12 @@ package filterexpression_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
 const (
@@ -70,9 +68,9 @@ func TestShouldFailMapToMapComparisionWhenOperatorOfTagExpressionIsNotValid(t *t
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), invalidOperator) || !strings.Contains(err.Error(), comparision) {
-		t.Fatal("Expected to get invalid operation error")
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), invalidOperator)
+	assert.Contains(t, err.Error(), comparision)
 }
 
 func TestShouldMapValidUnaryOperationsOfTagExpression(t *testing.T) {
@@ -118,9 +116,9 @@ func TestShouldFailMapToMapUnaryOperationWhenOperatorOfTagExpressionIsNotValid(t
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), invalidOperator) || !strings.Contains(err.Error(), unaryOperator) {
-		t.Fatal("Expected to get invalid unary operation error")
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), invalidOperator)
+	assert.Contains(t, err.Error(), unaryOperator)
 }
 
 func TestShouldFailMapToMapExpressionWhenTypeIsMissing(t *testing.T) {
@@ -133,9 +131,8 @@ func TestShouldFailMapToMapExpressionWhenTypeIsMissing(t *testing.T) {
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "unsupported match expression") {
-		t.Fatal("Expected to get unsupported match expression error")
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "unsupported match expression")
 }
 
 func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
@@ -221,9 +218,8 @@ func TestShouldFailToMapLogicalAndWhenLeftIsOrExpression(t *testing.T) {
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.Contains(err.Error(), "logical or is not allowed for left side") {
-		t.Fatal(messageExpectedToGetInvalidLogicalAndError)
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "logical or is not allowed for left side")
 }
 
 func TestShouldFailToMapLogicalAndWhenRightIsOrExpression(t *testing.T) {
@@ -235,9 +231,8 @@ func TestShouldFailToMapLogicalAndWhenRightIsOrExpression(t *testing.T) {
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.Contains(err.Error(), "logical or is not allowed for right side") {
-		t.Fatal(messageExpectedToGetInvalidLogicalAndError)
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "logical or is not allowed for right side")
 }
 
 func TestShouldFailToMapLogicalAndWhenLeftIsAndExpression(t *testing.T) {
@@ -249,9 +244,8 @@ func TestShouldFailToMapLogicalAndWhenLeftIsAndExpression(t *testing.T) {
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.Contains(err.Error(), "logical and is not allowed for left side") {
-		t.Fatal(messageExpectedToGetInvalidLogicalAndError)
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "logical and is not allowed for left side")
 }
 
 func TestShouldMapLogiclOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T) {
@@ -433,9 +427,8 @@ func TestShouldFailToMapLogicalOrWhenLeftIsOrExpression(t *testing.T) {
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.Contains(err.Error(), "logical or is not allowed for left side") {
-		t.Fatal(messageExpectedToGetInvalidLogicalOrError)
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "logical or is not allowed for left side")
 }
 
 func TestShouldFailToMapBinaryExpressionWhenConjunctionTypeIsNotValid(t *testing.T) {
@@ -446,9 +439,8 @@ func TestShouldFailToMapBinaryExpressionWhenConjunctionTypeIsNotValid(t *testing
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), "invalid conjunction operator") {
-		t.Fatal("Expected to get invalid match expression error")
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "invalid conjunction operator")
 }
 
 func TestShouldReturnMappingErrorIfLeftSideOfConjunctionIsNotValid(t *testing.T) {
@@ -460,9 +452,9 @@ func TestShouldReturnMappingErrorIfLeftSideOfConjunctionIsNotValid(t *testing.T)
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), invalidOperator) || !strings.Contains(err.Error(), unaryOperator) {
-		t.Fatal(messageExpectedToGetInvalidConjunctionError)
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), invalidOperator)
+	assert.Contains(t, err.Error(), unaryOperator)
 }
 
 func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T) {
@@ -474,19 +466,15 @@ func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)
 
-	if err == nil || !strings.HasPrefix(err.Error(), invalidOperator) || !strings.Contains(err.Error(), unaryOperator) {
-		t.Fatal(messageExpectedToGetInvalidConjunctionError)
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), invalidOperator)
+	assert.Contains(t, err.Error(), unaryOperator)
 }
 
 func runTestCaseForMappingFromAPI(input restapi.MatchExpression, expectedResult *FilterExpression, t *testing.T) {
 	mapper := NewMapper()
 	result, err := mapper.FromAPIModel(input)
 
-	if err != nil {
-		t.Fatalf(testutils.ExpectedNoErrorButGotMessage, err)
-	}
-	if !cmp.Equal(result, expectedResult) {
-		t.Fatalf("Parse result does not match; diff %s", cmp.Diff(expectedResult, result))
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, expectedResult, result)
 }
