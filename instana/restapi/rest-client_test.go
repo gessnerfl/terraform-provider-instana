@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/stretchr/testify/assert"
 )
 
 const testPath = "/test"
@@ -100,9 +100,7 @@ func TestShouldReturnNothingForSuccessfulDeleteRequest(t *testing.T) {
 	restClient := createSut(httpServer)
 	err := restClient.Delete(testID, testPath)
 
-	if err != nil {
-		t.Fatalf("Expected no error to be returned but got %s", err)
-	}
+	assert.Nil(t, err)
 }
 
 func TestShouldReturnErrorMessageForDeleteRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
@@ -137,27 +135,19 @@ func createSut(httpServer *testutils.TestHTTPServer) RestClient {
 }
 
 func verifyNotFoundResponse(data []byte, err error, t *testing.T) {
-	if err != ErrEntityNotFound {
-		t.Fatal("Expected error entity not found")
-	}
+	assert.Equal(t, ErrEntityNotFound, err)
 
-	if data == nil || len(data) != 0 {
-		t.Fatal("Expected empty data response")
-	}
+	assert.NotNil(t, data)
+	assert.GreaterOrEqual(t, 0, len(data))
 }
 
 func verifySuccessfullGetOrPut(response []byte, err error, t *testing.T) {
-	if err != nil {
-		t.Fatalf("Expected no error to be returned but got %s", err)
-	}
+	assert.Nil(t, err)
 	responseString := string(response)
-	if responseString != testData {
-		t.Fatalf("Expected test data to be returned but got %s", responseString)
-	}
+	assert.Equal(t, testData, responseString)
 }
 
 func verifyFailedCallWithStatusCodeIsResponse(err error, statusCode int, t *testing.T) {
-	if err == nil || !strings.Contains(err.Error(), strconv.Itoa(statusCode)) {
-		t.Fatalf("Expected to receive error message with status Code %d", statusCode)
-	}
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), strconv.Itoa(statusCode))
 }

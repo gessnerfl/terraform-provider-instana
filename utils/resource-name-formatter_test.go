@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 const input = "Test String"
@@ -16,9 +17,7 @@ func TestShouldAppendPrefixAndSuffixToName(t *testing.T) {
 
 	result := inst.Format(input)
 
-	if expectedResult != result {
-		t.Fatalf("Prefix and suffix should be appended when formatting name: %s vs %s", expectedResult, result)
-	}
+	assert.Equal(t, expectedResult, result)
 }
 
 func TestShouldRemoveSuffixFromNameWhenTerraformManagedResourceNameFormatterIsUsed(t *testing.T) {
@@ -28,9 +27,7 @@ func TestShouldRemoveSuffixFromNameWhenTerraformManagedResourceNameFormatterIsUs
 
 	result := inst.UndoFormat(input)
 
-	if expectedResult != result {
-		t.Fatalf("Prefix and suffix should be trimmed when undoing format of name: %s vs %s", expectedResult, result)
-	}
+	assert.Equal(t, expectedResult, result)
 }
 
 func TestShouldNotRemovePrefixStringWhenPrefixStringAppearsInTheMiddle(t *testing.T) {
@@ -40,9 +37,7 @@ func TestShouldNotRemovePrefixStringWhenPrefixStringAppearsInTheMiddle(t *testin
 
 	result := inst.UndoFormat(input)
 
-	if expectedResult != result {
-		t.Fatalf("Prefix should only be trimmed at the beginning: %s vs %s", expectedResult, result)
-	}
+	assert.Equal(t, expectedResult, result)
 }
 
 func TestShouldNotRemoveSuffixStringWhenSuffixStringAppearsInTheMiddle(t *testing.T) {
@@ -52,7 +47,5 @@ func TestShouldNotRemoveSuffixStringWhenSuffixStringAppearsInTheMiddle(t *testin
 
 	result := inst.UndoFormat(input)
 
-	if expectedResult != result {
-		t.Fatalf("Suffix should only be trimmed at the end: %s vs %s", expectedResult, result)
-	}
+	assert.Equal(t, expectedResult, result)
 }

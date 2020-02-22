@@ -121,9 +121,7 @@ func testResourceAlertingChannelWebhookBasedDefinition(t *testing.T, resourceHan
 func TestShouldReturnCorrectResourceNameForAlertingChannelGoogleChat(t *testing.T) {
 	name := NewAlertingChannelGoogleChatResourceHandle().ResourceName
 
-	if name != "instana_alerting_channel_google_chat" {
-		t.Fatal("Expected resource name to be instana_alerting_channel_google_chat")
-	}
+	assert.Equal(t, "instana_alerting_channel_google_chat", name)
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {

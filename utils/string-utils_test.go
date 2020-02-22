@@ -8,21 +8,15 @@ import (
 )
 
 func TestShouldReturnTrueWhenStringIsEmpty(t *testing.T) {
-	if !IsBlank("") {
-		t.Fatal("Expected to return true for empty string")
-	}
+	assert.True(t, IsBlank(""))
 }
 
 func TestShouldReturnTrueWhenStringContainsOnlySpaces(t *testing.T) {
-	if !IsBlank("    ") {
-		t.Fatal("Expected to return true for string containing only spaces")
-	}
+	assert.True(t, IsBlank("     "))
 }
 
 func TestShouldReturnFalseWhenStringContainsNonWhitespaceCharacters(t *testing.T) {
-	if IsBlank("  ba  ") {
-		t.Fatal("Expected to return false for string containing non whitespaces")
-	}
+	assert.False(t, IsBlank("  ba  "))
 }
 
 func TestShouldCreateRandomString(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
@@ -36,13 +36,9 @@ func TestShouldSuccessfullyUnmarshalUserRole(t *testing.T) {
 
 	result, err := NewUserRoleUnmarshaller().Unmarshal(serializedJSON)
 
-	if err != nil {
-		t.Fatal("Expected user role to be successfully unmarshalled")
-	}
+	assert.Nil(t, err)
 
-	if !cmp.Equal(result, userRole) {
-		t.Fatalf("Expected user role to be properly unmarshalled, %s", cmp.Diff(result, userRole))
-	}
+	assert.Equal(t, userRole, result)
 }
 
 func TestShouldFailToUnmarshalUserRoleWhenResponseIsAJsonArray(t *testing.T) {
@@ -50,9 +46,7 @@ func TestShouldFailToUnmarshalUserRoleWhenResponseIsAJsonArray(t *testing.T) {
 
 	_, err := NewUserRoleUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToUnmarshalUserRoleWhenResponseIsNotAJsonMessage(t *testing.T) {
@@ -60,9 +54,7 @@ func TestShouldFailToUnmarshalUserRoleWhenResponseIsNotAJsonMessage(t *testing.T
 
 	_, err := NewUserRoleUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldReturnEmptyUserRoleWhenJsonObjectIsReturnWhereNoFiledMatches(t *testing.T) {
@@ -70,11 +62,6 @@ func TestShouldReturnEmptyUserRoleWhenJsonObjectIsReturnWhereNoFiledMatches(t *t
 
 	result, err := NewUserRoleUnmarshaller().Unmarshal([]byte(response))
 
-	if err != nil {
-		t.Fatalf("Expected to successfully unmarshal user role response, %s", err)
-	}
-
-	if !cmp.Equal(result, UserRole{}) {
-		t.Fatal("Expected empty user role")
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, UserRole{}, result)
 }

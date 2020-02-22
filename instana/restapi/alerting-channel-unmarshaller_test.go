@@ -3,7 +3,7 @@ package restapi_test
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
@@ -18,27 +18,15 @@ func TestShouldSuccessfullyUnmarshalAlertingChannel(t *testing.T) {
 
 	result, err := NewAlertingChannelUnmarshaller().Unmarshal([]byte(response))
 
-	if err != nil {
-		t.Fatalf("Expected to successfully unmarshal alerting channel response; %s", err)
-	}
+	assert.Nil(t, err)
 
 	alertingChannel, ok := result.(AlertingChannel)
-	if !ok {
-		t.Fatal("Expected result to be a alerting channel")
-	}
+	assert.True(t, ok)
 
-	if alertingChannel.ID != "test-id" {
-		t.Fatal("Expected ID to be properly mapped")
-	}
-	if alertingChannel.Name != "test-name" {
-		t.Fatal("Expected name to be properly mapped")
-	}
-	if alertingChannel.Kind != EmailChannelType {
-		t.Fatal("Expected kind to be properly mapped")
-	}
-	if !cmp.Equal(alertingChannel.Emails, []string{"test-email1", "test-email2"}) {
-		t.Fatal("Expected emails to be properly mapped")
-	}
+	assert.Equal(t, "test-id", alertingChannel.ID)
+	assert.Equal(t, "test-name", alertingChannel.Name)
+	assert.Equal(t, EmailChannelType, alertingChannel.Kind)
+	assert.Equal(t, []string{"test-email1", "test-email2"}, alertingChannel.Emails)
 }
 
 func TestShouldFailToUnmarshalAlertingChannelWhenResponseIsAJsonArray(t *testing.T) {
@@ -46,9 +34,7 @@ func TestShouldFailToUnmarshalAlertingChannelWhenResponseIsAJsonArray(t *testing
 
 	_, err := NewAlertingChannelUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldFailToUnmarshalAlertingChannelWhenResponseIsNotAJsonMessage(t *testing.T) {
@@ -56,9 +42,7 @@ func TestShouldFailToUnmarshalAlertingChannelWhenResponseIsNotAJsonMessage(t *te
 
 	_, err := NewAlertingChannelUnmarshaller().Unmarshal([]byte(response))
 
-	if err == nil {
-		t.Fatal("Expected unmarshalling to fail")
-	}
+	assert.NotNil(t, err)
 }
 
 func TestShouldReturnEmptyAlertingChannelWhenJsonObjectIsReturnWhereNoFiledMatches(t *testing.T) {
@@ -66,11 +50,6 @@ func TestShouldReturnEmptyAlertingChannelWhenJsonObjectIsReturnWhereNoFiledMatch
 
 	result, err := NewAlertingChannelUnmarshaller().Unmarshal([]byte(response))
 
-	if err != nil {
-		t.Fatalf("Expected to successfully unmarshal alerting channel response, %s", err)
-	}
-
-	if !cmp.Equal(result, AlertingChannel{}) {
-		t.Fatal("Expected empty alerting channel")
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, AlertingChannel{}, result)
 }
