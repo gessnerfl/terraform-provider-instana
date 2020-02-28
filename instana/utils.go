@@ -29,6 +29,32 @@ func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []
 	return nil
 }
 
+//ReadStringSetParameterFromResource reads a string set parameter from a resource and returns it as a slice of strings
+func ReadStringSetParameterFromResource(d *schema.ResourceData, key string) []string {
+	if attr, ok := d.GetOk(key); ok {
+		var array []string
+		set := attr.(*schema.Set)
+		for _, x := range set.List() {
+			item := x.(string)
+			array = append(array, item)
+		}
+		return array
+	}
+	return nil
+}
+
+//ConvertStringToInterfaceSlice converts a string slice to interface slice for e.g. persistene in TF state
+func ConvertStringToInterfaceSlice(input []string) []interface{} {
+	if len(input) > 0 {
+		result := make([]interface{}, len(input))
+		for i, v := range input {
+			result[i] = v
+		}
+		return result
+	}
+	return []interface{}{}
+}
+
 //ConvertSeverityFromInstanaAPIToTerraformRepresentation converts the integer representation of the Instana API to the string representation of the Terraform provider
 func ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity int) (string, error) {
 	if severity == restapi.SeverityWarning.GetAPIRepresentation() {

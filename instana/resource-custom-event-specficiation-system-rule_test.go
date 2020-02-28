@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
@@ -69,6 +71,8 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 	httpServer.AddRoute(http.MethodDelete, customSystemEventApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, customSystemEventApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
+
+		//the integration id order is changed by intention to ensure set behaviour
 		json := strings.ReplaceAll(`
 		{
 			"id" : "{{id}}",
@@ -81,7 +85,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 			"expirationTime" : 60000,
 			"rules" : [ { "ruleType" : "system", "severity" : 5, "systemRuleId" : "system-rule-id" } ],
 			"downstream" : {
-				"integrationIds" : ["integration-id-1", "integration-id-2"],
+				"integrationIds" : ["integration-id-2", "integration-id-1"],
 				"broadcastToAllAlertingConfigs" : true
 			}
 		}
@@ -95,6 +99,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 
 	resourceCustomEventSpecificationWithSystemRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
+	hashFunctionDownstreamIntegrationId := schema.HashSchema(CustomEventSpecificationSchemaDownstreamIntegrationIds.Elem.(*schema.Schema))
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testCustomEventSpecificationWithSystemRuleProviders,
 		Steps: []resource.TestStep{
@@ -109,8 +114,8 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldDescription, customSystemEventDescription),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customSystemEventExpirationTime)),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationDownstreamIntegrationIds+".0", customSystemEventDownStringIntegrationId1),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationDownstreamIntegrationIds+".1", customSystemEventDownStringIntegrationId2),
+					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, fmt.Sprintf("%s.%d", CustomEventSpecificationDownstreamIntegrationIds, hashFunctionDownstreamIntegrationId(customEventSpecificationWithThresholdRuleDownstreamIntegrationId1)), customSystemEventDownStringIntegrationId1),
+					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, fmt.Sprintf("%s.%d", CustomEventSpecificationDownstreamIntegrationIds, hashFunctionDownstreamIntegrationId(customEventSpecificationWithThresholdRuleDownstreamIntegrationId2)), customSystemEventDownStringIntegrationId2),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, "true"),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId),
@@ -132,21 +137,22 @@ func TestCustomEventSpecificationWithSystemRuleSchemaDefinitionIsValid(t *testin
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldDescription)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(CustomEventSpecificationFieldExpirationTime)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldEnabled, true)
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfStrings(CustomEventSpecificationDownstreamIntegrationIds)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeSetOfStrings(CustomEventSpecificationDownstreamIntegrationIds)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, true)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleSeverity)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SystemRuleSpecificationSystemRuleID)
 }
 
 func TestCustomEventSpecificationWithSystemRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewCustomEventSpecificationWithSystemRuleResourceHandle().SchemaVersion)
+	assert.Equal(t, 2, NewCustomEventSpecificationWithSystemRuleResourceHandle().SchemaVersion)
 }
 
 func TestCustomEventSpecificationWithSystemRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
 	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
+	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -169,6 +175,31 @@ func TestShouldMigrateEmptyCustomEventSpecificationWithSystemRuleStateFromVersio
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
+}
+
+func TestShouldMigrateDownstreamIntegrationIdsOfCustomEventSpecificationWithSystemRuleFromListToSetWhenMigrationFromVersion1To2(t *testing.T) {
+	integrationIds := []interface{}{"id1", "id2"}
+	rawData := make(map[string]interface{})
+	rawData[CustomEventSpecificationDownstreamIntegrationIds] = integrationIds
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.IsType(t, schema.NewSet(schema.HashString, integrationIds), result[CustomEventSpecificationDownstreamIntegrationIds])
+	assert.Len(t, result[CustomEventSpecificationDownstreamIntegrationIds].(*schema.Set).List(), 2)
+	assert.Contains(t, result[CustomEventSpecificationDownstreamIntegrationIds].(*schema.Set).List(), "id1")
+	assert.Contains(t, result[CustomEventSpecificationDownstreamIntegrationIds].(*schema.Set).List(), "id2")
+}
+
+func TestShouldMigrateEmptyCustomEventSpecificationWithSystemRuleStateFromVersion1To2(t *testing.T) {
+	rawData := make(map[string]interface{})
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Nil(t, result[CustomEventSpecificationDownstreamIntegrationIds])
 }
 
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithSystemRuleResource(t *testing.T) {
@@ -218,7 +249,11 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
 
 	assert.True(t, resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool))
-	assert.Equal(t, []interface{}{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2}, resourceData.Get(CustomEventSpecificationDownstreamIntegrationIds))
+	assert.NotNil(t, resourceData.Get(CustomEventSpecificationDownstreamIntegrationIds))
+	integrationIds := resourceData.Get(CustomEventSpecificationDownstreamIntegrationIds).(*schema.Set)
+	assert.Len(t, integrationIds.List(), 2)
+	assert.Contains(t, integrationIds.List(), customSystemEventDownStringIntegrationId1)
+	assert.Contains(t, integrationIds.List(), customSystemEventDownStringIntegrationId2)
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToDataModel(t *testing.T) {
@@ -262,7 +297,9 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
 
 	assert.True(t, customEventSpec.Downstream.BroadcastToAllAlertingConfigs)
-	assert.Equal(t, []string{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2}, customEventSpec.Downstream.IntegrationIds)
+	assert.Len(t, customEventSpec.Downstream.IntegrationIds, 2)
+	assert.Contains(t, customEventSpec.Downstream.IntegrationIds, customSystemEventDownStringIntegrationId1)
+	assert.Contains(t, customEventSpec.Downstream.IntegrationIds, customSystemEventDownStringIntegrationId2)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithSystemRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {

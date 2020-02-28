@@ -78,8 +78,21 @@ var customEventSpecificationSchemaEnabled = &schema.Schema{
 	Optional:    true,
 	Description: "Configures if the custom event specification is enabled or not",
 }
-var customEventSpecificationSchemaDownstreamIntegrationIds = &schema.Schema{
+var customEventSpecificationSchemaDownstreamIntegrationIdsLegacy = &schema.Schema{
 	Type:     schema.TypeList,
+	Required: false,
+	Optional: true,
+	MinItems: 0,
+	MaxItems: 16,
+	Elem: &schema.Schema{
+		Type: schema.TypeString,
+	},
+	Description: "Configures the list of integration ids which should be used for downstream reporting",
+}
+
+//CustomEventSpecificationSchemaDownstreamIntegrationIds schema definition for integration ids
+var CustomEventSpecificationSchemaDownstreamIntegrationIds = &schema.Schema{
+	Type:     schema.TypeSet,
 	Required: false,
 	Optional: true,
 	MinItems: 0,
@@ -109,7 +122,20 @@ var defaultCustomEventSchemaFieldsV0 = map[string]*schema.Schema{
 	CustomEventSpecificationFieldDescription:                        customEventSpecificationSchemaDescription,
 	CustomEventSpecificationFieldExpirationTime:                     customEventSpecificationSchemaExpirationTime,
 	CustomEventSpecificationFieldEnabled:                            customEventSpecificationSchemaEnabled,
-	CustomEventSpecificationDownstreamIntegrationIds:                customEventSpecificationSchemaDownstreamIntegrationIds,
+	CustomEventSpecificationDownstreamIntegrationIds:                customEventSpecificationSchemaDownstreamIntegrationIdsLegacy,
+	CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs: customEventSpecificationSchemaDownstreamBroadcastToAllAlertingConfigs,
+	CustomEventSpecificationRuleSeverity:                            customEventSpecificationSchemaRuleSeverity,
+}
+
+var defaultCustomEventSchemaFieldsV1 = map[string]*schema.Schema{
+	CustomEventSpecificationFieldName:                               customEventSpecificationSchemaName,
+	CustomEventSpecificationFieldFullName:                           customEventSpecificationSchemaFullName,
+	CustomEventSpecificationFieldQuery:                              customEventSpecificationSchemaQuery,
+	CustomEventSpecificationFieldTriggering:                         customEventSpecificationSchemaTriggering,
+	CustomEventSpecificationFieldDescription:                        customEventSpecificationSchemaDescription,
+	CustomEventSpecificationFieldExpirationTime:                     customEventSpecificationSchemaExpirationTime,
+	CustomEventSpecificationFieldEnabled:                            customEventSpecificationSchemaEnabled,
+	CustomEventSpecificationDownstreamIntegrationIds:                customEventSpecificationSchemaDownstreamIntegrationIdsLegacy,
 	CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs: customEventSpecificationSchemaDownstreamBroadcastToAllAlertingConfigs,
 	CustomEventSpecificationRuleSeverity:                            customEventSpecificationSchemaRuleSeverity,
 }
@@ -122,7 +148,7 @@ var defaultCustomEventSchemaFields = map[string]*schema.Schema{
 	CustomEventSpecificationFieldDescription:                        customEventSpecificationSchemaDescription,
 	CustomEventSpecificationFieldExpirationTime:                     customEventSpecificationSchemaExpirationTime,
 	CustomEventSpecificationFieldEnabled:                            customEventSpecificationSchemaEnabled,
-	CustomEventSpecificationDownstreamIntegrationIds:                customEventSpecificationSchemaDownstreamIntegrationIds,
+	CustomEventSpecificationDownstreamIntegrationIds:                CustomEventSpecificationSchemaDownstreamIntegrationIds,
 	CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs: customEventSpecificationSchemaDownstreamBroadcastToAllAlertingConfigs,
 	CustomEventSpecificationRuleSeverity:                            customEventSpecificationSchemaRuleSeverity,
 }
@@ -153,7 +179,7 @@ func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, form
 		Enabled:        d.Get(CustomEventSpecificationFieldEnabled).(bool),
 	}
 
-	downstreamIntegrationIds := ReadStringArrayParameterFromResource(d, CustomEventSpecificationDownstreamIntegrationIds)
+	downstreamIntegrationIds := ReadStringSetParameterFromResource(d, CustomEventSpecificationDownstreamIntegrationIds)
 	if len(downstreamIntegrationIds) > 0 {
 		apiModel.Downstream = &restapi.EventSpecificationDownstream{
 			IntegrationIds:                downstreamIntegrationIds,
@@ -181,12 +207,20 @@ func updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec re
 	d.Set(CustomEventSpecificationFieldEnabled, spec.Enabled)
 
 	if spec.Downstream != nil {
-		d.Set(CustomEventSpecificationDownstreamIntegrationIds, spec.Downstream.IntegrationIds)
+		d.Set(CustomEventSpecificationDownstreamIntegrationIds, schema.NewSet(schema.HashString, ConvertStringToInterfaceSlice(spec.Downstream.IntegrationIds)))
 		d.Set(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, spec.Downstream.BroadcastToAllAlertingConfigs)
 	}
 }
 
 func migrateCustomEventConfigFullNameInStateFromV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[CustomEventSpecificationFieldFullName] = rawState[CustomEventSpecificationFieldName]
+	return rawState, nil
+}
+
+func migrateCustomEventIntegrationIdsInStateFromV1toV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	integrationIds, found := rawState[CustomEventSpecificationDownstreamIntegrationIds]
+	if found {
+		rawState[CustomEventSpecificationDownstreamIntegrationIds] = schema.NewSet(schema.HashSchema(CustomEventSpecificationSchemaDownstreamIntegrationIds.Elem.(*schema.Schema)), integrationIds.([]interface{}))
+	}
 	return rawState, nil
 }
