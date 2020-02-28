@@ -42,6 +42,10 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsRequiredAndOfTypeListOfStrings(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeListOfStrings checks if the given schema field is required and of type list of string
 	AssertSchemaIsOptionalAndOfTypeListOfStrings(fieldName string)
+	//AssertSchemaIsRequiredAndOfTypeSetOfStrings checks if the given schema field is required and of type set of string
+	AssertSchemaIsRequiredAndOfTypeSetOfStrings(fieldName string)
+	//AssertSchemaIsOptionalAndOfTypeSetOfStrings checks if the given schema field is required and of type set of string
+	AssertSchemaIsOptionalAndOfTypeSetOfStrings(fieldName string)
 	//AssertSchemaIsComputedAndOfTypeString checks if the given schema field is computed and of type string
 	AssertSchemaIsComputedAndOfTypeString(fieldName string)
 }
@@ -132,6 +136,30 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeListOfStri
 
 func (inst *terraformSchemaAssertImpl) assertSchemaIsOfTypeListOfStrings(s *schema.Schema) {
 	assert.Equal(inst.t, schema.TypeList, s.Type)
+	assert.NotNil(inst.t, s.Elem)
+	assert.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
+	assert.Greater(inst.t, len(s.Description), 0)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeSetOfStrings(schemaField string) {
+	s := inst.schemaMap[schemaField]
+
+	assert.NotNil(inst.t, s)
+	assert.False(inst.t, s.Required)
+	assert.True(inst.t, s.Optional)
+	inst.assertSchemaIsOfTypeSetOfStrings(s)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeSetOfStrings(schemaField string) {
+	s := inst.schemaMap[schemaField]
+
+	assert.NotNil(inst.t, s)
+	assert.True(inst.t, s.Required)
+	inst.assertSchemaIsOfTypeSetOfStrings(s)
+}
+
+func (inst *terraformSchemaAssertImpl) assertSchemaIsOfTypeSetOfStrings(s *schema.Schema) {
+	assert.Equal(inst.t, schema.TypeSet, s.Type)
 	assert.NotNil(inst.t, s.Elem)
 	assert.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
 	assert.Greater(inst.t, len(s.Description), 0)
