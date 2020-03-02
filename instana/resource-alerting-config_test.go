@@ -280,18 +280,11 @@ func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, alertingConfigID, resourceData.Id())
 	assert.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldFullAlertName))
-
-	integrationIDs := resourceData.Get(AlertingConfigFieldIntegrationIds).(*schema.Set)
-	assert.Equal(t, 2, integrationIDs.Len())
-	assert.Contains(t, integrationIDs.List(), alertingConfigIntegrationId1)
-	assert.Contains(t, integrationIDs.List(), alertingConfigIntegrationId2)
-
 	assert.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
+	assertIntegrationIdOFAlertingConfigResourceDataUpdated(t, resourceData)
 
 	ruleIDs := resourceData.Get(AlertingConfigFieldEventFilterRuleIDs).(*schema.Set)
-	assert.Equal(t, 2, ruleIDs.Len())
-	assert.Contains(t, ruleIDs.List(), alertingConfigRuleId1)
-	assert.Contains(t, ruleIDs.List(), alertingConfigRuleId2)
+	assertSetMatchesToValues(t, ruleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
 }
 
 func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) {
@@ -316,18 +309,23 @@ func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) 
 	assert.Nil(t, err)
 	assert.Equal(t, alertingConfigID, resourceData.Id())
 	assert.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldFullAlertName))
-
-	integrationIDs := resourceData.Get(AlertingConfigFieldIntegrationIds).(*schema.Set)
-	assert.Equal(t, 2, integrationIDs.Len())
-	assert.Contains(t, integrationIDs.List(), alertingConfigIntegrationId1)
-	assert.Contains(t, integrationIDs.List(), alertingConfigIntegrationId2)
-
 	assert.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
+	assertIntegrationIdOFAlertingConfigResourceDataUpdated(t, resourceData)
 
 	eventTypes := resourceData.Get(AlertingConfigFieldEventFilterEventTypes).(*schema.Set)
-	assert.Equal(t, 2, eventTypes.Len())
-	assert.Contains(t, eventTypes.List(), string(restapi.CriticalAlertEventType))
-	assert.Contains(t, eventTypes.List(), string(restapi.IncidentAlertEventType))
+	assertSetMatchesToValues(t, eventTypes, string(restapi.CriticalAlertEventType), string(restapi.IncidentAlertEventType))
+}
+
+func assertIntegrationIdOFAlertingConfigResourceDataUpdated(t *testing.T, resourceData *schema.ResourceData) {
+	integrationIDs := resourceData.Get(AlertingConfigFieldIntegrationIds).(*schema.Set)
+	assertSetMatchesToValues(t, integrationIDs, alertingConfigIntegrationId1, alertingConfigIntegrationId2)
+}
+
+func assertSetMatchesToValues(t *testing.T, set *schema.Set, values ...string) {
+	assert.Equal(t, len(values), set.Len())
+	for _, v := range values {
+		assert.Contains(t, set.List(), v)
+	}
 }
 
 func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) {
@@ -350,17 +348,9 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) 
 	assert.Equal(t, alertingConfigID, model.GetID())
 	assert.Equal(t, alertingConfigName, model.(restapi.AlertingConfiguration).AlertName)
 
-	mappedIntegrationIds := model.(restapi.AlertingConfiguration).IntegrationIDs
-	assert.Len(t, mappedIntegrationIds, 2)
-	assert.Contains(t, mappedIntegrationIds, alertingConfigIntegrationId1)
-	assert.Contains(t, mappedIntegrationIds, alertingConfigIntegrationId2)
-
+	assertIntegrationIdOFAlertingConfigModel(t, model.(restapi.AlertingConfiguration))
 	assert.Equal(t, alertingConfigQuery, *model.(restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
-
-	mappedRuleIds := model.(restapi.AlertingConfiguration).EventFilteringConfiguration.RuleIDs
-	assert.Len(t, mappedRuleIds, 2)
-	assert.Contains(t, mappedRuleIds, alertingConfigRuleId1)
-	assert.Contains(t, mappedRuleIds, alertingConfigRuleId2)
+	assertSliceValuesMatchesToValues(t, model.(restapi.AlertingConfiguration).EventFilteringConfiguration.RuleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
 }
 
 func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.T) {
@@ -382,15 +372,22 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.
 	assert.Equal(t, alertingConfigID, model.GetID())
 	assert.Equal(t, alertingConfigName, model.(restapi.AlertingConfiguration).AlertName)
 
-	mappedIntegrationIds := model.(restapi.AlertingConfiguration).IntegrationIDs
-	assert.Len(t, mappedIntegrationIds, 2)
-	assert.Contains(t, mappedIntegrationIds, alertingConfigIntegrationId1)
-	assert.Contains(t, mappedIntegrationIds, alertingConfigIntegrationId2)
-
+	assertIntegrationIdOFAlertingConfigModel(t, model.(restapi.AlertingConfiguration))
 	assert.Equal(t, alertingConfigQuery, *model.(restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
 
 	eventTypes := model.(restapi.AlertingConfiguration).EventFilteringConfiguration.EventTypes
 	assert.Len(t, eventTypes, 2)
 	assert.Contains(t, eventTypes, restapi.CriticalAlertEventType)
 	assert.Contains(t, eventTypes, restapi.IncidentAlertEventType)
+}
+
+func assertIntegrationIdOFAlertingConfigModel(t *testing.T, model restapi.AlertingConfiguration) {
+	assertSliceValuesMatchesToValues(t, model.IntegrationIDs, alertingConfigIntegrationId1, alertingConfigIntegrationId2)
+}
+
+func assertSliceValuesMatchesToValues(t *testing.T, data []string, values ...string) {
+	assert.Equal(t, len(values), len(data))
+	for _, v := range values {
+		assert.Contains(t, data, v)
+	}
 }
