@@ -39,8 +39,6 @@ resource "instana_custom_event_spec_entity_verification_rule" "example" {
   rule_matching_operator = "is"
   rule_matching_entity_label = "matching-entity-label"
   rule_offline_duration = 60000
-  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-  downstream_broadcast_to_all_alerting_configs = true
 }
 `
 
@@ -48,17 +46,15 @@ const (
 	customEntityVerificationEventApiPath                             = restapi.CustomEventSpecificationResourcePath + "/{id}"
 	testCustomEventSpecificationWithEntityVerificationRuleDefinition = ResourceInstanaCustomEventSpecificationEntityVerificationRule + ".example"
 
-	customEntityVerificationEventID                       = "custom-entity-verification-event-id"
-	customEntityVerificationEventName                     = "name"
-	customEntityVerificationEventQuery                    = "query"
-	customEntityVerificationEventExpirationTime           = 60000
-	customEntityVerificationEventDescription              = "description"
-	customEntityVerificationEventRuleMatchingEntityLabel  = "matching-entity-label"
-	customEntityVerificationEventRuleMatchingEntityType   = "matching-entity-type"
-	customEntityVerificationEventRuleMatchingOperator     = restapi.MatchingOperatorIs
-	customEntityVerificationEventRuleOfflineDuration      = 60000
-	customEntityVerificationEventDownStringIntegrationId1 = "integration-id-1"
-	customEntityVerificationEventDownStringIntegrationId2 = "integration-id-2"
+	customEntityVerificationEventID                      = "custom-entity-verification-event-id"
+	customEntityVerificationEventName                    = "name"
+	customEntityVerificationEventQuery                   = "query"
+	customEntityVerificationEventExpirationTime          = 60000
+	customEntityVerificationEventDescription             = "description"
+	customEntityVerificationEventRuleMatchingEntityLabel = "matching-entity-label"
+	customEntityVerificationEventRuleMatchingEntityType  = "matching-entity-type"
+	customEntityVerificationEventRuleMatchingOperator    = restapi.MatchingOperatorIs
+	customEntityVerificationEventRuleOfflineDuration     = 60000
 
 	customEntityVerificationEventMessageNotAValidSeverity           = "not a valid severity"
 	customEntityVerificationEventTestMessageExpectedInvalidSeverity = "Expected to get error that the provided severity is not valid"
@@ -85,11 +81,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 			"triggering" : true,
 			"description" : "description",
 			"expirationTime" : 60000,
-			"rules" : [ { "ruleType" : "entity_verification", "severity" : 5, "matchingEntityLabel" : "matching-entity-label", "matchingEntityType" : "matching-entity-type", "matchingOperator" : "is", "offlineDuration" : 60000 } ],
-			"downstream" : {
-				"integrationIds" : ["integration-id-1", "integration-id-2"],
-				"broadcastToAllAlertingConfigs" : true
-			}
+			"rules" : [ { "ruleType" : "entity_verification", "severity" : 5, "matchingEntityLabel" : "matching-entity-label", "matchingEntityType" : "matching-entity-type", "matchingOperator" : "is", "offlineDuration" : 60000 } ]
 		}
 		`, "{{id}}", vars["id"])
 		w.Header().Set(constEntityVerificationEventContentType, r.Header.Get(constEntityVerificationEventContentType))
@@ -115,9 +107,6 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldDescription, customEntityVerificationEventDescription),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customEntityVerificationEventExpirationTime)),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationDownstreamIntegrationIds+".0", customEntityVerificationEventDownStringIntegrationId1),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationDownstreamIntegrationIds+".1", customEntityVerificationEventDownStringIntegrationId2),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, "true"),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType),
@@ -141,8 +130,6 @@ func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsVal
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldDescription)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(CustomEventSpecificationFieldExpirationTime)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldEnabled, true)
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfStrings(CustomEventSpecificationDownstreamIntegrationIds)
-	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, true)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleSeverity)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(EntityVerificationRuleFieldMatchingEntityLabel)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(EntityVerificationRuleFieldMatchingEntityType)
@@ -150,15 +137,16 @@ func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsVal
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(EntityVerificationRuleFieldOfflineDuration)
 }
 
-func TestCustomEventSpecificationWithEntityVerificationRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().SchemaVersion)
+func TestCustomEventSpecificationWithEntityVerificationRuleResourceShouldHaveSchemaVersionTwo(t *testing.T) {
+	assert.Equal(t, 2, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().SchemaVersion)
 }
 
-func TestCustomEventSpecificationWithEntityVerificationRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+func TestCustomEventSpecificationWithEntityVerificationRuleShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
 	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
+	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -177,10 +165,34 @@ func TestShouldMigrateEmptyCustomEventSpecificationWithEntityVerificationRuleSta
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
+}
+
+func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateToVersion2WhenDownstreamConfigurationIsProvided(t *testing.T) {
+	rawData := make(map[string]interface{})
+	rawData["downstream_integration_ids"] = []interface{}{"id1", "id2"}
+	rawData["downstream_broadcast_to_all_alerting_configs"] = true
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Nil(t, result["downstream_integration_ids"])
+	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
+}
+
+func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateToVersion2WhenNoDownstreamConfigurationIsProvided(t *testing.T) {
+	rawData := make(map[string]interface{})
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Nil(t, result["downstream_integration_ids"])
+	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
 }
 
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithEntityVerificationRuleResource(t *testing.T) {
@@ -209,10 +221,6 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 				customEntityVerificationEventRuleOfflineDuration,
 				restapi.SeverityWarning.GetAPIRepresentation()),
 		},
-		Downstream: &restapi.EventSpecificationDownstream{
-			IntegrationIds:                []string{customEntityVerificationEventDownStringIntegrationId1, customEntityVerificationEventDownStringIntegrationId2},
-			BroadcastToAllAlertingConfigs: true,
-		},
 	}
 
 	testHelper := NewTestHelper(t)
@@ -235,9 +243,6 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 	assert.Equal(t, string(customEntityVerificationEventRuleMatchingOperator), resourceData.Get(EntityVerificationRuleFieldMatchingOperator))
 	assert.Equal(t, customEntityVerificationEventRuleOfflineDuration, resourceData.Get(EntityVerificationRuleFieldOfflineDuration))
 	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
-
-	assert.True(t, resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool))
-	assert.Equal(t, []interface{}{customEntityVerificationEventDownStringIntegrationId1, customEntityVerificationEventDownStringIntegrationId2}, resourceData.Get(CustomEventSpecificationDownstreamIntegrationIds))
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModel(t *testing.T) {
@@ -254,11 +259,6 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	resourceData.Set(CustomEventSpecificationFieldDescription, customEntityVerificationEventDescription)
 	resourceData.Set(CustomEventSpecificationFieldExpirationTime, customEntityVerificationEventExpirationTime)
 	resourceData.Set(CustomEventSpecificationFieldEnabled, true)
-	integrationIds := make([]interface{}, 2)
-	integrationIds[0] = customEntityVerificationEventDownStringIntegrationId1
-	integrationIds[1] = customEntityVerificationEventDownStringIntegrationId2
-	resourceData.Set(CustomEventSpecificationDownstreamIntegrationIds, integrationIds)
-	resourceData.Set(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, true)
 	resourceData.Set(CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
 	resourceData.Set(EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel)
 	resourceData.Set(EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType)
@@ -285,9 +285,6 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	assert.Equal(t, customEntityVerificationEventRuleMatchingOperator, *customEventSpec.Rules[0].MatchingOperator)
 	assert.Equal(t, customEntityVerificationEventRuleOfflineDuration, *customEventSpec.Rules[0].OfflineDuration)
 	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
-
-	assert.True(t, customEventSpec.Downstream.BroadcastToAllAlertingConfigs)
-	assert.Equal(t, []string{customEntityVerificationEventDownStringIntegrationId1, customEntityVerificationEventDownStringIntegrationId2}, customEventSpec.Downstream.IntegrationIds)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {

@@ -30,12 +30,9 @@ const (
 	//CustomEventSpecificationRuleSeverity constant value for the schema field severity of a rule specification
 	CustomEventSpecificationRuleSeverity = ruleFieldPrefix + "severity"
 
-	downstreamFieldPrefix = "downstream_"
-
-	//CustomEventSpecificationDownstreamIntegrationIds constant value for the schema field integration_ids of a event specification downstream
-	CustomEventSpecificationDownstreamIntegrationIds = downstreamFieldPrefix + "integration_ids"
-	//CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs constant value for the schema field broadcast_to_all_alerting_configs of a event specification downstream
-	CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs = downstreamFieldPrefix + "broadcast_to_all_alerting_configs"
+	downstreamFieldPrefix                                           = "downstream_"
+	customEventSpecificationDownstreamIntegrationIds                = downstreamFieldPrefix + "integration_ids"
+	customEventSpecificationDownstreamBroadcastToAllAlertingConfigs = downstreamFieldPrefix + "broadcast_to_all_alerting_configs"
 )
 
 var customEventSpecificationSchemaName = &schema.Schema{
@@ -109,12 +106,12 @@ var defaultCustomEventSchemaFieldsV0 = map[string]*schema.Schema{
 	CustomEventSpecificationFieldDescription:                        customEventSpecificationSchemaDescription,
 	CustomEventSpecificationFieldExpirationTime:                     customEventSpecificationSchemaExpirationTime,
 	CustomEventSpecificationFieldEnabled:                            customEventSpecificationSchemaEnabled,
-	CustomEventSpecificationDownstreamIntegrationIds:                customEventSpecificationSchemaDownstreamIntegrationIds,
-	CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs: customEventSpecificationSchemaDownstreamBroadcastToAllAlertingConfigs,
+	customEventSpecificationDownstreamIntegrationIds:                customEventSpecificationSchemaDownstreamIntegrationIds,
+	customEventSpecificationDownstreamBroadcastToAllAlertingConfigs: customEventSpecificationSchemaDownstreamBroadcastToAllAlertingConfigs,
 	CustomEventSpecificationRuleSeverity:                            customEventSpecificationSchemaRuleSeverity,
 }
 
-var defaultCustomEventSchemaFields = map[string]*schema.Schema{
+var defaultCustomEventSchemaFieldsV1 = map[string]*schema.Schema{
 	CustomEventSpecificationFieldName:                               customEventSpecificationSchemaName,
 	CustomEventSpecificationFieldFullName:                           customEventSpecificationSchemaFullName,
 	CustomEventSpecificationFieldQuery:                              customEventSpecificationSchemaQuery,
@@ -122,9 +119,20 @@ var defaultCustomEventSchemaFields = map[string]*schema.Schema{
 	CustomEventSpecificationFieldDescription:                        customEventSpecificationSchemaDescription,
 	CustomEventSpecificationFieldExpirationTime:                     customEventSpecificationSchemaExpirationTime,
 	CustomEventSpecificationFieldEnabled:                            customEventSpecificationSchemaEnabled,
-	CustomEventSpecificationDownstreamIntegrationIds:                customEventSpecificationSchemaDownstreamIntegrationIds,
-	CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs: customEventSpecificationSchemaDownstreamBroadcastToAllAlertingConfigs,
+	customEventSpecificationDownstreamIntegrationIds:                customEventSpecificationSchemaDownstreamIntegrationIds,
+	customEventSpecificationDownstreamBroadcastToAllAlertingConfigs: customEventSpecificationSchemaDownstreamBroadcastToAllAlertingConfigs,
 	CustomEventSpecificationRuleSeverity:                            customEventSpecificationSchemaRuleSeverity,
+}
+
+var defaultCustomEventSchemaFields = map[string]*schema.Schema{
+	CustomEventSpecificationFieldName:           customEventSpecificationSchemaName,
+	CustomEventSpecificationFieldFullName:       customEventSpecificationSchemaFullName,
+	CustomEventSpecificationFieldQuery:          customEventSpecificationSchemaQuery,
+	CustomEventSpecificationFieldTriggering:     customEventSpecificationSchemaTriggering,
+	CustomEventSpecificationFieldDescription:    customEventSpecificationSchemaDescription,
+	CustomEventSpecificationFieldExpirationTime: customEventSpecificationSchemaExpirationTime,
+	CustomEventSpecificationFieldEnabled:        customEventSpecificationSchemaEnabled,
+	CustomEventSpecificationRuleSeverity:        customEventSpecificationSchemaRuleSeverity,
 }
 
 func mergeSchemaMap(mapA map[string]*schema.Schema, mapB map[string]*schema.Schema) map[string]*schema.Schema {
@@ -152,14 +160,6 @@ func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, form
 		ExpirationTime: GetIntPointerFromResourceData(d, CustomEventSpecificationFieldExpirationTime),
 		Enabled:        d.Get(CustomEventSpecificationFieldEnabled).(bool),
 	}
-
-	downstreamIntegrationIds := ReadStringArrayParameterFromResource(d, CustomEventSpecificationDownstreamIntegrationIds)
-	if len(downstreamIntegrationIds) > 0 {
-		apiModel.Downstream = &restapi.EventSpecificationDownstream{
-			IntegrationIds:                downstreamIntegrationIds,
-			BroadcastToAllAlertingConfigs: d.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool),
-		}
-	}
 	return apiModel
 }
 
@@ -179,14 +179,15 @@ func updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec re
 	d.Set(CustomEventSpecificationFieldDescription, spec.Description)
 	d.Set(CustomEventSpecificationFieldExpirationTime, spec.ExpirationTime)
 	d.Set(CustomEventSpecificationFieldEnabled, spec.Enabled)
-
-	if spec.Downstream != nil {
-		d.Set(CustomEventSpecificationDownstreamIntegrationIds, spec.Downstream.IntegrationIds)
-		d.Set(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, spec.Downstream.BroadcastToAllAlertingConfigs)
-	}
 }
 
 func migrateCustomEventConfigFullNameInStateFromV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[CustomEventSpecificationFieldFullName] = rawState[CustomEventSpecificationFieldName]
+	return rawState, nil
+}
+
+func migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	delete(rawState, customEventSpecificationDownstreamIntegrationIds)
+	delete(rawState, customEventSpecificationDownstreamBroadcastToAllAlertingConfigs)
 	return rawState, nil
 }

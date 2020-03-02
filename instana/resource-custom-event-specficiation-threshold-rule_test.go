@@ -43,8 +43,6 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_rollup = "40000"
   rule_condition_operator = "=="
   rule_condition_value = "1.2"
-  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-  downstream_broadcast_to_all_alerting_configs = true
 }
 `
 
@@ -70,8 +68,6 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_aggregation = "sum"
   rule_condition_operator = "=="
   rule_condition_value = 1.2
-  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-  downstream_broadcast_to_all_alerting_configs = true
 }
 `
 
@@ -79,20 +75,18 @@ const (
 	customEventSpecificationWithThresholdRuleApiPath        = restapi.CustomEventSpecificationResourcePath + "/{id}"
 	testCustomEventSpecificationWithThresholdRuleDefinition = "instana_custom_event_spec_threshold_rule.example"
 
-	customEventSpecificationWithThresholdRuleID                       = "custom-system-event-id"
-	customEventSpecificationWithThresholdRuleName                     = "name"
-	customEventSpecificationWithThresholdRuleEntityType               = "entity_type"
-	customEventSpecificationWithThresholdRuleQuery                    = "query"
-	customEventSpecificationWithThresholdRuleExpirationTime           = 60000
-	customEventSpecificationWithThresholdRuleDescription              = "description"
-	customEventSpecificationWithThresholdRuleMetricName               = "metric_name"
-	customEventSpecificationWithThresholdRuleRollup                   = 40000
-	customEventSpecificationWithThresholdRuleWindow                   = 60000
-	customEventSpecificationWithThresholdRuleAggregation              = restapi.AggregationSum
-	customEventSpecificationWithThresholdRuleConditionOperator        = restapi.ConditionOperatorEquals
-	customEventSpecificationWithThresholdRuleConditionValue           = float64(1.2)
-	customEventSpecificationWithThresholdRuleDownstreamIntegrationId1 = "integration-id-1"
-	customEventSpecificationWithThresholdRuleDownstreamIntegrationId2 = "integration-id-2"
+	customEventSpecificationWithThresholdRuleID                = "custom-system-event-id"
+	customEventSpecificationWithThresholdRuleName              = "name"
+	customEventSpecificationWithThresholdRuleEntityType        = "entity_type"
+	customEventSpecificationWithThresholdRuleQuery             = "query"
+	customEventSpecificationWithThresholdRuleExpirationTime    = 60000
+	customEventSpecificationWithThresholdRuleDescription       = "description"
+	customEventSpecificationWithThresholdRuleMetricName        = "metric_name"
+	customEventSpecificationWithThresholdRuleRollup            = 40000
+	customEventSpecificationWithThresholdRuleWindow            = 60000
+	customEventSpecificationWithThresholdRuleAggregation       = restapi.AggregationSum
+	customEventSpecificationWithThresholdRuleConditionOperator = restapi.ConditionOperatorEquals
+	customEventSpecificationWithThresholdRuleConditionValue    = float64(1.2)
 )
 
 var CustomEventSpecificationWithThresholdRuleRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
@@ -134,11 +128,7 @@ const httpServerResponseTemplate = `
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
-	"rules" : [ {{rule}} ],
-	"downstream" : {
-		"integrationIds" : ["integration-id-1", "integration-id-2"],
-		"broadcastToAllAlertingConfigs" : true
-	}
+	"rules" : [ {{rule}} ]
 }
 `
 
@@ -188,9 +178,6 @@ func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc, i
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customEventSpecificationWithThresholdRuleExpirationTime)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationDownstreamIntegrationIds+".0", customEventSpecificationWithThresholdRuleDownstreamIntegrationId1),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationDownstreamIntegrationIds+".1", customEventSpecificationWithThresholdRuleDownstreamIntegrationId2),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, "true"),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationRuleSeverity, CustomEventSpecificationWithThresholdRuleRuleSeverity),
 	}
 	allFunctions := append(defaultCheckFunctions, ruleTestCheckFunctions...)
@@ -209,8 +196,6 @@ func TestCustomEventSpecificationWithThresholdRuleSchemaDefinitionIsValid(t *tes
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldDescription)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(CustomEventSpecificationFieldExpirationTime)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldEnabled, true)
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfStrings(CustomEventSpecificationDownstreamIntegrationIds)
-	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, true)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleSeverity)
 
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ThresholdRuleFieldMetricName)
@@ -222,14 +207,15 @@ func TestCustomEventSpecificationWithThresholdRuleSchemaDefinitionIsValid(t *tes
 }
 
 func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewCustomEventSpecificationWithThresholdRuleResourceHandle().SchemaVersion)
+	assert.Equal(t, 2, NewCustomEventSpecificationWithThresholdRuleResourceHandle().SchemaVersion)
 }
 
 func TestCustomEventSpecificationWithThresholdRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
 	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
+	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -254,6 +240,30 @@ func TestShouldMigrateEmptyCustomEventSpecificationWithThresholdRuleStateFromVer
 	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
 }
 
+func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2WhenDownstreamConfigurationIsProvided(t *testing.T) {
+	rawData := make(map[string]interface{})
+	rawData["downstream_integration_ids"] = []interface{}{"id1", "id2"}
+	rawData["downstream_broadcast_to_all_alerting_configs"] = true
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Nil(t, result["downstream_integration_ids"])
+	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
+}
+
+func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2WhenNoDownstreamConfigurationIsProvided(t *testing.T) {
+	rawData := make(map[string]interface{})
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Nil(t, result["downstream_integration_ids"])
+	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
+}
+
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithThresholdRuleResource(t *testing.T) {
 	name := NewCustomEventSpecificationWithThresholdRuleResourceHandle().ResourceName
 
@@ -261,9 +271,9 @@ func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithThreshold
 }
 
 func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFromApiObject(t *testing.T) {
-	description := customSystemEventDescription
-	expirationTime := customSystemEventExpirationTime
-	query := customSystemEventQuery
+	description := customEventSpecificationWithThresholdRuleDescription
+	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
+	query := customEventSpecificationWithThresholdRuleQuery
 
 	window := customEventSpecificationWithThresholdRuleWindow
 	rollup := customEventSpecificationWithThresholdRuleRollup
@@ -273,8 +283,8 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFrom
 	conditionOperator := customEventSpecificationWithThresholdRuleConditionOperator
 
 	spec := restapi.CustomEventSpecification{
-		ID:             customSystemEventID,
-		Name:           customSystemEventName,
+		ID:             customEventSpecificationWithThresholdRuleID,
+		Name:           customEventSpecificationWithThresholdRuleName,
 		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
 		Query:          &query,
 		Description:    &description,
@@ -293,10 +303,6 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFrom
 				ConditionValue:    &conditionValue,
 			},
 		},
-		Downstream: &restapi.EventSpecificationDownstream{
-			IntegrationIds:                []string{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2},
-			BroadcastToAllAlertingConfigs: true,
-		},
 	}
 
 	testHelper := NewTestHelper(t)
@@ -306,10 +312,10 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFrom
 	err := sut.UpdateState(resourceData, spec)
 
 	assert.Nil(t, err)
-	assert.Equal(t, customSystemEventID, resourceData.Id())
-	assert.Equal(t, customSystemEventName, resourceData.Get(CustomEventSpecificationFieldFullName))
+	assert.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
+	assert.Equal(t, customEventSpecificationWithThresholdRuleName, resourceData.Get(CustomEventSpecificationFieldFullName))
 	assert.Equal(t, customEventSpecificationWithThresholdRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
-	assert.Equal(t, customSystemEventQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
+	assert.Equal(t, customEventSpecificationWithThresholdRuleQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
 	assert.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	assert.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
 	assert.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
@@ -321,9 +327,6 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFrom
 	assert.Equal(t, string(conditionOperator), resourceData.Get(ThresholdRuleFieldConditionOperator))
 	assert.Equal(t, conditionValue, resourceData.Get(ThresholdRuleFieldConditionValue))
 	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
-
-	assert.True(t, resourceData.Get(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs).(bool))
-	assert.Equal(t, []interface{}{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2}, resourceData.Get(CustomEventSpecificationDownstreamIntegrationIds))
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleStateToDataModel(t *testing.T) {
@@ -332,20 +335,15 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleState
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
-	resourceData.SetId(customSystemEventID)
-	resourceData.Set(CustomEventSpecificationFieldFullName, customSystemEventName)
+	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
+	resourceData.Set(CustomEventSpecificationFieldFullName, customEventSpecificationWithThresholdRuleName)
 	resourceData.Set(CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType)
-	resourceData.Set(CustomEventSpecificationFieldQuery, customSystemEventQuery)
+	resourceData.Set(CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery)
 	resourceData.Set(CustomEventSpecificationFieldTriggering, true)
-	resourceData.Set(CustomEventSpecificationFieldDescription, customSystemEventDescription)
-	resourceData.Set(CustomEventSpecificationFieldExpirationTime, customSystemEventExpirationTime)
+	resourceData.Set(CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
+	resourceData.Set(CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
 	resourceData.Set(CustomEventSpecificationFieldEnabled, true)
-	integrationIds := make([]interface{}, 2)
-	integrationIds[0] = customSystemEventDownStringIntegrationId1
-	integrationIds[1] = customSystemEventDownStringIntegrationId2
-	resourceData.Set(CustomEventSpecificationDownstreamIntegrationIds, integrationIds)
-	resourceData.Set(CustomEventSpecificationDownstreamBroadcastToAllAlertingConfigs, true)
-	resourceData.Set(CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity)
+	resourceData.Set(CustomEventSpecificationRuleSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
 	resourceData.Set(ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName)
 	resourceData.Set(ThresholdRuleFieldWindow, customEventSpecificationWithThresholdRuleWindow)
 	resourceData.Set(ThresholdRuleFieldRollup, customEventSpecificationWithThresholdRuleRollup)
@@ -358,12 +356,12 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleState
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.CustomEventSpecification{}, result)
 	customEventSpec := result.(restapi.CustomEventSpecification)
-	assert.Equal(t, customSystemEventID, customEventSpec.GetID())
-	assert.Equal(t, customSystemEventName, customEventSpec.Name)
+	assert.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetID())
+	assert.Equal(t, customEventSpecificationWithThresholdRuleName, customEventSpec.Name)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
-	assert.Equal(t, customSystemEventQuery, *customEventSpec.Query)
-	assert.Equal(t, customSystemEventDescription, *customEventSpec.Description)
-	assert.Equal(t, customSystemEventExpirationTime, *customEventSpec.ExpirationTime)
+	assert.Equal(t, customEventSpecificationWithThresholdRuleQuery, *customEventSpec.Query)
+	assert.Equal(t, customEventSpecificationWithThresholdRuleDescription, *customEventSpec.Description)
+	assert.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
 	assert.True(t, customEventSpec.Triggering)
 	assert.True(t, customEventSpec.Enabled)
 
@@ -375,9 +373,6 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleState
 	assert.Equal(t, customEventSpecificationWithThresholdRuleConditionOperator, *customEventSpec.Rules[0].ConditionOperator)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
 	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
-
-	assert.True(t, customEventSpec.Downstream.BroadcastToAllAlertingConfigs)
-	assert.Equal(t, []string{customSystemEventDownStringIntegrationId1, customSystemEventDownStringIntegrationId2}, customEventSpec.Downstream.IntegrationIds)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {

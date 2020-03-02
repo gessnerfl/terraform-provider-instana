@@ -17,17 +17,17 @@ func TestRandomID(t *testing.T) {
 func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.T) {
 	ruleIds := []interface{}{"test1", "test2"}
 	data := make(map[string]interface{})
-	data[CustomEventSpecificationDownstreamIntegrationIds] = ruleIds
-	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewCustomEventSpecificationWithSystemRuleResourceHandle(), data)
-	result := ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)
+	data[AlertingChannelOpsGenieFieldTags] = ruleIds
+	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle(), data)
+	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
 
 	assert.NotNil(t, result)
 	assert.Equal(t, []string{"test1", "test2"}, result)
 }
 
 func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewCustomEventSpecificationWithSystemRuleResourceHandle())
-	result := ReadStringArrayParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)
+	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle())
+	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
 
 	assert.Nil(t, result)
 }

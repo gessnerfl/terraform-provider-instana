@@ -75,10 +75,6 @@ func TestShouldValidateFullCustomEventSpecificationWithSystemRule(t *testing.T) 
 		Triggering:     true,
 		Enabled:        true,
 		Rules:          []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
-		Downstream: &EventSpecificationDownstream{
-			IntegrationIds:                []string{"downstream-integration-id"},
-			BroadcastToAllAlertingConfigs: true,
-		},
 	}
 
 	err := spec.Validate()
@@ -199,22 +195,6 @@ func TestFailToValidateCustemEventSpecificationWhenTheProvidedRuleIsNotValid(t *
 	assert.Contains(t, err.Error(), "id of system rule")
 }
 
-func TestFailToValidateCustemEventSpecificationWhenDownstreamSpecificationIsNotValid(t *testing.T) {
-	systemRuleId := customEventSystemRuleID
-	spec := CustomEventSpecification{
-		ID:         customEventID,
-		Name:       customEventName,
-		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
-		Downstream: &EventSpecificationDownstream{},
-	}
-
-	err := spec.Validate()
-
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messagePartIntegrationId)
-}
-
 func TestShouldSuccessfullyValidateSystemRule(t *testing.T) {
 	rule := NewSystemRuleSpecification(customEventSystemRuleID, 1000)
 
@@ -240,39 +220,6 @@ func TestShouldFailToValidateSystemRuleWhenRuleTypeIsMissing(t *testing.T) {
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "type of rule")
-}
-
-func TestShouldSuccessfullyValidateEventSpecificationDownstream(t *testing.T) {
-	downstream := EventSpecificationDownstream{
-		IntegrationIds:                []string{"integration-id-1"},
-		BroadcastToAllAlertingConfigs: true,
-	}
-
-	err := downstream.Validate()
-
-	assert.Nil(t, err)
-}
-
-func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDsAreNil(t *testing.T) {
-	downstream := EventSpecificationDownstream{
-		IntegrationIds: nil,
-	}
-
-	err := downstream.Validate()
-
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messagePartIntegrationId)
-}
-
-func TestShouldFailToValidateEventSpecificationDownstreamWhenNoIntegrationIDIsProvided(t *testing.T) {
-	downstream := EventSpecificationDownstream{
-		IntegrationIds: []string{},
-	}
-
-	err := downstream.Validate()
-
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messagePartIntegrationId)
 }
 
 func TestShouldValidateFullThresholdRuleSpecificationWithWindowRollupAndAggregation(t *testing.T) {

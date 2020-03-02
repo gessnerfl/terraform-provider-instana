@@ -58,12 +58,17 @@ func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() *Reso
 	return &ResourceHandle{
 		ResourceName:  ResourceInstanaCustomEventSpecificationEntityVerificationRule,
 		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, entityVerificationRuleSchemaFields),
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    customEventSpecificationWithEntityVerificationRuleSchemaV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: migrateCustomEventConfigFullNameInStateFromV0toV1,
 				Version: 0,
+			},
+			{
+				Type:    customEventSpecificationWithEntityVerificationRuleSchemaV1().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration,
+				Version: 1,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.CustomEventSpecifications() },
@@ -112,5 +117,11 @@ func mapStateToDataObjectForCustomEventSpecificationWithEntityVerificationRule(d
 func customEventSpecificationWithEntityVerificationRuleSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV0, entityVerificationRuleSchemaFields),
+	}
+}
+
+func customEventSpecificationWithEntityVerificationRuleSchemaV1() *schema.Resource {
+	return &schema.Resource{
+		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV1, entityVerificationRuleSchemaFields),
 	}
 }
