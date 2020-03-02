@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
@@ -170,7 +169,6 @@ func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServ
 }
 
 func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc, iteration int) []resource.TestCheckFunc {
-	hashFunctionDownstreamIntegrationId := schema.HashSchema(CustomEventSpecificationSchemaDownstreamIntegrationIds.Elem.(*schema.Schema))
 	defaultCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithThresholdRuleDefinition, "id"),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName+fmt.Sprintf(" %d", iteration)),

@@ -87,8 +87,7 @@ var customEventSpecificationSchemaDownstreamIntegrationIdsLegacy = &schema.Schem
 	Description: "Configures the list of integration ids which should be used for downstream reporting",
 }
 
-//CustomEventSpecificationSchemaDownstreamIntegrationIds schema definition for integration ids
-var CustomEventSpecificationSchemaDownstreamIntegrationIds = &schema.Schema{
+var customEventSpecificationSchemaDownstreamIntegrationIds = &schema.Schema{
 	Type:     schema.TypeSet,
 	Required: false,
 	Optional: true,

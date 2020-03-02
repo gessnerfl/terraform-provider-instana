@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
@@ -90,7 +89,6 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 
 	resourceCustomEventSpecificationWithSystemRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
-	hashFunctionDownstreamIntegrationId := schema.HashSchema(CustomEventSpecificationSchemaDownstreamIntegrationIds.Elem.(*schema.Schema))
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testCustomEventSpecificationWithSystemRuleProviders,
 		Steps: []resource.TestStep{

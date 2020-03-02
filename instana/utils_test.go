@@ -14,7 +14,6 @@ func TestRandomID(t *testing.T) {
 	assert.NotEqual(t, 0, len(id))
 }
 
-/*
 func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.T) {
 	ruleIds := []interface{}{"test1", "test2"}
 	data := make(map[string]interface{})
@@ -31,14 +30,14 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T
 	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
 
 	assert.Nil(t, result)
-}*/
+}
 
 func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T) {
-	ruleIds := []interface{}{"test1", "test2"}
+	emails := []interface{}{"test1", "test2"}
 	data := make(map[string]interface{})
-	data[CustomEventSpecificationDownstreamIntegrationIds] = ruleIds
-	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewCustomEventSpecificationWithSystemRuleResourceHandle(), data)
-	result := ReadStringSetParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)
+	data[AlertingChannelEmailFieldEmails] = emails
+	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle(), data)
+	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
 
 	assert.NotNil(t, result)
 	assert.Len(t, result, 2)
@@ -47,8 +46,8 @@ func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T)
 }
 
 func TestReadStringSetParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewCustomEventSpecificationWithSystemRuleResourceHandle())
-	result := ReadStringSetParameterFromResource(resourceData, CustomEventSpecificationDownstreamIntegrationIds)
+	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle())
+	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
 
 	assert.Nil(t, result)
 }
