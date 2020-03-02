@@ -168,7 +168,12 @@ func TestShouldReturnErrorWhenDeleteTestObjectFailsThroughInstanaAPI(t *testing.
 func verifyTestObjectModelAppliedToResource(model restapi.AlertingChannel, resourceData *schema.ResourceData, t *testing.T) {
 	assert.Equal(t, model.ID, resourceData.Id())
 	assert.Equal(t, model.Name, resourceData.Get(AlertingChannelFieldFullName))
-	assert.Equal(t, model.Emails, ReadStringArrayParameterFromResource(resourceData, AlertingChannelEmailFieldEmails))
+
+	emails := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
+	assert.Equal(t, len(model.Emails), len(emails))
+	for _, mail := range model.Emails {
+		assert.Contains(t, emails, mail)
+	}
 }
 
 func createTestAlertingChannelEmailObject() restapi.AlertingChannel {

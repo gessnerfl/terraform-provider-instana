@@ -13,21 +13,34 @@ const (
 	ResourceInstanaAlertingChannelEmail = "instana_alerting_channel_email"
 )
 
+//AlertingChannelEmailEmailsSchemaField schema definition for instana alerting channel emails field
+var AlertingChannelEmailEmailsSchemaField = &schema.Schema{
+	Type:     schema.TypeSet,
+	MinItems: 1,
+	Elem: &schema.Schema{
+		Type: schema.TypeString,
+	},
+	Required:    true,
+	Description: "The list of emails of the Email alerting channel",
+}
+
 //NewAlertingChannelEmailResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelEmailResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
 		ResourceName: ResourceInstanaAlertingChannelEmail,
 		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:     alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelEmailFieldEmails: &schema.Schema{
-				Type:     schema.TypeList,
-				MinItems: 1,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+			AlertingChannelFieldName:        alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName:    alertingChannelFullNameSchemaField,
+			AlertingChannelEmailFieldEmails: AlertingChannelEmailEmailsSchemaField,
+		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type: alertingChannelEmailSchemaV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+					return rawState, nil
 				},
-				Required:    true,
-				Description: "The list of emails of the Email alerting channel",
+				Version: 0,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
@@ -51,6 +64,24 @@ func mapStateToDataObjectForAlertingChannelEmail(d *schema.ResourceData, formatt
 		ID:     d.Id(),
 		Name:   name,
 		Kind:   restapi.EmailChannelType,
-		Emails: ReadStringArrayParameterFromResource(d, AlertingChannelEmailFieldEmails),
+		Emails: ReadStringSetParameterFromResource(d, AlertingChannelEmailFieldEmails),
 	}, nil
+}
+
+func alertingChannelEmailSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			AlertingChannelFieldName:     alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+			AlertingChannelEmailFieldEmails: &schema.Schema{
+				Type:     schema.TypeList,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Required:    true,
+				Description: "The list of emails of the Email alerting channel",
+			},
+		},
+	}
 }
