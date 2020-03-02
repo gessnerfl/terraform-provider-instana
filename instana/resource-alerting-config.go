@@ -29,63 +29,91 @@ const (
 
 var supportedEventTypes = convertSupportedEventTypesToStringSlice()
 
+//AlertingConfigSchemaAlertName schema field definition of instana_alerting_config field alert_name
+var AlertingConfigSchemaAlertName = &schema.Schema{
+	Type:         schema.TypeString,
+	Required:     true,
+	Description:  "Configures the alert name of the alerting configuration",
+	ValidateFunc: validation.StringLenBetween(1, 200),
+}
+
+//AlertingConfigSchemaFullAlertName schema field definition of instana_alerting_config field full_alert_name
+var AlertingConfigSchemaFullAlertName = &schema.Schema{
+	Type:        schema.TypeString,
+	Computed:    true,
+	Description: "The the full alert name field of the alerting configuration. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
+}
+
+//AlertingConfigSchemaIntegrationIds schema field definition of instana_alerting_config field integration_ids
+var AlertingConfigSchemaIntegrationIds = &schema.Schema{
+	Type:     schema.TypeSet,
+	MinItems: 0,
+	MaxItems: 1024,
+	Elem: &schema.Schema{
+		Type: schema.TypeString,
+	},
+	Required:    true,
+	Description: "Configures the list of Integration IDs (Alerting Channels).",
+}
+
+//AlertingConfigSchemaEventFilterQuery schema field definition of instana_alerting_config field event_filter_query
+var AlertingConfigSchemaEventFilterQuery = &schema.Schema{
+	Type:         schema.TypeString,
+	Required:     false,
+	Optional:     true,
+	Description:  "Configures a filter query to to filter rules or event types for a limited set of entities",
+	ValidateFunc: validation.StringLenBetween(0, 2048),
+}
+
+//AlertingConfigSchemaEventFilterEventTypes schema field definition of instana_alerting_config field event_filter_event_types
+var AlertingConfigSchemaEventFilterEventTypes = &schema.Schema{
+	Type:     schema.TypeSet,
+	MinItems: 0,
+	MaxItems: 6,
+	Elem: &schema.Schema{
+		Type:         schema.TypeString,
+		ValidateFunc: validation.StringInSlice(supportedEventTypes, false),
+	},
+	Required:      false,
+	Optional:      true,
+	ConflictsWith: []string{AlertingConfigFieldEventFilterRuleIDs},
+	Description:   "Configures the list of Event Types IDs which should trigger an alert.",
+}
+
+//AlertingConfigSchemaEventFilterRuleIDs schema field definition of instana_alerting_config field event_filter_rule_ids
+var AlertingConfigSchemaEventFilterRuleIDs = &schema.Schema{
+	Type:     schema.TypeSet,
+	MinItems: 0,
+	MaxItems: 1024,
+	Elem: &schema.Schema{
+		Type: schema.TypeString,
+	},
+	Required:      false,
+	Optional:      true,
+	ConflictsWith: []string{AlertingConfigFieldEventFilterEventTypes},
+	Description:   "Configures the list of Rule IDs which should trigger an alert.",
+}
+
 //NewAlertingConfigResourceHandle creates the resource handle for Alerting Configuration
 func NewAlertingConfigResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
 		ResourceName: ResourceInstanaAlertingConfig,
 		Schema: map[string]*schema.Schema{
-			AlertingConfigFieldAlertName: &schema.Schema{
-				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "Configures the alert name of the alerting configuration",
-				ValidateFunc: validation.StringLenBetween(1, 200),
-			},
-			AlertingConfigFieldFullAlertName: &schema.Schema{
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The the full alert name field of the alerting configuration. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
-			},
-			AlertingConfigFieldIntegrationIds: &schema.Schema{
-				Type:     schema.TypeList,
-				MinItems: 0,
-				MaxItems: 1024,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+			AlertingConfigFieldAlertName:             AlertingConfigSchemaAlertName,
+			AlertingConfigFieldFullAlertName:         AlertingConfigSchemaFullAlertName,
+			AlertingConfigFieldIntegrationIds:        AlertingConfigSchemaIntegrationIds,
+			AlertingConfigFieldEventFilterQuery:      AlertingConfigSchemaEventFilterQuery,
+			AlertingConfigFieldEventFilterEventTypes: AlertingConfigSchemaEventFilterEventTypes,
+			AlertingConfigFieldEventFilterRuleIDs:    AlertingConfigSchemaEventFilterRuleIDs,
+		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type: alertingChannelConfigSchemaV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+					return rawState, nil
 				},
-				Required:    true,
-				Description: "Configures the list of Integration IDs (Alerting Channels).",
-			},
-			AlertingConfigFieldEventFilterQuery: &schema.Schema{
-				Type:         schema.TypeString,
-				Required:     false,
-				Optional:     true,
-				Description:  "Configures a filter query to to filter rules or event types for a limited set of entities",
-				ValidateFunc: validation.StringLenBetween(0, 2048),
-			},
-			AlertingConfigFieldEventFilterEventTypes: &schema.Schema{
-				Type:     schema.TypeList,
-				MinItems: 0,
-				MaxItems: 6,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validation.StringInSlice(supportedEventTypes, false),
-				},
-				Required:      false,
-				Optional:      true,
-				ConflictsWith: []string{AlertingConfigFieldEventFilterRuleIDs},
-				Description:   "Configures the list of Event Types IDs which should trigger an alert.",
-			},
-			AlertingConfigFieldEventFilterRuleIDs: &schema.Schema{
-				Type:     schema.TypeList,
-				MinItems: 0,
-				MaxItems: 1024,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				Required:      false,
-				Optional:      true,
-				ConflictsWith: []string{AlertingConfigFieldEventFilterEventTypes},
-				Description:   "Configures the list of Rule IDs which should trigger an alert.",
+				Version: 0,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingConfigurations() },
@@ -121,17 +149,17 @@ func mapStateToDataObjectForAlertingConfig(d *schema.ResourceData, formatter uti
 	return restapi.AlertingConfiguration{
 		ID:             d.Id(),
 		AlertName:      name,
-		IntegrationIDs: ReadStringArrayParameterFromResource(d, AlertingConfigFieldIntegrationIds),
+		IntegrationIDs: ReadStringSetParameterFromResource(d, AlertingConfigFieldIntegrationIds),
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:      query,
-			RuleIDs:    ReadStringArrayParameterFromResource(d, AlertingConfigFieldEventFilterRuleIDs),
+			RuleIDs:    ReadStringSetParameterFromResource(d, AlertingConfigFieldEventFilterRuleIDs),
 			EventTypes: readEventTypesFromResourceData(d),
 		},
 	}, nil
 }
 
 func readEventTypesFromResourceData(d *schema.ResourceData) []restapi.AlertEventType {
-	rawData := ReadStringArrayParameterFromResource(d, AlertingConfigFieldEventFilterEventTypes)
+	rawData := ReadStringSetParameterFromResource(d, AlertingConfigFieldEventFilterEventTypes)
 	result := make([]restapi.AlertEventType, len(rawData))
 	for i, v := range rawData {
 		value := strings.ToLower(v)
@@ -153,4 +181,49 @@ func convertSupportedEventTypesToStringSlice() []string {
 		result[i] = string(t)
 	}
 	return result
+}
+
+func alertingChannelConfigSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			AlertingConfigFieldAlertName:     AlertingConfigSchemaAlertName,
+			AlertingConfigFieldFullAlertName: AlertingConfigSchemaFullAlertName,
+			AlertingConfigFieldIntegrationIds: &schema.Schema{
+				Type:     schema.TypeList,
+				MinItems: 0,
+				MaxItems: 1024,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Required:    true,
+				Description: "Configures the list of Integration IDs (Alerting Channels).",
+			},
+			AlertingConfigFieldEventFilterQuery: AlertingConfigSchemaEventFilterQuery,
+			AlertingConfigFieldEventFilterEventTypes: &schema.Schema{
+				Type:     schema.TypeList,
+				MinItems: 0,
+				MaxItems: 6,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringInSlice(supportedEventTypes, false),
+				},
+				Required:      false,
+				Optional:      true,
+				ConflictsWith: []string{AlertingConfigFieldEventFilterRuleIDs},
+				Description:   "Configures the list of Event Types IDs which should trigger an alert.",
+			},
+			AlertingConfigFieldEventFilterRuleIDs: &schema.Schema{
+				Type:     schema.TypeList,
+				MinItems: 0,
+				MaxItems: 1024,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Required:      false,
+				Optional:      true,
+				ConflictsWith: []string{AlertingConfigFieldEventFilterEventTypes},
+				Description:   "Configures the list of Rule IDs which should trigger an alert.",
+			},
+		},
+	}
 }
