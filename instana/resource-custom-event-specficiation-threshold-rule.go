@@ -82,7 +82,7 @@ func NewCustomEventSpecificationWithThresholdRuleResourceHandle() *ResourceHandl
 			},
 			{
 				Type:    customEventSpecificationWithThresholdRuleSchemaV1().CoreConfigSchema().ImpliedType(),
-				Upgrade: migrateCustomEventIntegrationIdsInStateFromV1toV2,
+				Upgrade: migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration,
 				Version: 1,
 			},
 		},
