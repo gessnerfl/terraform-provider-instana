@@ -75,20 +75,8 @@ var customEventSpecificationSchemaEnabled = &schema.Schema{
 	Optional:    true,
 	Description: "Configures if the custom event specification is enabled or not",
 }
-var customEventSpecificationSchemaDownstreamIntegrationIdsLegacy = &schema.Schema{
-	Type:     schema.TypeList,
-	Required: false,
-	Optional: true,
-	MinItems: 0,
-	MaxItems: 16,
-	Elem: &schema.Schema{
-		Type: schema.TypeString,
-	},
-	Description: "Configures the list of integration ids which should be used for downstream reporting",
-}
-
 var customEventSpecificationSchemaDownstreamIntegrationIds = &schema.Schema{
-	Type:     schema.TypeSet,
+	Type:     schema.TypeList,
 	Required: false,
 	Optional: true,
 	MinItems: 0,

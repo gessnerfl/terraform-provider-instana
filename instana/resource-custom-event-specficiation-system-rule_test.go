@@ -65,8 +65,6 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 	httpServer.AddRoute(http.MethodDelete, customSystemEventApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, customSystemEventApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-
-		//the integration id order is changed by intention to ensure set behaviour
 		json := strings.ReplaceAll(`
 		{
 			"id" : "{{id}}",

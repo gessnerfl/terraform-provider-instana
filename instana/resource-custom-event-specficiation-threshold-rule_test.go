@@ -118,7 +118,6 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMo
 	)
 }
 
-//in the http response the integration ids are returned by intention in a different order to test set behaviour
 const httpServerResponseTemplate = `
 {
 	"id" : "{{id}}",
@@ -207,7 +206,7 @@ func TestCustomEventSpecificationWithThresholdRuleSchemaDefinitionIsValid(t *tes
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeFloat(ThresholdRuleFieldConditionValue)
 }
 
-func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
+func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionTwo(t *testing.T) {
 	assert.Equal(t, 2, NewCustomEventSpecificationWithThresholdRuleResourceHandle().SchemaVersion)
 }
 
