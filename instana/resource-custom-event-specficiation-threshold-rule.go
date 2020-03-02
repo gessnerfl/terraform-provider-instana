@@ -73,12 +73,17 @@ func NewCustomEventSpecificationWithThresholdRuleResourceHandle() *ResourceHandl
 	return &ResourceHandle{
 		ResourceName:  ResourceInstanaCustomEventSpecificationThresholdRule,
 		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    customEventSpecificationWithThresholdRuleSchemaV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: migrateCustomEventConfigFullNameInStateFromV0toV1,
 				Version: 0,
+			},
+			{
+				Type:    customEventSpecificationWithThresholdRuleSchemaV1().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration,
+				Version: 1,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.CustomEventSpecifications() },
@@ -142,5 +147,11 @@ func getAggregationTypePointerFromResourceData(d *schema.ResourceData, key strin
 func customEventSpecificationWithThresholdRuleSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV0, thresholdRuleSchemaFields),
+	}
+}
+
+func customEventSpecificationWithThresholdRuleSchemaV1() *schema.Resource {
+	return &schema.Resource{
+		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV1, thresholdRuleSchemaFields),
 	}
 }
