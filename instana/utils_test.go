@@ -32,6 +32,26 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T
 	assert.Nil(t, result)
 }
 
+func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T) {
+	emails := []interface{}{"test1", "test2"}
+	data := make(map[string]interface{})
+	data[AlertingChannelEmailFieldEmails] = emails
+	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle(), data)
+	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
+
+	assert.NotNil(t, result)
+	assert.Len(t, result, 2)
+	assert.Contains(t, result, "test1")
+	assert.Contains(t, result, "test2")
+}
+
+func TestReadStringSetParameterFromResourceWhenParameterIsMissing(t *testing.T) {
+	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle())
+	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
+
+	assert.Nil(t, result)
+}
+
 func TestShouldReturnStringRepresentationOfSeverityWarning(t *testing.T) {
 	testShouldReturnStringRepresentationOfSeverity(restapi.SeverityWarning, t)
 }

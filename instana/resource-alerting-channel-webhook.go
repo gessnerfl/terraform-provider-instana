@@ -18,29 +18,45 @@ const (
 	ResourceInstanaAlertingChannelWebhook = "instana_alerting_channel_webhook"
 )
 
+//AlertingChannelWebhookWebhookURLsSchemaField schema field definition of instana_alerting_channel_webhook field webhook_urls
+var AlertingChannelWebhookWebhookURLsSchemaField = &schema.Schema{
+	Type:     schema.TypeSet,
+	MinItems: 1,
+	Elem: &schema.Schema{
+		Type: schema.TypeString,
+	},
+	Required:    true,
+	Description: "The list of webhook urls of the Webhook alerting channel",
+}
+
+//AlertingChannelWebhookHTTPHeadersSchemaField schema field definition of instana_alerting_channel_webhook field http_headers
+var AlertingChannelWebhookHTTPHeadersSchemaField = &schema.Schema{
+	Type: schema.TypeMap,
+	Elem: &schema.Schema{
+		Type: schema.TypeString,
+	},
+	Optional:    true,
+	Description: "The optional map of HTTP headers of the Webhook alerting channel",
+}
+
 //NewAlertingChannelWebhookResourceHandle creates the resource handle for Alerting Channels of type Webhook
 func NewAlertingChannelWebhookResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
 		ResourceName: ResourceInstanaAlertingChannelWebhook,
 		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:     alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelWebhookFieldWebhookURLs: &schema.Schema{
-				Type:     schema.TypeList,
-				MinItems: 1,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+			AlertingChannelFieldName:               alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName:           alertingChannelFullNameSchemaField,
+			AlertingChannelWebhookFieldWebhookURLs: AlertingChannelWebhookWebhookURLsSchemaField,
+			AlertingChannelWebhookFieldHTTPHeaders: AlertingChannelWebhookHTTPHeadersSchemaField,
+		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type: alertingChannelWebhookSchemaV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+					return rawState, nil
 				},
-				Required:    true,
-				Description: "The list of webhook urls of the Webhook alerting channel",
-			},
-			AlertingChannelWebhookFieldHTTPHeaders: &schema.Schema{
-				Type: schema.TypeMap,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				Optional:    true,
-				Description: "The optional map of HTTP headers of the Webhook alerting channel",
+				Version: 0,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
@@ -80,7 +96,7 @@ func mapStateToDataObjectForAlertingChannelWebhook(d *schema.ResourceData, forma
 		ID:          d.Id(),
 		Name:        name,
 		Kind:        restapi.WebhookChannelType,
-		WebhookURLs: ReadStringArrayParameterFromResource(d, AlertingChannelWebhookFieldWebhookURLs),
+		WebhookURLs: ReadStringSetParameterFromResource(d, AlertingChannelWebhookFieldWebhookURLs),
 		Headers:     headers,
 	}, nil
 }
@@ -99,4 +115,23 @@ func createHTTPHeaderListFromMap(d *schema.ResourceData) []string {
 		return result
 	}
 	return []string{}
+}
+
+func alertingChannelWebhookSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			AlertingChannelFieldName:     alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+			AlertingChannelWebhookFieldWebhookURLs: &schema.Schema{
+				Type:     schema.TypeList,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Required:    true,
+				Description: "The list of webhook urls of the Webhook alerting channel",
+			},
+			AlertingChannelWebhookFieldHTTPHeaders: AlertingChannelWebhookHTTPHeadersSchemaField,
+		},
+	}
 }

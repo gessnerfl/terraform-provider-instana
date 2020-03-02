@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -67,6 +69,9 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
 	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
+	hashFunctionEmails := schema.HashSchema(AlertingChannelEmailEmailsSchemaField.Elem.(*schema.Schema))
+	emailAddress1 := "EMAIL1"
+	emailAddress2 := "EMAIL2"
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingChannelEmailProviders,
 		Steps: []resource.TestStep{
@@ -76,8 +81,8 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, "name 0"),
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelEmailFieldEmails+".0", "EMAIL1"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelEmailFieldEmails+".1", "EMAIL2"),
+					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress1)), emailAddress1),
+					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress2)), emailAddress2),
 				),
 			},
 			resource.TestStep{
@@ -86,8 +91,8 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, "name 1"),
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelEmailFieldEmails+".0", "EMAIL1"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelEmailFieldEmails+".1", "EMAIL2"),
+					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress1)), emailAddress1),
+					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress2)), emailAddress2),
 				),
 			},
 		},
@@ -102,7 +107,40 @@ func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
-	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelEmailFieldEmails)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeSetOfStrings(AlertingChannelEmailFieldEmails)
+}
+
+func TestShouldReturnCorrectResourceNameForAlertingChannelEmail(t *testing.T) {
+	name := NewAlertingChannelEmailResourceHandle().ResourceName
+
+	assert.Equal(t, "instana_alerting_channel_email", name, "Expected resource name to be instana_alerting_channel_email")
+}
+
+func TestAlertingChannelEmailResourceShouldHaveSchemaVersionOne(t *testing.T) {
+	assert.Equal(t, 1, NewAlertingChannelEmailResourceHandle().SchemaVersion)
+}
+
+func TestAlertingChannelEmailShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+	resourceHandler := NewAlertingChannelEmailResourceHandle()
+
+	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
+}
+
+func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
+	emails := []interface{}{"email1", "email2"}
+	name := "name"
+	fullname := "fullname"
+	rawData := make(map[string]interface{})
+	rawData[AlertingChannelFieldName] = name
+	rawData[AlertingChannelFieldFullName] = fullname
+	rawData[AlertingChannelEmailFieldEmails] = emails
+	meta := "dummy"
+
+	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Equal(t, rawData, result)
 }
 
 func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
@@ -120,7 +158,11 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
 	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
-	assert.Equal(t, []interface{}{"email1", "email2"}, resourceData.Get(AlertingChannelEmailFieldEmails), "list of emails should be equal")
+
+	emails := resourceData.Get(AlertingChannelEmailFieldEmails).(*schema.Set)
+	assert.Equal(t, 2, emails.Len())
+	assert.Contains(t, emails.List(), "email1")
+	assert.Contains(t, emails.List(), "email2")
 }
 
 func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
@@ -139,19 +181,7 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
 	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Equal(t, emails, model.(restapi.AlertingChannel).Emails, "list of emails should be equal")
-}
-
-func TestAlertingChannelEmailShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelEmailResourceHandle().SchemaVersion)
-}
-
-func TestAlertingChannelEmailShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelEmailResourceHandle().StateUpgraders))
-}
-
-func TestShouldReturnCorrectResourceNameForAlertingChannelEmail(t *testing.T) {
-	name := NewAlertingChannelEmailResourceHandle().ResourceName
-
-	assert.Equal(t, "instana_alerting_channel_email", name, "Expected resource name to be instana_alerting_channel_email")
+	assert.Len(t, model.(restapi.AlertingChannel).Emails, 2)
+	assert.Contains(t, model.(restapi.AlertingChannel).Emails, "email1")
+	assert.Contains(t, model.(restapi.AlertingChannel).Emails, "email2")
 }

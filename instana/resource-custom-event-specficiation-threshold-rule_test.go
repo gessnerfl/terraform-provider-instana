@@ -206,11 +206,11 @@ func TestCustomEventSpecificationWithThresholdRuleSchemaDefinitionIsValid(t *tes
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeFloat(ThresholdRuleFieldConditionValue)
 }
 
-func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
+func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionTwo(t *testing.T) {
 	assert.Equal(t, 2, NewCustomEventSpecificationWithThresholdRuleResourceHandle().SchemaVersion)
 }
 
-func TestCustomEventSpecificationWithThresholdRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+func TestCustomEventSpecificationWithThresholdRuleShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 
 	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
