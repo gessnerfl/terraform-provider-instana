@@ -47,8 +47,6 @@ resource "instana_custom_event_spec_entity_verification_rule" "example" {
   rule_matching_operator = "is"
   rule_matching_entity_label = "entity-label"
   rule_offline_duration = 60000
-  downstream_integration_ids = [ "integration-id-1", "integration-id-2" ]
-  downstream_broadcast_to_all_alerting_configs = true
 }
 
 resource "instana_alerting_channel_email" "example" {
