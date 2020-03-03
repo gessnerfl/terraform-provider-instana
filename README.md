@@ -131,6 +131,7 @@ API Documentation: <https://instana.github.io/openapi/#operation/getCustomEventS
 Custom Event Specification support two different flavors:
 
 - System Rules - defines an event triggered by a system rule
+- Entity Verification Rules - defines an event which is triggered when an entity is not running on the selected systems.
 - Threshold Rules - defines an event triggered by a rule for a certain metric comparing the value with a given value over a time window
 
 Custom event resources supports `default_name_prefix` and `default_name_suffix`. The string will be appended automatically
