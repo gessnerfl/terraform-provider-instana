@@ -1,5 +1,26 @@
 # Change Log
 
+## [v0.8.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.8.2) (2020-03-02)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.8.1...v0.8.2)
+
+**Closed issues:**
+
+- Downstream integration Ids not supported anymore for Custom Event [\#44](https://github.com/gessnerfl/terraform-provider-instana/issues/44)
+- Allow up to 1024 rule-ids per instana\_alerting\_config [\#39](https://github.com/gessnerfl/terraform-provider-instana/issues/39)
+
+**Merged pull requests:**
+
+- Bugfix/43 order of event types [\#46](https://github.com/gessnerfl/terraform-provider-instana/pull/46) ([gessnerfl](https://github.com/gessnerfl))
+- \#44: Remove downstream integration IDs from custom event specs [\#45](https://github.com/gessnerfl/terraform-provider-instana/pull/45) ([gessnerfl](https://github.com/gessnerfl))
+- \#41: use testify instead of plain go if checks in tests [\#42](https://github.com/gessnerfl/terraform-provider-instana/pull/42) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v0.8.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.8.1) (2020-02-21)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.8.0...v0.8.1)
+
+**Merged pull requests:**
+
+- \#39 Allow 1024 rule-ids per instana\_alerting\_config [\#40](https://github.com/gessnerfl/terraform-provider-instana/pull/40) ([ppuschmann](https://github.com/ppuschmann))
+
 ## [v0.8.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.8.0) (2020-02-14)
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.7.0...v0.8.0)
 
@@ -60,6 +81,7 @@
 
 **Closed issues:**
 
+- Consistently use testify assert [\#41](https://github.com/gessnerfl/terraform-provider-instana/issues/41)
 - Add support to append terraform managed string [\#19](https://github.com/gessnerfl/terraform-provider-instana/issues/19)
 
 **Merged pull requests:**
