@@ -11,18 +11,28 @@ import (
 const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_event_spec_threshold_rule"
 
 const (
-	//ThresholdRuleFieldMetricName constant value for the schema field metric_name
+	//ThresholdRuleFieldMetricName constant value for the schema field rule_metric_name
 	ThresholdRuleFieldMetricName = ruleFieldPrefix + "metric_name"
-	//ThresholdRuleFieldRollup constant value for the schema field rollup
+	//ThresholdRuleFieldRollup constant value for the schema field rule_rollup
 	ThresholdRuleFieldRollup = ruleFieldPrefix + "rollup"
-	//ThresholdRuleFieldWindow constant value for the schema field window
+	//ThresholdRuleFieldWindow constant value for the schema field rule_window
 	ThresholdRuleFieldWindow = ruleFieldPrefix + "window"
-	//ThresholdRuleFieldAggregation constant value for the schema field aggregation
+	//ThresholdRuleFieldAggregation constant value for the schema field rule_aggregation
 	ThresholdRuleFieldAggregation = ruleFieldPrefix + "aggregation"
-	//ThresholdRuleFieldConditionOperator constant value for the schema field condition_operator
+	//ThresholdRuleFieldConditionOperator constant value for the schema field rule_condition_operator
 	ThresholdRuleFieldConditionOperator = ruleFieldPrefix + "condition_operator"
-	//ThresholdRuleFieldConditionValue constant value for the schema field condition_value
+	//ThresholdRuleFieldConditionValue constant value for the schema field rule_condition_value
 	ThresholdRuleFieldConditionValue = ruleFieldPrefix + "condition_value"
+
+	thresholdRuleFieldMetricPattern = ruleFieldPrefix + "metric_pattern_"
+	//ThresholdRuleFieldMetricPatternPrefix constant value for the schema field rule_metric_pattern_prefix
+	ThresholdRuleFieldMetricPatternPrefix = thresholdRuleFieldMetricPattern + "prefix"
+	//ThresholdRuleFieldMetricPatternPostfix constant value for the schema field rule_metric_pattern_postfix
+	ThresholdRuleFieldMetricPatternPostfix = thresholdRuleFieldMetricPattern + "postfix"
+	//ThresholdRuleFieldMetricPatternPlaceholder constant value for the schema field rule_metric_pattern_placeholder
+	ThresholdRuleFieldMetricPatternPlaceholder = thresholdRuleFieldMetricPattern + "placeholder"
+	//ThresholdRuleFieldMetricPatternOperator constant value for the schema field rule_metric_pattern_operator
+	ThresholdRuleFieldMetricPatternOperator = thresholdRuleFieldMetricPattern + "operator"
 )
 
 var thresholdRuleSchemaFields = map[string]*schema.Schema{
