@@ -38,7 +38,7 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 	EntityVerificationRuleFieldMatchingOperator: &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
-		ValidateFunc: validation.StringInSlice(restapi.SupportedMatchingOperatorTypes.ToStringSlice(), false),
+		ValidateFunc: validation.StringInSlice(restapi.SupportedMatchingOperatorTypes.TerrafromSupportedValues(), false),
 		Description:  "The operator which should be applied for matching the label for the given entity (e.g. IS, CONTAINS, STARTS_WITH, ENDS_WITH, NONE)",
 	},
 	EntityVerificationRuleFieldMatchingEntityLabel: &schema.Schema{
@@ -89,10 +89,14 @@ func updateStateForCustomEventSpecificationWithEntityVerificationRule(d *schema.
 	if err != nil {
 		return err
 	}
+	matchingOperator, err := ruleSpec.MatchingOperatorType()
+	if err != nil {
+		return err
+	}
 	d.Set(CustomEventSpecificationRuleSeverity, severity)
 	d.Set(EntityVerificationRuleFieldMatchingEntityLabel, ruleSpec.MatchingEntityLabel)
 	d.Set(EntityVerificationRuleFieldMatchingEntityType, ruleSpec.MatchingEntityType)
-	d.Set(EntityVerificationRuleFieldMatchingOperator, ruleSpec.MatchingOperator)
+	d.Set(EntityVerificationRuleFieldMatchingOperator, matchingOperator.TerraformRepresentation)
 	d.Set(EntityVerificationRuleFieldOfflineDuration, ruleSpec.OfflineDuration)
 	return nil
 }
@@ -104,10 +108,15 @@ func mapStateToDataObjectForCustomEventSpecificationWithEntityVerificationRule(d
 	}
 	entityLabel := d.Get(EntityVerificationRuleFieldMatchingEntityLabel).(string)
 	entityType := d.Get(EntityVerificationRuleFieldMatchingEntityType).(string)
-	operator := restapi.MatchingOperatorType(d.Get(EntityVerificationRuleFieldMatchingOperator).(string))
+
+	matchingOperatorString := d.Get(EntityVerificationRuleFieldMatchingOperator).(string)
+	matchingOperator, err := restapi.SupportedMatchingOperatorTypes.ForTerraformRepresentation(matchingOperatorString)
+	if err != nil {
+		return restapi.CustomEventSpecification{}, err
+	}
 	offlineDuration := d.Get(EntityVerificationRuleFieldOfflineDuration).(int)
 
-	rule := restapi.NewEntityVerificationRuleSpecification(entityLabel, entityType, operator, offlineDuration, severity)
+	rule := restapi.NewEntityVerificationRuleSpecification(entityLabel, entityType, matchingOperator.InstanaRepresentation, offlineDuration, severity)
 
 	customEventSpecification := createCustomEventSpecificationFromResourceData(d, formatter)
 	customEventSpecification.Rules = []restapi.RuleSpecification{rule}
