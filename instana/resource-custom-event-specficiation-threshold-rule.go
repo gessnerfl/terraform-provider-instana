@@ -36,42 +36,42 @@ const (
 )
 
 var thresholdRuleSchemaFields = map[string]*schema.Schema{
-	CustomEventSpecificationFieldEntityType: &schema.Schema{
+	CustomEventSpecificationFieldEntityType: {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Configures the entity type of the custom event specification",
 	},
-	ThresholdRuleFieldMetricName: &schema.Schema{
+	ThresholdRuleFieldMetricName: {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The metric name of the rule",
 	},
-	ThresholdRuleFieldRollup: &schema.Schema{
+	ThresholdRuleFieldRollup: {
 		Type:        schema.TypeInt,
 		Required:    false,
 		Optional:    true,
 		Description: "The rollup of the metric",
 	},
-	ThresholdRuleFieldWindow: &schema.Schema{
+	ThresholdRuleFieldWindow: {
 		Type:        schema.TypeInt,
 		Required:    false,
 		Optional:    true,
 		Description: "The time window where the condition has to be fulfilled",
 	},
-	ThresholdRuleFieldAggregation: &schema.Schema{
+	ThresholdRuleFieldAggregation: {
 		Type:         schema.TypeString,
 		Required:     false,
 		Optional:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregationTypes.ToStringSlice(), false),
 		Description:  "The aggregation type (e.g. sum, avg)",
 	},
-	ThresholdRuleFieldConditionOperator: &schema.Schema{
+	ThresholdRuleFieldConditionOperator: {
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedConditionOperatorTypes.ToStringSlice(), false),
 		Description:  "The condition operator (e.g >, <)",
 	},
-	ThresholdRuleFieldConditionValue: &schema.Schema{
+	ThresholdRuleFieldConditionValue: {
 		Type:        schema.TypeFloat,
 		Required:    true,
 		Description: "The expected condition value to fulfill the rule",

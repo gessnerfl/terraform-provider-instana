@@ -42,17 +42,17 @@ func NewApplicationConfigResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
 		ResourceName: ResourceInstanaApplicationConfig,
 		Schema: map[string]*schema.Schema{
-			ApplicationConfigFieldLabel: &schema.Schema{
+			ApplicationConfigFieldLabel: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The label of the application config",
 			},
-			ApplicationConfigFieldFullLabel: &schema.Schema{
+			ApplicationConfigFieldFullLabel: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
 			},
-			ApplicationConfigFieldScope: &schema.Schema{
+			ApplicationConfigFieldScope: {
 				Type:         schema.TypeString,
 				Required:     false,
 				Optional:     true,
@@ -60,7 +60,7 @@ func NewApplicationConfigResourceHandle() *ResourceHandle {
 				ValidateFunc: validation.StringInSlice([]string{ApplicationConfigScopeIncludeNoDownstream, ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging, ApplicationConfigScopeIncludeAllDownstream}, false),
 				Description:  "The scope of the application config",
 			},
-			ApplicationConfigFieldMatchSpecification: &schema.Schema{
+			ApplicationConfigFieldMatchSpecification: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The match specification of the application config",
@@ -140,12 +140,12 @@ func computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter u
 func applicationConfigSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			ApplicationConfigFieldLabel: &schema.Schema{
+			ApplicationConfigFieldLabel: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The label of the application config",
 			},
-			ApplicationConfigFieldScope: &schema.Schema{
+			ApplicationConfigFieldScope: {
 				Type:         schema.TypeString,
 				Required:     false,
 				Optional:     true,
@@ -153,7 +153,7 @@ func applicationConfigSchemaV0() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{ApplicationConfigScopeIncludeNoDownstream, ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging, ApplicationConfigScopeIncludeAllDownstream}, false),
 				Description:  "The scope of the application config",
 			},
-			ApplicationConfigFieldMatchSpecification: &schema.Schema{
+			ApplicationConfigFieldMatchSpecification: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The match specification of the application config",

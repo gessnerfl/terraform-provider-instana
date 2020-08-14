@@ -22,12 +22,12 @@ func NewAlertingChannelVictorOpsResourceHandle() *ResourceHandle {
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
 			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelVictorOpsFieldAPIKey: &schema.Schema{
+			AlertingChannelVictorOpsFieldAPIKey: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The API Key of the VictorOps alerting channel",
 			},
-			AlertingChannelVictorOpsFieldRoutingKey: &schema.Schema{
+			AlertingChannelVictorOpsFieldRoutingKey: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The Routing Key of the VictorOps alerting channel",

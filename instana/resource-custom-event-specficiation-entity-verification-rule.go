@@ -25,28 +25,28 @@ const (
 const EntityVerificationRuleEntityType = "host"
 
 var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
-	CustomEventSpecificationFieldEntityType: &schema.Schema{
+	CustomEventSpecificationFieldEntityType: {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The computed entity type of a entity verification rule 'host'",
 	},
-	EntityVerificationRuleFieldMatchingEntityType: &schema.Schema{
+	EntityVerificationRuleFieldMatchingEntityType: {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The type of the matching entity",
 	},
-	EntityVerificationRuleFieldMatchingOperator: &schema.Schema{
+	EntityVerificationRuleFieldMatchingOperator: {
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedMatchingOperatorTypes.TerrafromSupportedValues(), false),
 		Description:  "The operator which should be applied for matching the label for the given entity (e.g. IS, CONTAINS, STARTS_WITH, ENDS_WITH, NONE)",
 	},
-	EntityVerificationRuleFieldMatchingEntityLabel: &schema.Schema{
+	EntityVerificationRuleFieldMatchingEntityLabel: {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The label of the matching entity",
 	},
-	EntityVerificationRuleFieldOfflineDuration: &schema.Schema{
+	EntityVerificationRuleFieldOfflineDuration: {
 		Type:        schema.TypeInt,
 		Required:    true,
 		Description: "The duration after which the matching entity is considered to be offline",

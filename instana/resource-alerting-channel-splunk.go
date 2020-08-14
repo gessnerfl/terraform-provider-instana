@@ -22,12 +22,12 @@ func NewAlertingChannelSplunkResourceHandle() *ResourceHandle {
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
 			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelSplunkFieldURL: &schema.Schema{
+			AlertingChannelSplunkFieldURL: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The URL of the Splunk alerting channel",
 			},
-			AlertingChannelSplunkFieldToken: &schema.Schema{
+			AlertingChannelSplunkFieldToken: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The token of the Splunk alerting channel",

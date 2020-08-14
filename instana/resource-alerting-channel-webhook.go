@@ -122,7 +122,7 @@ func alertingChannelWebhookSchemaV0() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
 			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelWebhookFieldWebhookURLs: &schema.Schema{
+			AlertingChannelWebhookFieldWebhookURLs: {
 				Type:     schema.TypeList,
 				MinItems: 1,
 				Elem: &schema.Schema{

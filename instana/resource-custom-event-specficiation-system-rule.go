@@ -18,12 +18,12 @@ const (
 const SystemRuleEntityType = "any"
 
 var systemRuleSchemaFields = map[string]*schema.Schema{
-	CustomEventSpecificationFieldEntityType: &schema.Schema{
+	CustomEventSpecificationFieldEntityType: {
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The computed entity type of a entity verification rule 'any'",
 	},
-	SystemRuleSpecificationSystemRuleID: &schema.Schema{
+	SystemRuleSpecificationSystemRuleID: {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Configures the system rule id for the system rule of the custom event specification",

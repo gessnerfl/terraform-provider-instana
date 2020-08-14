@@ -24,17 +24,17 @@ func NewAlertingChannelSlackResourceHandle() *ResourceHandle {
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
 			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelSlackFieldWebhookURL: &schema.Schema{
+			AlertingChannelSlackFieldWebhookURL: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The webhook URL of the Slack alerting channel",
 			},
-			AlertingChannelSlackFieldIconURL: &schema.Schema{
+			AlertingChannelSlackFieldIconURL: {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The icon URL of the Slack alerting channel",
 			},
-			AlertingChannelSlackFieldChannel: &schema.Schema{
+			AlertingChannelSlackFieldChannel: {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The Slack channel of the Slack alerting channel",

@@ -20,7 +20,7 @@ func NewAlertingChannelPagerDutyResourceHandle() *ResourceHandle {
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
 			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelPagerDutyFieldServiceIntegrationKey: &schema.Schema{
+			AlertingChannelPagerDutyFieldServiceIntegrationKey: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The Service Integration Key of the PagerDuty alerting channel",

@@ -73,7 +73,7 @@ func alertingChannelEmailSchemaV0() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
 			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelEmailFieldEmails: &schema.Schema{
+			AlertingChannelEmailFieldEmails: {
 				Type:     schema.TypeList,
 				MinItems: 1,
 				Elem: &schema.Schema{
