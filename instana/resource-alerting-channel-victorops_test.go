@@ -73,7 +73,7 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingChannelVictorOpsProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
@@ -83,7 +83,7 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),

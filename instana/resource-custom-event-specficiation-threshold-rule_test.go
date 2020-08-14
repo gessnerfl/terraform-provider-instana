@@ -155,11 +155,11 @@ func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServ
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testCustomEventSpecificationWithThresholdRuleProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: completeTerraformDefinitionWithName1,
 				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 0)...),
 			},
-			resource.TestStep{
+			{
 				Config: completeTerraformDefinitionWithName2,
 				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 1)...),
 			},
@@ -292,7 +292,7 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFrom
 		Triggering:     true,
 		Enabled:        true,
 		Rules: []restapi.RuleSpecification{
-			restapi.RuleSpecification{
+			{
 				DType:             restapi.ThresholdRuleType,
 				Severity:          restapi.SeverityWarning.GetAPIRepresentation(),
 				MetricName:        &metricName,

@@ -90,7 +90,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testCustomEventSpecificationWithSystemRuleProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceCustomEventSpecificationWithSystemRuleDefinition,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithSystemRuleDefinition, "id"),
