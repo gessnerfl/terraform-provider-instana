@@ -8,7 +8,7 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.182.368",
+    "version": "1.183.416",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#FAFBFC",
@@ -111,51 +111,6 @@
     }
   ],
   "paths": {
-    "/api/application-monitoring/analyze/trace-groups": {
-      "post": {
-        "tags": [
-          "Application Analyze"
-        ],
-        "summary": "Get grouped trace metrics",
-        "operationId": "getTraceGroups",
-        "parameters": [
-          {
-            "name": "fillTimeSeries",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetTraceGroups"
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TraceGroupsResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
     "/api/application-monitoring/analyze/call-groups": {
       "post": {
         "tags": [
@@ -200,6 +155,51 @@
           }
         ],
         "description": "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
+      }
+    },
+    "/api/application-monitoring/analyze/trace-groups": {
+      "post": {
+        "tags": [
+          "Application Analyze"
+        ],
+        "summary": "Get grouped trace metrics",
+        "operationId": "getTraceGroups",
+        "parameters": [
+          {
+            "name": "fillTimeSeries",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetTraceGroups"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraceGroupsResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
       }
     },
     "/api/application-monitoring/analyze/traces": {
@@ -490,6 +490,74 @@
         ]
       }
     },
+    "/api/application-monitoring/applications": {
+      "get": {
+        "tags": [
+          "Application Resources"
+        ],
+        "summary": "Get applications",
+        "operationId": "getApplications",
+        "parameters": [
+          {
+            "name": "nameFilter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "windowSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/application-monitoring/applications/services/endpoints": {
       "get": {
         "tags": [
@@ -566,74 +634,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EndpointResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/application-monitoring/applications": {
-      "get": {
-        "tags": [
-          "Application Resources"
-        ],
-        "summary": "Get applications",
-        "operationId": "getApplications",
-        "parameters": [
-          {
-            "name": "nameFilter",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "windowSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "to",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationResult"
                 }
               }
             }
@@ -3341,65 +3341,6 @@
         ]
       }
     },
-    "/api/instana/usage/api/{day}/{month}/{year}": {
-      "get": {
-        "tags": [
-          "Usage"
-        ],
-        "summary": "API usage day / month / year",
-        "operationId": "getUsagePerDay",
-        "parameters": [
-          {
-            "name": "day",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "month",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "year",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UsageResult"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanSeeUsageInformation"
-            ]
-          }
-        ]
-      }
-    },
     "/api/instana/usage/hosts/{day}/{month}/{year}": {
       "get": {
         "tags": [
@@ -3547,6 +3488,65 @@
         "summary": "API usage month / year",
         "operationId": "getUsagePerMonth",
         "parameters": [
+          {
+            "name": "month",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "year",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanSeeUsageInformation"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/instana/usage/api/{day}/{month}/{year}": {
+      "get": {
+        "tags": [
+          "Usage"
+        ],
+        "summary": "API usage day / month / year",
+        "operationId": "getUsagePerDay",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
           {
             "name": "month",
             "in": "path",
@@ -5270,22 +5270,7 @@
   },
   "components": {
     "schemas": {
-      "IngestionOffsetCursor": {
-        "type": "object",
-        "properties": {
-          "ingestionTime": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int64"
-          },
-          "offset": {
-            "minimum": 0,
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "TraceGroupsItem": {
+      "CallGroupsItem": {
         "required": [
           "cursor",
           "metrics",
@@ -5318,7 +5303,7 @@
           }
         }
       },
-      "TraceGroupsResult": {
+      "CallGroupsResult": {
         "required": [
           "items"
         ],
@@ -5327,7 +5312,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TraceGroupsItem"
+              "$ref": "#/components/schemas/CallGroupsItem"
             }
           },
           "canLoadMore": {
@@ -5339,6 +5324,21 @@
             "format": "int32"
           },
           "totalRepresentedItemCount": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "IngestionOffsetCursor": {
+        "type": "object",
+        "properties": {
+          "ingestionTime": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          },
+          "offset": {
             "minimum": 0,
             "type": "integer",
             "format": "int32"
@@ -5364,7 +5364,7 @@
           }
         }
       },
-      "GetTraceGroups": {
+      "GetCallGroups": {
         "required": [
           "group",
           "metrics"
@@ -5384,7 +5384,7 @@
             "$ref": "#/components/schemas/Group"
           },
           "tagFilters": {
-            "maxItems": 32,
+            "maxItems": 10,
             "minItems": 0,
             "type": "array",
             "items": {
@@ -5542,7 +5542,7 @@
           }
         }
       },
-      "CallGroupsItem": {
+      "TraceGroupsItem": {
         "required": [
           "cursor",
           "metrics",
@@ -5575,7 +5575,7 @@
           }
         }
       },
-      "CallGroupsResult": {
+      "TraceGroupsResult": {
         "required": [
           "items"
         ],
@@ -5584,7 +5584,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CallGroupsItem"
+              "$ref": "#/components/schemas/TraceGroupsItem"
             }
           },
           "canLoadMore": {
@@ -5602,7 +5602,7 @@
           }
         }
       },
-      "GetCallGroups": {
+      "GetTraceGroups": {
         "required": [
           "group",
           "metrics"
@@ -5622,7 +5622,7 @@
             "$ref": "#/components/schemas/Group"
           },
           "tagFilters": {
-            "maxItems": 10,
+            "maxItems": 32,
             "minItems": 0,
             "type": "array",
             "items": {
@@ -6560,13 +6560,13 @@
           }
         }
       },
-      "EndpointResult": {
+      "ApplicationResult": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Endpoint"
+              "$ref": "#/components/schemas/Application"
             }
           },
           "page": {
@@ -6583,13 +6583,13 @@
           }
         }
       },
-      "ApplicationResult": {
+      "EndpointResult": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Application"
+              "$ref": "#/components/schemas/Endpoint"
             }
           },
           "page": {
@@ -10236,7 +10236,9 @@
               "PAGELOAD",
               "RESOURCELOAD",
               "HTTPREQUEST",
-              "ERROR"
+              "ERROR",
+              "CUSTOM",
+              "PAGE_CHANGE"
             ]
           },
           "tagFilters": {
@@ -10335,7 +10337,9 @@
               "PAGELOAD",
               "RESOURCELOAD",
               "HTTPREQUEST",
-              "ERROR"
+              "ERROR",
+              "CUSTOM",
+              "PAGE_CHANGE"
             ]
           },
           "tagFilters": {
@@ -10496,7 +10500,9 @@
               "PAGELOAD",
               "RESOURCELOAD",
               "HTTPREQUEST",
-              "ERROR"
+              "ERROR",
+              "CUSTOM",
+              "PAGE_CHANGE"
             ]
           },
           "tagFilters": {
