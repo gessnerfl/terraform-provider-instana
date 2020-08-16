@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
@@ -71,6 +72,35 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 }
 `
 
+const resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate = `
+provider "instana" {
+  api_token = "test-token"
+  endpoint = "localhost:{{PORT}}"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
+}
+
+resource "instana_custom_event_spec_threshold_rule" "example" {
+  name = "name {{ITERATION}}"
+  entity_type = "entity_type"
+  query = "query"
+  enabled = true
+  triggering = true
+  description = "description"
+  expiration_time = 60000
+  rule_severity = "warning"
+  rule_metric_name = "metric_name"
+  rule_window = 60000
+  rule_aggregation = "sum"
+  rule_condition_operator = "=="
+  rule_condition_value = 1.2
+  rule_metric_pattern_prefix = "prefix"
+  rule_metric_pattern_postfix = "postfix"
+  rule_metric_pattern_placeholder = "placeholder"
+  rule_metric_pattern_operator = "startsWith"
+}
+`
+
 const (
 	customEventSpecificationWithThresholdRuleApiPath        = restapi.CustomEventSpecificationResourcePath + "/{id}"
 	testCustomEventSpecificationWithThresholdRuleDefinition = "instana_custom_event_spec_threshold_rule.example"
@@ -115,6 +145,24 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMo
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldAggregation, string(customEventSpecificationWithThresholdRuleAggregation)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionValue, "1.2"),
+	)
+}
+
+func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithMetricPatternResourceWithMockServer(t *testing.T) {
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "==", "conditionValue" : 1.2, "metricPattern" : { "prefix" : "prefix", "postfix" : "postfix", "placeholder" : "placeholder", "operator" : "startsWith" } }`
+	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
+		t,
+		resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate,
+		ruleAsJson,
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldWindow, strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldAggregation, string(customEventSpecificationWithThresholdRuleAggregation)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionValue, "1.2"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricPatternPrefix, "prefix"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricPatternPostfix, "postfix"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricPatternPlaceholder, "placeholder"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricPatternOperator, string(restapi.MetricPatternOperatorTypeStartsWith)),
 	)
 }
 
@@ -204,6 +252,10 @@ func TestCustomEventSpecificationWithThresholdRuleSchemaDefinitionIsValid(t *tes
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ThresholdRuleFieldAggregation)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ThresholdRuleFieldConditionOperator)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeFloat(ThresholdRuleFieldConditionValue)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ThresholdRuleFieldMetricPatternPrefix)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ThresholdRuleFieldMetricPatternPostfix)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ThresholdRuleFieldMetricPatternPlaceholder)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ThresholdRuleFieldMetricPatternOperator)
 }
 
 func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionTwo(t *testing.T) {
@@ -271,6 +323,36 @@ func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithThreshold
 }
 
 func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFromApiObject(t *testing.T) {
+	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, func(spec restapi.CustomEventSpecification) {}, func(resourceData *schema.ResourceData) {})
+}
+
+func TestShouldUpdateCustomEventSpecificationWithThresholdRuleAndMetricPatternTerraformStateFromApiObject(t *testing.T) {
+	prefix := "prefix"
+	postfix := "postfix"
+	placeholder := "placeholder"
+	operator := restapi.MetricPatternOperatorTypeStartsWith
+
+	additionalMappings := func(spec restapi.CustomEventSpecification) {
+		metricPattern := restapi.MetricPattern{
+			Prefix:      prefix,
+			Postfix:     &postfix,
+			Placeholder: &placeholder,
+			Operator:    operator,
+		}
+		spec.Rules[0].MetricPattern = &metricPattern
+	}
+
+	additionalAsserts := func(resourceData *schema.ResourceData) {
+		assert.Equal(t, prefix, resourceData.Get(ThresholdRuleFieldMetricPatternPrefix))
+		assert.Equal(t, postfix, resourceData.Get(ThresholdRuleFieldMetricPatternPostfix))
+		assert.Equal(t, placeholder, resourceData.Get(ThresholdRuleFieldMetricPatternPlaceholder))
+		assert.Equal(t, string(operator), resourceData.Get(ThresholdRuleFieldMetricPatternOperator))
+	}
+
+	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, additionalMappings, additionalAsserts)
+}
+
+func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t *testing.T, additionalMappings func(spec restapi.CustomEventSpecification), additionalAsserts func(resourceData *schema.ResourceData)) {
 	description := customEventSpecificationWithThresholdRuleDescription
 	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
 	query := customEventSpecificationWithThresholdRuleQuery
@@ -304,6 +386,7 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFrom
 			},
 		},
 	}
+	additionalMappings(spec)
 
 	testHelper := NewTestHelper(t)
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
@@ -327,9 +410,38 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFrom
 	assert.Equal(t, string(conditionOperator), resourceData.Get(ThresholdRuleFieldConditionOperator))
 	assert.Equal(t, conditionValue, resourceData.Get(ThresholdRuleFieldConditionValue))
 	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
+	additionalAsserts(resourceData)
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleStateToDataModel(t *testing.T) {
+	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t, func(resourceData *schema.ResourceData) {}, func(spec restapi.CustomEventSpecification) {})
+}
+
+func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleAndMetricPatternStateToDataModel(t *testing.T) {
+	prefix := "prefix"
+	postfix := "postfix"
+	placeholder := "placeholder"
+	operator := restapi.MetricPatternOperatorTypeStartsWith
+
+	additionalMappings := func(resourceData *schema.ResourceData) {
+		resourceData.Set(ThresholdRuleFieldMetricPatternPrefix, prefix)
+		resourceData.Set(ThresholdRuleFieldMetricPatternPostfix, postfix)
+		resourceData.Set(ThresholdRuleFieldMetricPatternPlaceholder, placeholder)
+		resourceData.Set(ThresholdRuleFieldMetricPatternOperator, operator)
+	}
+
+	additionalAsserts := func(spec restapi.CustomEventSpecification) {
+		assert.NotNil(t, spec.Rules[0].MetricPattern)
+		assert.Equal(t, prefix, spec.Rules[0].MetricPattern.Prefix)
+		assert.Equal(t, postfix, spec.Rules[0].MetricPattern.Postfix)
+		assert.Equal(t, placeholder, spec.Rules[0].MetricPattern.Placeholder)
+		assert.Equal(t, operator, spec.Rules[0].MetricPattern.Operator)
+	}
+
+	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t, additionalMappings, additionalAsserts)
+}
+
+func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t *testing.T, additionalMappings func(resourceData *schema.ResourceData), additionalAsserts func(spec restapi.CustomEventSpecification)) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 

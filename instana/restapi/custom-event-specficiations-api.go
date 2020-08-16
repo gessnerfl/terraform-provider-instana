@@ -3,6 +3,8 @@ package restapi
 import (
 	"errors"
 	"fmt"
+
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const (
@@ -87,7 +89,7 @@ type ConditionOperatorType string
 //ConditionOperatorTypes custom type representing a slice of ConditionOperatorType
 type ConditionOperatorTypes []ConditionOperatorType
 
-//ToStringSlice Returns the string representations fo the condition operators
+//ToStringSlice Returns the string representations of the condition operators
 func (types ConditionOperatorTypes) ToStringSlice() []string {
 	result := make([]string, len(types))
 	for i, v := range types {
@@ -195,6 +197,48 @@ var (
 //SupportedMatchingOperatorTypes slice of supported matching operatorTypes types
 var SupportedMatchingOperatorTypes = MatchingOperatorTypes{MatchingOperatorIs, MatchingOperatorContains, MatchingOperatorStartsWith, MatchingOperatorEndsWith}
 
+//MetricPatternOperatorType the operator type of the metric pattern of a dynamic built-in metric
+type MetricPatternOperatorType string
+
+//MetricPatternOperatorTypes type definition of a slice of MetricPatternOperatorType
+type MetricPatternOperatorTypes []MetricPatternOperatorType
+
+//ToStringSlice Returns the string representations of the metric pattern operator types
+func (types MetricPatternOperatorTypes) ToStringSlice() []string {
+	result := make([]string, len(types))
+	for i, v := range types {
+		result[i] = string(v)
+	}
+	return result
+}
+
+//IsSupported checks if the given value is a valid representation of a supported MetricPatternOperatorType
+func (types MetricPatternOperatorTypes) IsSupported(val MetricPatternOperatorType) bool {
+	for _, t := range types {
+		if t == val {
+			return true
+		}
+	}
+	return false
+}
+
+//Constant values of all supported MetricPatternOperatorTypes
+const (
+	//MetricPatternOperatorTypeIs constant value for the metric pattern operator type 'is'
+	MetricPatternOperatorTypeIs = MetricPatternOperatorType("is")
+	//MetricPatternOperatorTypeContains constant value for the metric pattern operator type 'contains'
+	MetricPatternOperatorTypeContains = MetricPatternOperatorType("contains")
+	//MetricPatternOperatorTypeAny constant value for the metric pattern operator type 'any'
+	MetricPatternOperatorTypeAny = MetricPatternOperatorType("any")
+	//MetricPatternOperatorTypeStartsWith constant value for the metric pattern operator type 'startsWith'
+	MetricPatternOperatorTypeStartsWith = MetricPatternOperatorType("startsWith")
+	//MetricPatternOperatorTypeEndsWith constant value for the metric pattern operator type 'endsWith'
+	MetricPatternOperatorTypeEndsWith = MetricPatternOperatorType("endsWith")
+)
+
+//SupportedMetricPatternOperatorTypes slice of all supported MetricPatternOperatorTypes of the Instana Web Rest API
+var SupportedMetricPatternOperatorTypes = MetricPatternOperatorTypes{MetricPatternOperatorTypeIs, MetricPatternOperatorTypeContains, MetricPatternOperatorTypeAny, MetricPatternOperatorTypeStartsWith, MetricPatternOperatorTypeEndsWith}
+
 //NewSystemRuleSpecification creates a new instance of System Rule
 func NewSystemRuleSpecification(systemRuleID string, severity int) RuleSpecification {
 	return RuleSpecification{
@@ -216,6 +260,25 @@ func NewEntityVerificationRuleSpecification(matchingEntityLabel string, matching
 	}
 }
 
+//MetricPattern representation of a metric pattern for dynamic built-in metrics for CustomEventSpecification
+type MetricPattern struct {
+	Prefix      string                    `json:"prefix"`
+	Postfix     *string                   `json:"postfix"`
+	Placeholder *string                   `json:"placeholder"`
+	Operator    MetricPatternOperatorType `json:"operator"`
+}
+
+//Validate checks if the given MetricPattern is consistent
+func (m *MetricPattern) Validate() error {
+	if utils.IsBlank(m.Prefix) {
+		return errors.New("Metric pattern prefix is missing")
+	}
+	if !SupportedMetricPatternOperatorTypes.IsSupported(m.Operator) {
+		return errors.New("Metric pattern operator is not supported")
+	}
+	return nil
+}
+
 //RuleSpecification representation of a rule specification for a CustomEventSpecification
 type RuleSpecification struct {
 	//Common Fields
@@ -232,6 +295,7 @@ type RuleSpecification struct {
 	Aggregation       *AggregationType       `json:"aggregation"`
 	ConditionOperator *ConditionOperatorType `json:"conditionOperator"`
 	ConditionValue    *float64               `json:"conditionValue"`
+	MetricPattern     *MetricPattern         `json:"metricPattern"`
 
 	//Entity Verification Rule
 	MatchingEntityType  *string `json:"matchingEntityType"`
@@ -289,7 +353,9 @@ func (r *RuleSpecification) validateThresholdRule() error {
 	if r.ConditionOperator == nil || !IsSupportedConditionOperatorType(*r.ConditionOperator) {
 		return errors.New("condition operator of threshold rule is missing or not valid")
 	}
-
+	if r.MetricPattern != nil {
+		return r.MetricPattern.Validate()
+	}
 	return nil
 }
 

@@ -76,6 +76,31 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 		Required:    true,
 		Description: "The expected condition value to fulfill the rule",
 	},
+	ThresholdRuleFieldMetricPatternPrefix: {
+		Type:        schema.TypeString,
+		Required:    false,
+		Optional:    true,
+		Description: "The metric pattern prefix of a dynamic built-in metrics",
+	},
+	ThresholdRuleFieldMetricPatternPostfix: {
+		Type:        schema.TypeString,
+		Required:    false,
+		Optional:    true,
+		Description: "The metric pattern postfix of a dynamic built-in metrics",
+	},
+	ThresholdRuleFieldMetricPatternPlaceholder: {
+		Type:        schema.TypeString,
+		Required:    false,
+		Optional:    true,
+		Description: "The metric pattern placeholer/condition value of a dynamic built-in metrics",
+	},
+	ThresholdRuleFieldMetricPatternOperator: {
+		Type:         schema.TypeString,
+		Required:     false,
+		Optional:     true,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedMetricPatternOperatorTypes.ToStringSlice(), false),
+		Description:  "The condition operator (e.g >, <)",
+	},
 }
 
 //NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
@@ -119,6 +144,13 @@ func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceD
 	d.Set(ThresholdRuleFieldAggregation, ruleSpec.Aggregation)
 	d.Set(ThresholdRuleFieldConditionOperator, ruleSpec.ConditionOperator)
 	d.Set(ThresholdRuleFieldConditionValue, ruleSpec.ConditionValue)
+
+	if ruleSpec.MetricPattern != nil {
+		d.Set(ThresholdRuleFieldMetricPatternPrefix, ruleSpec.MetricPattern.Prefix)
+		d.Set(ThresholdRuleFieldMetricPatternPostfix, ruleSpec.MetricPattern.Postfix)
+		d.Set(ThresholdRuleFieldMetricPatternPlaceholder, ruleSpec.MetricPattern.Placeholder)
+		d.Set(ThresholdRuleFieldMetricPatternOperator, ruleSpec.MetricPattern.Operator)
+	}
 	return nil
 }
 
@@ -129,6 +161,7 @@ func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.
 	}
 	metricName := d.Get(ThresholdRuleFieldMetricName).(string)
 	conditionOperator := restapi.ConditionOperatorType(d.Get(ThresholdRuleFieldConditionOperator).(string))
+
 	rule := restapi.RuleSpecification{
 		DType:             restapi.ThresholdRuleType,
 		Severity:          severity,
@@ -138,6 +171,17 @@ func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.
 		Aggregation:       getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
 		ConditionOperator: &conditionOperator,
 		ConditionValue:    GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
+	}
+
+	metricPatternPrefix, ok := d.GetOk(ThresholdRuleFieldMetricPatternPrefix)
+	if ok {
+		metricPattern := restapi.MetricPattern{
+			Prefix:      metricPatternPrefix.(string),
+			Postfix:     GetStringPointerFromResourceData(d, ThresholdRuleFieldMetricPatternPostfix),
+			Placeholder: GetStringPointerFromResourceData(d, ThresholdRuleFieldMetricPatternPlaceholder),
+			Operator:    restapi.MetricPatternOperatorType(d.Get(ThresholdRuleFieldMetricPatternOperator).(string)),
+		}
+		rule.MetricPattern = &metricPattern
 	}
 
 	customEventSpecification := createCustomEventSpecificationFromResourceData(d, formatter)

@@ -156,7 +156,7 @@ func TestShouldFailToValidateAlertingChannelConfigurationWhenAlertNameExceedsMax
 
 func TestShouldFailToValidateAlertingChannelConfigurationWhenTooManyIntegrationIDsAreProvided(t *testing.T) {
 	integrationIDs := make([]string, 1025)
-	for i, _ := range integrationIDs {
+	for i := range integrationIDs {
 		integrationIDs[i] = utils.RandomString(10)
 	}
 	config := AlertingConfiguration{
@@ -223,7 +223,7 @@ func TestShouldFailToValidateAlertingConfigurationWhenNeitherRuleIdsNorEventType
 
 func TestShouldFailToValidateAlertingConfigurationWhenRuleIdsExceedTheMaximumNumberOfAllowedRuleIds(t *testing.T) {
 	ruleIDs := make([]string, 1025)
-	for i, _ := range ruleIDs {
+	for i := range ruleIDs {
 		ruleIDs[i] = utils.RandomString(10)
 	}
 	config := AlertingConfiguration{
