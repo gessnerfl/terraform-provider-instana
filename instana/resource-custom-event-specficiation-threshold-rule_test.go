@@ -323,7 +323,9 @@ func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithThreshold
 }
 
 func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFromApiObject(t *testing.T) {
-	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, func(spec restapi.CustomEventSpecification) {}, func(resourceData *schema.ResourceData) {})
+	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, func(spec restapi.CustomEventSpecification) { /* Default testcase without additional fields =< no additional mappings */
+	}, func(resourceData *schema.ResourceData) { /* Default testcase without additional fields => no additional asserts */
+	})
 }
 
 func TestShouldUpdateCustomEventSpecificationWithThresholdRuleAndMetricPatternTerraformStateFromApiObject(t *testing.T) {
@@ -414,7 +416,9 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleStateToDataModel(t *testing.T) {
-	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t, func(resourceData *schema.ResourceData) {}, func(spec restapi.CustomEventSpecification) {})
+	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t, func(resourceData *schema.ResourceData) { /* Default testcase without additional fields =< no additional mappings */
+	}, func(spec restapi.CustomEventSpecification) { /* Default testcase without additional fields => no additional asserts */
+	})
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleAndMetricPatternStateToDataModel(t *testing.T) {

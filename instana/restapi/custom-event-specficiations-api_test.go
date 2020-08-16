@@ -30,9 +30,11 @@ const (
 
 	valueInvalid = "invalid"
 
-	messagePartExactlyOneRule    = "exactly one rule"
-	messagePartIntegrationId     = "integration id"
-	messagePartConditionOperator = "condition operator"
+	messagePartExactlyOneRule        = "exactly one rule"
+	messagePartIntegrationId         = "integration id"
+	messagePartConditionOperator     = "condition operator"
+	messagePartMetricPatternPrefix   = "Metric pattern prefix"
+	messagePartMetricPatternOperator = "Metric pattern operator"
 )
 
 func TestShouldReturnTheProperRespresentationsForSeverityWarning(t *testing.T) {
@@ -541,7 +543,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithMetricPatternWhenMetr
 	err := rule.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Metric pattern prefix")
+	assert.Contains(t, err.Error(), messagePartMetricPatternPrefix)
 }
 
 func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsAreProvided(t *testing.T) {
@@ -872,7 +874,7 @@ func TestShouldFailToValidateMetricPatternWhenPrefixIsMissing(t *testing.T) {
 	err := metricPattern.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Metric pattern prefix")
+	assert.Contains(t, err.Error(), messagePartMetricPatternPrefix)
 }
 
 func TestShouldFailToValidateMetricPatternWhenPrefixIsBlank(t *testing.T) {
@@ -883,7 +885,7 @@ func TestShouldFailToValidateMetricPatternWhenPrefixIsBlank(t *testing.T) {
 	err := metricPattern.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Metric pattern prefix")
+	assert.Contains(t, err.Error(), messagePartMetricPatternPrefix)
 }
 
 func TestShouldFailToValidateMetricPatternWhenOperatorIsMissing(t *testing.T) {
@@ -893,7 +895,7 @@ func TestShouldFailToValidateMetricPatternWhenOperatorIsMissing(t *testing.T) {
 	err := metricPattern.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Metric pattern operator")
+	assert.Contains(t, err.Error(), messagePartMetricPatternOperator)
 }
 
 func TestShouldFailToValidateMetricPatternWhenOperatorIsNotSupported(t *testing.T) {
@@ -904,5 +906,5 @@ func TestShouldFailToValidateMetricPatternWhenOperatorIsNotSupported(t *testing.
 	err := metricPattern.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Metric pattern operator")
+	assert.Contains(t, err.Error(), messagePartMetricPatternOperator)
 }
