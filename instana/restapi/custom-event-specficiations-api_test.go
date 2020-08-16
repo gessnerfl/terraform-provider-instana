@@ -10,18 +10,19 @@ import (
 )
 
 const (
-	customEventID                = "custom-event-id"
-	customEventName              = "custom-event-name"
-	customEventEntityType        = "custom-event-entity-type"
-	customEventQuery             = "custom-event-query"
-	customEventDescription       = "custom-event-description"
-	customEventSystemRuleID      = "system-rule-id"
-	customEventMetricName        = "threshold-rule-metric-name"
-	customEventWindow            = 60000
-	customEventRollup            = 40000
-	customEventAggregation       = AggregationSum
-	customEventConditionOperator = ConditionOperatorEquals
-	customEventConditionValue    = 1.2
+	customEventID                  = "custom-event-id"
+	customEventName                = "custom-event-name"
+	customEventEntityType          = "custom-event-entity-type"
+	customEventQuery               = "custom-event-query"
+	customEventDescription         = "custom-event-description"
+	customEventSystemRuleID        = "system-rule-id"
+	customEventMetricName          = "threshold-rule-metric-name"
+	customEventWindow              = 60000
+	customEventRollup              = 40000
+	customEventAggregation         = AggregationSum
+	customEventConditionOperator   = ConditionOperatorEquals
+	customEventConditionValue      = 1.2
+	customEventMetricPatternPrefix = "metric-pattern-prefix"
 
 	customEventMatchingEntityLabel = "custom-event-matching-entity-label"
 	customEventMatchingEntityType  = "custom-event-matching-entity-type"
@@ -29,9 +30,11 @@ const (
 
 	valueInvalid = "invalid"
 
-	messagePartExactlyOneRule    = "exactly one rule"
-	messagePartIntegrationId     = "integration id"
-	messagePartConditionOperator = "condition operator"
+	messagePartExactlyOneRule        = "exactly one rule"
+	messagePartIntegrationId         = "integration id"
+	messagePartConditionOperator     = "condition operator"
+	messagePartMetricPatternPrefix   = "Metric pattern prefix"
+	messagePartMetricPatternOperator = "Metric pattern operator"
 )
 
 func TestShouldReturnTheProperRespresentationsForSeverityWarning(t *testing.T) {
@@ -50,7 +53,7 @@ func TestShouldValidateMinimalCustemEventSpecificationWithSystemRule(t *testing.
 		ID:         customEventID,
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
+		Rules:      []RuleSpecification{{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	err := spec.Validate()
@@ -74,7 +77,7 @@ func TestShouldValidateFullCustomEventSpecificationWithSystemRule(t *testing.T) 
 		ExpirationTime: &expirationTime,
 		Triggering:     true,
 		Enabled:        true,
-		Rules:          []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
+		Rules:          []RuleSpecification{{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	err := spec.Validate()
@@ -87,7 +90,7 @@ func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenIDIsMissing(t *
 	spec := CustomEventSpecification{
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
+		Rules:      []RuleSpecification{{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	err := spec.Validate()
@@ -101,7 +104,7 @@ func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenNameIsMissing(t
 	spec := CustomEventSpecification{
 		ID:         customEventID,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
+		Rules:      []RuleSpecification{{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	err := spec.Validate()
@@ -115,7 +118,7 @@ func TestFailToValidateCustemEventSpecificationWithSystemRuleWhenEntityTypeIsMis
 	spec := CustomEventSpecification{
 		ID:    customEventID,
 		Name:  customEventName,
-		Rules: []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
+		Rules: []RuleSpecification{{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	err := spec.Validate()
@@ -158,7 +161,7 @@ func TestFailToValidateCustemEventSpecificationWhenMultipleRulesAreProvided(t *t
 		ID:         customEventID,
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}, RuleSpecification{DType: SystemRuleType, SystemRuleID: &systemRuleId}},
+		Rules:      []RuleSpecification{{DType: SystemRuleType, SystemRuleID: &systemRuleId}, {DType: SystemRuleType, SystemRuleID: &systemRuleId}},
 	}
 
 	err := spec.Validate()
@@ -172,7 +175,7 @@ func TestFailToValidateCustemEventSpecificationWhenRuleTypeIsNotSupported(t *tes
 		ID:         customEventID,
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: "invalid"}},
+		Rules:      []RuleSpecification{{DType: "invalid"}},
 	}
 
 	err := spec.Validate()
@@ -186,7 +189,7 @@ func TestFailToValidateCustemEventSpecificationWhenTheProvidedRuleIsNotValid(t *
 		ID:         customEventID,
 		Name:       customEventName,
 		EntityType: customEventEntityType,
-		Rules:      []RuleSpecification{RuleSpecification{DType: SystemRuleType}},
+		Rules:      []RuleSpecification{{DType: SystemRuleType}},
 	}
 
 	err := spec.Validate()
@@ -491,6 +494,58 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 	assert.Contains(t, err.Error(), messagePartConditionOperator)
 }
 
+func TestShouldSuccessfullyValidateThresholdRuleSpecificationWithMetricPattern(t *testing.T) {
+	metricName := customEventMetricName
+	aggregation := customEventAggregation
+	conditionOperator := ConditionOperatorEquals
+	conditionValue := customEventConditionValue
+	window := customEventWindow
+	metricPattern := MetricPattern{
+		Prefix:   customEventMetricPatternPrefix,
+		Operator: MetricPatternOperatorTypeIs,
+	}
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        &metricName,
+		Window:            &window,
+		Aggregation:       &aggregation,
+		ConditionOperator: &conditionOperator,
+		ConditionValue:    &conditionValue,
+		MetricPattern:     &metricPattern,
+	}
+
+	err := rule.Validate()
+
+	assert.Nil(t, err)
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWithMetricPatternWhenMetricPatternIsNotValid(t *testing.T) {
+	metricName := customEventMetricName
+	aggregation := customEventAggregation
+	conditionOperator := ConditionOperatorEquals
+	conditionValue := customEventConditionValue
+	window := customEventWindow
+	metricPattern := MetricPattern{
+		Operator: MetricPatternOperatorTypeIs,
+	}
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        &metricName,
+		Window:            &window,
+		Aggregation:       &aggregation,
+		ConditionOperator: &conditionOperator,
+		ConditionValue:    &conditionValue,
+		MetricPattern:     &metricPattern,
+	}
+
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartMetricPatternPrefix)
+}
+
 func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsAreProvided(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	entityType := customEventMatchingEntityType
@@ -766,4 +821,90 @@ func TestShouldReturnErrorWhenTheMatchingOperatorTypeIsNotASupportedInstanaTerra
 
 	assert.NotNil(t, err)
 	assert.Equal(t, MatchingOperatorIs, val)
+}
+
+func TestShouldReturnTrueForAllSupportedMetricPatternTypes(t *testing.T) {
+	for _, ot := range SupportedMetricPatternOperatorTypes {
+		t.Run(fmt.Sprintf("TestShouldReturnTrueForAllSupportedMetricPatternTypes%s", ot), createTestCaseForVerifyingIfAIsSupportedReturnsTrueForAllSupportedMetricPatternTypes(ot))
+	}
+}
+
+func createTestCaseForVerifyingIfAIsSupportedReturnsTrueForAllSupportedMetricPatternTypes(ot MetricPatternOperatorType) func(*testing.T) {
+	return func(t *testing.T) {
+		assert.True(t, SupportedMetricPatternOperatorTypes.IsSupported(ot))
+	}
+}
+
+func TestShouldReturnFalseWhenMetricPatternOperatorTypeIsNotSupported(t *testing.T) {
+	assert.False(t, SupportedMetricPatternOperatorTypes.IsSupported("invalid"))
+}
+
+func TestShouldConvertMetricPatternOperatorTypesToStringSlice(t *testing.T) {
+	assert.Equal(t, []string{"is", "contains", "any", "startsWith", "endsWith"}, SupportedMetricPatternOperatorTypes.ToStringSlice())
+}
+
+func TestShouldValidateMinimalMetricPattern(t *testing.T) {
+	metricPattern := MetricPattern{
+		Prefix:   customEventMetricPatternPrefix,
+		Operator: MetricPatternOperatorTypeIs,
+	}
+	err := metricPattern.Validate()
+
+	assert.Nil(t, err)
+}
+
+func TestShouldValidateFullMetricPattern(t *testing.T) {
+	postfix := "postfix"
+	placeholder := "placeholder"
+	metricPattern := MetricPattern{
+		Prefix:      customEventMetricPatternPrefix,
+		Postfix:     &postfix,
+		Placeholder: &placeholder,
+		Operator:    MetricPatternOperatorTypeIs,
+	}
+	err := metricPattern.Validate()
+
+	assert.Nil(t, err)
+}
+
+func TestShouldFailToValidateMetricPatternWhenPrefixIsMissing(t *testing.T) {
+	metricPattern := MetricPattern{
+		Operator: MetricPatternOperatorTypeIs,
+	}
+	err := metricPattern.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartMetricPatternPrefix)
+}
+
+func TestShouldFailToValidateMetricPatternWhenPrefixIsBlank(t *testing.T) {
+	metricPattern := MetricPattern{
+		Prefix:   "",
+		Operator: MetricPatternOperatorTypeIs,
+	}
+	err := metricPattern.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartMetricPatternPrefix)
+}
+
+func TestShouldFailToValidateMetricPatternWhenOperatorIsMissing(t *testing.T) {
+	metricPattern := MetricPattern{
+		Prefix: customEventMetricPatternPrefix,
+	}
+	err := metricPattern.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartMetricPatternOperator)
+}
+
+func TestShouldFailToValidateMetricPatternWhenOperatorIsNotSupported(t *testing.T) {
+	metricPattern := MetricPattern{
+		Prefix:   customEventMetricPatternPrefix,
+		Operator: MetricPatternOperatorType(valueInvalid),
+	}
+	err := metricPattern.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messagePartMetricPatternOperator)
 }

@@ -112,7 +112,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testApplicationConfigProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithLabel0,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
@@ -122,7 +122,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithLabel1,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),

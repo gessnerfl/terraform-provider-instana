@@ -117,7 +117,7 @@ func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testUserRoleProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceUserRoleDefinition,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testUserRoleDefinition, "id"),

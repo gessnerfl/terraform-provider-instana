@@ -11,60 +11,95 @@ import (
 const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_event_spec_threshold_rule"
 
 const (
-	//ThresholdRuleFieldMetricName constant value for the schema field metric_name
+	//ThresholdRuleFieldMetricName constant value for the schema field rule_metric_name
 	ThresholdRuleFieldMetricName = ruleFieldPrefix + "metric_name"
-	//ThresholdRuleFieldRollup constant value for the schema field rollup
+	//ThresholdRuleFieldRollup constant value for the schema field rule_rollup
 	ThresholdRuleFieldRollup = ruleFieldPrefix + "rollup"
-	//ThresholdRuleFieldWindow constant value for the schema field window
+	//ThresholdRuleFieldWindow constant value for the schema field rule_window
 	ThresholdRuleFieldWindow = ruleFieldPrefix + "window"
-	//ThresholdRuleFieldAggregation constant value for the schema field aggregation
+	//ThresholdRuleFieldAggregation constant value for the schema field rule_aggregation
 	ThresholdRuleFieldAggregation = ruleFieldPrefix + "aggregation"
-	//ThresholdRuleFieldConditionOperator constant value for the schema field condition_operator
+	//ThresholdRuleFieldConditionOperator constant value for the schema field rule_condition_operator
 	ThresholdRuleFieldConditionOperator = ruleFieldPrefix + "condition_operator"
-	//ThresholdRuleFieldConditionValue constant value for the schema field condition_value
+	//ThresholdRuleFieldConditionValue constant value for the schema field rule_condition_value
 	ThresholdRuleFieldConditionValue = ruleFieldPrefix + "condition_value"
+
+	thresholdRuleFieldMetricPattern = ruleFieldPrefix + "metric_pattern_"
+	//ThresholdRuleFieldMetricPatternPrefix constant value for the schema field rule_metric_pattern_prefix
+	ThresholdRuleFieldMetricPatternPrefix = thresholdRuleFieldMetricPattern + "prefix"
+	//ThresholdRuleFieldMetricPatternPostfix constant value for the schema field rule_metric_pattern_postfix
+	ThresholdRuleFieldMetricPatternPostfix = thresholdRuleFieldMetricPattern + "postfix"
+	//ThresholdRuleFieldMetricPatternPlaceholder constant value for the schema field rule_metric_pattern_placeholder
+	ThresholdRuleFieldMetricPatternPlaceholder = thresholdRuleFieldMetricPattern + "placeholder"
+	//ThresholdRuleFieldMetricPatternOperator constant value for the schema field rule_metric_pattern_operator
+	ThresholdRuleFieldMetricPatternOperator = thresholdRuleFieldMetricPattern + "operator"
 )
 
 var thresholdRuleSchemaFields = map[string]*schema.Schema{
-	CustomEventSpecificationFieldEntityType: &schema.Schema{
+	CustomEventSpecificationFieldEntityType: {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "Configures the entity type of the custom event specification",
 	},
-	ThresholdRuleFieldMetricName: &schema.Schema{
+	ThresholdRuleFieldMetricName: {
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The metric name of the rule",
 	},
-	ThresholdRuleFieldRollup: &schema.Schema{
+	ThresholdRuleFieldRollup: {
 		Type:        schema.TypeInt,
 		Required:    false,
 		Optional:    true,
 		Description: "The rollup of the metric",
 	},
-	ThresholdRuleFieldWindow: &schema.Schema{
+	ThresholdRuleFieldWindow: {
 		Type:        schema.TypeInt,
 		Required:    false,
 		Optional:    true,
 		Description: "The time window where the condition has to be fulfilled",
 	},
-	ThresholdRuleFieldAggregation: &schema.Schema{
+	ThresholdRuleFieldAggregation: {
 		Type:         schema.TypeString,
 		Required:     false,
 		Optional:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregationTypes.ToStringSlice(), false),
 		Description:  "The aggregation type (e.g. sum, avg)",
 	},
-	ThresholdRuleFieldConditionOperator: &schema.Schema{
+	ThresholdRuleFieldConditionOperator: {
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedConditionOperatorTypes.ToStringSlice(), false),
 		Description:  "The condition operator (e.g >, <)",
 	},
-	ThresholdRuleFieldConditionValue: &schema.Schema{
+	ThresholdRuleFieldConditionValue: {
 		Type:        schema.TypeFloat,
 		Required:    true,
 		Description: "The expected condition value to fulfill the rule",
+	},
+	ThresholdRuleFieldMetricPatternPrefix: {
+		Type:        schema.TypeString,
+		Required:    false,
+		Optional:    true,
+		Description: "The metric pattern prefix of a dynamic built-in metrics",
+	},
+	ThresholdRuleFieldMetricPatternPostfix: {
+		Type:        schema.TypeString,
+		Required:    false,
+		Optional:    true,
+		Description: "The metric pattern postfix of a dynamic built-in metrics",
+	},
+	ThresholdRuleFieldMetricPatternPlaceholder: {
+		Type:        schema.TypeString,
+		Required:    false,
+		Optional:    true,
+		Description: "The metric pattern placeholer/condition value of a dynamic built-in metrics",
+	},
+	ThresholdRuleFieldMetricPatternOperator: {
+		Type:         schema.TypeString,
+		Required:     false,
+		Optional:     true,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedMetricPatternOperatorTypes.ToStringSlice(), false),
+		Description:  "The condition operator (e.g >, <)",
 	},
 }
 
@@ -109,6 +144,13 @@ func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceD
 	d.Set(ThresholdRuleFieldAggregation, ruleSpec.Aggregation)
 	d.Set(ThresholdRuleFieldConditionOperator, ruleSpec.ConditionOperator)
 	d.Set(ThresholdRuleFieldConditionValue, ruleSpec.ConditionValue)
+
+	if ruleSpec.MetricPattern != nil {
+		d.Set(ThresholdRuleFieldMetricPatternPrefix, ruleSpec.MetricPattern.Prefix)
+		d.Set(ThresholdRuleFieldMetricPatternPostfix, ruleSpec.MetricPattern.Postfix)
+		d.Set(ThresholdRuleFieldMetricPatternPlaceholder, ruleSpec.MetricPattern.Placeholder)
+		d.Set(ThresholdRuleFieldMetricPatternOperator, ruleSpec.MetricPattern.Operator)
+	}
 	return nil
 }
 
@@ -119,6 +161,7 @@ func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.
 	}
 	metricName := d.Get(ThresholdRuleFieldMetricName).(string)
 	conditionOperator := restapi.ConditionOperatorType(d.Get(ThresholdRuleFieldConditionOperator).(string))
+
 	rule := restapi.RuleSpecification{
 		DType:             restapi.ThresholdRuleType,
 		Severity:          severity,
@@ -128,6 +171,17 @@ func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.
 		Aggregation:       getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
 		ConditionOperator: &conditionOperator,
 		ConditionValue:    GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
+	}
+
+	metricPatternPrefix, ok := d.GetOk(ThresholdRuleFieldMetricPatternPrefix)
+	if ok {
+		metricPattern := restapi.MetricPattern{
+			Prefix:      metricPatternPrefix.(string),
+			Postfix:     GetStringPointerFromResourceData(d, ThresholdRuleFieldMetricPatternPostfix),
+			Placeholder: GetStringPointerFromResourceData(d, ThresholdRuleFieldMetricPatternPlaceholder),
+			Operator:    restapi.MetricPatternOperatorType(d.Get(ThresholdRuleFieldMetricPatternOperator).(string)),
+		}
+		rule.MetricPattern = &metricPattern
 	}
 
 	customEventSpecification := createCustomEventSpecificationFromResourceData(d, formatter)

@@ -188,7 +188,7 @@ func alertingChannelConfigSchemaV0() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			AlertingConfigFieldAlertName:     AlertingConfigSchemaAlertName,
 			AlertingConfigFieldFullAlertName: AlertingConfigSchemaFullAlertName,
-			AlertingConfigFieldIntegrationIds: &schema.Schema{
+			AlertingConfigFieldIntegrationIds: {
 				Type:     schema.TypeList,
 				MinItems: 0,
 				MaxItems: 1024,
@@ -199,7 +199,7 @@ func alertingChannelConfigSchemaV0() *schema.Resource {
 				Description: "Configures the list of Integration IDs (Alerting Channels).",
 			},
 			AlertingConfigFieldEventFilterQuery: AlertingConfigSchemaEventFilterQuery,
-			AlertingConfigFieldEventFilterEventTypes: &schema.Schema{
+			AlertingConfigFieldEventFilterEventTypes: {
 				Type:     schema.TypeList,
 				MinItems: 0,
 				MaxItems: 6,
@@ -212,7 +212,7 @@ func alertingChannelConfigSchemaV0() *schema.Resource {
 				ConflictsWith: []string{AlertingConfigFieldEventFilterRuleIDs},
 				Description:   "Configures the list of Event Types IDs which should trigger an alert.",
 			},
-			AlertingConfigFieldEventFilterRuleIDs: &schema.Schema{
+			AlertingConfigFieldEventFilterRuleIDs: {
 				Type:     schema.TypeList,
 				MinItems: 0,
 				MaxItems: 1024,

@@ -75,7 +75,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingChannelEmailProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
@@ -85,7 +85,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress2)), emailAddress2),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),

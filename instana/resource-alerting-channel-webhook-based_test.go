@@ -77,7 +77,7 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 			resource.UnitTest(t, resource.TestCase{
 				Providers: testAlertingChannelWebhookBasedProviders,
 				Steps: []resource.TestStep{
-					resource.TestStep{
+					{
 						Config: resourceDefinitionWithoutName0,
 						Check: resource.ComposeTestCheckFunc(
 							resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -86,7 +86,7 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 							resource.TestCheckResourceAttr(resourceName, AlertingChannelWebhookBasedFieldWebhookURL, alertingChannelWebhookBasedWebhookUrl),
 						),
 					},
-					resource.TestStep{
+					{
 						Config: resourceDefinitionWithoutName1,
 						Check: resource.ComposeTestCheckFunc(
 							resource.TestCheckResourceAttrSet(resourceName, "id"),

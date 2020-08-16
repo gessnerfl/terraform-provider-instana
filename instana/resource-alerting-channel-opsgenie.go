@@ -30,12 +30,12 @@ func NewAlertingChannelOpsGenieResourceHandle() *ResourceHandle {
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
 			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelOpsGenieFieldAPIKey: &schema.Schema{
+			AlertingChannelOpsGenieFieldAPIKey: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The OpsGenie API Key of the OpsGenie alerting channel",
 			},
-			AlertingChannelOpsGenieFieldTags: &schema.Schema{
+			AlertingChannelOpsGenieFieldTags: {
 				Type:     schema.TypeList,
 				MinItems: 1,
 				Elem: &schema.Schema{
@@ -44,7 +44,7 @@ func NewAlertingChannelOpsGenieResourceHandle() *ResourceHandle {
 				Required:    true,
 				Description: "The OpsGenie tags of the OpsGenie alerting channel",
 			},
-			AlertingChannelOpsGenieFieldRegion: &schema.Schema{
+			AlertingChannelOpsGenieFieldRegion: {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringInSlice(opsGenieRegions, false),

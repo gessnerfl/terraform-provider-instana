@@ -96,7 +96,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testCustomEventSpecificationWithEntityVerificationRuleProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceCustomEventSpecificationWithEntityVerificationRuleDefinition,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithEntityVerificationRuleDefinition, "id"),

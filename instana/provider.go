@@ -35,24 +35,24 @@ func Provider() *schema.Provider {
 
 func providerSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		SchemaFieldAPIToken: &schema.Schema{
+		SchemaFieldAPIToken: {
 			Type:        schema.TypeString,
 			Sensitive:   true,
 			Required:    true,
 			Description: "API token used to authenticate with the Instana Backend",
 		},
-		SchemaFieldEndpoint: &schema.Schema{
+		SchemaFieldEndpoint: {
 			Type:        schema.TypeString,
 			Required:    true,
 			Description: "The DNS Name of the Instana Endpoint (eg. saas-eu-west-1.instana.io)",
 		},
-		SchemaFieldDefaultNamePrefix: &schema.Schema{
+		SchemaFieldDefaultNamePrefix: {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "",
 			Description: "The default prefix which should be added to all resource names/labels",
 		},
-		SchemaFieldDefaultNameSuffix: &schema.Schema{
+		SchemaFieldDefaultNameSuffix: {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "(TF managed)",

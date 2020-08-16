@@ -33,7 +33,7 @@ func newAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingCh
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
 			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelWebhookBasedFieldWebhookURL: &schema.Schema{
+			AlertingChannelWebhookBasedFieldWebhookURL: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: fmt.Sprintf("The webhook URL of the %s alerting channel", channelType),

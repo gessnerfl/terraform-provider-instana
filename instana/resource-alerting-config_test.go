@@ -110,7 +110,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingConfigProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 0),
@@ -118,7 +118,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, hashFunctionRules(rule2)), rule2),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 1),
@@ -153,7 +153,7 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingConfigProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 0),
@@ -161,7 +161,7 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, hashFunctionEventTypes(string(restapi.CriticalAlertEventType))), string(restapi.CriticalAlertEventType)),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 1),

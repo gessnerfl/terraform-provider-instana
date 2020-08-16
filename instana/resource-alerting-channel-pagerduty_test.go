@@ -69,7 +69,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testAlertingChannelPagerDutyProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testAlertingChannelPagerDutyDefinition, "id"),
@@ -78,7 +78,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelPagerDutyFieldServiceIntegrationKey, "service integration key"),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testAlertingChannelPagerDutyDefinition, "id"),

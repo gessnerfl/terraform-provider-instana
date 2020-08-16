@@ -53,108 +53,108 @@ func NewUserRoleResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
 		ResourceName: ResourceInstanaUserRole,
 		Schema: map[string]*schema.Schema{
-			UserRoleFieldName: &schema.Schema{
+			UserRoleFieldName: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the user role",
 			},
-			UserRoleFieldImplicitViewFilter: &schema.Schema{
+			UserRoleFieldImplicitViewFilter: {
 				Type:        schema.TypeString,
 				Required:    false,
 				Optional:    true,
 				Description: "The an implicit view filter which is applied for users of the given role",
 			},
-			UserRoleFieldCanConfigureServiceMapping: &schema.Schema{
+			UserRoleFieldCanConfigureServiceMapping: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure service mappings",
 			},
-			UserRoleFieldCanConfigureEumApplications: &schema.Schema{
+			UserRoleFieldCanConfigureEumApplications: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure End User Monitoring applications",
 			},
-			UserRoleFieldCanConfigureUsers: &schema.Schema{
+			UserRoleFieldCanConfigureUsers: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure users",
 			},
-			UserRoleFieldCanInstallNewAgents: &schema.Schema{
+			UserRoleFieldCanInstallNewAgents: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to install new agents",
 			},
-			UserRoleFieldCanSeeUsageInformation: &schema.Schema{
+			UserRoleFieldCanSeeUsageInformation: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to see usage information",
 			},
-			UserRoleFieldCanConfigureIntegrations: &schema.Schema{
+			UserRoleFieldCanConfigureIntegrations: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure integrations",
 			},
-			UserRoleFieldCanSeeOnPremiseLicenseInformation: &schema.Schema{
+			UserRoleFieldCanSeeOnPremiseLicenseInformation: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to see onPremise license information",
 			},
-			UserRoleFieldCanConfigureRoles: &schema.Schema{
+			UserRoleFieldCanConfigureRoles: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure user roles",
 			},
-			UserRoleFieldCanConfigureCustomAlerts: &schema.Schema{
+			UserRoleFieldCanConfigureCustomAlerts: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure custom alerts",
 			},
-			UserRoleFieldCanConfigureAPITokens: &schema.Schema{
+			UserRoleFieldCanConfigureAPITokens: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure API tokens",
 			},
-			UserRoleFieldCanConfigureAgentRunMode: &schema.Schema{
+			UserRoleFieldCanConfigureAgentRunMode: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure agent run mode",
 			},
-			UserRoleFieldCanViewAuditLog: &schema.Schema{
+			UserRoleFieldCanViewAuditLog: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to view the audit log",
 			},
-			UserRoleFieldCanConfigureObjectives: &schema.Schema{
+			UserRoleFieldCanConfigureObjectives: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure objectives",
 			},
-			UserRoleFieldCanConfigureAgents: &schema.Schema{
+			UserRoleFieldCanConfigureAgents: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure agents",
 			},
-			UserRoleFieldCanConfigureAuthenticationMethods: &schema.Schema{
+			UserRoleFieldCanConfigureAuthenticationMethods: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Configures if users of the role are allowed to configure authentication methods",
 			},
-			UserRoleFieldCanConfigureApplications: &schema.Schema{
+			UserRoleFieldCanConfigureApplications: {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
