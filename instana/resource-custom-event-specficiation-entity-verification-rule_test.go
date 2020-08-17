@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -110,7 +111,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.TerraformRepresentation)),
+					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue())),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldOfflineDuration, strconv.Itoa(customEntityVerificationEventRuleOfflineDuration)),
 				),
 			},
@@ -137,16 +138,17 @@ func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsVal
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(EntityVerificationRuleFieldOfflineDuration)
 }
 
-func TestCustomEventSpecificationWithEntityVerificationRuleResourceShouldHaveSchemaVersionTwo(t *testing.T) {
-	assert.Equal(t, 2, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().SchemaVersion)
+func TestCustomEventSpecificationWithEntityVerificationRuleResourceShouldHaveSchemaVersionThree(t *testing.T) {
+	assert.Equal(t, 3, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().SchemaVersion)
 }
 
-func TestCustomEventSpecificationWithEntityVerificationRuleShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *testing.T) {
+func TestCustomEventSpecificationWithEntityVerificationRuleShouldHaveThreeStateUpgraderForVersionZeroToTwo(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
-	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 3, len(resourceHandler.StateUpgraders))
 	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
 	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
+	assert.Equal(t, 2, resourceHandler.StateUpgraders[2].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -195,6 +197,49 @@ func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateToV
 	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
 }
 
+func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateToVersion3WhenMatchingOperatorIsDefinedAndValid(t *testing.T) {
+	for _, mo := range restapi.SupportedMatchingOperators {
+		for _, v := range mo.TerraformSupportedValues() {
+			t.Run(fmt.Sprintf("TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateToVersion3WhenMatchingOperatorIsDefinedAndValid%s", v), createTestCaseForSuccessfulMigrationOfCustomEventSpecificationWithEntityVerificationRuleToVersion3(mo, v))
+		}
+	}
+}
+
+func createTestCaseForSuccessfulMigrationOfCustomEventSpecificationWithEntityVerificationRuleToVersion3(mo restapi.MatchingOperator, value string) func(*testing.T) {
+	return func(t *testing.T) {
+		rawData := make(map[string]interface{})
+		rawData[EntityVerificationRuleFieldMatchingOperator] = value
+		meta := "dummy"
+
+		result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+
+		assert.Nil(t, err)
+		assert.Equal(t, mo.InstanaAPIValue(), result[EntityVerificationRuleFieldMatchingOperator])
+	}
+}
+
+func TestShouldDoNothingWhenMigratingCustomEventSpecificationWithEntityVerificationRuleToVersion3AndNoMatchingOperatorIsDefined(t *testing.T) {
+	rawData := make(map[string]interface{})
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Nil(t, result[EntityVerificationRuleFieldMatchingOperator])
+}
+
+func TestShouldReturnErrorWhenCustomEventSpecificationWithEntityVerificationRuleCannotBeMigratedToVersion3BecuaseOfUnsupportedMatchingOperatorInState(t *testing.T) {
+	rawData := make(map[string]interface{})
+	rawData[EntityVerificationRuleFieldMatchingOperator] = "invalid"
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "not a supported matching operator")
+	assert.Equal(t, rawData, result)
+}
+
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithEntityVerificationRuleResource(t *testing.T) {
 	name := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().ResourceName
 
@@ -217,7 +262,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 		Rules: []restapi.RuleSpecification{
 			restapi.NewEntityVerificationRuleSpecification(customEntityVerificationEventRuleMatchingEntityLabel,
 				customEntityVerificationEventRuleMatchingEntityType,
-				customEntityVerificationEventRuleMatchingOperator.InstanaRepresentation,
+				customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue(),
 				customEntityVerificationEventRuleOfflineDuration,
 				restapi.SeverityWarning.GetAPIRepresentation()),
 		},
@@ -240,7 +285,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 
 	assert.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, resourceData.Get(EntityVerificationRuleFieldMatchingEntityLabel))
 	assert.Equal(t, customEntityVerificationEventRuleMatchingEntityType, resourceData.Get(EntityVerificationRuleFieldMatchingEntityType))
-	assert.Equal(t, string(customEntityVerificationEventRuleMatchingOperator.TerraformRepresentation), resourceData.Get(EntityVerificationRuleFieldMatchingOperator))
+	assert.Equal(t, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue()), resourceData.Get(EntityVerificationRuleFieldMatchingOperator))
 	assert.Equal(t, customEntityVerificationEventRuleOfflineDuration, resourceData.Get(EntityVerificationRuleFieldOfflineDuration))
 	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
 }
@@ -294,7 +339,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	resourceData.Set(CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
 	resourceData.Set(EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel)
 	resourceData.Set(EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType)
-	resourceData.Set(EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.TerraformRepresentation))
+	resourceData.Set(EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue()))
 	resourceData.Set(EntityVerificationRuleFieldOfflineDuration, customEntityVerificationEventRuleOfflineDuration)
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
@@ -314,7 +359,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	assert.Equal(t, 1, len(customEventSpec.Rules))
 	assert.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, *customEventSpec.Rules[0].MatchingEntityLabel)
 	assert.Equal(t, customEntityVerificationEventRuleMatchingEntityType, *customEventSpec.Rules[0].MatchingEntityType)
-	assert.Equal(t, customEntityVerificationEventRuleMatchingOperator.InstanaRepresentation, *customEventSpec.Rules[0].MatchingOperator)
+	assert.Equal(t, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue(), *customEventSpec.Rules[0].MatchingOperator)
 	assert.Equal(t, customEntityVerificationEventRuleOfflineDuration, *customEventSpec.Rules[0].OfflineDuration)
 	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
 }
@@ -341,7 +386,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "is not a supported matching operator type")
+	assert.Contains(t, err.Error(), "is not a supported matching operator")
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenMatchingOperatorIsNotValid(t *testing.T) {
@@ -355,5 +400,5 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "invalid is not a supported matching operator type")
+	assert.Contains(t, err.Error(), "invalid is not a supported matching operator")
 }
