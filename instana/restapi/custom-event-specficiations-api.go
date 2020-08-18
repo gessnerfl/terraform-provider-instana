@@ -2,7 +2,6 @@ package restapi
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
@@ -126,77 +125,6 @@ func IsSupportedConditionOperatorType(operator ConditionOperatorType) bool {
 	return false
 }
 
-//MatchingOperatorType custom type representing a matching operator of a custom event specification rule
-type MatchingOperatorType struct {
-	TerraformRepresentation string
-	InstanaRepresentation   string
-}
-
-//MatchingOperatorTypes custom type representing a slice of MatchingOperatorType
-type MatchingOperatorTypes []MatchingOperatorType
-
-//TerrafromSupportedValues Returns the terraform string representations fo the matching operators
-func (types MatchingOperatorTypes) TerrafromSupportedValues() []string {
-	result := make([]string, len(types))
-	for i, v := range types {
-		result[i] = v.TerraformRepresentation
-	}
-	return result
-}
-
-//InstanaSupportedValues Returns the terraform string representations fo the matching operators
-func (types MatchingOperatorTypes) InstanaSupportedValues() []string {
-	result := make([]string, len(types))
-	for i, v := range types {
-		result[i] = v.InstanaRepresentation
-	}
-	return result
-}
-
-//IsSupportedInstanaAPIMatchingOperatorType check if the provided matching operator type is a supported instana api value
-func (types MatchingOperatorTypes) IsSupportedInstanaAPIMatchingOperatorType(operator string) bool {
-	for _, t := range types {
-		if t.InstanaRepresentation == operator {
-			return true
-		}
-	}
-	return false
-}
-
-//ForInstanaRepresentation returns the MatchingOperatorType for the given instana apistring value or an error if the operator type does not exist
-func (types MatchingOperatorTypes) ForInstanaRepresentation(instanaRepresentation string) (MatchingOperatorType, error) {
-	for _, t := range types {
-		if t.InstanaRepresentation == instanaRepresentation {
-			return t, nil
-		}
-	}
-	return MatchingOperatorIs, fmt.Errorf("%s is not a supported matching operator type of the Instana Web REST API", instanaRepresentation)
-}
-
-//ForTerraformRepresentation returns the MatchingOperatorType for the given terraform string value or an error if the operator type does not exist
-func (types MatchingOperatorTypes) ForTerraformRepresentation(terraformRepresentation string) (MatchingOperatorType, error) {
-	for _, t := range types {
-		if t.TerraformRepresentation == terraformRepresentation {
-			return t, nil
-		}
-	}
-	return MatchingOperatorIs, fmt.Errorf("%s is not a supported matching operator type of the Instana Terraform provider", terraformRepresentation)
-}
-
-var (
-	//MatchingOperatorIs const for IS condition operator
-	MatchingOperatorIs = MatchingOperatorType{TerraformRepresentation: "is", InstanaRepresentation: "is"}
-	//MatchingOperatorContains const for CONTAINS condition operator
-	MatchingOperatorContains = MatchingOperatorType{TerraformRepresentation: "contains", InstanaRepresentation: "contains"}
-	//MatchingOperatorStartsWith const for STARTS_WITH condition operator
-	MatchingOperatorStartsWith = MatchingOperatorType{TerraformRepresentation: "starts_with", InstanaRepresentation: "startsWith"}
-	//MatchingOperatorEndsWith const for ENDS_WITH condition operator
-	MatchingOperatorEndsWith = MatchingOperatorType{TerraformRepresentation: "ends_with", InstanaRepresentation: "endsWith"}
-)
-
-//SupportedMatchingOperatorTypes slice of supported matching operatorTypes types
-var SupportedMatchingOperatorTypes = MatchingOperatorTypes{MatchingOperatorIs, MatchingOperatorContains, MatchingOperatorStartsWith, MatchingOperatorEndsWith}
-
 //MetricPatternOperatorType the operator type of the metric pattern of a dynamic built-in metric
 type MetricPatternOperatorType string
 
@@ -305,13 +233,13 @@ type RuleSpecification struct {
 }
 
 //MatchingOperatorType returns the MatchingOperatorType for the given Instana Web REST API representation when available. In case of invalid values an error will be returned
-func (r *RuleSpecification) MatchingOperatorType() (*MatchingOperatorType, error) {
+func (r *RuleSpecification) MatchingOperatorType() (MatchingOperator, error) {
 	if r.MatchingOperator != nil {
-		operator, err := SupportedMatchingOperatorTypes.ForInstanaRepresentation(*r.MatchingOperator)
+		operator, err := SupportedMatchingOperators.FromInstanaAPIValue(*r.MatchingOperator)
 		if err != nil {
 			return nil, err
 		}
-		return &operator, nil
+		return operator, nil
 	}
 	return nil, nil
 }
@@ -366,7 +294,7 @@ func (r *RuleSpecification) validateEntityVerificationRule() error {
 	if r.MatchingEntityType == nil || len(*r.MatchingEntityType) == 0 {
 		return errors.New("matching entity type of entity verification rule is missing")
 	}
-	if r.MatchingOperator == nil || !SupportedMatchingOperatorTypes.IsSupportedInstanaAPIMatchingOperatorType(*r.MatchingOperator) {
+	if r.MatchingOperator == nil || !SupportedMatchingOperators.IsSupportedInstanaAPIMatchingOperator(*r.MatchingOperator) {
 		return errors.New("matching operator of entity verification rule is missing or not valid")
 	}
 	if r.OfflineDuration == nil {

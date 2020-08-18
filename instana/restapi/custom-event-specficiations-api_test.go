@@ -549,7 +549,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithMetricPatternWhenMetr
 func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsAreProvided(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	entityType := customEventMatchingEntityType
-	operator := MatchingOperatorIs.InstanaRepresentation
+	operator := MatchingOperatorIs.InstanaAPIValue()
 	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
@@ -568,7 +568,7 @@ func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsA
 func TestShouldReturnMatchingOperatorTypeForEntityVerificationRuleWhenValidInstanaWebRestAPIMatchingOperatorTypoIsProvided(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	entityType := customEventMatchingEntityType
-	operator := MatchingOperatorIs.InstanaRepresentation
+	operator := MatchingOperatorIs.InstanaAPIValue()
 	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
@@ -583,7 +583,7 @@ func TestShouldReturnMatchingOperatorTypeForEntityVerificationRuleWhenValidInsta
 
 	assert.Nil(t, err)
 	assert.NotNil(t, val)
-	assert.Equal(t, MatchingOperatorIs, *val)
+	assert.Equal(t, MatchingOperatorIs, val)
 }
 
 func TestShouldReturnErrorWhenMatchingOperatorTypeForEntityVerificationRuleIsNotAValidInstanaWebRestAPIValue(t *testing.T) {
@@ -628,7 +628,7 @@ func TestShouldReturnNilWhenRuleSpecificationDoesNotSupportMatchingOperatorTypes
 
 func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsMissing(t *testing.T) {
 	entityType := customEventMatchingEntityType
-	operator := MatchingOperatorIs.InstanaRepresentation
+	operator := MatchingOperatorIs.InstanaAPIValue()
 	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:              EntityVerificationRuleType,
@@ -646,7 +646,7 @@ func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenEntityLabelI
 func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenEntityLabelIsBlank(t *testing.T) {
 	entityLabel := ""
 	entityType := customEventMatchingEntityType
-	operator := MatchingOperatorIs.InstanaRepresentation
+	operator := MatchingOperatorIs.InstanaAPIValue()
 	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
@@ -664,7 +664,7 @@ func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenEntityLabelI
 
 func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsMissing(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
-	operator := MatchingOperatorIs.InstanaRepresentation
+	operator := MatchingOperatorIs.InstanaAPIValue()
 	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
@@ -682,7 +682,7 @@ func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenEntityTypeIs
 func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenEntityTypeIsBlank(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	entityType := ""
-	operator := MatchingOperatorIs.InstanaRepresentation
+	operator := MatchingOperatorIs.InstanaAPIValue()
 	offlineDuration := customEventOfflineDuration
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
@@ -737,7 +737,7 @@ func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenMatchingOper
 func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenOfflineDurationIsNotSupported(t *testing.T) {
 	entityLabel := customEventMatchingEntityLabel
 	entityType := customEventMatchingEntityType
-	operator := MatchingOperatorIs.InstanaRepresentation
+	operator := MatchingOperatorIs.InstanaAPIValue()
 	rule := RuleSpecification{
 		DType:               EntityVerificationRuleType,
 		MatchingEntityLabel: &entityLabel,
@@ -763,64 +763,6 @@ func TestShouldConvertSupportedConditionOperatorTypesToSliceOfString(t *testing.
 	result := SupportedConditionOperatorTypes.ToStringSlice()
 
 	assert.Equal(t, expectedResult, result)
-}
-
-func TestShouldPovideInstanaSupportedValuesOfMatchingOperatorTypes(t *testing.T) {
-	expectedResult := []string{MatchingOperatorIs.InstanaRepresentation, MatchingOperatorContains.InstanaRepresentation, MatchingOperatorStartsWith.InstanaRepresentation, MatchingOperatorEndsWith.InstanaRepresentation}
-	result := SupportedMatchingOperatorTypes.InstanaSupportedValues()
-
-	assert.Equal(t, expectedResult, result)
-}
-
-func TestShouldPovideTerraformSupportedValuesOfMatchingOperatorTypes(t *testing.T) {
-	expectedResult := []string{MatchingOperatorIs.TerraformRepresentation, MatchingOperatorContains.TerraformRepresentation, MatchingOperatorStartsWith.TerraformRepresentation, MatchingOperatorEndsWith.TerraformRepresentation}
-	result := SupportedMatchingOperatorTypes.TerrafromSupportedValues()
-
-	assert.Equal(t, expectedResult, result)
-}
-
-func TestShouldReturnTheMatchingOperatorTypeForAllSupportedInstanaWebRestAPIValues(t *testing.T) {
-	for _, mo := range SupportedMatchingOperatorTypes {
-		t.Run(fmt.Sprintf("TestShouldReturnTheMatchingOperatorTypeForAllSupportedInstanaWebRestAPIValues%s", mo), createTestCaseForTestShouldReturnTheMatchingOperatorTypeForAllSupportedInstanaWebRestAPIValues(mo))
-	}
-}
-
-func createTestCaseForTestShouldReturnTheMatchingOperatorTypeForAllSupportedInstanaWebRestAPIValues(mo MatchingOperatorType) func(*testing.T) {
-	return func(t *testing.T) {
-		val, err := SupportedMatchingOperatorTypes.ForInstanaRepresentation(mo.InstanaRepresentation)
-
-		assert.Nil(t, err)
-		assert.Equal(t, mo, val)
-	}
-}
-
-func TestShouldReturnErrorWhenTheMatchingOperatorTypeIsNotASupportedInstanaWebRestAPIValue(t *testing.T) {
-	val, err := SupportedMatchingOperatorTypes.ForInstanaRepresentation("invalid")
-
-	assert.NotNil(t, err)
-	assert.Equal(t, MatchingOperatorIs, val)
-}
-
-func TestShouldReturnTheMatchingOperatorTypeForAllSupportedTerraformProviderValues(t *testing.T) {
-	for _, mo := range SupportedMatchingOperatorTypes {
-		t.Run(fmt.Sprintf("TestShouldReturnTheMatchingOperatorTypeForAllSupportedTerraformProviderValues%s", mo), createTestCaseForTestShouldReturnTheMatchingOperatorTypeForAllSupportedTerraformProviderValues(mo))
-	}
-}
-
-func createTestCaseForTestShouldReturnTheMatchingOperatorTypeForAllSupportedTerraformProviderValues(mo MatchingOperatorType) func(*testing.T) {
-	return func(t *testing.T) {
-		val, err := SupportedMatchingOperatorTypes.ForTerraformRepresentation(mo.TerraformRepresentation)
-
-		assert.Nil(t, err)
-		assert.Equal(t, mo, val)
-	}
-}
-
-func TestShouldReturnErrorWhenTheMatchingOperatorTypeIsNotASupportedInstanaTerraformProviderValue(t *testing.T) {
-	val, err := SupportedMatchingOperatorTypes.ForTerraformRepresentation("invalid")
-
-	assert.NotNil(t, err)
-	assert.Equal(t, MatchingOperatorIs, val)
 }
 
 func TestShouldReturnTrueForAllSupportedMetricPatternTypes(t *testing.T) {
