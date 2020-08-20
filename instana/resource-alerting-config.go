@@ -69,7 +69,7 @@ var AlertingConfigSchemaEventFilterQuery = &schema.Schema{
 var AlertingConfigSchemaEventFilterEventTypes = &schema.Schema{
 	Type:     schema.TypeSet,
 	MinItems: 0,
-	MaxItems: 6,
+	MaxItems: len(supportedEventTypes),
 	Elem: &schema.Schema{
 		Type:         schema.TypeString,
 		ValidateFunc: validation.StringInSlice(supportedEventTypes, false),

@@ -1,6 +1,7 @@
 package restapi_test
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -42,7 +43,27 @@ func TestShouldSuccessFullyValidateAlertingConfigurationWhenRuleIdsAreConfigured
 	assert.Nil(t, config.Validate())
 }
 
-func TestShouldSuccessFullyValidateAlertingConfigurationWhenEventTypessAreConfigured(t *testing.T) {
+func TestShouldSuccessFullyValidateAlertingConfigurationWithAllSupportedEventType(t *testing.T) {
+	for _, eventType := range SupportedAlertEventTypes {
+		t.Run(fmt.Sprintf("TestShouldSuccessFullyValidateAlertingConfigurationWithEventType%s", string(eventType)), createTestCaseForAlertConfigurationWithSupportedEventType(eventType))
+	}
+}
+
+func createTestCaseForAlertConfigurationWithSupportedEventType(eventType AlertEventType) func(t *testing.T) {
+	return func(t *testing.T) {
+		config := AlertingConfiguration{
+			ID:        alertingConfigID,
+			AlertName: alertingConfigName,
+			EventFilteringConfiguration: EventFilteringConfiguration{
+				EventTypes: []AlertEventType{eventType},
+			},
+		}
+
+		assert.Nil(t, config.Validate())
+	}
+}
+
+func TestShouldSuccessFullyValidateAlertingConfigurationWhenMultipleEventTypesAreConfigured(t *testing.T) {
 	config := AlertingConfiguration{
 		ID:        alertingConfigID,
 		AlertName: alertingConfigName,
@@ -260,7 +281,7 @@ func TestShouldFailToValidateAlertingConfigurationWhenEventTypesExceedTheNumberO
 		ID:        alertingConfigID,
 		AlertName: alertingConfigName,
 		EventFilteringConfiguration: EventFilteringConfiguration{
-			EventTypes: SupportedAlertEventTypes,
+			EventTypes: append(SupportedAlertEventTypes, CriticalAlertEventType),
 		},
 	}
 
