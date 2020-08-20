@@ -251,7 +251,7 @@ func TestShouldFailToValidateComparisionExpressionWhenValueIsMissing(t *testing.
 }
 
 func TestShouldCreateValidUnaryOperatorExpression(t *testing.T) {
-	for _, operator := range SupportedUnaryOperatorExpressionOperators {
+	for _, operator := range SupportedUnaryExpressionOperators {
 		t.Run(fmt.Sprintf("TestShouldCreateValidUnaryOperatorExpressionOfType%s", operator), createTestShouldCreateValidUnaryOperatorExpression(operator))
 	}
 }

@@ -37,7 +37,7 @@ func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operator restapi
 }
 
 func TestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(t *testing.T) {
-	for _, v := range restapi.SupportedUnaryOperatorExpressionOperators {
+	for _, v := range restapi.SupportedUnaryExpressionOperators {
 		t.Run(fmt.Sprintf("test mapping of %s", v), createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(v))
 	}
 }

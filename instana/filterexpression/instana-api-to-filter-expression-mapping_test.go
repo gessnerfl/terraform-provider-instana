@@ -74,7 +74,7 @@ func TestShouldFailMapToMapComparisionWhenOperatorOfTagExpressionIsNotValid(t *t
 }
 
 func TestShouldMapValidUnaryOperationsOfTagExpression(t *testing.T) {
-	for _, v := range restapi.SupportedUnaryOperatorExpressionOperators {
+	for _, v := range restapi.SupportedUnaryExpressionOperators {
 		t.Run(fmt.Sprintf("test mapping of %s ", v), testMappingOfUnaryOperationOfTagExpression(v))
 	}
 }

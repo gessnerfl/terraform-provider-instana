@@ -83,10 +83,10 @@ func (e *PrimaryExpression) Render() string {
 	return e.UnaryOperation.Render()
 }
 
-//ComparisionExpression representation of a comparision expression. Supported types: EQUALS (Equals), NOT_EQUAL (Not Equal), CONTAINS (Contains), NOT_CONTAIN (Not Contain)
+//ComparisionExpression representation of a comparision expression.
 type ComparisionExpression struct {
 	Key      string   `parser:"@Ident"`
-	Operator Operator `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" )"`
+	Operator Operator `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
 	Value    string   `parser:"@String"`
 }
 
