@@ -34,6 +34,8 @@ const (
 	OfflineAlertEventType = AlertEventType("offline")
 	//NoneAlertEventType constant value for alert event type none
 	NoneAlertEventType = AlertEventType("none")
+	//AgentMonitoringIssueEventType constant value for alert event type none
+	AgentMonitoringIssueEventType = AlertEventType("agent_monitoring_issue")
 )
 
 //SupportedAlertEventTypes list of supported alert event types of Instana API
@@ -45,6 +47,7 @@ var SupportedAlertEventTypes = []AlertEventType{
 	OnlineAlertEventType,
 	OfflineAlertEventType,
 	NoneAlertEventType,
+	AgentMonitoringIssueEventType,
 }
 
 //IsSupportedAlertEventType checks if the given alert type is supported by Instana API
@@ -84,8 +87,8 @@ func (c EventFilteringConfiguration) Validate() error {
 		return errors.New("Invalid EventFilterConfig; RuleIDs must be unique")
 	}
 
-	if numberEventType > 6 {
-		return errors.New("Invalid EventFilterConfig; Maximum number of EventTypes is 6")
+	if numberEventType > len(SupportedAlertEventTypes) {
+		return fmt.Errorf("Invalid EventFilterConfig; Maximum number of EventTypes is %d", len(SupportedAlertEventTypes))
 	}
 
 	if !utils.StringSliceElementsAreUnique(eventTypeSliceToStringSlice(c.EventTypes)) {
