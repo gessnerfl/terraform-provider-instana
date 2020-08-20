@@ -29,6 +29,7 @@ func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
 		Label:              labelFieldValue,
 		MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
 		Scope:              scopeFieldValue,
+		BoundaryScope:      BoundaryScopeInbound,
 	}
 
 	err := config.Validate()
@@ -43,6 +44,23 @@ func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
 			Label:              labelFieldValue,
 			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
 			Scope:              scopeFieldValue,
+			BoundaryScope:      BoundaryScopeInbound,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "id")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenIDIsBlank(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 " ",
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              scopeFieldValue,
+			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
@@ -57,6 +75,23 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 			ID:                 idFieldValue,
 			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
 			Scope:              scopeFieldValue,
+			BoundaryScope:      BoundaryScopeInbound,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "label")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenLabelIsBlank(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              " ",
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              scopeFieldValue,
+			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
@@ -68,9 +103,10 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
-			ID:    idFieldValue,
-			Label: labelFieldValue,
-			Scope: scopeFieldValue,
+			ID:            idFieldValue,
+			Label:         labelFieldValue,
+			Scope:         scopeFieldValue,
+			BoundaryScope: BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
@@ -85,6 +121,7 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t
 		Label:              labelFieldValue,
 		MatchSpecification: NewComparisionExpression("", EqualsOperator, valueFieldValue),
 		Scope:              scopeFieldValue,
+		BoundaryScope:      BoundaryScopeInbound,
 	}
 
 	err := config.Validate()
@@ -99,12 +136,60 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
 			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "scope")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenScopeIsBlank(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              " ",
+			BoundaryScope:      BoundaryScopeInbound,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "scope")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsMissing(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              scopeFieldValue,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "boundary scope")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsBlank(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              scopeFieldValue,
+			BoundaryScope:      " ",
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "boundary scope")
 }
 
 func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
