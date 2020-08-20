@@ -31,7 +31,7 @@ func (u *applicationConfigUnmarshaller) Unmarshal(data []byte) (InstanaDataObjec
 		Scope:              temp.Scope,
 		MatchSpecification: matchSpecification,
 		BoundaryScope:      temp.BoundaryScope,
-	}, err
+	}, nil
 }
 
 func (u *applicationConfigUnmarshaller) unmarshalMatchSpecification(raw json.RawMessage) (MatchExpression, error) {
