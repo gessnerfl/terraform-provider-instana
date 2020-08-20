@@ -54,13 +54,48 @@ const (
 	IsBlankOperator = MatcherOperator("IS_BLANK")
 	//NotBlankOperator constant for the NOT_BLANK operator
 	NotBlankOperator = MatcherOperator("NOT_BLANK")
+
+	//StartsWithOperator constant for the STARTS_WITH operator
+	StartsWithOperator = MatcherOperator("STARTS_WITH")
+	//EndsWithOperator constant for the ENDS_WITH operator
+	EndsWithOperator = MatcherOperator("ENDS_WITH")
+	//NotStartsWithOperator constant for the NOT_STARTS_WITH operator
+	NotStartsWithOperator = MatcherOperator("NOT_STARTS_WITH")
+	//NotEndsWithOperator constant for the NOT_ENDS_WITH operator
+	NotEndsWithOperator = MatcherOperator("NOT_ENDS_WITH")
+	//GreaterOrEqualThanOperator constant for the GREATER_OR_EQUAL_THAN operator
+	GreaterOrEqualThanOperator = MatcherOperator("GREATER_OR_EQUAL_THAN")
+	//LessOrEqualThanOperator constant for the LESS_OR_EQUAL_THAN operator
+	LessOrEqualThanOperator = MatcherOperator("LESS_OR_EQUAL_THAN")
+	//GreaterThanOperator constant for the GREATER_THAN operator
+	GreaterThanOperator = MatcherOperator("GREATER_THAN")
+	//LessThanOperator constant for the LESS_THAN operator
+	LessThanOperator = MatcherOperator("LESS_THAN")
 )
 
 //SupportedComparisionOperators list of supported comparision operators of Instana API
-var SupportedComparisionOperators = []MatcherOperator{EqualsOperator, NotEqualOperator, ContainsOperator, NotContainOperator}
+var SupportedComparisionOperators = []MatcherOperator{
+	EqualsOperator,
+	NotEqualOperator,
+	ContainsOperator,
+	NotContainOperator,
+	StartsWithOperator,
+	EndsWithOperator,
+	NotStartsWithOperator,
+	NotEndsWithOperator,
+	GreaterOrEqualThanOperator,
+	LessOrEqualThanOperator,
+	GreaterThanOperator,
+	LessThanOperator,
+}
 
-//SupportedUnaryOperatorExpressionOperators list of supported unary expression operators of Instana API
-var SupportedUnaryOperatorExpressionOperators = []MatcherOperator{IsEmptyOperator, NotEmptyOperator, IsBlankOperator, NotBlankOperator}
+//SupportedUnaryExpressionOperators list of supported unary expression operators of Instana API
+var SupportedUnaryExpressionOperators = []MatcherOperator{
+	IsEmptyOperator,
+	NotEmptyOperator,
+	IsBlankOperator,
+	NotBlankOperator,
+}
 
 //SupportedConjunctionTypes list of supported binary expression operators of Instana API
 var SupportedConjunctionTypes = []ConjunctionType{LogicalAnd, LogicalOr}
@@ -226,7 +261,7 @@ func IsSupportedComparision(operator MatcherOperator) bool {
 
 //IsSupportedUnaryOperatorExpression returns true if the provided operator is a valid unary operator type
 func IsSupportedUnaryOperatorExpression(operator MatcherOperator) bool {
-	return isInMatcherOperatorSlice(SupportedUnaryOperatorExpressionOperators, operator)
+	return isInMatcherOperatorSlice(SupportedUnaryExpressionOperators, operator)
 }
 
 func isInMatcherOperatorSlice(allOperators []MatcherOperator, operator MatcherOperator) bool {

@@ -1,6 +1,7 @@
 package filterexpression_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -117,8 +118,63 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 	shouldSuccessfullyParseExpression(expression, expectedResult, t)
 }
 
+func TestShouldParseAllSupportedComparisionOperators(t *testing.T) {
+	for _, o := range restapi.SupportedComparisionOperators {
+		t.Run(fmt.Sprintf("TestShouldParseComparisionOperator%s", string(o)), createTestCaseForParsingSupportedComparisionOperators(o))
+	}
+}
+
+func createTestCaseForParsingSupportedComparisionOperators(operator restapi.MatcherOperator) func(*testing.T) {
+	return func(t *testing.T) {
+		expression := fmt.Sprintf("entity.name %s 'foo'", string(operator))
+
+		expectedResult := &FilterExpression{
+			Expression: &LogicalOrExpression{
+				Left: &LogicalAndExpression{
+					Left: &PrimaryExpression{
+						Comparision: &ComparisionExpression{
+							Key:      keyEntityName,
+							Operator: Operator(operator),
+							Value:    "foo",
+						},
+					},
+				},
+			},
+		}
+
+		shouldSuccessfullyParseExpression(expression, expectedResult, t)
+	}
+}
+
+func TestShouldParseAllSupportedUnaryOperators(t *testing.T) {
+	for _, o := range restapi.SupportedUnaryExpressionOperators {
+		t.Run(fmt.Sprintf("TestShouldParseUnaryOperator%s", string(o)), createTestCaseForParsingSupportedUnaryOperators(o))
+	}
+}
+
+func createTestCaseForParsingSupportedUnaryOperators(operator restapi.MatcherOperator) func(*testing.T) {
+	return func(t *testing.T) {
+		expression := fmt.Sprintf("entity.name %s", string(operator))
+
+		expectedResult := &FilterExpression{
+			Expression: &LogicalOrExpression{
+				Left: &LogicalAndExpression{
+					Left: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Key:      keyEntityName,
+							Operator: Operator(operator),
+						},
+					},
+				},
+			},
+		}
+
+		shouldSuccessfullyParseExpression(expression, expectedResult, t)
+	}
+}
+
 func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
-	expression := "entity.name EQUALS 'foo'"
+	expression := "entity.name Equals 'foo'"
 
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
@@ -138,7 +194,7 @@ func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
 }
 
 func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
-	expression := "entity.name NOT_EMPTY"
+	expression := "entity.name not_Empty"
 
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
