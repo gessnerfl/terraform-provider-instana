@@ -27,6 +27,15 @@ const (
 )
 
 const (
+	//ApplicationConfigBoundaryScopeAll constant for the scope ALL
+	ApplicationConfigBoundaryScopeAll = "ALL"
+	//ApplicationConfigBoundaryScopeInbound constant for the scope INBOUND
+	ApplicationConfigBoundaryScopeInbound = "INBOUND"
+	//ApplicationConfigBoundaryScopeDefault constant for the scope DEFAULT
+	ApplicationConfigBoundaryScopeDefault = "DEFAULT"
+)
+
+const (
 	//ApplicationConfigFieldLabel const for the label field of the application config
 	ApplicationConfigFieldLabel = "label"
 	//ApplicationConfigFieldFullLabel const for the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level
@@ -35,6 +44,8 @@ const (
 	ApplicationConfigFieldScope = "scope"
 	//ApplicationConfigFieldMatchSpecification const for the match_specification field of the application config
 	ApplicationConfigFieldMatchSpecification = "match_specification"
+	//ApplicationConfigFieldBoundaryScope const for the boundary_scope field of the application config
+	ApplicationConfigFieldBoundaryScope = "boundary_scope"
 )
 
 //NewApplicationConfigResourceHandle creates a new instance of the ResourceHandle for application configs
@@ -65,6 +76,14 @@ func NewApplicationConfigResourceHandle() *ResourceHandle {
 				Required:    true,
 				Description: "The match specification of the application config",
 			},
+			ApplicationConfigFieldBoundaryScope: {
+				Type:         schema.TypeString,
+				Required:     false,
+				Optional:     true,
+				Default:      ApplicationConfigBoundaryScopeDefault,
+				ValidateFunc: validation.StringInSlice([]string{ApplicationConfigBoundaryScopeAll, ApplicationConfigBoundaryScopeInbound, ApplicationConfigBoundaryScopeDefault}, false),
+				Description:  "The boundary scope of the application config",
+			},
 		},
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
@@ -90,6 +109,7 @@ func updateStateForApplicationConfig(d *schema.ResourceData, obj restapi.Instana
 	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
 	d.Set(ApplicationConfigFieldScope, applicationConfig.Scope)
 	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
+	d.Set(ApplicationConfigFieldBoundaryScope, applicationConfig.BoundaryScope)
 
 	d.SetId(applicationConfig.ID)
 	return nil
@@ -116,6 +136,7 @@ func mapStateToDataObjectForApplicationConfig(d *schema.ResourceData, formatter 
 		Label:              label,
 		Scope:              d.Get(ApplicationConfigFieldScope).(string),
 		MatchSpecification: matchSpecification,
+		BoundaryScope:      d.Get(ApplicationConfigFieldBoundaryScope).(string),
 	}, nil
 }
 
@@ -157,6 +178,14 @@ func applicationConfigSchemaV0() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The match specification of the application config",
+			},
+			ApplicationConfigFieldBoundaryScope: {
+				Type:         schema.TypeString,
+				Required:     false,
+				Optional:     true,
+				Default:      ApplicationConfigBoundaryScopeDefault,
+				ValidateFunc: validation.StringInSlice([]string{ApplicationConfigBoundaryScopeAll, ApplicationConfigBoundaryScopeInbound, ApplicationConfigBoundaryScopeDefault}, false),
+				Description:  "The boundary scope of the application config",
 			},
 		},
 	}

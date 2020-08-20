@@ -33,6 +33,7 @@ resource "instana_application_config" "example" {
   label = "label {{ITERATOR}}"
   scope = "INCLUDE_ALL_DOWNSTREAM"
   match_specification = "{{MATCH_SPECIFICATION}}"
+	boundary_scope = "DEFAULT"
 }
 `
 
@@ -41,6 +42,7 @@ const serverResponseTemplate = `
 	"id" : "{{id}}",
 	"label" : "prefix label suffix",
 	"scope" : "INCLUDE_ALL_DOWNSTREAM",
+	"boundaryScope" : "DEFAULT",
 	"matchSpecification" : {
 		"type" : "BINARY_OP",
 		"left" : {
@@ -120,6 +122,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "prefix label 0 suffix"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, "DEFAULT"),
 				),
 			},
 			{
@@ -130,6 +133,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "prefix label 1 suffix"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, "DEFAULT"),
 				),
 			},
 		},
@@ -144,6 +148,7 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(ApplicationConfigFieldFullLabel)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldMatchSpecification)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldBoundaryScope, ApplicationConfigBoundaryScopeDefault)
 }
 
 func TestUserRoleResourceShouldHaveSchemaVersionOne(t *testing.T) {
@@ -192,6 +197,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 		Label:              label,
 		MatchSpecification: defaultMatchSpecificationModel,
 		Scope:              ApplicationConfigScopeIncludeNoDownstream,
+		BoundaryScope:      ApplicationConfigBoundaryScopeDefault,
 	}
 
 	testHelper := NewTestHelper(t)
@@ -205,16 +211,18 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 	assert.Equal(t, label, resourceData.Get(ApplicationConfigFieldFullLabel))
 	assert.Equal(t, defaultMatchSpecification, resourceData.Get(ApplicationConfigFieldMatchSpecification))
 	assert.Equal(t, ApplicationConfigScopeIncludeNoDownstream, resourceData.Get(ApplicationConfigFieldScope))
+	assert.Equal(t, ApplicationConfigBoundaryScopeDefault, resourceData.Get(ApplicationConfigFieldBoundaryScope))
 }
 
 func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsNotalid(t *testing.T) {
-	comparision := restapi.NewComparisionExpression("entity.name", "INVALID", "foo")
+	comparision := restapi.NewComparisionExpression("entity.name", "INVALID", "foo", "INVALID")
 	label := "label"
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 applicationConfigID,
 		Label:              label,
 		MatchSpecification: comparision,
 		Scope:              ApplicationConfigScopeIncludeNoDownstream,
+		BoundaryScope:      ApplicationConfigBoundaryScopeDefault,
 	}
 
 	testHelper := NewTestHelper(t)
@@ -236,6 +244,7 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 	resourceData.Set(ApplicationConfigFieldFullLabel, label)
 	resourceData.Set(ApplicationConfigFieldMatchSpecification, defaultMatchSpecification)
 	resourceData.Set(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
+	resourceData.Set(ApplicationConfigFieldBoundaryScope, ApplicationConfigBoundaryScopeDefault)
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
@@ -245,6 +254,7 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 	assert.Equal(t, label, result.(restapi.ApplicationConfig).Label)
 	assert.Equal(t, defaultMatchSpecificationModel, result.(restapi.ApplicationConfig).MatchSpecification)
 	assert.Equal(t, ApplicationConfigScopeIncludeNoDownstream, result.(restapi.ApplicationConfig).Scope)
+	assert.Equal(t, ApplicationConfigBoundaryScopeDefault, result.(restapi.ApplicationConfig).BoundaryScope)
 }
 
 func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsNotValid(t *testing.T) {
@@ -257,6 +267,7 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificat
 	resourceData.Set(ApplicationConfigFieldFullLabel, label)
 	resourceData.Set(ApplicationConfigFieldMatchSpecification, "INVALID")
 	resourceData.Set(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
+	resourceData.Set(ApplicationConfigFieldBoundaryScope, ApplicationConfigBoundaryScopeDefault)
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 

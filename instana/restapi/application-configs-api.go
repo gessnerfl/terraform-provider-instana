@@ -163,8 +163,9 @@ type TagMatcherExpression struct {
 type ApplicationConfig struct {
 	ID                 string      `json:"id"`
 	Label              string      `json:"label"`
-	MatchSpecification interface{} `json:"matchSpecification"`
 	Scope              string      `json:"scope"`
+	MatchSpecification interface{} `json:"matchSpecification"`
+	BoundaryScope      string      `json:"boundaryScope"`
 }
 
 //GetID implemention of the interface InstanaDataObject
@@ -190,6 +191,10 @@ func (a ApplicationConfig) Validate() error {
 
 	if len(a.Scope) == 0 {
 		return errors.New("scope is missing")
+	}
+
+	if len(a.BoundaryScope) == 0 {
+		return errors.New("boundary scope is missing")
 	}
 	return nil
 }
