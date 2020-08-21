@@ -20,6 +20,9 @@ const (
 	valueRightFieldValue = "valueRight"
 
 	operatorFieldName = "operator"
+
+	messageLabelScope         = "scope"
+	messageLabelBoundaryScope = "boundary scope"
 )
 
 func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
@@ -141,7 +144,7 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 	err := config.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "scope")
+	assert.Contains(t, err.Error(), messageLabelScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenScopeIsBlank(t *testing.T) {
@@ -157,7 +160,7 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsBlank(t *testing.T) {
 	err := config.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "scope")
+	assert.Contains(t, err.Error(), messageLabelScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenScopeIsNotSupported(t *testing.T) {
@@ -173,7 +176,7 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsNotSupported(t *testing
 	err := config.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "scope")
+	assert.Contains(t, err.Error(), messageLabelScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsMissing(t *testing.T) {
@@ -188,7 +191,7 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsMissing(t *test
 	err := config.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "boundary scope")
+	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsBlank(t *testing.T) {
@@ -204,7 +207,7 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsBlank(t *testin
 	err := config.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "boundary scope")
+	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsNotSupported(t *testing.T) {
@@ -220,7 +223,7 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsNotSupported(t 
 	err := config.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "boundary scope")
+	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
 }
 
 func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
