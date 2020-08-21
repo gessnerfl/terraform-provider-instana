@@ -418,3 +418,43 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenValueIsSet(t *testing.T)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "value")
 }
+
+func TestShouldReturnTrueForAllSupportedApplicationConfigScopes(t *testing.T) {
+	for _, scope := range SupportedApplicationConfigScopes {
+		t.Run(fmt.Sprintf("TestShouldReturnTrueForSupportedApplicationConfigScope%s", string(scope)), createTestCaseToVerifySupportedApplicationConfigScope(scope))
+	}
+}
+
+func createTestCaseToVerifySupportedApplicationConfigScope(scope ApplicationConfigScope) func(t *testing.T) {
+	return func(t *testing.T) {
+		assert.True(t, SupportedApplicationConfigScopes.IsSupported(scope))
+	}
+}
+
+func TestShouldReturnfalseWhenApplicationConfigScopeIsNotSupported(t *testing.T) {
+	assert.False(t, SupportedApplicationConfigScopes.IsSupported(ApplicationConfigScope(valueInvalid)))
+}
+
+func TestShouldReturnStringRepresentationOfSupporedApplicationConfigScopes(t *testing.T) {
+	assert.Equal(t, []string{"INCLUDE_NO_DOWNSTREAM", "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING", "INCLUDE_ALL_DOWNSTREAM"}, SupportedApplicationConfigScopes.ToStringSlice())
+}
+
+func TestShouldReturnTrueForAllSupportedApplicationConfigBoundaryScopes(t *testing.T) {
+	for _, scope := range SupportedBoundaryScopes {
+		t.Run(fmt.Sprintf("TestShouldReturnTrueForSupportedBoundaryScope%s", string(scope)), createTestCaseToVerifySupportedApplicationConfigBoundaryScope(scope))
+	}
+}
+
+func createTestCaseToVerifySupportedApplicationConfigBoundaryScope(scope BoundaryScope) func(t *testing.T) {
+	return func(t *testing.T) {
+		assert.True(t, SupportedBoundaryScopes.IsSupported(scope))
+	}
+}
+
+func TestShouldReturnfalseWhenApplicationConfigBoundaryScopeIsNotSupported(t *testing.T) {
+	assert.False(t, SupportedBoundaryScopes.IsSupported(BoundaryScope(valueInvalid)))
+}
+
+func TestShouldReturnStringRepresentationOfSupporedApplicationConfigBoundaryScopes(t *testing.T) {
+	assert.Equal(t, []string{"ALL", "INBOUND", "DEFAULT"}, SupportedBoundaryScopes.ToStringSlice())
+}
