@@ -12,7 +12,6 @@ import (
 const (
 	idFieldValue         = "id"
 	labelFieldValue      = "label"
-	scopeFieldValue      = "scope"
 	keyFieldValue        = "key"
 	valueFieldValue      = "value"
 	keyLeftFieldValue    = "keyLeft"
@@ -21,6 +20,9 @@ const (
 	valueRightFieldValue = "valueRight"
 
 	operatorFieldName = "operator"
+
+	messageLabelScope         = "scope"
+	messageLabelBoundaryScope = "boundary scope"
 )
 
 func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
@@ -28,7 +30,8 @@ func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
 		ID:                 idFieldValue,
 		Label:              labelFieldValue,
 		MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
-		Scope:              scopeFieldValue,
+		Scope:              ApplicationConfigScopeIncludeAllDownstream,
+		BoundaryScope:      BoundaryScopeInbound,
 	}
 
 	err := config.Validate()
@@ -42,7 +45,24 @@ func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
 		ApplicationConfig{
 			Label:              labelFieldValue,
 			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
-			Scope:              scopeFieldValue,
+			Scope:              ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope:      BoundaryScopeInbound,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "id")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenIDIsBlank(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 " ",
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
@@ -56,7 +76,24 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
-			Scope:              scopeFieldValue,
+			Scope:              ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope:      BoundaryScopeInbound,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "label")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenLabelIsBlank(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              " ",
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
@@ -68,9 +105,10 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
-			ID:    idFieldValue,
-			Label: labelFieldValue,
-			Scope: scopeFieldValue,
+			ID:            idFieldValue,
+			Label:         labelFieldValue,
+			Scope:         ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope: BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
@@ -84,7 +122,8 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t
 		ID:                 idFieldValue,
 		Label:              labelFieldValue,
 		MatchSpecification: NewComparisionExpression("", EqualsOperator, valueFieldValue),
-		Scope:              scopeFieldValue,
+		Scope:              ApplicationConfigScopeIncludeAllDownstream,
+		BoundaryScope:      BoundaryScopeInbound,
 	}
 
 	err := config.Validate()
@@ -99,12 +138,92 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
 			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "scope")
+	assert.Contains(t, err.Error(), messageLabelScope)
+}
+
+func TestShouldFailToValidateApplicationConfigWhenScopeIsBlank(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              " ",
+			BoundaryScope:      BoundaryScopeInbound,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messageLabelScope)
+}
+
+func TestShouldFailToValidateApplicationConfigWhenScopeIsNotSupported(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              "invalid",
+			BoundaryScope:      BoundaryScopeInbound,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messageLabelScope)
+}
+
+func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsMissing(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              ApplicationConfigScopeIncludeAllDownstream,
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
+}
+
+func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsBlank(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope:      " ",
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
+}
+
+func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsNotSupported(t *testing.T) {
+	config :=
+		ApplicationConfig{
+			ID:                 idFieldValue,
+			Label:              labelFieldValue,
+			MatchSpecification: NewComparisionExpression(keyFieldValue, EqualsOperator, valueFieldValue),
+			Scope:              ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope:      "invalid",
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
 }
 
 func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
@@ -301,4 +420,44 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenValueIsSet(t *testing.T)
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "value")
+}
+
+func TestShouldReturnTrueForAllSupportedApplicationConfigScopes(t *testing.T) {
+	for _, scope := range SupportedApplicationConfigScopes {
+		t.Run(fmt.Sprintf("TestShouldReturnTrueForSupportedApplicationConfigScope%s", string(scope)), createTestCaseToVerifySupportedApplicationConfigScope(scope))
+	}
+}
+
+func createTestCaseToVerifySupportedApplicationConfigScope(scope ApplicationConfigScope) func(t *testing.T) {
+	return func(t *testing.T) {
+		assert.True(t, SupportedApplicationConfigScopes.IsSupported(scope))
+	}
+}
+
+func TestShouldReturnfalseWhenApplicationConfigScopeIsNotSupported(t *testing.T) {
+	assert.False(t, SupportedApplicationConfigScopes.IsSupported(ApplicationConfigScope(valueInvalid)))
+}
+
+func TestShouldReturnStringRepresentationOfSupporedApplicationConfigScopes(t *testing.T) {
+	assert.Equal(t, []string{"INCLUDE_NO_DOWNSTREAM", "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING", "INCLUDE_ALL_DOWNSTREAM"}, SupportedApplicationConfigScopes.ToStringSlice())
+}
+
+func TestShouldReturnTrueForAllSupportedApplicationConfigBoundaryScopes(t *testing.T) {
+	for _, scope := range SupportedBoundaryScopes {
+		t.Run(fmt.Sprintf("TestShouldReturnTrueForSupportedBoundaryScope%s", string(scope)), createTestCaseToVerifySupportedApplicationConfigBoundaryScope(scope))
+	}
+}
+
+func createTestCaseToVerifySupportedApplicationConfigBoundaryScope(scope BoundaryScope) func(t *testing.T) {
+	return func(t *testing.T) {
+		assert.True(t, SupportedBoundaryScopes.IsSupported(scope))
+	}
+}
+
+func TestShouldReturnfalseWhenApplicationConfigBoundaryScopeIsNotSupported(t *testing.T) {
+	assert.False(t, SupportedBoundaryScopes.IsSupported(BoundaryScope(valueInvalid)))
+}
+
+func TestShouldReturnStringRepresentationOfSupporedApplicationConfigBoundaryScopes(t *testing.T) {
+	assert.Equal(t, []string{"ALL", "INBOUND", "DEFAULT"}, SupportedBoundaryScopes.ToStringSlice())
 }
