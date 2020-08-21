@@ -51,7 +51,7 @@ var (
 		Type:         schema.TypeString,
 		Required:     false,
 		Optional:     true,
-		Default:      string(restapi.BoundaryScopeInbound),
+		Default:      string(restapi.BoundaryScopeDefault),
 		ValidateFunc: validation.StringInSlice(restapi.SupportedBoundaryScopes.ToStringSlice(), false),
 		Description:  "The boundary scope of the application config",
 	}
@@ -74,17 +74,12 @@ func NewApplicationConfigResourceHandle() *ResourceHandle {
 			ApplicationConfigFieldBoundaryScope:      ApplicationConfigBoundaryScope,
 			ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
 		},
-		SchemaVersion: 2,
+		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    applicationConfigSchemaV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: applicationConfigStateUpgradeV0,
 				Version: 0,
-			},
-			{
-				Type:    applicationConfigSchemaV1().CoreConfigSchema().ImpliedType(),
-				Upgrade: applicationConfigStateUpgradeV1,
-				Version: 1,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.ApplicationConfigs() },
@@ -164,21 +159,5 @@ func applicationConfigSchemaV0() *schema.Resource {
 
 func applicationConfigStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[ApplicationConfigFieldFullLabel] = rawState[ApplicationConfigFieldLabel]
-	return rawState, nil
-}
-
-func applicationConfigSchemaV1() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
-			ApplicationConfigFieldFullLabel:          ApplicationConfigFullLabel,
-			ApplicationConfigFieldScope:              ApplicationConfigScope,
-			ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
-		},
-	}
-}
-
-func applicationConfigStateUpgradeV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	rawState[ApplicationConfigFieldBoundaryScope] = string(restapi.BoundaryScopeInbound)
 	return rawState, nil
 }

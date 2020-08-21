@@ -147,20 +147,19 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldLabel)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(ApplicationConfigFieldFullLabel)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeInbound))
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeDefault))
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldMatchSpecification)
 }
 
-func TestUserRoleResourceShouldHaveSchemaVersionTwo(t *testing.T) {
-	assert.Equal(t, 2, NewApplicationConfigResourceHandle().SchemaVersion)
+func TestUserRoleResourceShouldHaveSchemaVersionOne(t *testing.T) {
+	assert.Equal(t, 1, NewApplicationConfigResourceHandle().SchemaVersion)
 }
 
-func TestUserRoleResourceShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *testing.T) {
+func TestUserRoleResourceShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewApplicationConfigResourceHandle()
 
-	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
 	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
-	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
 }
 
 func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelWhenMigratingFromVersion0To1(t *testing.T) {
@@ -183,16 +182,6 @@ func TestShouldMigrateEmptyApplicationConfigStateFromVersion0To1(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[ApplicationConfigFieldFullLabel])
-}
-
-func TestShouldMigrateApplicationConfigStateAndAddBoundaryScopeInboundWhenMigratingFromVersion1To2(t *testing.T) {
-	rawData := make(map[string]interface{})
-	meta := "dummy"
-
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
-
-	assert.Nil(t, err)
-	assert.Equal(t, string(restapi.BoundaryScopeInbound), result[ApplicationConfigFieldBoundaryScope])
 }
 
 func TestShouldReturnCorrectResourceNameForApplicationConfigResource(t *testing.T) {
