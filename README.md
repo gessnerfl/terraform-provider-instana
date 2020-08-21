@@ -86,6 +86,7 @@ to the application config label when active.
 resource "instana_application_config" "example" {
   label               = "label"
   scope               = "INCLUDE_ALL_DOWNSTREAM"  #Optional, default = INCLUDE_NO_DOWNSTREAM
+  boundary_scope      = "INBOUND"  #Optional, default = INBOUND
   match_specification = "agent.tag.stage EQUALS 'test' OR aws.ec2.tag.stage EQUALS 'test' OR call.tag.stage EQUALS 'test'"
 }
 ```
@@ -95,6 +96,12 @@ For **scope** the following three options are allowed:
 - INCLUDE_ALL_DOWNSTREAM
 - INCLUDE_NO_DOWNSTREAM
 - INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+
+For **boundary_scope** the following three options are allowed:
+
+- INBOUND
+- ALL
+- DEFAULT
 
 The **match_specification** defines which entities should be included into the application. It supports:
 
@@ -110,7 +117,7 @@ binary_operation          := logical_and OR logical_or | logical_and
 logical_and               := primary_expression AND logical_and | primary_expression
 primary_expression        := comparison | unary_operator_expression
 comparison                := key comparison_operator value
-comparison_operator       := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN
+comparison_operator       := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN | STARTS_WITH | ENDS_WITH | NOT_STARTS_WITH | NOT_ENDS_WITH | GREATER_OR_EQUAL_THAN | LESS_OR_EQUAL_THAN | LESS_THAN | GREATER_THAN
 unary_operator_expression := key unary_operator
 unary_operator            := IS_EMPTY | NOT_EMPTY | IS_BLANK | NOT_BLANK
 key                       := [a-zA-Z][\.a-zA-Z0-9_\-]*
@@ -168,7 +175,7 @@ resource "instana_custom_event_spec_entity_verification_rule" "example" {
 
   rule_severity              = "warning"
   rule_matching_entity_type  = "process"
-  rule_matching_operator     = "is"
+  rule_matching_operator     = "is"             #allowed values: is, contains, startsWith, starts_with, endsWith, ends_with
   rule_matching_entity_label = "entity-label"
   rule_offline_duration      = 60000
 }
@@ -198,9 +205,15 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_metric_name        = "metric_name"
   rule_window             = 60000          #Optional
   rule_rollup             = 500            #Optional
-  rule_aggregation        = "sum"          #Optional depending on metric type
-  rule_condition_operator = "=="
+  rule_aggregation        = "sum"          #Optional depending on metric type, allowed values: sum, avg, min, max
+  rule_condition_operator = "=="           #allowed values: ==, !=, <=, <, >, =>
   rule_condition_value    = 1.2
+
+  #For built-in dynamic metrics
+  rule_metric_pattern_prefix      = "prefix"        #Optional - required only for built in dynamic metrics
+  rule_metric_pattern_postfix     = "postfix"       #Optional
+  rule_metric_pattern_placeholder = "placeholder"   #Optional
+  rule_metric_pattern_operator    = "is"            #Optional - required only for built in dynamic metrics; allowed values: is, contains, any, startsWith, endsWith
 }
 ```
 
@@ -349,7 +362,7 @@ resource "instana_alerting_config" "example" {
   alert_name               = "name"
   integration_ids          = [ "alerting-channel-id1", "alerting-channel-id2" ]  # Optional, you can also use references to existing alerting channel configurations
   event_filter_query       = "query"                                             # Optional
-  event_filter_event_types = [ "incident", "critical" ]                          # Allowed values: incident, critical, warning, change, online, offline, none
+  event_filter_event_types = [ "incident", "critical" ]                          # Allowed values: incident, critical, warning, change, online, offline, agent_monitoring_issue, none
 }
 ``` 
 
