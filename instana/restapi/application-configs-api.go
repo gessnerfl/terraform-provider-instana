@@ -102,6 +102,47 @@ var SupportedUnaryExpressionOperators = []MatcherOperator{
 //SupportedConjunctionTypes list of supported binary expression operators of Instana API
 var SupportedConjunctionTypes = []ConjunctionType{LogicalAnd, LogicalOr}
 
+//ApplicationConfigScope type definition of the application config scope of the Instana Web REST API
+type ApplicationConfigScope string
+
+//ApplicationConfigScopes type definition of slice of ApplicationConfigScope
+type ApplicationConfigScopes []ApplicationConfigScope
+
+//ToStringSlice returns a slice containing the string representations of the given scopes
+func (scopes ApplicationConfigScopes) ToStringSlice() []string {
+	result := make([]string, len(scopes))
+	for i, s := range scopes {
+		result[i] = string(s)
+	}
+	return result
+}
+
+//IsSupported checks if the given ApplicationConfigScope is defined as a supported ApplicationConfigScope of the underlying slice
+func (scopes ApplicationConfigScopes) IsSupported(s ApplicationConfigScope) bool {
+	for _, scope := range scopes {
+		if s == scope {
+			return true
+		}
+	}
+	return false
+}
+
+const (
+	//ApplicationConfigScopeIncludeNoDownstream constant for the scope INCLUDE_NO_DOWNSTREAM
+	ApplicationConfigScopeIncludeNoDownstream = ApplicationConfigScope("INCLUDE_NO_DOWNSTREAM")
+	//ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging constant for the scope INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
+	ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging = ApplicationConfigScope("INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING")
+	//ApplicationConfigScopeIncludeAllDownstream constant for the scope INCLUDE_ALL_DOWNSTREAM
+	ApplicationConfigScopeIncludeAllDownstream = ApplicationConfigScope("INCLUDE_ALL_DOWNSTREAM")
+)
+
+//SupportedApplicationConfigScopes supported ApplicationConfigScopes of the Instana Web REST API
+var SupportedApplicationConfigScopes = ApplicationConfigScopes{
+	ApplicationConfigScopeIncludeNoDownstream,
+	ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging,
+	ApplicationConfigScopeIncludeAllDownstream,
+}
+
 //BoundaryScope type definition of the application config boundary scope of the Instana Web REST API
 type BoundaryScope string
 
@@ -200,11 +241,11 @@ type TagMatcherExpression struct {
 
 //ApplicationConfig is the representation of a application perspective configuration in Instana
 type ApplicationConfig struct {
-	ID                 string        `json:"id"`
-	Label              string        `json:"label"`
-	MatchSpecification interface{}   `json:"matchSpecification"`
-	Scope              string        `json:"scope"`
-	BoundaryScope      BoundaryScope `json:"boundaryScope"`
+	ID                 string                 `json:"id"`
+	Label              string                 `json:"label"`
+	MatchSpecification interface{}            `json:"matchSpecification"`
+	Scope              ApplicationConfigScope `json:"scope"`
+	BoundaryScope      BoundaryScope          `json:"boundaryScope"`
 }
 
 //GetID implemention of the interface InstanaDataObject
@@ -228,8 +269,11 @@ func (a ApplicationConfig) Validate() error {
 		return err
 	}
 
-	if utils.IsBlank(a.Scope) {
+	if utils.IsBlank(string(a.Scope)) {
 		return errors.New("scope is missing")
+	}
+	if !SupportedApplicationConfigScopes.IsSupported(a.Scope) {
+		return errors.New("scope is not supported")
 	}
 	if utils.IsBlank(string(a.BoundaryScope)) {
 		return errors.New("boundary scope is missing")

@@ -11,21 +11,6 @@ import (
 //ResourceInstanaApplicationConfig the name of the terraform-provider-instana resource to manage application config
 const ResourceInstanaApplicationConfig = "instana_application_config"
 
-// matchSpecification := binaryOperation | tagMatcherExpression
-// binaryOperation := matchSpecification conjunction matchSpecification
-// conjunction := AND | OR
-// tagMatcherExpreassion := key value operator
-// operator := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN | NOT_EMPTY
-
-const (
-	//ApplicationConfigScopeIncludeNoDownstream constant for the scope INCLUDE_NO_DOWNSTREAM
-	ApplicationConfigScopeIncludeNoDownstream = "INCLUDE_NO_DOWNSTREAM"
-	//ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging constant for the scope INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING
-	ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging = "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING"
-	//ApplicationConfigScopeIncludeAllDownstream constant for the scope INCLUDE_ALL_DOWNSTREAM
-	ApplicationConfigScopeIncludeAllDownstream = "INCLUDE_ALL_DOWNSTREAM"
-)
-
 const (
 	//ApplicationConfigFieldLabel const for the label field of the application config
 	ApplicationConfigFieldLabel = "label"
@@ -57,8 +42,8 @@ var (
 		Type:         schema.TypeString,
 		Required:     false,
 		Optional:     true,
-		Default:      ApplicationConfigScopeIncludeNoDownstream,
-		ValidateFunc: validation.StringInSlice([]string{ApplicationConfigScopeIncludeNoDownstream, ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging, ApplicationConfigScopeIncludeAllDownstream}, false),
+		Default:      string(restapi.ApplicationConfigScopeIncludeNoDownstream),
+		ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationConfigScopes.ToStringSlice(), false),
 		Description:  "The scope of the application config",
 	}
 	//ApplicationConfigBoundaryScope schema for the application config field boundary_scope
@@ -66,7 +51,7 @@ var (
 		Type:         schema.TypeString,
 		Required:     false,
 		Optional:     true,
-		Default:      restapi.BoundaryScopeInbound,
+		Default:      string(restapi.BoundaryScopeInbound),
 		ValidateFunc: validation.StringInSlice(restapi.SupportedBoundaryScopes.ToStringSlice(), false),
 		Description:  "The boundary scope of the application config",
 	}
@@ -116,7 +101,7 @@ func updateStateForApplicationConfig(d *schema.ResourceData, obj restapi.Instana
 	}
 
 	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
-	d.Set(ApplicationConfigFieldScope, applicationConfig.Scope)
+	d.Set(ApplicationConfigFieldScope, string(applicationConfig.Scope))
 	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))
 	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 
@@ -143,7 +128,7 @@ func mapStateToDataObjectForApplicationConfig(d *schema.ResourceData, formatter 
 	return restapi.ApplicationConfig{
 		ID:                 d.Id(),
 		Label:              label,
-		Scope:              d.Get(ApplicationConfigFieldScope).(string),
+		Scope:              restapi.ApplicationConfigScope(d.Get(ApplicationConfigFieldScope).(string)),
 		BoundaryScope:      restapi.BoundaryScope(d.Get(ApplicationConfigFieldBoundaryScope).(string)),
 		MatchSpecification: matchSpecification,
 	}, nil
