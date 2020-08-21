@@ -33,8 +33,49 @@ const (
 	ApplicationConfigFieldFullLabel = "full_label"
 	//ApplicationConfigFieldScope const for the scope field of the application config
 	ApplicationConfigFieldScope = "scope"
+	//ApplicationConfigFieldBoundaryScope const for the boundary_scope field of the application config
+	ApplicationConfigFieldBoundaryScope = "boundary_scope"
 	//ApplicationConfigFieldMatchSpecification const for the match_specification field of the application config
 	ApplicationConfigFieldMatchSpecification = "match_specification"
+)
+
+var (
+	//ApplicationConfigLabel schema for the application config field label
+	ApplicationConfigLabel = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The label of the application config",
+	}
+	//ApplicationConfigFullLabel schema for the application config field full_label
+	ApplicationConfigFullLabel = &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
+	}
+	//ApplicationConfigScope schema for the application config field scope
+	ApplicationConfigScope = &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     false,
+		Optional:     true,
+		Default:      ApplicationConfigScopeIncludeNoDownstream,
+		ValidateFunc: validation.StringInSlice([]string{ApplicationConfigScopeIncludeNoDownstream, ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging, ApplicationConfigScopeIncludeAllDownstream}, false),
+		Description:  "The scope of the application config",
+	}
+	//ApplicationConfigBoundaryScope schema for the application config field boundary_scope
+	ApplicationConfigBoundaryScope = &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     false,
+		Optional:     true,
+		Default:      restapi.BoundaryScopeInbound,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedBoundaryScopes.ToStringSlice(), false),
+		Description:  "The boundary scope of the application config",
+	}
+	//ApplicationConfigMatchSpecification schema for the application config field match_specification
+	ApplicationConfigMatchSpecification = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The match specification of the application config",
+	}
 )
 
 //NewApplicationConfigResourceHandle creates a new instance of the ResourceHandle for application configs
@@ -42,36 +83,23 @@ func NewApplicationConfigResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
 		ResourceName: ResourceInstanaApplicationConfig,
 		Schema: map[string]*schema.Schema{
-			ApplicationConfigFieldLabel: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The label of the application config",
-			},
-			ApplicationConfigFieldFullLabel: {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
-			},
-			ApplicationConfigFieldScope: {
-				Type:         schema.TypeString,
-				Required:     false,
-				Optional:     true,
-				Default:      ApplicationConfigScopeIncludeNoDownstream,
-				ValidateFunc: validation.StringInSlice([]string{ApplicationConfigScopeIncludeNoDownstream, ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging, ApplicationConfigScopeIncludeAllDownstream}, false),
-				Description:  "The scope of the application config",
-			},
-			ApplicationConfigFieldMatchSpecification: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The match specification of the application config",
-			},
+			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
+			ApplicationConfigFieldFullLabel:          ApplicationConfigFullLabel,
+			ApplicationConfigFieldScope:              ApplicationConfigScope,
+			ApplicationConfigFieldBoundaryScope:      ApplicationConfigBoundaryScope,
+			ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
 		},
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    applicationConfigSchemaV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: applicationConfigStateUpgradeV0,
 				Version: 0,
+			},
+			{
+				Type:    applicationConfigSchemaV1().CoreConfigSchema().ImpliedType(),
+				Upgrade: applicationConfigStateUpgradeV1,
+				Version: 1,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.ApplicationConfigs() },
@@ -89,6 +117,7 @@ func updateStateForApplicationConfig(d *schema.ResourceData, obj restapi.Instana
 
 	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
 	d.Set(ApplicationConfigFieldScope, applicationConfig.Scope)
+	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))
 	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 
 	d.SetId(applicationConfig.ID)
@@ -115,6 +144,7 @@ func mapStateToDataObjectForApplicationConfig(d *schema.ResourceData, formatter 
 		ID:                 d.Id(),
 		Label:              label,
 		Scope:              d.Get(ApplicationConfigFieldScope).(string),
+		BoundaryScope:      restapi.BoundaryScope(d.Get(ApplicationConfigFieldBoundaryScope).(string)),
 		MatchSpecification: matchSpecification,
 	}, nil
 }
@@ -140,29 +170,30 @@ func computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter u
 func applicationConfigSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			ApplicationConfigFieldLabel: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The label of the application config",
-			},
-			ApplicationConfigFieldScope: {
-				Type:         schema.TypeString,
-				Required:     false,
-				Optional:     true,
-				Default:      ApplicationConfigScopeIncludeNoDownstream,
-				ValidateFunc: validation.StringInSlice([]string{ApplicationConfigScopeIncludeNoDownstream, ApplicationConfigScopeIncludeImmediateDownstreamDatabaseAndMessaging, ApplicationConfigScopeIncludeAllDownstream}, false),
-				Description:  "The scope of the application config",
-			},
-			ApplicationConfigFieldMatchSpecification: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The match specification of the application config",
-			},
+			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
+			ApplicationConfigFieldScope:              ApplicationConfigScope,
+			ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
 		},
 	}
 }
 
 func applicationConfigStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[ApplicationConfigFieldFullLabel] = rawState[ApplicationConfigFieldLabel]
+	return rawState, nil
+}
+
+func applicationConfigSchemaV1() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
+			ApplicationConfigFieldFullLabel:          ApplicationConfigFullLabel,
+			ApplicationConfigFieldScope:              ApplicationConfigScope,
+			ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
+		},
+	}
+}
+
+func applicationConfigStateUpgradeV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	rawState[ApplicationConfigFieldBoundaryScope] = string(restapi.BoundaryScopeInbound)
 	return rawState, nil
 }

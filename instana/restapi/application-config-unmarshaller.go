@@ -30,6 +30,7 @@ func (u *applicationConfigUnmarshaller) Unmarshal(data []byte) (InstanaDataObjec
 		Label:              temp.Label,
 		MatchSpecification: matchSpecification,
 		Scope:              temp.Scope,
+		BoundaryScope:      temp.BoundaryScope,
 	}, nil
 }
 

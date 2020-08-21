@@ -32,6 +32,7 @@ provider "instana" {
 resource "instana_application_config" "example" {
   label = "label {{ITERATOR}}"
   scope = "INCLUDE_ALL_DOWNSTREAM"
+  boundary_scope = "ALL"
   match_specification = "{{MATCH_SPECIFICATION}}"
 }
 `
@@ -41,6 +42,7 @@ const serverResponseTemplate = `
 	"id" : "{{id}}",
 	"label" : "prefix label suffix",
 	"scope" : "INCLUDE_ALL_DOWNSTREAM",
+	"boundaryScope" : "ALL",
 	"matchSpecification" : {
 		"type" : "BINARY_OP",
 		"left" : {
@@ -119,6 +121,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label 0"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "prefix label 0 suffix"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
 				),
 			},
@@ -129,6 +132,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label 1"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "prefix label 1 suffix"),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, "INCLUDE_ALL_DOWNSTREAM"),
+					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
 				),
 			},
@@ -146,15 +150,16 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldMatchSpecification)
 }
 
-func TestUserRoleResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewApplicationConfigResourceHandle().SchemaVersion)
+func TestUserRoleResourceShouldHaveSchemaVersionTwo(t *testing.T) {
+	assert.Equal(t, 2, NewApplicationConfigResourceHandle().SchemaVersion)
 }
 
-func TestUserRoleResourceShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+func TestUserRoleResourceShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *testing.T) {
 	resourceHandler := NewApplicationConfigResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
 	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
+	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
 }
 
 func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelWhenMigratingFromVersion0To1(t *testing.T) {
@@ -179,6 +184,16 @@ func TestShouldMigrateEmptyApplicationConfigStateFromVersion0To1(t *testing.T) {
 	assert.Nil(t, result[ApplicationConfigFieldFullLabel])
 }
 
+func TestShouldMigrateApplicationConfigStateAndAddBoundaryScopeInboundWhenMigratingFromVersion1To2(t *testing.T) {
+	rawData := make(map[string]interface{})
+	meta := "dummy"
+
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Equal(t, string(restapi.BoundaryScopeInbound), result[ApplicationConfigFieldBoundaryScope])
+}
+
 func TestShouldReturnCorrectResourceNameForApplicationConfigResource(t *testing.T) {
 	name := NewApplicationConfigResourceHandle().ResourceName
 
@@ -192,6 +207,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 		Label:              label,
 		MatchSpecification: defaultMatchSpecificationModel,
 		Scope:              ApplicationConfigScopeIncludeNoDownstream,
+		BoundaryScope:      restapi.BoundaryScopeAll,
 	}
 
 	testHelper := NewTestHelper(t)
@@ -205,6 +221,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 	assert.Equal(t, label, resourceData.Get(ApplicationConfigFieldFullLabel))
 	assert.Equal(t, defaultMatchSpecification, resourceData.Get(ApplicationConfigFieldMatchSpecification))
 	assert.Equal(t, ApplicationConfigScopeIncludeNoDownstream, resourceData.Get(ApplicationConfigFieldScope))
+	assert.Equal(t, string(restapi.BoundaryScopeAll), resourceData.Get(ApplicationConfigFieldBoundaryScope))
 }
 
 func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsNotalid(t *testing.T) {
@@ -236,6 +253,7 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 	resourceData.Set(ApplicationConfigFieldFullLabel, label)
 	resourceData.Set(ApplicationConfigFieldMatchSpecification, defaultMatchSpecification)
 	resourceData.Set(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
+	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
@@ -245,6 +263,7 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 	assert.Equal(t, label, result.(restapi.ApplicationConfig).Label)
 	assert.Equal(t, defaultMatchSpecificationModel, result.(restapi.ApplicationConfig).MatchSpecification)
 	assert.Equal(t, ApplicationConfigScopeIncludeNoDownstream, result.(restapi.ApplicationConfig).Scope)
+	assert.Equal(t, restapi.BoundaryScopeAll, result.(restapi.ApplicationConfig).BoundaryScope)
 }
 
 func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsNotValid(t *testing.T) {
@@ -257,6 +276,7 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificat
 	resourceData.Set(ApplicationConfigFieldFullLabel, label)
 	resourceData.Set(ApplicationConfigFieldMatchSpecification, "INVALID")
 	resourceData.Set(ApplicationConfigFieldScope, ApplicationConfigScopeIncludeNoDownstream)
+	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 

@@ -17,6 +17,7 @@ func TestShouldSuccessfullyUnmarshalApplicationConfig(t *testing.T) {
 		Label:              label,
 		MatchSpecification: NewBinaryOperator(NewComparisionExpression("key", EqualsOperator, "value"), LogicalAnd, NewUnaryOperationExpression("key", NotBlankOperator)),
 		Scope:              "scope",
+		BoundaryScope:      "boundaryScope",
 	}
 
 	serializedJSON, _ := json.Marshal(applicationConfig)
@@ -59,7 +60,8 @@ func TestShouldFailToUnmarashalApplicationConfigWhenExpressionTypeIsNotSupported
 			Key:      "foo",
 			Operator: NotEmptyOperator,
 		},
-		Scope: "scope",
+		Scope:         "scope",
+		BoundaryScope: "boundaryScope",
 	}
 	serializedJSON, _ := json.Marshal(applicationConfig)
 
@@ -92,6 +94,7 @@ func testShouldFailToUnmarashalApplicationConfigWhenOneSideOfBinaryExpressionIsN
 		Label:              "label",
 		MatchSpecification: NewBinaryOperator(left, LogicalOr, right),
 		Scope:              "scope",
+		BoundaryScope:      "boundaryScope",
 	}
 	serializedJSON, _ := json.Marshal(applicationConfig)
 
