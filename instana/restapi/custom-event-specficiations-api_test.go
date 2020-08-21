@@ -33,6 +33,7 @@ const (
 	messagePartExactlyOneRule        = "exactly one rule"
 	messagePartIntegrationId         = "integration id"
 	messagePartConditionOperator     = "condition operator"
+	messagePartMetricNameOrPattern   = "metric name or metric pattern"
 	messagePartMetricPatternPrefix   = "Metric pattern prefix"
 	messagePartMetricPatternOperator = "Metric pattern operator"
 )
@@ -341,7 +342,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameandMetricPa
 	err := rule.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "metric name")
+	assert.Contains(t, err.Error(), messagePartMetricNameOrPattern)
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameIsBlankAndMetricPatternIsMissing(t *testing.T) {
@@ -363,7 +364,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameIsBlankAndM
 	err := rule.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "metric name")
+	assert.Contains(t, err.Error(), messagePartMetricNameOrPattern)
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameAndMetricPatternAreDefined(t *testing.T) {
@@ -387,7 +388,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameAndMetricPa
 	err := rule.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "metric name")
+	assert.Contains(t, err.Error(), messagePartMetricNameOrPattern)
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenNeitherRollupNorWindowIsDefined(t *testing.T) {
