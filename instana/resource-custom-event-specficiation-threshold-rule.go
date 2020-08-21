@@ -43,7 +43,8 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 	},
 	ThresholdRuleFieldMetricName: {
 		Type:        schema.TypeString,
-		Required:    true,
+		Required:    false,
+		Optional:    true,
 		Description: "The metric name of the rule",
 	},
 	ThresholdRuleFieldRollup: {

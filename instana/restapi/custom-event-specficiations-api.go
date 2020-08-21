@@ -267,8 +267,8 @@ func (r *RuleSpecification) validateSystemRule() error {
 }
 
 func (r *RuleSpecification) validateThresholdRule() error {
-	if r.MetricName == nil || len(*r.MetricName) == 0 {
-		return errors.New("metric name of threshold rule is missing")
+	if ((r.MetricName == nil || utils.IsBlank(*r.MetricName)) && r.MetricPattern == nil) || (r.MetricName != nil && !utils.IsBlank(*r.MetricName) && r.MetricPattern != nil) {
+		return errors.New("either metric name or metric pattern of threshold rule needs to be defined")
 	}
 	if (r.Window == nil && r.Rollup == nil) || (r.Window != nil && r.Rollup != nil && *r.Window == 0 && *r.Rollup == 0) {
 		return errors.New("either rollup or window and condition must be defined")

@@ -324,7 +324,7 @@ func TestShouldValidateMinimalThresholdRuleSpecificationWithRollup(t *testing.T)
 	assert.Nil(t, err)
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameIsMissing(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameandMetricPatternIsMissing(t *testing.T) {
 	conditionOperator := customEventConditionOperator
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
@@ -344,7 +344,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameI
 	assert.Contains(t, err.Error(), "metric name")
 }
 
-func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameIsBlank(t *testing.T) {
+func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameIsBlankAndMetricPatternIsMissing(t *testing.T) {
 	metricName := ""
 	conditionOperator := customEventConditionOperator
 	aggregation := customEventAggregation
@@ -358,6 +358,30 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenMetricNameI
 		Aggregation:       &aggregation,
 		ConditionOperator: &conditionOperator,
 		ConditionValue:    &conditionValue,
+	}
+
+	err := rule.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "metric name")
+}
+
+func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameAndMetricPatternAreDefined(t *testing.T) {
+	metricName := "test"
+	conditionOperator := customEventConditionOperator
+	aggregation := customEventAggregation
+	conditionValue := customEventConditionValue
+	window := customEventWindow
+	metricPattern := MetricPattern{Prefix: "test-prefix", Operator: MetricPatternOperatorTypeContains}
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        &metricName,
+		Window:            &window,
+		Aggregation:       &aggregation,
+		ConditionOperator: &conditionOperator,
+		ConditionValue:    &conditionValue,
+		MetricPattern:     &metricPattern,
 	}
 
 	err := rule.Validate()
@@ -495,7 +519,6 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 }
 
 func TestShouldSuccessfullyValidateThresholdRuleSpecificationWithMetricPattern(t *testing.T) {
-	metricName := customEventMetricName
 	aggregation := customEventAggregation
 	conditionOperator := ConditionOperatorEquals
 	conditionValue := customEventConditionValue
@@ -507,7 +530,6 @@ func TestShouldSuccessfullyValidateThresholdRuleSpecificationWithMetricPattern(t
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        &metricName,
 		Window:            &window,
 		Aggregation:       &aggregation,
 		ConditionOperator: &conditionOperator,
@@ -521,7 +543,6 @@ func TestShouldSuccessfullyValidateThresholdRuleSpecificationWithMetricPattern(t
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithMetricPatternWhenMetricPatternIsNotValid(t *testing.T) {
-	metricName := customEventMetricName
 	aggregation := customEventAggregation
 	conditionOperator := ConditionOperatorEquals
 	conditionValue := customEventConditionValue
@@ -532,7 +553,6 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithMetricPatternWhenMetr
 	rule := RuleSpecification{
 		DType:             ThresholdRuleType,
 		Severity:          SeverityWarning.GetAPIRepresentation(),
-		MetricName:        &metricName,
 		Window:            &window,
 		Aggregation:       &aggregation,
 		ConditionOperator: &conditionOperator,
