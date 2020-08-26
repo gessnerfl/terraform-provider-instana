@@ -1,10 +1,15 @@
 title: Terraform Provider Instana
-description: Terraform provider implementation for the Instana REST API.
+description: Terraform provider implementation for the Instana REST API
 
 remote_theme: rundocs/jekyll-rtd-theme
 
 addons:
-  - github
+  - github:
+    - homepage
+    - issues
+    - downloads
+
+addons_branch: true
 
 copyright:
   revision: true
