@@ -4,4 +4,3 @@ description: Terraform provider implementation for the Instana REST API.
 remote_theme: pmarsceill/just-the-docs
 color_scheme: dark
 search_enabled: false
-has_children: true
