@@ -1,9 +1,3 @@
----
-layout: default
-title: Home
-nav_order: 1
----
-
 # instana Provider
 
 Terraform provider implementation of the Instana Web REST API. The provider can be used to configure different
