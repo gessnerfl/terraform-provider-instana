@@ -1,1 +1,5 @@
-theme: jekyll-theme-midnight
+theme: jekyll-theme-slate
+include:
+  - data-sources
+  - guides
+  - resources
