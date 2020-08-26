@@ -1,1 +1,11 @@
-theme: jekyll-theme-midnight
+title: Terraform Provider Instana
+description: Terraform provider implementation for the Instana REST API.
+
+remote_theme: rundocs/jekyll-rtd-theme
+
+addons:
+  - github
+
+copyright:
+  since: true
+  revision: true

@@ -1,0 +1,26 @@
+# Alerting Channel Slack Resource
+
+Alerting channel configuration notifications to Slack.
+
+API Documentation: <https://instana.github.io/openapi/#operation/getAlertingChannels>
+
+The resource supports `default_name_prefix` and `default_name_suffix`. The string will be appended automatically
+to the name of the alerting channel.
+
+## Example Usage
+
+```hcl
+resource "instana_alerting_channel_slack" "example" {
+  name        = "my-slack-alerting-channel"
+  webhook_url = "https://my.slack.weebhook.exmaple.com/"
+  icon_url    = "https://my.slack.icon.exmaple.com/"
+  channel     = "my-channel"
+}
+```
+
+## Argument Reference
+
+* `name` - Required - the name of the alerting channel
+* `webhook_url` - Required - the URL of the Slack webhook to send alerts to
+* `icon_url` - Optional - the URL to the icon which should be rendered in the slack message
+* `channel` - Optional - the target Slack channel where the alert should be posted 
