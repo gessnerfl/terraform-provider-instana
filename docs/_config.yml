@@ -7,5 +7,4 @@ addons:
   - github
 
 copyright:
-  since: true
   revision: true
