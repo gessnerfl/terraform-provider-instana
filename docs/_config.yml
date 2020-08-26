@@ -5,7 +5,7 @@ remote_theme: rundocs/jekyll-rtd-theme
 
 addons:
   - github
-  - plugins
 
 copyright:
+  since: true
   revision: true
