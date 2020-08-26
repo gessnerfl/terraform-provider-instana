@@ -2,6 +2,6 @@ title: Terraform Provider Instana
 description: Terraform provider implementation for the Instana REST API.
 
 remote_theme: pmarsceill/just-the-docs
-color_schema: "dark"
+color_scheme: dark
 search_enabled: false
 has_children: true
