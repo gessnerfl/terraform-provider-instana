@@ -201,8 +201,8 @@ func TestUserRoleSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureReleases, false)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanConfigureLogManagement, false)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanCreatePublicCustomDashboards, false)
-	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanViewLogs, true)
-	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanViewTraceDetails, true)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanViewLogs, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(UserRoleFieldCanViewTraceDetails, false)
 }
 
 func TestUserRoleResourceShouldHaveSchemaVersionOne(t *testing.T) {

@@ -204,13 +204,13 @@ var (
 	userRoleFieldCanViewLogs = &schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
-		Default:     true,
+		Default:     false,
 		Description: "Configures if users of the role are allowed to view logs",
 	}
 	userRoleFieldCanViewTraceDetails = &schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
-		Default:     true,
+		Default:     false,
 		Description: "Configures if users of the role are allowed to view trace details",
 	}
 )
