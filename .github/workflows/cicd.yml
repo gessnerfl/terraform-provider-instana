@@ -30,7 +30,7 @@ jobs:
         mkdir -p output
         go vet -all ./... 2> output/govet-report.out
         golint -set_exit_status `go list ./...` > output/golint-report.out
-        gosec -fmt=sonarqube -out output/gosec-report.json ./...  
+#        gosec -fmt=sonarqube -out output/gosec-report.json ./...  
     
     - name: Run testing
       run: go test ./... -cover -coverprofile=output/coverage.out -json > output/unit-test-report.json
