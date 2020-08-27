@@ -65,5 +65,5 @@ resource "instana_user_role" "example" {
 * `can_configure_releases` - Optional - default false - enables permission to configure releases
 * `can_configure_log_management` - Optional - default false - enables permission to configure log management
 * `can_create_public_custom_dashboards` - Optional - default false - enables permission to create public custom dashboards 
-* `can_view_logs` - Optional - default false - enables permission to view logs 
-* `can_view_trace_details` - Optional - default false - enables permission to view trace details 
+* `can_view_logs` - Optional - default true - enables permission to view logs 
+* `can_view_trace_details` - Optional - default true - enables permission to view trace details 
