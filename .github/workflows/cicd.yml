@@ -1,8 +1,14 @@
 name: CICD
 
 on:
-  - push
-  - pull_request
+  push:    
+    tags:
+      - 'v*'
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
   build:
@@ -40,3 +46,35 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+  
+  release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: ${{ contains(github.ref, 'refs/tags/v') && github.event_name == 'push' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Unshallow
+        run: git fetch --prune --unshallow
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.0
+
+      - name: Import GPG key
+        id: import_gpg
+        uses: paultyng/ghaction-import-gpg@v2.1.0
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      -
+        name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: release --rm-dist
+        env:
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
