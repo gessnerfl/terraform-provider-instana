@@ -1,0 +1,41 @@
+name: CICD
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.15.0'
+
+    - name: Install dependencies
+      run: |
+        go version
+        go get -u golang.org/x/lint/golint
+        go get -u github.com/securego/gosec/cmd/gosec
+
+    - name: Run build
+      run: go build . 
+      
+    - name: Run vet & lint & sec
+      run: |
+        go vet -all ./... 2> output/govet-report.out
+        golint -set_exit_status `go list ./...` > output/golint-report.out
+        gosec -fmt=sonarqube -out output/gosec-report.json ./...  
+    
+    - name: Run testing
+      run: go test ./... -cover -coverprofile=output/coverage.out -json > output/unit-test-report.json
+
+    - name: Run sonar
+      uses: sonarsource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
