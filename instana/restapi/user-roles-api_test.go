@@ -28,9 +28,9 @@ func TestValidFullUserRole(t *testing.T) {
 	userRole := UserRole{
 		ID:                                userRoleID,
 		Name:                              userRoleName,
-		ImplicitViewFilter:                "Test view filter",
 		CanConfigureServiceMapping:        true,
 		CanConfigureEumApplications:       true,
+		CanConfigureMobileAppMonitoring:   true,
 		CanConfigureUsers:                 true,
 		CanInstallNewAgents:               true,
 		CanSeeUsageInformation:            true,
@@ -45,6 +45,13 @@ func TestValidFullUserRole(t *testing.T) {
 		CanConfigureAgents:                true,
 		CanConfigureAuthenticationMethods: true,
 		CanConfigureApplications:          true,
+		CanConfigureTeams:                 true,
+		RestrictedAccess:                  true,
+		CanConfigureReleases:              true,
+		CanConfigureLogManagement:         true,
+		CanCreatePublicCustomDashboards:   true,
+		CanViewLogs:                       true,
+		CanViewTraceDetails:               true,
 	}
 
 	assert.Equal(t, userRoleID, userRole.GetID())
