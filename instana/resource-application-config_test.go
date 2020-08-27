@@ -151,11 +151,11 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldMatchSpecification)
 }
 
-func TestUserRoleResourceShouldHaveSchemaVersionOne(t *testing.T) {
+func TestApplicationConfigResourceShouldHaveSchemaVersionOne(t *testing.T) {
 	assert.Equal(t, 1, NewApplicationConfigResourceHandle().SchemaVersion)
 }
 
-func TestUserRoleResourceShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+func TestApplicationConfigResourceShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewApplicationConfigResourceHandle()
 
 	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))

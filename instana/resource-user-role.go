@@ -12,12 +12,12 @@ const ResourceInstanaUserRole = "instana_user_role"
 const (
 	//UserRoleFieldName constant value for the schema field name
 	UserRoleFieldName = "name"
-	//UserRoleFieldImplicitViewFilter constant value for the schema field implicit_view_filter
-	UserRoleFieldImplicitViewFilter = "implicit_view_filter"
 	//UserRoleFieldCanConfigureServiceMapping constant value for the schema field can_configure_service_mapping
 	UserRoleFieldCanConfigureServiceMapping = "can_configure_service_mapping"
 	//UserRoleFieldCanConfigureEumApplications constant value for the schema field can_configure_eum_applications
 	UserRoleFieldCanConfigureEumApplications = "can_configure_eum_applications"
+	//UserRoleFieldCanConfigureMobileAppMonitoring constant value for the schema field can_configure_mobile_app_monitoring
+	UserRoleFieldCanConfigureMobileAppMonitoring = "can_configure_mobile_app_monitoring"
 	//UserRoleFieldCanConfigureUsers constant value for the schema field can_configure_users
 	UserRoleFieldCanConfigureUsers = "can_configure_users"
 	//UserRoleFieldCanInstallNewAgents constant value for the schema field can_install_new_agents
@@ -46,6 +46,173 @@ const (
 	UserRoleFieldCanConfigureAuthenticationMethods = "can_configure_authentication_methods"
 	//UserRoleFieldCanConfigureApplications constant value for the schema field can_configure_applications
 	UserRoleFieldCanConfigureApplications = "can_configure_applications"
+	//UserRoleFieldCanConfigureTeams constant value for the schema field can_configure_teams
+	UserRoleFieldCanConfigureTeams = "can_configure_teams"
+	//UserRoleFieldRestrictedAccess constant value for the schema field restricted_access
+	UserRoleFieldRestrictedAccess = "restricted_access"
+	//UserRoleFieldCanConfigureReleases constant value for the schema field can_configure_releases
+	UserRoleFieldCanConfigureReleases = "can_configure_releases"
+	//UserRoleFieldCanConfigureLogManagement constant value for the schema field can_configure_log_management
+	UserRoleFieldCanConfigureLogManagement = "can_configure_log_management"
+	//UserRoleFieldCanCreatePublicCustomDashboards constant value for the schema field can_create_public_custom_dashboards
+	UserRoleFieldCanCreatePublicCustomDashboards = "can_create_public_custom_dashboards"
+	//UserRoleFieldCanViewLogs constant value for the schema field can_view_logs
+	UserRoleFieldCanViewLogs = "can_view_logs"
+	//UserRoleFieldCanViewTraceDetails constant value for the schema field can_view_trace_details
+	UserRoleFieldCanViewTraceDetails = "can_view_trace_details"
+)
+
+var (
+	userRoleSchemaName = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The name of the user role",
+	}
+	userRoleSchemaCanConfigureServiceMapping = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure service mappings",
+	}
+	userRoleSchemaCanConfigureEumApplications = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure End User Monitoring applications",
+	}
+	userRoleSchemaCanConfigureMobileAppMonitoring = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure Mobile App Monitoring",
+	}
+	userRoleSchemaCanConfigureUsers = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure users",
+	}
+	userRoleSchemaCanInstallNewAgents = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to install new agents",
+	}
+	userRoleSchemaCanSeeUsageInformation = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to see usage information",
+	}
+	userRoleSchemaCanConfigureIntegrations = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure integrations",
+	}
+	userRoleSchemaCanSeeOnPremiseLicenseInformation = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to see onPremise license information",
+	}
+	userRoleSchemaCanConfigureRoles = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure user roles",
+	}
+	userRoleSchemaCanConfigureCustomAlerts = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure custom alerts",
+	}
+	userRoleSchemaCanConfigureAPITokens = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure API tokens",
+	}
+	userRoleSchemaCanConfigureAgentRunMode = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure agent run mode",
+	}
+	userRoleSchemaCanViewAuditLog = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to view the audit log",
+	}
+	userRoleSchemaCanConfigureObjectives = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure objectives",
+	}
+	userRoleSchemaCanConfigureAgents = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure agents",
+	}
+	userRoleSchemaCanConfigureAuthenticationMethods = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure authentication methods",
+	}
+	userRoleSchemaCanConfigureApplications = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure applications",
+	}
+
+	userRoleFieldCanConfigureTeams = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure teams (Groups)",
+	}
+	userRoleFieldRestrictedAccess = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role has limited access by group access scopes",
+	}
+	userRoleFieldCanConfigureReleases = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure releases",
+	}
+	userRoleFieldCanConfigureLogManagement = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to configure log management",
+	}
+	userRoleFieldCanCreatePublicCustomDashboards = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to create public custom dashboards",
+	}
+	userRoleFieldCanViewLogs = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to view logs",
+	}
+	userRoleFieldCanViewTraceDetails = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Configures if users of the role are allowed to view trace details",
+	}
 )
 
 //NewUserRoleResourceHandle creates a ResourceHandle instance for the terraform resource user role
@@ -53,112 +220,38 @@ func NewUserRoleResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
 		ResourceName: ResourceInstanaUserRole,
 		Schema: map[string]*schema.Schema{
-			UserRoleFieldName: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the user role",
-			},
-			UserRoleFieldImplicitViewFilter: {
-				Type:        schema.TypeString,
-				Required:    false,
-				Optional:    true,
-				Description: "The an implicit view filter which is applied for users of the given role",
-			},
-			UserRoleFieldCanConfigureServiceMapping: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure service mappings",
-			},
-			UserRoleFieldCanConfigureEumApplications: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure End User Monitoring applications",
-			},
-			UserRoleFieldCanConfigureUsers: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure users",
-			},
-			UserRoleFieldCanInstallNewAgents: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to install new agents",
-			},
-			UserRoleFieldCanSeeUsageInformation: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to see usage information",
-			},
-			UserRoleFieldCanConfigureIntegrations: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure integrations",
-			},
-			UserRoleFieldCanSeeOnPremiseLicenseInformation: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to see onPremise license information",
-			},
-			UserRoleFieldCanConfigureRoles: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure user roles",
-			},
-			UserRoleFieldCanConfigureCustomAlerts: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure custom alerts",
-			},
-			UserRoleFieldCanConfigureAPITokens: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure API tokens",
-			},
-			UserRoleFieldCanConfigureAgentRunMode: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure agent run mode",
-			},
-			UserRoleFieldCanViewAuditLog: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to view the audit log",
-			},
-			UserRoleFieldCanConfigureObjectives: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure objectives",
-			},
-			UserRoleFieldCanConfigureAgents: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure agents",
-			},
-			UserRoleFieldCanConfigureAuthenticationMethods: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure authentication methods",
-			},
-			UserRoleFieldCanConfigureApplications: {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Configures if users of the role are allowed to configure applications",
+			UserRoleFieldName:                              userRoleSchemaName,
+			UserRoleFieldCanConfigureServiceMapping:        userRoleSchemaCanConfigureServiceMapping,
+			UserRoleFieldCanConfigureEumApplications:       userRoleSchemaCanConfigureEumApplications,
+			UserRoleFieldCanConfigureMobileAppMonitoring:   userRoleSchemaCanConfigureMobileAppMonitoring,
+			UserRoleFieldCanConfigureUsers:                 userRoleSchemaCanConfigureUsers,
+			UserRoleFieldCanInstallNewAgents:               userRoleSchemaCanInstallNewAgents,
+			UserRoleFieldCanSeeUsageInformation:            userRoleSchemaCanSeeUsageInformation,
+			UserRoleFieldCanConfigureIntegrations:          userRoleSchemaCanConfigureIntegrations,
+			UserRoleFieldCanSeeOnPremiseLicenseInformation: userRoleSchemaCanSeeOnPremiseLicenseInformation,
+			UserRoleFieldCanConfigureRoles:                 userRoleSchemaCanConfigureRoles,
+			UserRoleFieldCanConfigureCustomAlerts:          userRoleSchemaCanConfigureCustomAlerts,
+			UserRoleFieldCanConfigureAPITokens:             userRoleSchemaCanConfigureAPITokens,
+			UserRoleFieldCanConfigureAgentRunMode:          userRoleSchemaCanConfigureAgentRunMode,
+			UserRoleFieldCanViewAuditLog:                   userRoleSchemaCanViewAuditLog,
+			UserRoleFieldCanConfigureObjectives:            userRoleSchemaCanConfigureObjectives,
+			UserRoleFieldCanConfigureAgents:                userRoleSchemaCanConfigureAgents,
+			UserRoleFieldCanConfigureAuthenticationMethods: userRoleSchemaCanConfigureAuthenticationMethods,
+			UserRoleFieldCanConfigureApplications:          userRoleSchemaCanConfigureApplications,
+			UserRoleFieldCanConfigureTeams:                 userRoleFieldCanConfigureTeams,
+			UserRoleFieldRestrictedAccess:                  userRoleFieldRestrictedAccess,
+			UserRoleFieldCanConfigureReleases:              userRoleFieldCanConfigureReleases,
+			UserRoleFieldCanConfigureLogManagement:         userRoleFieldCanConfigureLogManagement,
+			UserRoleFieldCanCreatePublicCustomDashboards:   userRoleFieldCanCreatePublicCustomDashboards,
+			UserRoleFieldCanViewLogs:                       userRoleFieldCanViewLogs,
+			UserRoleFieldCanViewTraceDetails:               userRoleFieldCanViewTraceDetails,
+		},
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    userRoleSchemaV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateUserRoleFromVersion0ToVersion1,
+				Version: 0,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.UserRoles() },
@@ -170,9 +263,9 @@ func NewUserRoleResourceHandle() *ResourceHandle {
 func updateStateForUserRole(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	userRole := obj.(restapi.UserRole)
 	d.Set(UserRoleFieldName, userRole.Name)
-	d.Set(UserRoleFieldImplicitViewFilter, userRole.ImplicitViewFilter)
 	d.Set(UserRoleFieldCanConfigureServiceMapping, userRole.CanConfigureServiceMapping)
 	d.Set(UserRoleFieldCanConfigureEumApplications, userRole.CanConfigureEumApplications)
+	d.Set(UserRoleFieldCanConfigureMobileAppMonitoring, userRole.CanConfigureMobileAppMonitoring)
 	d.Set(UserRoleFieldCanConfigureUsers, userRole.CanConfigureUsers)
 	d.Set(UserRoleFieldCanInstallNewAgents, userRole.CanInstallNewAgents)
 	d.Set(UserRoleFieldCanSeeUsageInformation, userRole.CanSeeUsageInformation)
@@ -187,6 +280,13 @@ func updateStateForUserRole(d *schema.ResourceData, obj restapi.InstanaDataObjec
 	d.Set(UserRoleFieldCanConfigureAgents, userRole.CanConfigureAgents)
 	d.Set(UserRoleFieldCanConfigureAuthenticationMethods, userRole.CanConfigureAuthenticationMethods)
 	d.Set(UserRoleFieldCanConfigureApplications, userRole.CanConfigureApplications)
+	d.Set(UserRoleFieldCanConfigureTeams, userRole.CanConfigureTeams)
+	d.Set(UserRoleFieldRestrictedAccess, userRole.RestrictedAccess)
+	d.Set(UserRoleFieldCanConfigureReleases, userRole.CanConfigureReleases)
+	d.Set(UserRoleFieldCanConfigureLogManagement, userRole.CanConfigureLogManagement)
+	d.Set(UserRoleFieldCanCreatePublicCustomDashboards, userRole.CanCreatePublicCustomDashboards)
+	d.Set(UserRoleFieldCanViewLogs, userRole.CanViewLogs)
+	d.Set(UserRoleFieldCanViewTraceDetails, userRole.CanViewTraceDetails)
 
 	d.SetId(userRole.ID)
 	return nil
@@ -196,9 +296,9 @@ func mapStateToDataObjectForUserRole(d *schema.ResourceData, formatter utils.Res
 	return restapi.UserRole{
 		ID:                                d.Id(),
 		Name:                              d.Get(UserRoleFieldName).(string),
-		ImplicitViewFilter:                d.Get(UserRoleFieldImplicitViewFilter).(string),
 		CanConfigureServiceMapping:        d.Get(UserRoleFieldCanConfigureServiceMapping).(bool),
 		CanConfigureEumApplications:       d.Get(UserRoleFieldCanConfigureEumApplications).(bool),
+		CanConfigureMobileAppMonitoring:   d.Get(UserRoleFieldCanConfigureMobileAppMonitoring).(bool),
 		CanConfigureUsers:                 d.Get(UserRoleFieldCanConfigureUsers).(bool),
 		CanInstallNewAgents:               d.Get(UserRoleFieldCanInstallNewAgents).(bool),
 		CanSeeUsageInformation:            d.Get(UserRoleFieldCanSeeUsageInformation).(bool),
@@ -213,5 +313,47 @@ func mapStateToDataObjectForUserRole(d *schema.ResourceData, formatter utils.Res
 		CanConfigureAgents:                d.Get(UserRoleFieldCanConfigureAgents).(bool),
 		CanConfigureAuthenticationMethods: d.Get(UserRoleFieldCanConfigureAuthenticationMethods).(bool),
 		CanConfigureApplications:          d.Get(UserRoleFieldCanConfigureApplications).(bool),
+		CanConfigureTeams:                 d.Get(UserRoleFieldCanConfigureTeams).(bool),
+		RestrictedAccess:                  d.Get(UserRoleFieldRestrictedAccess).(bool),
+		CanConfigureReleases:              d.Get(UserRoleFieldCanConfigureReleases).(bool),
+		CanConfigureLogManagement:         d.Get(UserRoleFieldCanConfigureLogManagement).(bool),
+		CanCreatePublicCustomDashboards:   d.Get(UserRoleFieldCanCreatePublicCustomDashboards).(bool),
+		CanViewLogs:                       d.Get(UserRoleFieldCanViewLogs).(bool),
+		CanViewTraceDetails:               d.Get(UserRoleFieldCanViewTraceDetails).(bool),
 	}, nil
+}
+
+func userRoleSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			UserRoleFieldName: userRoleSchemaName,
+			"implicit_view_filter": {
+				Type:        schema.TypeString,
+				Required:    false,
+				Optional:    true,
+				Description: "The an implicit view filter which is applied for users of the given role",
+			},
+			UserRoleFieldCanConfigureServiceMapping:        userRoleSchemaCanConfigureServiceMapping,
+			UserRoleFieldCanConfigureEumApplications:       userRoleSchemaCanConfigureEumApplications,
+			UserRoleFieldCanConfigureUsers:                 userRoleSchemaCanConfigureUsers,
+			UserRoleFieldCanInstallNewAgents:               userRoleSchemaCanInstallNewAgents,
+			UserRoleFieldCanSeeUsageInformation:            userRoleSchemaCanSeeUsageInformation,
+			UserRoleFieldCanConfigureIntegrations:          userRoleSchemaCanConfigureIntegrations,
+			UserRoleFieldCanSeeOnPremiseLicenseInformation: userRoleSchemaCanSeeOnPremiseLicenseInformation,
+			UserRoleFieldCanConfigureRoles:                 userRoleSchemaCanConfigureRoles,
+			UserRoleFieldCanConfigureCustomAlerts:          userRoleSchemaCanConfigureCustomAlerts,
+			UserRoleFieldCanConfigureAPITokens:             userRoleSchemaCanConfigureAPITokens,
+			UserRoleFieldCanConfigureAgentRunMode:          userRoleSchemaCanConfigureAgentRunMode,
+			UserRoleFieldCanViewAuditLog:                   userRoleSchemaCanViewAuditLog,
+			UserRoleFieldCanConfigureObjectives:            userRoleSchemaCanConfigureObjectives,
+			UserRoleFieldCanConfigureAgents:                userRoleSchemaCanConfigureAgents,
+			UserRoleFieldCanConfigureAuthenticationMethods: userRoleSchemaCanConfigureAuthenticationMethods,
+			UserRoleFieldCanConfigureApplications:          userRoleSchemaCanConfigureApplications,
+		},
+	}
+}
+
+func migrateUserRoleFromVersion0ToVersion1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	delete(rawState, "implicit_view_filter")
+	return rawState, nil
 }

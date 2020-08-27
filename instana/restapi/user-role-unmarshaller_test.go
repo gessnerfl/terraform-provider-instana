@@ -13,9 +13,9 @@ func TestShouldSuccessfullyUnmarshalUserRole(t *testing.T) {
 	userRole := UserRole{
 		ID:                                "role-id",
 		Name:                              "role-name",
-		ImplicitViewFilter:                "Test view filter",
 		CanConfigureServiceMapping:        true,
 		CanConfigureEumApplications:       true,
+		CanConfigureMobileAppMonitoring:   true,
 		CanConfigureUsers:                 true,
 		CanInstallNewAgents:               true,
 		CanSeeUsageInformation:            true,
@@ -30,6 +30,13 @@ func TestShouldSuccessfullyUnmarshalUserRole(t *testing.T) {
 		CanConfigureAgents:                true,
 		CanConfigureAuthenticationMethods: true,
 		CanConfigureApplications:          true,
+		CanConfigureTeams:                 true,
+		RestrictedAccess:                  true,
+		CanConfigureReleases:              true,
+		CanConfigureLogManagement:         true,
+		CanCreatePublicCustomDashboards:   true,
+		CanViewLogs:                       true,
+		CanViewTraceDetails:               true,
 	}
 
 	serializedJSON, _ := json.Marshal(userRole)

@@ -9,9 +9,9 @@ const UserRolesResourcePath = SettingsBasePath + "/roles"
 type UserRole struct {
 	ID                                string `json:"id"`
 	Name                              string `json:"name"`
-	ImplicitViewFilter                string `json:"implicitViewFilter"`
 	CanConfigureServiceMapping        bool   `json:"canConfigureServiceMapping"`
 	CanConfigureEumApplications       bool   `json:"canConfigureEumApplications"`
+	CanConfigureMobileAppMonitoring   bool   `json:"canConfigureMobileAppMonitoring"` //NEW
 	CanConfigureUsers                 bool   `json:"canConfigureUsers"`
 	CanInstallNewAgents               bool   `json:"canInstallNewAgents"`
 	CanSeeUsageInformation            bool   `json:"canSeeUsageInformation"`
@@ -26,6 +26,13 @@ type UserRole struct {
 	CanConfigureAgents                bool   `json:"canConfigureAgents"`
 	CanConfigureAuthenticationMethods bool   `json:"canConfigureAuthenticationMethods"`
 	CanConfigureApplications          bool   `json:"canConfigureApplications"`
+	CanConfigureTeams                 bool   `json:"canConfigureTeams"`
+	RestrictedAccess                  bool   `json:"restrictedAccess"`
+	CanConfigureReleases              bool   `json:"canConfigureReleases"`
+	CanConfigureLogManagement         bool   `json:"canConfigureLogManagement"`
+	CanCreatePublicCustomDashboards   bool   `json:"canCreatePublicCustomDashboards"`
+	CanViewLogs                       bool   `json:"canViewLogs"`
+	CanViewTraceDetails               bool   `json:"canViewTraceDetails"`
 }
 
 //GetID implemention of the interface InstanaDataObject
