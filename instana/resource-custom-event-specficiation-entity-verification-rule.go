@@ -76,7 +76,7 @@ func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() *Reso
 			},
 			{
 				Type:    customEventSpecificationWithEntityVerificationRuleSchemaV2().CoreConfigSchema().ImpliedType(),
-				Upgrade: migrateCustomEventConfigWithThresholdRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation,
+				Upgrade: migrateCustomEventConfigWithEntityVerificationRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation,
 				Version: 2,
 			},
 		},
@@ -150,7 +150,7 @@ func customEventSpecificationWithEntityVerificationRuleSchemaV2() *schema.Resour
 	}
 }
 
-func migrateCustomEventConfigWithThresholdRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func migrateCustomEventConfigWithEntityVerificationRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	v, ok := rawState[EntityVerificationRuleFieldMatchingOperator]
 	if ok {
 		operator, err := restapi.SupportedMatchingOperators.FromTerraformValue(v.(string))
