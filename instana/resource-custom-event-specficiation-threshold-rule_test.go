@@ -67,34 +67,9 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_metric_name = "metric_name"
   rule_window = 60000
   rule_aggregation = "sum"
-  rule_condition_operator = "="
+  rule_condition_operator = "{{CONDITION_OPERATOR}}"
   rule_condition_value = 1.2
 }
-`
-
-const resourceCustomEventSpecificationWithThresholdRuleAndWindowAndAlternativeConditionOperatorRepresentationDefinitionTemplate = `
-provider "instana" {
-	api_token = "test-token"
-	endpoint = "localhost:{{PORT}}"
-	default_name_prefix = "prefix"
-	default_name_suffix = "suffix"
-  }
-  
-  resource "instana_custom_event_spec_threshold_rule" "example" {
-	name = "name {{ITERATION}}"
-	entity_type = "entity_type"
-	query = "query"
-	enabled = true
-	triggering = true
-	description = "description"
-	expiration_time = 60000
-	rule_severity = "warning"
-	rule_metric_name = "metric_name"
-	rule_window = 60000
-	rule_aggregation = "sum"
-	rule_condition_operator = "=="
-	rule_condition_value = 1.2
-  }
 `
 
 const resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate = `
@@ -161,7 +136,7 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMo
 	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "=", "conditionValue" : 1.2 }`
 	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
 		t,
-		resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate,
+		strings.ReplaceAll(resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate, "{{CONDITION_OPERATOR}}", "="),
 		ruleAsJson,
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldWindow, strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
@@ -175,7 +150,7 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowAndAlternative
 	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "=", "conditionValue" : 1.2 }`
 	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
 		t,
-		resourceCustomEventSpecificationWithThresholdRuleAndWindowAndAlternativeConditionOperatorRepresentationDefinitionTemplate,
+		strings.ReplaceAll(resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate, "{{CONDITION_OPERATOR}}", "=="),
 		ruleAsJson,
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldWindow, strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
@@ -496,36 +471,11 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 }
 
 func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThresholdRuleWhenSeverityIsNotSupported(t *testing.T) {
-	description := customEventSpecificationWithThresholdRuleDescription
-	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
-	query := customEventSpecificationWithThresholdRuleQuery
-
-	window := customEventSpecificationWithThresholdRuleWindow
-	rollup := customEventSpecificationWithThresholdRuleRollup
-	aggregation := customEventSpecificationWithThresholdRuleAggregation
-	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
-	metricName := customEventSpecificationWithThresholdRuleMetricName
-	conditionOperator := "invalid"
-
 	spec := restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithThresholdRuleID,
-		Name:           customEventSpecificationWithThresholdRuleName,
-		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
 		Rules: []restapi.RuleSpecification{
 			{
-				DType:             restapi.ThresholdRuleType,
-				Severity:          123,
-				MetricName:        &metricName,
-				Window:            &window,
-				Rollup:            &rollup,
-				Aggregation:       &aggregation,
-				ConditionOperator: &conditionOperator,
-				ConditionValue:    &conditionValue,
+				DType:    restapi.ThresholdRuleType,
+				Severity: 123,
 			},
 		},
 	}
@@ -541,36 +491,14 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThreshol
 }
 
 func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThresholdRuleWhenConditionOperatorTypeIsNotSupported(t *testing.T) {
-	description := customEventSpecificationWithThresholdRuleDescription
-	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
-	query := customEventSpecificationWithThresholdRuleQuery
-
-	window := customEventSpecificationWithThresholdRuleWindow
-	rollup := customEventSpecificationWithThresholdRuleRollup
-	aggregation := customEventSpecificationWithThresholdRuleAggregation
-	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
-	metricName := customEventSpecificationWithThresholdRuleMetricName
 	conditionOperator := "invalid"
 
 	spec := restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithThresholdRuleID,
-		Name:           customEventSpecificationWithThresholdRuleName,
-		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:             restapi.ThresholdRuleType,
 				Severity:          restapi.SeverityWarning.GetAPIRepresentation(),
-				MetricName:        &metricName,
-				Window:            &window,
-				Rollup:            &rollup,
-				Aggregation:       &aggregation,
 				ConditionOperator: &conditionOperator,
-				ConditionValue:    &conditionValue,
 			},
 		},
 	}
