@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.9.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.9.1) (2020-10-14)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.0...v0.9.1)
+
+**Fixed bugs:**
+
+- Breaking Change of EQUAL Condition Operator in Release 188 [\#69](https://github.com/gessnerfl/terraform-provider-instana/issues/69)
+
+**Merged pull requests:**
+
+- Bugfix/69 equal condition operator [\#70](https://github.com/gessnerfl/terraform-provider-instana/pull/70) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.9.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.9.0) (2020-08-27)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.8.2...v0.9.0)
@@ -139,6 +151,10 @@
 
 - Terraform provider should not have platform name in executable [\#17](https://github.com/gessnerfl/terraform-provider-instana/issues/17)
 
+**Merged pull requests:**
+
+- \#17: fix binary name [\#18](https://github.com/gessnerfl/terraform-provider-instana/pull/18) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.3.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.3.1) (2019-06-19)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.3.0...v0.3.1)
@@ -165,7 +181,6 @@
 
 **Merged pull requests:**
 
-- \#17: fix binary name [\#18](https://github.com/gessnerfl/terraform-provider-instana/pull/18) ([gessnerfl](https://github.com/gessnerfl))
 - Fix application configuration example in README [\#14](https://github.com/gessnerfl/terraform-provider-instana/pull/14) ([steinex](https://github.com/steinex))
 
 ## [v0.2.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.2.1) (2019-05-07)
