@@ -20,7 +20,6 @@ const (
 	customEventWindow              = 60000
 	customEventRollup              = 40000
 	customEventAggregation         = AggregationSum
-	customEventConditionOperator   = ConditionOperatorEquals
 	customEventConditionValue      = 1.2
 	customEventMetricPatternPrefix = "metric-pattern-prefix"
 
@@ -229,7 +228,7 @@ func TestShouldFailToValidateSystemRuleWhenRuleTypeIsMissing(t *testing.T) {
 func TestShouldValidateFullThresholdRuleSpecificationWithWindowRollupAndAggregation(t *testing.T) {
 	metricName := customEventMetricName
 	aggregation := customEventAggregation
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rollup := customEventRollup
@@ -257,7 +256,7 @@ func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSuppor
 
 func createTestCaseForSuccessfullValidateMinimalThresholdRuleForAggregation(aggregation AggregationType) func(*testing.T) {
 	metricName := customEventMetricName
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	return func(t *testing.T) {
 		conditionValue := customEventConditionValue
 		window := customEventWindow
@@ -278,15 +277,15 @@ func createTestCaseForSuccessfullValidateMinimalThresholdRuleForAggregation(aggr
 }
 
 func TestShouldSuccessfullyValidateMinimalThresholdRuleSpecificationForAllSupportedConditionOperators(t *testing.T) {
-	for _, o := range SupportedConditionOperatorTypes {
+	for _, o := range SupportedConditionOperators {
 		t.Run(fmt.Sprintf("TestShouldSuccessfullyValidateMinimalThresholdRuleForConditionOperator%s", o), createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperators(o))
 	}
 }
 
-func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperators(operator ConditionOperatorType) func(*testing.T) {
+func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperators(operator ConditionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		metricName := customEventMetricName
-		conditionOperator := customEventConditionOperator
+		conditionOperator := operator.InstanaAPIValue()
 		aggregation := customEventAggregation
 		conditionValue := customEventConditionValue
 		window := customEventWindow
@@ -308,7 +307,7 @@ func createTestCaseForSuccessfullValidateMinimalThresholdRuleForConditionOperato
 
 func TestShouldValidateMinimalThresholdRuleSpecificationWithRollup(t *testing.T) {
 	metricName := customEventMetricName
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	rollup := customEventRollup
 	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
@@ -326,7 +325,7 @@ func TestShouldValidateMinimalThresholdRuleSpecificationWithRollup(t *testing.T)
 }
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameandMetricPatternIsMissing(t *testing.T) {
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	window := customEventWindow
@@ -347,7 +346,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameandMetricPa
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameIsBlankAndMetricPatternIsMissing(t *testing.T) {
 	metricName := ""
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	window := customEventWindow
@@ -369,7 +368,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameIsBlankAndM
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameAndMetricPatternAreDefined(t *testing.T) {
 	metricName := "test"
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	window := customEventWindow
@@ -393,7 +392,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenMetricNameAndMetricPa
 
 func TestShouldFailToValidateThresholdRuleSpecificationWhenNeitherRollupNorWindowIsDefined(t *testing.T) {
 	metricName := customEventMetricName
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	aggregation := customEventAggregation
 	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
@@ -413,7 +412,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWhenNeitherRollupNorWindo
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithRollupAndWindowAreZero(t *testing.T) {
 	metricName := customEventMetricName
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	window := 0
 	rollup := 0
 	aggregation := customEventAggregation
@@ -437,7 +436,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithRollupAndWindowAreZer
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsMissingConditionOperator(t *testing.T) {
 	metricName := customEventMetricName
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rule := RuleSpecification{
@@ -457,7 +456,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregation
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenAggregationIsNotValid(t *testing.T) {
 	metricName := customEventMetricName
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	aggregation := AggregationType(valueInvalid)
 	conditionValue := customEventConditionValue
 	window := customEventWindow
@@ -500,7 +499,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOperatorIsNotValid(t *testing.T) {
 	metricName := customEventMetricName
 	aggregation := customEventAggregation
-	conditionOperator := ConditionOperatorType(valueInvalid)
+	conditionOperator := "invalid"
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	rule := RuleSpecification{
@@ -521,7 +520,7 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithWindowWhenConditionOp
 
 func TestShouldSuccessfullyValidateThresholdRuleSpecificationWithMetricPattern(t *testing.T) {
 	aggregation := customEventAggregation
-	conditionOperator := ConditionOperatorEquals
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	metricPattern := MetricPattern{
@@ -545,7 +544,7 @@ func TestShouldSuccessfullyValidateThresholdRuleSpecificationWithMetricPattern(t
 
 func TestShouldFailToValidateThresholdRuleSpecificationWithMetricPatternWhenMetricPatternIsNotValid(t *testing.T) {
 	aggregation := customEventAggregation
-	conditionOperator := ConditionOperatorEquals
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	conditionValue := customEventConditionValue
 	window := customEventWindow
 	metricPattern := MetricPattern{
@@ -565,6 +564,67 @@ func TestShouldFailToValidateThresholdRuleSpecificationWithMetricPatternWhenMetr
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), messagePartMetricPatternPrefix)
+}
+
+func TestShouldReturnConditionOperatorTypeOfThresholdRuleWhenValidInstanaWebRestAPIConditionOperatorTypoIsProvided(t *testing.T) {
+	metricName := customEventMetricName
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
+	rollup := customEventRollup
+	conditionValue := customEventConditionValue
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        &metricName,
+		Rollup:            &rollup,
+		ConditionOperator: &conditionOperator,
+		ConditionValue:    &conditionValue,
+	}
+
+	val, err := rule.ConditionOperatorType()
+
+	assert.Nil(t, err)
+	assert.NotNil(t, val)
+	assert.Equal(t, ConditionOperatorEquals, val)
+}
+
+func TestShouldReturnErrorWheConditionOperatorTypeOfThresholdnRuleIsNotAValidInstanaWebRestAPIValue(t *testing.T) {
+	metricName := customEventMetricName
+	conditionOperator := "invalid"
+	rollup := customEventRollup
+	conditionValue := customEventConditionValue
+	rule := RuleSpecification{
+		DType:             ThresholdRuleType,
+		Severity:          SeverityWarning.GetAPIRepresentation(),
+		MetricName:        &metricName,
+		Rollup:            &rollup,
+		ConditionOperator: &conditionOperator,
+		ConditionValue:    &conditionValue,
+	}
+
+	val, err := rule.ConditionOperatorType()
+
+	assert.NotNil(t, err)
+	assert.Nil(t, val)
+}
+
+func TestShouldReturnNilWhenRuleSpecificationDoesNotSupportConditionOperatorTypesAndConditionOperatorTypeIsRequested(t *testing.T) {
+	entityLabel := customEventMatchingEntityLabel
+	entityType := customEventMatchingEntityType
+	operator := MatchingOperatorIs.InstanaAPIValue()
+	offlineDuration := customEventOfflineDuration
+	rule := RuleSpecification{
+		DType:               EntityVerificationRuleType,
+		Severity:            SeverityWarning.GetAPIRepresentation(),
+		MatchingEntityLabel: &entityLabel,
+		MatchingEntityType:  &entityType,
+		MatchingOperator:    &operator,
+		OfflineDuration:     &offlineDuration,
+	}
+
+	val, err := rule.ConditionOperatorType()
+
+	assert.Nil(t, err)
+	assert.Nil(t, val)
 }
 
 func TestShouldValidateEntityVerificationRuleSpecificationWhenAllRequiredFieldsAreProvided(t *testing.T) {
@@ -629,7 +689,7 @@ func TestShouldReturnErrorWhenMatchingOperatorTypeForEntityVerificationRuleIsNot
 
 func TestShouldReturnNilWhenRuleSpecificationDoesNotSupportMatchingOperatorTypesAndMatchingOperatorTypeIsRequested(t *testing.T) {
 	metricName := customEventMetricName
-	conditionOperator := customEventConditionOperator
+	conditionOperator := ConditionOperatorEquals.InstanaAPIValue()
 	rollup := customEventRollup
 	conditionValue := customEventConditionValue
 	rule := RuleSpecification{
@@ -775,13 +835,6 @@ func TestShouldFailToValidateEntityVerificationRuleSpecificationWhenOfflineDurat
 func TestShouldConvertSupportedAggregationTypesToSliceOfString(t *testing.T) {
 	expectedResult := []string{string(AggregationSum), string(AggregationAvg), string(AggregationMin), string(AggregationMax)}
 	result := SupportedAggregationTypes.ToStringSlice()
-
-	assert.Equal(t, expectedResult, result)
-}
-
-func TestShouldConvertSupportedConditionOperatorTypesToSliceOfString(t *testing.T) {
-	expectedResult := []string{string(ConditionOperatorEquals), string(ConditionOperatorNotEqual), string(ConditionOperatorLessThan), string(ConditionOperatorLessThanOrEqual), string(ConditionOperatorGreaterThan), string(ConditionOperatorGreaterThanOrEqual)}
-	result := SupportedConditionOperatorTypes.ToStringSlice()
 
 	assert.Equal(t, expectedResult, result)
 }

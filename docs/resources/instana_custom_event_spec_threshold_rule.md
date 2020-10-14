@@ -78,7 +78,7 @@ resource "instana_custom_event_spec_threshold_rule" "custom_health_metrics_unhea
   rule_metric_name        = "metrics.gauges.myapp.healthIndicator"
   rule_window             = 10000
   rule_aggregation        = "avg"
-  rule_condition_operator = "=="
+  rule_condition_operator = "="
   rule_condition_value    = 1
 }
 ```
@@ -110,6 +110,7 @@ placeholder string. Allowed values:  `is`, `contains`, `any`, `startsWith`, `end
 * `rule_aggregation` - Optional (depending on metric type) - the aggregation used to calculate the metric value for the given
 time window and/or rollup. Supported value: `sum`, `avg`, `min`, `max`
 * `rule_condition_operator` - Required - The condition operator used to check against the calculated metric value for the given
-time window and/or rollup. Supported values: `==,` `!=,` `<=,` `<`, `>`, `=>`
+time window and/or rollup. Supported values: `=` (`==` also supported as an alternative representation for equals), `!=`, `<=`, 
+`<`, `>`, `=>`
 * `rule_condition_value` - Required - The numeric condition value used to check against the calculated metric value for the given
 time window and/or rollup.

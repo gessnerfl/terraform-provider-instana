@@ -69,8 +69,12 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 	ThresholdRuleFieldConditionOperator: {
 		Type:         schema.TypeString,
 		Required:     true,
-		ValidateFunc: validation.StringInSlice(restapi.SupportedConditionOperatorTypes.ToStringSlice(), false),
-		Description:  "The condition operator (e.g >, <)",
+		ValidateFunc: validation.StringInSlice(restapi.SupportedConditionOperators.TerrafromSupportedValues(), false),
+		StateFunc: func(val interface{}) string {
+			operator, _ := restapi.SupportedConditionOperators.FromTerraformValue(val.(string))
+			return operator.InstanaAPIValue()
+		},
+		Description: "The condition operator (e.g >, <)",
 	},
 	ThresholdRuleFieldConditionValue: {
 		Type:        schema.TypeFloat,
@@ -109,7 +113,7 @@ func NewCustomEventSpecificationWithThresholdRuleResourceHandle() *ResourceHandl
 	return &ResourceHandle{
 		ResourceName:  ResourceInstanaCustomEventSpecificationThresholdRule,
 		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    customEventSpecificationWithThresholdRuleSchemaV0().CoreConfigSchema().ImpliedType(),
@@ -120,6 +124,11 @@ func NewCustomEventSpecificationWithThresholdRuleResourceHandle() *ResourceHandl
 				Type:    customEventSpecificationWithThresholdRuleSchemaV1().CoreConfigSchema().ImpliedType(),
 				Upgrade: migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration,
 				Version: 1,
+			},
+			{
+				Type:    customEventSpecificationWithThresholdRuleSchemaV2().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation,
+				Version: 2,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.CustomEventSpecifications() },
@@ -136,6 +145,10 @@ func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceD
 	if err != nil {
 		return err
 	}
+	conditionOperator, err := ruleSpec.ConditionOperatorType()
+	if err != nil {
+		return err
+	}
 
 	updateStateForBasicCustomEventSpecification(d, customEventSpecification)
 	d.Set(CustomEventSpecificationRuleSeverity, severity)
@@ -143,7 +156,7 @@ func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceD
 	d.Set(ThresholdRuleFieldRollup, ruleSpec.Rollup)
 	d.Set(ThresholdRuleFieldWindow, ruleSpec.Window)
 	d.Set(ThresholdRuleFieldAggregation, ruleSpec.Aggregation)
-	d.Set(ThresholdRuleFieldConditionOperator, ruleSpec.ConditionOperator)
+	d.Set(ThresholdRuleFieldConditionOperator, conditionOperator.InstanaAPIValue())
 	d.Set(ThresholdRuleFieldConditionValue, ruleSpec.ConditionValue)
 
 	if ruleSpec.MetricPattern != nil {
@@ -161,7 +174,12 @@ func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.
 		return restapi.CustomEventSpecification{}, err
 	}
 	metricName := d.Get(ThresholdRuleFieldMetricName).(string)
-	conditionOperator := restapi.ConditionOperatorType(d.Get(ThresholdRuleFieldConditionOperator).(string))
+	conditionOperatorString := d.Get(ThresholdRuleFieldConditionOperator).(string)
+	conditionOperator, err := restapi.SupportedConditionOperators.FromTerraformValue(conditionOperatorString)
+	if err != nil {
+		return restapi.CustomEventSpecification{}, err
+	}
+	conditionOperatorInstanaValue := conditionOperator.InstanaAPIValue()
 
 	rule := restapi.RuleSpecification{
 		DType:             restapi.ThresholdRuleType,
@@ -170,7 +188,7 @@ func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.
 		Rollup:            GetIntPointerFromResourceData(d, ThresholdRuleFieldRollup),
 		Window:            GetIntPointerFromResourceData(d, ThresholdRuleFieldWindow),
 		Aggregation:       getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
-		ConditionOperator: &conditionOperator,
+		ConditionOperator: &conditionOperatorInstanaValue,
 		ConditionValue:    GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
 	}
 
@@ -209,4 +227,22 @@ func customEventSpecificationWithThresholdRuleSchemaV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV1, thresholdRuleSchemaFields),
 	}
+}
+
+func customEventSpecificationWithThresholdRuleSchemaV2() *schema.Resource {
+	return &schema.Resource{
+		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV1, thresholdRuleSchemaFields),
+	}
+}
+
+func migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	v, ok := rawState[ThresholdRuleFieldConditionOperator]
+	if ok {
+		operator, err := restapi.SupportedConditionOperators.FromTerraformValue(v.(string))
+		if err != nil {
+			return rawState, err
+		}
+		rawState[ThresholdRuleFieldConditionOperator] = operator.InstanaAPIValue()
+	}
+	return rawState, nil
 }

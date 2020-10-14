@@ -42,7 +42,7 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_severity = "warning"
   rule_metric_name = "metric_name"
   rule_rollup = "40000"
-  rule_condition_operator = "=="
+  rule_condition_operator = "="
   rule_condition_value = "1.2"
 }
 `
@@ -67,9 +67,34 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_metric_name = "metric_name"
   rule_window = 60000
   rule_aggregation = "sum"
-  rule_condition_operator = "=="
+  rule_condition_operator = "="
   rule_condition_value = 1.2
 }
+`
+
+const resourceCustomEventSpecificationWithThresholdRuleAndWindowAndAlternativeConditionOperatorRepresentationDefinitionTemplate = `
+provider "instana" {
+	api_token = "test-token"
+	endpoint = "localhost:{{PORT}}"
+	default_name_prefix = "prefix"
+	default_name_suffix = "suffix"
+  }
+  
+  resource "instana_custom_event_spec_threshold_rule" "example" {
+	name = "name {{ITERATION}}"
+	entity_type = "entity_type"
+	query = "query"
+	enabled = true
+	triggering = true
+	description = "description"
+	expiration_time = 60000
+	rule_severity = "warning"
+	rule_metric_name = "metric_name"
+	rule_window = 60000
+	rule_aggregation = "sum"
+	rule_condition_operator = "=="
+	rule_condition_value = 1.2
+  }
 `
 
 const resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate = `
@@ -91,7 +116,7 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_severity = "warning"
   rule_window = 60000
   rule_aggregation = "sum"
-  rule_condition_operator = "=="
+  rule_condition_operator = "="
   rule_condition_value = 1.2
   rule_metric_pattern_prefix = "prefix"
   rule_metric_pattern_postfix = "postfix"
@@ -104,37 +129,36 @@ const (
 	customEventSpecificationWithThresholdRuleApiPath        = restapi.CustomEventSpecificationResourcePath + "/{id}"
 	testCustomEventSpecificationWithThresholdRuleDefinition = "instana_custom_event_spec_threshold_rule.example"
 
-	customEventSpecificationWithThresholdRuleID                = "custom-system-event-id"
-	customEventSpecificationWithThresholdRuleName              = "name"
-	customEventSpecificationWithThresholdRuleEntityType        = "entity_type"
-	customEventSpecificationWithThresholdRuleQuery             = "query"
-	customEventSpecificationWithThresholdRuleExpirationTime    = 60000
-	customEventSpecificationWithThresholdRuleDescription       = "description"
-	customEventSpecificationWithThresholdRuleMetricName        = "metric_name"
-	customEventSpecificationWithThresholdRuleRollup            = 40000
-	customEventSpecificationWithThresholdRuleWindow            = 60000
-	customEventSpecificationWithThresholdRuleAggregation       = restapi.AggregationSum
-	customEventSpecificationWithThresholdRuleConditionOperator = restapi.ConditionOperatorEquals
-	customEventSpecificationWithThresholdRuleConditionValue    = float64(1.2)
+	customEventSpecificationWithThresholdRuleID             = "custom-system-event-id"
+	customEventSpecificationWithThresholdRuleName           = "name"
+	customEventSpecificationWithThresholdRuleEntityType     = "entity_type"
+	customEventSpecificationWithThresholdRuleQuery          = "query"
+	customEventSpecificationWithThresholdRuleExpirationTime = 60000
+	customEventSpecificationWithThresholdRuleDescription    = "description"
+	customEventSpecificationWithThresholdRuleMetricName     = "metric_name"
+	customEventSpecificationWithThresholdRuleRollup         = 40000
+	customEventSpecificationWithThresholdRuleWindow         = 60000
+	customEventSpecificationWithThresholdRuleAggregation    = restapi.AggregationSum
+	customEventSpecificationWithThresholdRuleConditionValue = float64(1.2)
 )
 
 var CustomEventSpecificationWithThresholdRuleRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
 
 func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithRollupResourceWithMockServer(t *testing.T) {
-	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName" : "metric_name", "rollup" : 40000, "conditionOperator" : "==", "conditionValue" : 1.2 }`
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName" : "metric_name", "rollup" : 40000, "conditionOperator" : "=", "conditionValue" : 1.2 }`
 	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
 		t,
 		resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTemplate,
 		ruleAsJson,
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldRollup, strconv.FormatInt(customEventSpecificationWithThresholdRuleRollup, 10)),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(restapi.ConditionOperatorEquals.InstanaAPIValue())),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionValue, "1.2"),
 	)
 }
 
 func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMockServer(t *testing.T) {
-	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "==", "conditionValue" : 1.2 }`
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "=", "conditionValue" : 1.2 }`
 	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
 		t,
 		resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate,
@@ -142,20 +166,34 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMo
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldWindow, strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldAggregation, string(customEventSpecificationWithThresholdRuleAggregation)),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(restapi.ConditionOperatorEquals.InstanaAPIValue())),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionValue, "1.2"),
+	)
+}
+
+func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowAndAlternativeConditionOperatorRepresentationResourceWithMockServer(t *testing.T) {
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "=", "conditionValue" : 1.2 }`
+	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
+		t,
+		resourceCustomEventSpecificationWithThresholdRuleAndWindowAndAlternativeConditionOperatorRepresentationDefinitionTemplate,
+		ruleAsJson,
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricName, customEventSpecificationWithThresholdRuleMetricName),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldWindow, strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldAggregation, string(customEventSpecificationWithThresholdRuleAggregation)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(restapi.ConditionOperatorEquals.InstanaAPIValue())),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionValue, "1.2"),
 	)
 }
 
 func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithMetricPatternResourceWithMockServer(t *testing.T) {
-	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "window" : 60000, "aggregation": "sum", "conditionOperator" : "==", "conditionValue" : 1.2, "metricPattern" : { "prefix" : "prefix", "postfix" : "postfix", "placeholder" : "placeholder", "operator" : "startsWith" } }`
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "window" : 60000, "aggregation": "sum", "conditionOperator" : "=", "conditionValue" : 1.2, "metricPattern" : { "prefix" : "prefix", "postfix" : "postfix", "placeholder" : "placeholder", "operator" : "startsWith" } }`
 	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
 		t,
 		resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate,
 		ruleAsJson,
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldWindow, strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldAggregation, string(customEventSpecificationWithThresholdRuleAggregation)),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(customEventSpecificationWithThresholdRuleConditionOperator)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionOperator, string(restapi.ConditionOperatorEquals.InstanaAPIValue())),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldConditionValue, "1.2"),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricPatternPrefix, "prefix"),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, ThresholdRuleFieldMetricPatternPostfix, "postfix"),
@@ -256,16 +294,17 @@ func TestCustomEventSpecificationWithThresholdRuleSchemaDefinitionIsValid(t *tes
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ThresholdRuleFieldMetricPatternOperator)
 }
 
-func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionTwo(t *testing.T) {
-	assert.Equal(t, 2, NewCustomEventSpecificationWithThresholdRuleResourceHandle().SchemaVersion)
+func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionThree(t *testing.T) {
+	assert.Equal(t, 3, NewCustomEventSpecificationWithThresholdRuleResourceHandle().SchemaVersion)
 }
 
-func TestCustomEventSpecificationWithThresholdRuleShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *testing.T) {
+func TestCustomEventSpecificationWithThresholdRuleShouldHaveThreeStateUpgraderForVersionZeroAndOneAndTwo(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 
-	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
+	assert.Equal(t, 3, len(resourceHandler.StateUpgraders))
 	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
 	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
+	assert.Equal(t, 2, resourceHandler.StateUpgraders[2].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -312,6 +351,49 @@ func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2Wh
 	assert.Nil(t, err)
 	assert.Nil(t, result["downstream_integration_ids"])
 	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
+}
+
+func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion3WhenConditionOperatorIsDefinedAndValid(t *testing.T) {
+	for _, op := range restapi.SupportedConditionOperators {
+		for _, v := range op.TerraformSupportedValues() {
+			t.Run(fmt.Sprintf("TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion3WhenConditionOperatorIsDefinedAndValid%s", v), createTestCaseForSuccessfulMigrationOfCustomEventSpecificationWithThresholdRuleToVersion3(op, v))
+		}
+	}
+}
+
+func createTestCaseForSuccessfulMigrationOfCustomEventSpecificationWithThresholdRuleToVersion3(mo restapi.ConditionOperator, value string) func(*testing.T) {
+	return func(t *testing.T) {
+		rawData := make(map[string]interface{})
+		rawData[ThresholdRuleFieldConditionOperator] = value
+		meta := "dummy"
+
+		result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+
+		assert.Nil(t, err)
+		assert.Equal(t, mo.InstanaAPIValue(), result[ThresholdRuleFieldConditionOperator])
+	}
+}
+
+func TestShouldDoNothingWhenMigratingCustomEventSpecificationWithThresholdRuleToVersion3AndNoConditionOperatorIsDefined(t *testing.T) {
+	rawData := make(map[string]interface{})
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+
+	assert.Nil(t, err)
+	assert.Nil(t, result[ThresholdRuleFieldConditionOperator])
+}
+
+func TestShouldReturnErrorWhenCustomEventSpecificationWithThresholdRuleCannotBeMigratedToVersion3BecuaseOfUnsupportedConditionOperatorInState(t *testing.T) {
+	rawData := make(map[string]interface{})
+	rawData[ThresholdRuleFieldConditionOperator] = "invalid"
+	meta := "dummy"
+
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "not a supported condition operator")
+	assert.Equal(t, rawData, result)
 }
 
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithThresholdRuleResource(t *testing.T) {
@@ -362,7 +444,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 	aggregation := customEventSpecificationWithThresholdRuleAggregation
 	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
 	metricName := customEventSpecificationWithThresholdRuleMetricName
-	conditionOperator := customEventSpecificationWithThresholdRuleConditionOperator
+	conditionOperator := restapi.ConditionOperatorEquals.InstanaAPIValue()
 
 	spec := restapi.CustomEventSpecification{
 		ID:             customEventSpecificationWithThresholdRuleID,
@@ -411,6 +493,96 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 	assert.Equal(t, conditionValue, resourceData.Get(ThresholdRuleFieldConditionValue))
 	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
 	additionalAsserts(resourceData)
+}
+
+func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThresholdRuleWhenSeverityIsNotSupported(t *testing.T) {
+	description := customEventSpecificationWithThresholdRuleDescription
+	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
+	query := customEventSpecificationWithThresholdRuleQuery
+
+	window := customEventSpecificationWithThresholdRuleWindow
+	rollup := customEventSpecificationWithThresholdRuleRollup
+	aggregation := customEventSpecificationWithThresholdRuleAggregation
+	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
+	metricName := customEventSpecificationWithThresholdRuleMetricName
+	conditionOperator := "invalid"
+
+	spec := restapi.CustomEventSpecification{
+		ID:             customEventSpecificationWithThresholdRuleID,
+		Name:           customEventSpecificationWithThresholdRuleName,
+		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
+		Query:          &query,
+		Description:    &description,
+		ExpirationTime: &expirationTime,
+		Triggering:     true,
+		Enabled:        true,
+		Rules: []restapi.RuleSpecification{
+			{
+				DType:             restapi.ThresholdRuleType,
+				Severity:          123,
+				MetricName:        &metricName,
+				Window:            &window,
+				Rollup:            &rollup,
+				Aggregation:       &aggregation,
+				ConditionOperator: &conditionOperator,
+				ConditionValue:    &conditionValue,
+			},
+		},
+	}
+
+	testHelper := NewTestHelper(t)
+	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, spec)
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "is not a valid severity")
+}
+
+func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThresholdRuleWhenConditionOperatorTypeIsNotSupported(t *testing.T) {
+	description := customEventSpecificationWithThresholdRuleDescription
+	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
+	query := customEventSpecificationWithThresholdRuleQuery
+
+	window := customEventSpecificationWithThresholdRuleWindow
+	rollup := customEventSpecificationWithThresholdRuleRollup
+	aggregation := customEventSpecificationWithThresholdRuleAggregation
+	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
+	metricName := customEventSpecificationWithThresholdRuleMetricName
+	conditionOperator := "invalid"
+
+	spec := restapi.CustomEventSpecification{
+		ID:             customEventSpecificationWithThresholdRuleID,
+		Name:           customEventSpecificationWithThresholdRuleName,
+		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
+		Query:          &query,
+		Description:    &description,
+		ExpirationTime: &expirationTime,
+		Triggering:     true,
+		Enabled:        true,
+		Rules: []restapi.RuleSpecification{
+			{
+				DType:             restapi.ThresholdRuleType,
+				Severity:          restapi.SeverityWarning.GetAPIRepresentation(),
+				MetricName:        &metricName,
+				Window:            &window,
+				Rollup:            &rollup,
+				Aggregation:       &aggregation,
+				ConditionOperator: &conditionOperator,
+				ConditionValue:    &conditionValue,
+			},
+		},
+	}
+
+	testHelper := NewTestHelper(t)
+	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, spec)
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "invalid is not a supported condition operator")
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleStateToDataModel(t *testing.T) {
@@ -462,7 +634,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	resourceData.Set(ThresholdRuleFieldWindow, customEventSpecificationWithThresholdRuleWindow)
 	resourceData.Set(ThresholdRuleFieldRollup, customEventSpecificationWithThresholdRuleRollup)
 	resourceData.Set(ThresholdRuleFieldAggregation, customEventSpecificationWithThresholdRuleAggregation)
-	resourceData.Set(ThresholdRuleFieldConditionOperator, customEventSpecificationWithThresholdRuleConditionOperator)
+	resourceData.Set(ThresholdRuleFieldConditionOperator, restapi.ConditionOperatorEquals.InstanaAPIValue())
 	resourceData.Set(ThresholdRuleFieldConditionValue, customEventSpecificationWithThresholdRuleConditionValue)
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
@@ -484,7 +656,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	assert.Equal(t, customEventSpecificationWithThresholdRuleWindow, *customEventSpec.Rules[0].Window)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleRollup, *customEventSpec.Rules[0].Rollup)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *customEventSpec.Rules[0].Aggregation)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleConditionOperator, *customEventSpec.Rules[0].ConditionOperator)
+	assert.Equal(t, restapi.ConditionOperatorEquals.InstanaAPIValue(), *customEventSpec.Rules[0].ConditionOperator)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
 	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
 }
@@ -498,5 +670,19 @@ func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToData
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
-	assert.NotNil(t, err)
+	assert.Error(t, err)
+}
+
+func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToDataModelWhenConditionOperationIsNotSupported(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.Set(CustomEventSpecificationRuleSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
+	resourceData.Set(ThresholdRuleFieldConditionOperator, "invalid")
+
+	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "is not a supported condition operator of the Instana Terraform provider")
 }

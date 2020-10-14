@@ -82,49 +82,6 @@ func IsSupportedAggregationType(aggregation AggregationType) bool {
 	return false
 }
 
-//ConditionOperatorType custom type representing a condition operator of a custom event specification rule
-type ConditionOperatorType string
-
-//ConditionOperatorTypes custom type representing a slice of ConditionOperatorType
-type ConditionOperatorTypes []ConditionOperatorType
-
-//ToStringSlice Returns the string representations of the condition operators
-func (types ConditionOperatorTypes) ToStringSlice() []string {
-	result := make([]string, len(types))
-	for i, v := range types {
-		result[i] = string(v)
-	}
-	return result
-}
-
-const (
-	//ConditionOperatorEquals const for a equals (==) condition operator
-	ConditionOperatorEquals = ConditionOperatorType("==")
-	//ConditionOperatorNotEqual const for a not equal (!=) condition operator
-	ConditionOperatorNotEqual = ConditionOperatorType("!=")
-	//ConditionOperatorLessThan const for a less than (<) condition operator
-	ConditionOperatorLessThan = ConditionOperatorType("<")
-	//ConditionOperatorLessThanOrEqual const for a less than or equal (<=) condition operator
-	ConditionOperatorLessThanOrEqual = ConditionOperatorType("<=")
-	//ConditionOperatorGreaterThan const for a greater than (>) condition operator
-	ConditionOperatorGreaterThan = ConditionOperatorType(">")
-	//ConditionOperatorGreaterThanOrEqual const for a greater than or equal (<=) condition operator
-	ConditionOperatorGreaterThanOrEqual = ConditionOperatorType(">=")
-)
-
-//SupportedConditionOperatorTypes slice of supported aggregation types
-var SupportedConditionOperatorTypes = ConditionOperatorTypes{ConditionOperatorEquals, ConditionOperatorNotEqual, ConditionOperatorLessThan, ConditionOperatorLessThanOrEqual, ConditionOperatorGreaterThan, ConditionOperatorGreaterThanOrEqual}
-
-//IsSupportedConditionOperatorType check if the provided condition operator type is supported
-func IsSupportedConditionOperatorType(operator ConditionOperatorType) bool {
-	for _, v := range SupportedConditionOperatorTypes {
-		if v == operator {
-			return true
-		}
-	}
-	return false
-}
-
 //MetricPatternOperatorType the operator type of the metric pattern of a dynamic built-in metric
 type MetricPatternOperatorType string
 
@@ -217,19 +174,31 @@ type RuleSpecification struct {
 	SystemRuleID *string `json:"systemRuleId"`
 
 	//Threshold Rule fields
-	MetricName        *string                `json:"metricName"`
-	Rollup            *int                   `json:"rollup"`
-	Window            *int                   `json:"window"`
-	Aggregation       *AggregationType       `json:"aggregation"`
-	ConditionOperator *ConditionOperatorType `json:"conditionOperator"`
-	ConditionValue    *float64               `json:"conditionValue"`
-	MetricPattern     *MetricPattern         `json:"metricPattern"`
+	MetricName        *string          `json:"metricName"`
+	Rollup            *int             `json:"rollup"`
+	Window            *int             `json:"window"`
+	Aggregation       *AggregationType `json:"aggregation"`
+	ConditionOperator *string          `json:"conditionOperator"`
+	ConditionValue    *float64         `json:"conditionValue"`
+	MetricPattern     *MetricPattern   `json:"metricPattern"`
 
 	//Entity Verification Rule
 	MatchingEntityType  *string `json:"matchingEntityType"`
 	MatchingOperator    *string `json:"matchingOperator"`
 	MatchingEntityLabel *string `json:"matchingEntityLabel"`
 	OfflineDuration     *int    `json:"offlineDuration"`
+}
+
+//ConditionOperatorType returns the ConditionOperator for the given Instana Web REST API representation when available. In case of invalid values an error will be returned
+func (r *RuleSpecification) ConditionOperatorType() (ConditionOperator, error) {
+	if r.ConditionOperator != nil {
+		operator, err := SupportedConditionOperators.FromInstanaAPIValue(*r.ConditionOperator)
+		if err != nil {
+			return nil, err
+		}
+		return operator, nil
+	}
+	return nil, nil
 }
 
 //MatchingOperatorType returns the MatchingOperatorType for the given Instana Web REST API representation when available. In case of invalid values an error will be returned
@@ -278,7 +247,7 @@ func (r *RuleSpecification) validateThresholdRule() error {
 		return errors.New("aggregation type of threshold rule is mission or not valid")
 	}
 
-	if r.ConditionOperator == nil || !IsSupportedConditionOperatorType(*r.ConditionOperator) {
+	if r.ConditionOperator == nil || !SupportedConditionOperators.IsSupportedInstanaAPIConditionOperator(*r.ConditionOperator) {
 		return errors.New("condition operator of threshold rule is missing or not valid")
 	}
 	if r.MetricPattern != nil {
