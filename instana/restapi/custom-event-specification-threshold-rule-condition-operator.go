@@ -12,7 +12,7 @@ func newBasicConditionOperator(instanaAPIValue string, additionalSupportedTerraf
 	return &baseConditionOperator{instanaAPIValue: instanaAPIValue, terraformSupportedValues: append(additionalSupportedTerraformValues, instanaAPIValue)}
 }
 
-//ConditionOperatorType custom type representing a matching operator of a custom event specification rule
+//ConditionOperatorType custom type representing a condition operator of a custom event specification rule
 type baseConditionOperator struct {
 	instanaAPIValue          string
 	terraformSupportedValues []string
@@ -31,7 +31,7 @@ func (b *baseConditionOperator) TerraformSupportedValues() []string {
 //ConditionOperators custom type representing a slice of ConditionOperatorType
 type ConditionOperators []ConditionOperator
 
-//TerrafromSupportedValues Returns the terraform string representations fo the matching operators
+//TerrafromSupportedValues Returns the terraform string representations fo the condition operators
 func (types ConditionOperators) TerrafromSupportedValues() []string {
 	result := make([]string, 0)
 	for _, v := range types {
@@ -40,7 +40,7 @@ func (types ConditionOperators) TerrafromSupportedValues() []string {
 	return result
 }
 
-//InstanaAPISupportedValues Returns the terraform string representations fo the matching operators
+//InstanaAPISupportedValues Returns the terraform string representations fo the condition operators
 func (types ConditionOperators) InstanaAPISupportedValues() []string {
 	result := make([]string, len(types))
 	for i, v := range types {
@@ -49,7 +49,7 @@ func (types ConditionOperators) InstanaAPISupportedValues() []string {
 	return result
 }
 
-//IsSupportedInstanaAPIConditionOperator check if the provided matching operator type is a supported instana api value
+//IsSupportedInstanaAPIConditionOperator check if the provided condition operator type is a supported instana api value
 func (types ConditionOperators) IsSupportedInstanaAPIConditionOperator(operator string) bool {
 	for _, t := range types {
 		if t.InstanaAPIValue() == operator {
@@ -96,5 +96,5 @@ var (
 	ConditionOperatorGreaterThanOrEqual = newBasicConditionOperator(">=")
 )
 
-//SupportedConditionOperators slice of supported matching operatorTypes types
+//SupportedConditionOperators slice of supported condition operator types
 var SupportedConditionOperators = ConditionOperators{ConditionOperatorEquals, ConditionOperatorNotEqual, ConditionOperatorLessThan, ConditionOperatorLessThanOrEqual, ConditionOperatorGreaterThan, ConditionOperatorGreaterThanOrEqual}
