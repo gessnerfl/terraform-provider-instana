@@ -42,7 +42,7 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_severity = "warning"
   rule_metric_name = "metric_name"
   rule_rollup = "40000"
-  rule_condition_operator = "=="
+  rule_condition_operator = "="
   rule_condition_value = "1.2"
 }
 `
@@ -67,7 +67,7 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_metric_name = "metric_name"
   rule_window = 60000
   rule_aggregation = "sum"
-  rule_condition_operator = "=="
+  rule_condition_operator = "="
   rule_condition_value = 1.2
 }
 `
@@ -91,7 +91,7 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
   rule_severity = "warning"
   rule_window = 60000
   rule_aggregation = "sum"
-  rule_condition_operator = "=="
+  rule_condition_operator = "="
   rule_condition_value = 1.2
   rule_metric_pattern_prefix = "prefix"
   rule_metric_pattern_postfix = "postfix"
@@ -121,7 +121,7 @@ const (
 var CustomEventSpecificationWithThresholdRuleRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
 
 func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithRollupResourceWithMockServer(t *testing.T) {
-	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName" : "metric_name", "rollup" : 40000, "conditionOperator" : "==", "conditionValue" : 1.2 }`
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName" : "metric_name", "rollup" : 40000, "conditionOperator" : "=", "conditionValue" : 1.2 }`
 	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
 		t,
 		resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTemplate,
@@ -134,7 +134,7 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithRollupResourceWithMo
 }
 
 func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMockServer(t *testing.T) {
-	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "==", "conditionValue" : 1.2 }`
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "metricName": "metric_name", "window" : 60000, "aggregation": "sum", "conditionOperator" : "=", "conditionValue" : 1.2 }`
 	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
 		t,
 		resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate,
@@ -148,7 +148,7 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithWindowResourceWithMo
 }
 
 func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithMetricPatternResourceWithMockServer(t *testing.T) {
-	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "window" : 60000, "aggregation": "sum", "conditionOperator" : "==", "conditionValue" : 1.2, "metricPattern" : { "prefix" : "prefix", "postfix" : "postfix", "placeholder" : "placeholder", "operator" : "startsWith" } }`
+	ruleAsJson := `{ "ruleType" : "threshold", "severity" : 5, "window" : 60000, "aggregation": "sum", "conditionOperator" : "=", "conditionValue" : 1.2, "metricPattern" : { "prefix" : "prefix", "postfix" : "postfix", "placeholder" : "placeholder", "operator" : "startsWith" } }`
 	testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(
 		t,
 		resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate,

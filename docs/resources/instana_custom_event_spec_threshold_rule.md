@@ -110,6 +110,6 @@ placeholder string. Allowed values:  `is`, `contains`, `any`, `startsWith`, `end
 * `rule_aggregation` - Optional (depending on metric type) - the aggregation used to calculate the metric value for the given
 time window and/or rollup. Supported value: `sum`, `avg`, `min`, `max`
 * `rule_condition_operator` - Required - The condition operator used to check against the calculated metric value for the given
-time window and/or rollup. Supported values: `==,` `!=,` `<=,` `<`, `>`, `=>`
+time window and/or rollup. Supported values: `=,` `!=,` `<=,` `<`, `>`, `=>`
 * `rule_condition_value` - Required - The numeric condition value used to check against the calculated metric value for the given
 time window and/or rollup.

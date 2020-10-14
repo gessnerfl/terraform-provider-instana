@@ -98,8 +98,8 @@ func (types ConditionOperatorTypes) ToStringSlice() []string {
 }
 
 const (
-	//ConditionOperatorEquals const for a equals (==) condition operator
-	ConditionOperatorEquals = ConditionOperatorType("==")
+	//ConditionOperatorEquals const for a equals (=) condition operator
+	ConditionOperatorEquals = ConditionOperatorType("=")
 	//ConditionOperatorNotEqual const for a not equal (!=) condition operator
 	ConditionOperatorNotEqual = ConditionOperatorType("!=")
 	//ConditionOperatorLessThan const for a less than (<) condition operator
