@@ -180,13 +180,6 @@ const (
 //SupportedBoundaryScopes supported BoundaryScopes of the Instana Web REST API
 var SupportedBoundaryScopes = BoundaryScopes{BoundaryScopeAll, BoundaryScopeInbound, BoundaryScopeDefault}
 
-//ApplicationConfigResource represents the REST resource of application perspective configuration at Instana
-type ApplicationConfigResource interface {
-	GetOne(id string) (ApplicationConfig, error)
-	Upsert(rule ApplicationConfig) (ApplicationConfig, error)
-	Delete(rule ApplicationConfig) error
-	DeleteByID(applicationID string) error
-}
 
 //MatchExpression is the interface definition of a match expression in Instana
 type MatchExpression interface {

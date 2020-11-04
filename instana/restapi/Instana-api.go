@@ -18,6 +18,7 @@ type InstanaAPI interface {
 	CustomEventSpecifications() RestResource
 	UserRoles() RestResource
 	ApplicationConfigs() RestResource
+	ApplicationAlertConfigs() RestResource
 	AlertingChannels() RestResource
 	AlertingConfigurations() RestResource
 }
@@ -46,6 +47,12 @@ func (api *baseInstanaAPI) UserRoles() RestResource {
 func (api *baseInstanaAPI) ApplicationConfigs() RestResource {
 	return NewRestResource(ApplicationConfigsResourcePath, NewApplicationConfigUnmarshaller(), api.client)
 }
+
+//ApplicationConfigs implementation of InstanaAPI interface
+func (api *baseInstanaAPI) ApplicationAlertConfigs() RestResource {
+	return NewPostingRestResource(ApplicationAlertConfigsResourcePath, NewApplicationAlertConfigsUnmarshaller(), api.client)
+}
+
 
 //AlertingChannels implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingChannels() RestResource {

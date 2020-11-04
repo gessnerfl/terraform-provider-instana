@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ var ErrEntityNotFound = errors.New("Failed to get resource from Instana API. 404
 type RestClient interface {
 	GetOne(id string, resourcePath string) ([]byte, error)
 	Put(data InstanaDataObject, resourcePath string) ([]byte, error)
+	Post(data InstanaDataObject, resourcePath string)  ([]byte, error)
 	Delete(resourceID string, resourceBasePath string) error
 }
 
@@ -37,7 +39,10 @@ type apiResponse struct {
 //NewClient creates a new instance of the Instana REST API client
 func NewClient(apiToken string, host string) RestClient {
 	restyClient := resty.New()
-
+	restyClient.SetDebug(true)
+	restyClient.SetDebugBodyLimit(1000000)
+	file, _ := os.OpenFile("/Users/martinei/Projekte/thirdparty/terraform-provider-instana/go-resty.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	restyClient.SetLogger( file)
 	throttleRate := time.Second / 5 //5 write requests per second
 	throttledRequests := make(chan *apiRequest, 1000)
 	client := &restClientImpl{
@@ -74,6 +79,12 @@ func (client *restClientImpl) Put(data InstanaDataObject, resourcePath string) (
 	url := client.buildResourceURL(resourcePath, data.GetID())
 	req := client.createRequest().SetHeader("Content-Type", "application/json; charset=utf-8").SetBody(data)
 	return client.executeRequestWithThrottling(resty.MethodPut, url, req)
+}
+
+func (client *restClientImpl) Post(data InstanaDataObject, resourcePath string)  ([]byte, error) {
+	url := client.buildURL(resourcePath)
+	req := client.createRequest().SetHeader("Content-Type", "application/json; charset=utf-8").SetBody(data )
+	return client.executeRequestWithThrottling(resty.MethodPost, url, req)
 }
 
 //Delete executes a HTTP DELETE request to delete the resource with the given ID
@@ -134,6 +145,7 @@ func (client *restClientImpl) handleThrottledAPIRequest(req *apiRequest) {
 
 func (client *restClientImpl) executeRequest(method string, url string, req *resty.Request) ([]byte, error) {
 	log.Infof("Call %s %s", method, url)
+
 	resp, err := req.Execute(method, url)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("failed to send HTTP %s request to Instana API; status code = %d; status message = %s; Headers %s, %s", method, resp.StatusCode(), resp.Status(), resp.Header(), err)

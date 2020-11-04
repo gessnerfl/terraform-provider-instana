@@ -75,6 +75,20 @@ func (mr *MockInstanaAPIMockRecorder) ApplicationConfigs() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplicationConfigs", reflect.TypeOf((*MockInstanaAPI)(nil).ApplicationConfigs))
 }
 
+// ApplicationAlertConfigs mocks base method
+func (m *MockInstanaAPI) ApplicationAlertConfigs() restapi.RestResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ApplicationAlertConfigs")
+	ret0, _ := ret[0].(restapi.RestResource)
+	return ret0
+}
+
+// ApplicationAlertConfigs indicates an expected call of ApplicationAlertConfigs
+func (mr *MockInstanaAPIMockRecorder) ApplicationAlertConfigs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplicationAlertConfigs", reflect.TypeOf((*MockInstanaAPI)(nil).ApplicationAlertConfigs))
+}
+
 // AlertingChannels mocks base method
 func (m *MockInstanaAPI) AlertingChannels() restapi.RestResource {
 	m.ctrl.T.Helper()

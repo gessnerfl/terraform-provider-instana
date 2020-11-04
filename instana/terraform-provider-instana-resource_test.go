@@ -2,14 +2,13 @@ package instana_test
 
 import (
 	"errors"
-	"testing"
-
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 const alertingChannelEmailID = "id"
@@ -93,7 +92,7 @@ func TestShouldCreateTestObjectThroughInstanaAPI(t *testing.T) {
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockTestObjectApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
+		mockTestObjectApi.EXPECT().Create(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Create(resourceData, providerMeta)
@@ -113,7 +112,7 @@ func TestShouldReturnErrorWhenCreateTestObjectFailsThroughInstanaAPI(t *testing.
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockTestObjectApi.EXPECT().Upsert(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(restapi.AlertingChannel{}, expectedError).Times(1)
+		mockTestObjectApi.EXPECT().Create(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(restapi.AlertingChannel{}, expectedError).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Create(resourceData, providerMeta)

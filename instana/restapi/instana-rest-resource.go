@@ -9,7 +9,8 @@ type InstanaDataObject interface {
 //RestResource interface definition of a instana REST resource.
 type RestResource interface {
 	GetOne(id string) (InstanaDataObject, error)
-	Upsert(data InstanaDataObject) (InstanaDataObject, error)
+	Create(data InstanaDataObject) (InstanaDataObject, error)
+	Update(data InstanaDataObject) (InstanaDataObject, error)
 	Delete(data InstanaDataObject) error
 	DeleteByID(id string) error
 }
@@ -42,7 +43,7 @@ func (r *genericRestResource) GetOne(id string) (InstanaDataObject, error) {
 	return r.validateResponseAndConvertToStruct(data)
 }
 
-func (r *genericRestResource) Upsert(data InstanaDataObject) (InstanaDataObject, error) {
+func (r *genericRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
@@ -51,6 +52,11 @@ func (r *genericRestResource) Upsert(data InstanaDataObject) (InstanaDataObject,
 		return data, err
 	}
 	return r.validateResponseAndConvertToStruct(response)
+}
+
+func (r *genericRestResource) Create(data InstanaDataObject) (InstanaDataObject, error) {
+	// Most API endpoints handle a put to new resources a create
+	return r.Update(data)
 }
 
 func (r *genericRestResource) validateResponseAndConvertToStruct(data []byte) (InstanaDataObject, error) {
@@ -71,4 +77,43 @@ func (r *genericRestResource) Delete(data InstanaDataObject) error {
 
 func (r *genericRestResource) DeleteByID(id string) error {
 	return r.client.Delete(id, r.resourcePath)
+}
+
+// Setup a Rest Resource that uses POST to the collections to create new Resources and
+// POST to the individual Item to update. This is necessary since the
+// API design for Application Alerts is not consistent with the rest of the Instana API
+func NewPostingRestResource(resourcePath string, unmarshaller Unmarshaller, client RestClient) RestResource {
+	return &postingRestResource{
+		genericRestResource {
+			resourcePath: resourcePath,
+			unmarshaller: unmarshaller,
+			client:       client,
+		},
+	}
+}
+
+type postingRestResource struct {
+	genericRestResource
+}
+
+func (r *postingRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
+	if err := data.Validate(); err != nil {
+		return data, err
+	}
+	response, err := r.client.Post(data, r.resourcePath+"/"+data.GetID())
+	if err != nil {
+		return data, err
+	}
+	return r.validateResponseAndConvertToStruct(response)
+}
+
+func (r *postingRestResource) Create(data InstanaDataObject) (InstanaDataObject, error) {
+	if err := data.Validate(); err != nil {
+		return data, err
+	}
+	response, err := r.client.Post(data, r.resourcePath)
+	if err != nil {
+		return data, err
+	}
+	return r.validateResponseAndConvertToStruct(response)
 }

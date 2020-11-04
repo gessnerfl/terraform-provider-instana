@@ -138,7 +138,7 @@ func TestSuccessfulUpsertOfTestObject(t *testing.T) {
 
 	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(serializedJSON, nil)
 
-	result, err := sut.Upsert(testObject)
+	result, err := sut.Update(testObject)
 
 	assert.Nil(t, err)
 	assert.Equal(t, testObject, result)
@@ -154,7 +154,7 @@ func TestShouldFailToUpsertTestObjectWhenErrorIsReturnedFromRestClient(t *testin
 
 	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("Error during test"))
 
-	_, err := sut.Upsert(testObject)
+	_, err := sut.Update(testObject)
 
 	assert.NotNil(t, err)
 }
@@ -169,7 +169,7 @@ func TestShouldFailToUpsertTestObjectWhenResponseMessageIsNotAValidJsonObject(t 
 
 	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return([]byte("invalid response"), nil)
 
-	_, err := sut.Upsert(testObject)
+	_, err := sut.Update(testObject)
 
 	assert.NotNil(t, err)
 }
@@ -184,7 +184,7 @@ func TestShouldFailToUpsertTestObjectWhenResponseMessageContainsAnInvalidTestObj
 
 	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return([]byte("{ \"invalid\" : \"testObject\" }"), nil)
 
-	_, err := sut.Upsert(testObject)
+	_, err := sut.Update(testObject)
 
 	assert.NotNil(t, err)
 }
@@ -202,7 +202,7 @@ func TestShouldFailedToUpsertTestObjectWhenAnInvalidTestObjectIsProvided(t *test
 
 	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Times(0)
 
-	_, err := sut.Upsert(testObject)
+	_, err := sut.Update(testObject)
 
 	assert.NotNil(t, err)
 }

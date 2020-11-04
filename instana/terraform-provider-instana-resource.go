@@ -59,7 +59,20 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 	if r.resourceHandle.SetComputedFields != nil {
 		r.resourceHandle.SetComputedFields(d)
 	}
-	return r.Update(d, meta)
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
+
+	obj, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	if err != nil {
+		return err
+	}
+	updatedObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Create(obj)
+	if err != nil {
+		return err
+	}
+	r.resourceHandle.UpdateState(d, updatedObject)
+	return nil
+
 }
 
 //Read defines the read operation for the terraform resource
@@ -91,7 +104,7 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	updatedObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Upsert(obj)
+	updatedObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Update(obj)
 	if err != nil {
 		return err
 	}

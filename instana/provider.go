@@ -78,6 +78,7 @@ func providerResources() map[string]*schema.Resource {
 	bindResourceHandle(resources, NewAlertingChannelVictorOpsResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelWebhookResourceHandle())
 	bindResourceHandle(resources, NewAlertingConfigResourceHandle())
+	bindResourceHandle(resources, NewApplicationAlertConfigsResourceHandle())
 	return resources
 }
 
