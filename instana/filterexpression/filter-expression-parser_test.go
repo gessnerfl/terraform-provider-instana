@@ -232,6 +232,26 @@ func TestShouldParseIdentifiersWithDashes(t *testing.T) {
 	shouldSuccessfullyParseExpression(expression, expectedResult, t)
 }
 
+func TestShouldParseIdentifierWithSlashes(t *testing.T) {
+	expression := "kubernetes.pod.label.foo/bar EQUALS 'test'"
+
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparision: &ComparisionExpression{
+						Key:      "kubernetes.pod.label.foo/bar",
+						Operator: Operator(restapi.EqualsOperator),
+						Value:    "test",
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
 func shouldSuccessfullyParseExpression(input string, expectedResult *FilterExpression, t *testing.T) {
 	sut := NewParser()
 	result, err := sut.Parse(input)
