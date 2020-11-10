@@ -1,5 +1,19 @@
 # Changelog
 
+## [v0.9.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.9.2) (2020-11-10)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.1...v0.9.2)
+
+**Closed issues:**
+
+- Match Specification for Application Configuration is to strict [\#75](https://github.com/gessnerfl/terraform-provider-instana/issues/75)
+- Mocks are out of sync / readme does not match [\#71](https://github.com/gessnerfl/terraform-provider-instana/issues/71)
+
+**Merged pull requests:**
+
+- \#75: Allow slashes in identifiers [\#76](https://github.com/gessnerfl/terraform-provider-instana/pull/76) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/71 update mocks and documentation for mocking [\#73](https://github.com/gessnerfl/terraform-provider-instana/pull/73) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.9.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.9.1) (2020-10-14)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.0...v0.9.1)

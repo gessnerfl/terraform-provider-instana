@@ -44,7 +44,7 @@ comparison                := key comparison_operator value
 comparison_operator       := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN | STARTS_WITH | ENDS_WITH | NOT_STARTS_WITH | NOT_ENDS_WITH | GREATER_OR_EQUAL_THAN | LESS_OR_EQUAL_THAN | LESS_THAN | GREATER_THAN
 unary_operator_expression := key unary_operator
 unary_operator            := IS_EMPTY | NOT_EMPTY | IS_BLANK | NOT_BLANK
-key                       := [a-zA-Z][\.a-zA-Z0-9_\-]*
+key                       := [a-zA-Z][\.a-zA-Z0-9_\-/]*
 value                     := "'" <string> "'"
 
 ```
