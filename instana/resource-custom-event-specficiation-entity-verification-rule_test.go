@@ -60,6 +60,9 @@ const (
 	customEntityVerificationEventTestMessageExpectedInvalidSeverity = "Expected to get error that the provided severity is not valid"
 
 	constEntityVerificationEventContentType = "Content-Type"
+
+	suffixString = " suffix"
+	prefixString = "prefix "
 )
 
 var customEntityVerificationEventRuleMatchingOperator = restapi.MatchingOperatorStartsWith
@@ -342,7 +345,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	resourceData.Set(EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue()))
 	resourceData.Set(EntityVerificationRuleFieldOfflineDuration, customEntityVerificationEventRuleOfflineDuration)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.CustomEventSpecification{}, result)
@@ -371,7 +374,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.Set(CustomEventSpecificationRuleSeverity, "INVALID")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
 	assert.NotNil(t, err)
 }
@@ -383,7 +386,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.Set(CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "is not a supported matching operator")
@@ -397,7 +400,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 	resourceData.Set(CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
 	resourceData.Set(EntityVerificationRuleFieldMatchingOperator, "invalid")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "invalid is not a supported matching operator")
