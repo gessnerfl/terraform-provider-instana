@@ -99,19 +99,34 @@ func (mr *MockRestResourceMockRecorder) GetOne(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockRestResource)(nil).GetOne), id)
 }
 
-// Upsert mocks base method
-func (m *MockRestResource) Upsert(data restapi.InstanaDataObject) (restapi.InstanaDataObject, error) {
+// Create mocks base method
+func (m *MockRestResource) Create(data restapi.InstanaDataObject) (restapi.InstanaDataObject, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Upsert", data)
+	ret := m.ctrl.Call(m, "Create", data)
 	ret0, _ := ret[0].(restapi.InstanaDataObject)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Upsert indicates an expected call of Upsert
-func (mr *MockRestResourceMockRecorder) Upsert(data interface{}) *gomock.Call {
+// Create indicates an expected call of Create
+func (mr *MockRestResourceMockRecorder) Create(data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upsert", reflect.TypeOf((*MockRestResource)(nil).Upsert), data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRestResource)(nil).Create), data)
+}
+
+// Update mocks base method
+func (m *MockRestResource) Update(data restapi.InstanaDataObject) (restapi.InstanaDataObject, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", data)
+	ret0, _ := ret[0].(restapi.InstanaDataObject)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update
+func (mr *MockRestResourceMockRecorder) Update(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRestResource)(nil).Update), data)
 }
 
 // Delete mocks base method

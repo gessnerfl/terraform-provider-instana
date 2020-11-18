@@ -9,7 +9,8 @@ type InstanaDataObject interface {
 //RestResource interface definition of a instana REST resource.
 type RestResource interface {
 	GetOne(id string) (InstanaDataObject, error)
-	Upsert(data InstanaDataObject) (InstanaDataObject, error)
+	Create(data InstanaDataObject) (InstanaDataObject, error)
+	Update(data InstanaDataObject) (InstanaDataObject, error)
 	Delete(data InstanaDataObject) error
 	DeleteByID(id string) error
 }
@@ -42,7 +43,11 @@ func (r *genericRestResource) GetOne(id string) (InstanaDataObject, error) {
 	return r.validateResponseAndConvertToStruct(data)
 }
 
-func (r *genericRestResource) Upsert(data InstanaDataObject) (InstanaDataObject, error) {
+func (r *genericRestResource) Create(data InstanaDataObject) (InstanaDataObject, error) {
+	return r.Update(data)
+}
+
+func (r *genericRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
