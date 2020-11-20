@@ -127,84 +127,113 @@ func TestShouldFailToGetOneTestObjectWhenResponseIsNotAJsonObject(t *testing.T) 
 	assert.NotNil(t, err)
 }
 
+var upsertOperations = []string{"Create", "Update"}
+
+func executeUpsertOperationTest(t *testing.T, name string, testFunction func(operation string, t *testing.T)) {
+	for _, operation := range upsertOperations {
+		fullName := fmt.Sprintf("TestSuccessfulUpsertOfTestObject_%s", operation)
+		t.Run(fullName, func(t *testing.T) {
+			testFunction(operation, t)
+		})
+	}
+}
+
+func executeUpsertOperation(operation string, sut RestResource, testObject InstanaDataObject) (InstanaDataObject, error) {
+	if operation == "Create" {
+		return sut.Create(testObject)
+	}
+	return sut.Update(testObject)
+}
+
 func TestSuccessfulUpsertOfTestObject(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
+	executeUpsertOperationTest(t, "TestSuccessfulUpsertOfTestObject", func(operation string, t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		client := mocks.NewMockRestClient(ctrl)
 
-	sut := makeInstanaRestResourceSUT(client)
-	testObject := makeTestObject()
-	serializedJSON, _ := json.Marshal(testObject)
+		sut := makeInstanaRestResourceSUT(client)
 
-	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(serializedJSON, nil)
+		testObject := makeTestObject()
+		serializedJSON, _ := json.Marshal(testObject)
 
-	result, err := sut.Upsert(testObject)
+		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(serializedJSON, nil)
 
-	assert.Nil(t, err)
-	assert.Equal(t, testObject, result)
+		result, err := executeUpsertOperation(operation, sut, testObject)
+
+		assert.Nil(t, err)
+		assert.Equal(t, testObject, result)
+	})
 }
 
 func TestShouldFailToUpsertTestObjectWhenErrorIsReturnedFromRestClient(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
+	executeUpsertOperationTest(t, "TestShouldFailToUpsertTestObjectWhenErrorIsReturnedFromRestClient", func(operation string, t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		client := mocks.NewMockRestClient(ctrl)
 
-	sut := makeInstanaRestResourceSUT(client)
-	testObject := makeTestObject()
+		sut := makeInstanaRestResourceSUT(client)
+		testObject := makeTestObject()
 
-	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("Error during test"))
+		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("Error during test"))
 
-	_, err := sut.Upsert(testObject)
+		_, err := executeUpsertOperation(operation, sut, testObject)
 
-	assert.NotNil(t, err)
+		assert.NotNil(t, err)
+	})
 }
 
 func TestShouldFailToUpsertTestObjectWhenResponseMessageIsNotAValidJsonObject(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
+	executeUpsertOperationTest(t, "TestShouldFailToUpsertTestObjectWhenResponseMessageIsNotAValidJsonObject", func(operation string, t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		client := mocks.NewMockRestClient(ctrl)
 
-	sut := makeInstanaRestResourceSUT(client)
-	testObject := makeTestObject()
+		sut := makeInstanaRestResourceSUT(client)
+		testObject := makeTestObject()
 
-	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return([]byte("invalid response"), nil)
+		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return([]byte("invalid response"), nil)
 
-	_, err := sut.Upsert(testObject)
+		_, err := executeUpsertOperation(operation, sut, testObject)
 
-	assert.NotNil(t, err)
+		assert.NotNil(t, err)
+	})
 }
 
 func TestShouldFailToUpsertTestObjectWhenResponseMessageContainsAnInvalidTestObject(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
+	executeUpsertOperationTest(t, "TestShouldFailToUpsertTestObjectWhenResponseMessageContainsAnInvalidTestObject", func(operation string, t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		client := mocks.NewMockRestClient(ctrl)
 
-	sut := makeInstanaRestResourceSUT(client)
-	testObject := makeTestObject()
+		sut := makeInstanaRestResourceSUT(client)
+		testObject := makeTestObject()
 
-	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return([]byte("{ \"invalid\" : \"testObject\" }"), nil)
+		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return([]byte("{ \"invalid\" : \"testObject\" }"), nil)
 
-	_, err := sut.Upsert(testObject)
+		_, err := executeUpsertOperation(operation, sut, testObject)
 
-	assert.NotNil(t, err)
+		assert.NotNil(t, err)
+	})
 }
 
 func TestShouldFailedToUpsertTestObjectWhenAnInvalidTestObjectIsProvided(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
+	executeUpsertOperationTest(t, "TestShouldFailedToUpsertTestObjectWhenAnInvalidTestObjectIsProvided", func(operation string, t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		client := mocks.NewMockRestClient(ctrl)
 
-	sut := makeInstanaRestResourceSUT(client)
-	testObject := &testObject{
-		ID:   "some id",
-		Name: "invalid name",
-	}
+		sut := makeInstanaRestResourceSUT(client)
+		testObject := &testObject{
+			ID:   "some id",
+			Name: "invalid name",
+		}
 
-	client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Times(0)
+		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Times(0)
 
-	_, err := sut.Upsert(testObject)
+		_, err := executeUpsertOperation(operation, sut, testObject)
 
-	assert.NotNil(t, err)
+		assert.NotNil(t, err)
+	})
 }
 
 func TestSuccessfulDeleteOfTestObjectByObject(t *testing.T) {

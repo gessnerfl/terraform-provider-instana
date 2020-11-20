@@ -55,11 +55,24 @@ type terraformResourceImpl struct {
 
 //Create defines the create operation for the terraform resource
 func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{}) error {
+	providerMeta := meta.(*ProviderMeta)
+	instanaAPI := providerMeta.InstanaAPI
+
 	d.SetId(RandomID())
 	if r.resourceHandle.SetComputedFields != nil {
 		r.resourceHandle.SetComputedFields(d)
 	}
-	return r.Update(d, meta)
+
+	createRequest, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	if err != nil {
+		return err
+	}
+	createdObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Create(createRequest)
+	if err != nil {
+		return err
+	}
+	r.resourceHandle.UpdateState(d, createdObject)
+	return nil
 }
 
 //Read defines the read operation for the terraform resource
@@ -91,7 +104,7 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	updatedObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Upsert(obj)
+	updatedObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Update(obj)
 	if err != nil {
 		return err
 	}
