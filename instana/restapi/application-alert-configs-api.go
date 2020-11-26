@@ -12,6 +12,10 @@ type ApplicationAlertConfigsRule struct {
 	AlertType   string `json:"alertType"`
 	MetricName  string `json:"metricName"`
 	Aggregation string `json:"aggregation"`
+
+	Operator string `json:"operator"`
+	Message  string `json:"message"`
+	Level    string `json:"level"`
 }
 
 type Threshold struct {

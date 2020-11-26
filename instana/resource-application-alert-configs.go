@@ -19,6 +19,10 @@ const (
 	ApplicationAlertConfigsFieldRuleAlertType   = "rule_alert_type"
 	ApplicationAlertConfigsFieldRuleMetricName  = "rule_metric_name"
 	ApplicationAlertConfigsFieldRuleAggregation = "rule_aggregation"
+	// Addition for alert_type = logs
+	ApplicationAlertConfigsFieldRuleMessage  = "rule_message"
+	ApplicationAlertConfigsFieldRuleOperator = "rule_operator"
+	ApplicationAlertConfigsFieldRuleLevel    = "rule_level"
 
 	ApplicationAlertConfigsFieldAlertChannelIds = "integration_ids"
 
@@ -59,7 +63,7 @@ var ApplicationAlertConfigsRuleAlertType = &schema.Schema{
 	Required:    true,
 	Description: "Type of the Alert Rule",
 	// TODO: Just support slowness for now
-	ValidateFunc: validation.StringInSlice([]string{"slowness"}, true),
+	ValidateFunc: validation.StringInSlice([]string{"slowness", "logs"}, true),
 }
 
 var ApplicationAlertConfigsRuleMetricName = &schema.Schema{
@@ -74,7 +78,21 @@ var ApplicationAlertConfigsRuleAggregation = &schema.Schema{
 	Required:    true,
 	Description: "Aggregation for given Metrics",
 	ValidateFunc: validation.StringInSlice([]string{"sum", "mean", "max", "min", "p25",
-		"p50", "p75", "p90","p95", "p98", "p99", "distinct_count"}, true),
+		"p50", "p75", "p90", "p95", "p98", "p99", "distinct_count"}, true),
+}
+
+var ApplicationAlertConfigsRuleMessage = &schema.Schema{
+	Type:         schema.TypeString,
+	Optional:     true,
+	Description:  "Message of the alert",
+	ValidateFunc: validation.StringLenBetween(0, 256),
+}
+
+var ApplicationAlertConfigsRuleLevel = &schema.Schema{
+	Type:         schema.TypeString,
+	Required:     true,
+	Description:  "Rule Alerting Level",
+	ValidateFunc: validation.StringInSlice([]string{"WARN", "ERROR"}, true),
 }
 
 var ApplicationAlertConfigsIntergrationIds = &schema.Schema{
@@ -105,15 +123,37 @@ var ApplicationAlertConfigsThresholdOperator = &schema.Schema{
 	Description: "The Operator to compare Threshold",
 }
 
-
 const (
-	TagFilterName = "name"
-	TagFilterEntity = "entity"
-	TagFilterStringValue ="string_value"
-	TagFilterNumberValue = "number_value"
+	TagFilterName         = "name"
+	TagFilterEntity       = "entity"
+	TagFilterStringValue  = "string_value"
+	TagFilterNumberValue  = "number_value"
 	TagFilterBooleanValue = "boolean_value"
-	TagFilterOperator = "operator"
+	TagFilterOperator     = "operator"
 )
+
+var ApplicationFilterOperator = &schema.Schema{
+	Type:     schema.TypeString,
+	Required: true,
+	ValidateFunc: validation.StringInSlice(
+		[]string{"EQUALS",
+			"CONTAINS",
+			"LESS_THAN",
+			"LESS_OR_EQUAL_THAN",
+			"GREATER_THAN",
+			"GREATER_OR_EQUAL_THAN",
+			"NOT_EMPTY",
+			"NOT_EQUAL",
+			"IS_EMPTY",
+			"NOT_BLANK",
+			"IS_BLANK",
+			"STARTS_WITH",
+			"ENDS_WITH",
+			"NOT_STARTS_WITH",
+			"NOT_ENDS_WITH",
+		}, false),
+}
+
 var ApplicationAlertConfigsTagFilter = &schema.Schema{
 	Type:     schema.TypeSet,
 	Optional: true,
@@ -143,27 +183,7 @@ var ApplicationAlertConfigsTagFilter = &schema.Schema{
 				Required: false,
 				Optional: true,
 			},
-			TagFilterOperator: {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice(
-					[]string{"EQUALS",
-						"CONTAINS",
-						"LESS_THAN",
-						"LESS_OR_EQUAL_THAN",
-						"GREATER_THAN",
-						"GREATER_OR_EQUAL_THAN",
-						"NOT_EMPTY",
-						"NOT_EQUAL",
-						"IS_EMPTY",
-						"NOT_BLANK",
-						"IS_BLANK",
-						"STARTS_WITH",
-						"ENDS_WITH",
-						"NOT_STARTS_WITH",
-						"NOT_ENDS_WITH",
-					}, false),
-			},
+			TagFilterOperator: ApplicationFilterOperator,
 		},
 	},
 }
@@ -180,6 +200,9 @@ func NewApplicationAlertConfigsResourceHandle() *ResourceHandle {
 			ApplicationAlertConfigsFieldRuleAlertType:     ApplicationAlertConfigsRuleAlertType,
 			ApplicationAlertConfigsFieldRuleMetricName:    ApplicationAlertConfigsRuleMetricName,
 			ApplicationAlertConfigsFieldRuleAggregation:   ApplicationAlertConfigsRuleAggregation,
+			ApplicationAlertConfigsFieldRuleMessage:       ApplicationAlertConfigsRuleMessage,
+			ApplicationAlertConfigsFieldRuleOperator:      ApplicationFilterOperator,
+			ApplicationAlertConfigsFieldRuleLevel:         ApplicationAlertConfigsRuleLevel,
 			ApplicationAlertConfigsFieldAlertChannelIds:   ApplicationAlertConfigsIntergrationIds,
 			ApplicationAlertConfigsFieldThresholdValue:    ApplicationAlertConfigsThresholdValue,
 			ApplicationAlertConfigsFieldThresholdType:     ApplicationAlertConfigsThresholdType,
@@ -205,6 +228,9 @@ func updateStateForApplicationAlertConfigs(d *schema.ResourceData, obj restapi.I
 	d.Set(ApplicationAlertConfigsFieldApplicationId, config.ApplicationId)
 	d.Set(ApplicationAlertConfigsFieldRuleAlertType, config.Rule.AlertType)
 	d.Set(ApplicationAlertConfigsFieldRuleAggregation, config.Rule.Aggregation)
+	d.Set(ApplicationAlertConfigsFieldRuleMessage, config.Rule.Message)
+	d.Set(ApplicationAlertConfigsFieldRuleOperator, config.Rule.Operator)
+	d.Set(ApplicationAlertConfigsFieldRuleLevel, config.Rule.Level)
 	d.Set(ApplicationAlertConfigsFieldRuleMetricName, config.Rule.MetricName)
 	d.Set(ApplicationAlertConfigsFieldAlertChannelIds, config.AlertChannelIds)
 	d.Set(ApplicationAlertConfigsFieldThresholdValue, config.Threshold.Value)
@@ -217,12 +243,12 @@ func updateStateForApplicationAlertConfigs(d *schema.ResourceData, obj restapi.I
 
 func mapStateToDataObjectForApplicationAlertConfigs(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullApplicationAlertConfigsAlertNameString(d, formatter)
-//panic: interface conversion: interface {} is *schema.Set, not []restapi.ApplicationAlertConfigsTagFilter
+	//panic: interface conversion: interface {} is *schema.Set, not []restapi.ApplicationAlertConfigsTagFilter
 
 	list := d.Get(ApplicationAlertConfigsFieldTagFilter).(*schema.Set).List()
 	tagFilters := make([]restapi.ApplicationAlertConfigsTagFilter, len(list))
 	for i := range list {
-		tagFilterMap := list[i].( map[string]interface {})
+		tagFilterMap := list[i].(map[string]interface{})
 
 		tagFilters[i] = restapi.ApplicationAlertConfigsTagFilter{
 			Type:         "TAG_FILTER",
@@ -245,6 +271,9 @@ func mapStateToDataObjectForApplicationAlertConfigs(d *schema.ResourceData, form
 			AlertType:   d.Get(ApplicationAlertConfigsFieldRuleAlertType).(string),
 			Aggregation: d.Get(ApplicationAlertConfigsFieldRuleAggregation).(string),
 			MetricName:  d.Get(ApplicationAlertConfigsFieldRuleMetricName).(string),
+			Message:     d.Get(ApplicationAlertConfigsFieldRuleMessage).(string),
+			Operator:    d.Get(ApplicationAlertConfigsFieldRuleOperator).(string),
+			Level:       d.Get(ApplicationAlertConfigsFieldRuleLevel).(string),
 		},
 		Threshold: restapi.Threshold{
 			Type:        d.Get(ApplicationAlertConfigsFieldThresholdType).(string),
@@ -252,9 +281,8 @@ func mapStateToDataObjectForApplicationAlertConfigs(d *schema.ResourceData, form
 			LastUpdated: 0,
 			Value:       d.Get(ApplicationAlertConfigsFieldThresholdValue).(float64),
 		},
-		Description:     d.Get(ApplicationAlertConfigsFieldDescription).(string),
-		TagFilters: 	tagFilters,
-
+		Description: d.Get(ApplicationAlertConfigsFieldDescription).(string),
+		TagFilters:  tagFilters,
 
 		AlertChannelIds: ReadStringSetParameterFromResource(d, ApplicationAlertConfigsFieldAlertChannelIds),
 		Severity:        5,
