@@ -90,7 +90,7 @@ var ApplicationAlertConfigsRuleMessage = &schema.Schema{
 
 var ApplicationAlertConfigsRuleLevel = &schema.Schema{
 	Type:         schema.TypeString,
-	Required:     true,
+	Optional:     true,
 	Description:  "Rule Alerting Level",
 	ValidateFunc: validation.StringInSlice([]string{"WARN", "ERROR"}, true),
 }
@@ -119,7 +119,7 @@ var ApplicationAlertConfigsThresholdType = &schema.Schema{
 
 var ApplicationAlertConfigsThresholdOperator = &schema.Schema{
 	Type:        schema.TypeString,
-	Required:    true,
+	Optional:    true,
 	Description: "The Operator to compare Threshold",
 }
 
@@ -134,7 +134,7 @@ const (
 
 var ApplicationFilterOperator = &schema.Schema{
 	Type:     schema.TypeString,
-	Required: true,
+	Optional: true,
 	ValidateFunc: validation.StringInSlice(
 		[]string{"EQUALS",
 			"CONTAINS",
