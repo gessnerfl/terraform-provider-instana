@@ -7,15 +7,18 @@ import (
 )
 
 const (
+	//SliConfigResourcePath path to sli config resource of Instana RESTful API
 	SliConfigResourcePath = SettingsBasePath + "/sli"
 )
 
+//MetricConfiguration represents the nested object metric configuration of the sli config REST resource at Instana
 type MetricConfiguration struct {
 	Name        string  `json:"metricName"`
 	Aggregation string  `json:"metricAggregation"`
 	Threshold   float64 `json:"threshold"`
 }
 
+//Validate implemention of the interface InstanaDataObject for MetricConfiguration
 func (m MetricConfiguration) Validate() error {
 	if utils.IsBlank(m.Name) {
 		return errors.New("metric name is missing")
@@ -29,6 +32,7 @@ func (m MetricConfiguration) Validate() error {
 	return nil
 }
 
+//SliEntity represents the nested object sli entity of the sli config REST resource at Instana
 type SliEntity struct {
 	Type          string `json:"sliType"`
 	ApplicationID string `json:"applicationId"`
@@ -37,6 +41,7 @@ type SliEntity struct {
 	BoundaryScope string `json:"boundaryScope"`
 }
 
+//Validate implemention of the interface InstanaDataObject for SliEntity
 func (s SliEntity) Validate() error {
 	if utils.IsBlank(s.Type) {
 		return errors.New("sli type is missing")
@@ -47,6 +52,7 @@ func (s SliEntity) Validate() error {
 	return nil
 }
 
+//SliConfig represents the REST resource of sli configuration at Instana
 type SliConfig struct {
 	ID                         string              `json:"id"`
 	Name                       string              `json:"sliName"`
@@ -55,10 +61,12 @@ type SliConfig struct {
 	SliEntity                  SliEntity           `json:"sliEntity"`
 }
 
+//GetID implemention of the interface InstanaDataObject
 func (s SliConfig) GetID() string {
 	return s.ID
 }
 
+//Validate implemention of the interface InstanaDataObject for SliConfig
 func (s SliConfig) Validate() error {
 	if utils.IsBlank(s.ID) {
 		return errors.New("id is missing")

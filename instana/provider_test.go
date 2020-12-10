@@ -39,7 +39,7 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	assert.Equal(t, 15, len(resourceMap))
+	assert.Equal(t, 16, len(resourceMap))
 
 	assert.NotNil(t, resourceMap[ResourceInstanaUserRole])
 	assert.NotNil(t, resourceMap[ResourceInstanaApplicationConfig])
