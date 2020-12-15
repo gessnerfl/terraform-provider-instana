@@ -73,6 +73,10 @@ const sliConfigApiPath = restapi.SliConfigResourcePath + "/{id}"
 const sliConfigDefinition = "instana_sli_config.example_sli_config"
 const nestedResourceFieldPattern = "%s.0.%s"
 
+const sliConfigID = "id"
+const sliConfigName = "name"
+const sliConfigFullName = "prefix name suffix"
+
 func TestCRUDOfSliConfiguration(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
@@ -175,8 +179,8 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.SliConfig{
-		ID:   "id",
-		Name: "name",
+		ID:   sliConfigID,
+		Name: sliConfigName,
 	}
 
 	err := resourceHandle.UpdateState(resourceData, data)
@@ -184,17 +188,17 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(SliConfigFieldFullName), "name should be equal to full name")
+	assert.Equal(t, sliConfigID, resourceData.Id(), "id should be equal")
+	assert.Equal(t, sliConfigName, resourceData.Get(SliConfigFieldFullName), "name should be equal to full name")
 }
 
 func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	resourceData.SetId("id")
-	resourceData.Set(SliConfigFieldName, "name")
-	resourceData.Set(SliConfigFieldFullName, "prefix name suffix")
+	resourceData.SetId(sliConfigID)
+	resourceData.Set(SliConfigFieldName, sliConfigName)
+	resourceData.Set(SliConfigFieldFullName, sliConfigFullName)
 	resourceData.Set(SliConfigFieldInitialEvaluationTimestamp, 0)
 
 	metricConfigurationStateObject := []map[string]interface{}{
@@ -221,8 +225,8 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.IsType(t, restapi.SliConfig{}, model, "Model should be an sli config")
-	assert.Equal(t, "id", model.GetID())
-	assert.Equal(t, "prefix name suffix", model.(restapi.SliConfig).Name, "name should be equal to full name")
+	assert.Equal(t, sliConfigID, model.GetID())
+	assert.Equal(t, sliConfigFullName, model.(restapi.SliConfig).Name, "name should be equal to full name")
 	assert.Equal(t, 0, model.(restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
 	assert.Equal(t, "test", model.(restapi.SliConfig).MetricConfiguration.Name)
 	assert.Equal(t, "SUM", model.(restapi.SliConfig).MetricConfiguration.Aggregation)
@@ -238,9 +242,9 @@ func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	resourceData.SetId("id")
-	resourceData.Set(SliConfigFieldName, "name")
-	resourceData.Set(SliConfigFieldFullName, "prefix name suffix")
+	resourceData.SetId(sliConfigID)
+	resourceData.Set(SliConfigFieldName, sliConfigName)
+	resourceData.Set(SliConfigFieldFullName, sliConfigFullName)
 	resourceData.Set(SliConfigFieldInitialEvaluationTimestamp, 0)
 
 	metricConfigurationStateObject := []map[string]interface{}{
