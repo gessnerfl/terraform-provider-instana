@@ -71,6 +71,7 @@ const sliConfigServerResponseTemplate = `
 
 const sliConfigApiPath = restapi.SliConfigResourcePath + "/{id}"
 const sliConfigDefinition = "instana_sli_config.example_sli_config"
+const nestedResourceFieldPattern = "%s.0.%s"
 
 func TestCRUDOfSliConfiguration(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -101,14 +102,14 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, "name 0"),
 					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, "prefix name 0 suffix"),
 					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), "metric_name_example"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), "SUM"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldSliType), "application"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldApplicationID), "application_id_example"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldServiceID), "service_id_example"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldEndpointID), "endpoint_id_example"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), "ALL"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), "metric_name_example"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), "SUM"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), "application"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), "application_id_example"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), "service_id_example"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), "endpoint_id_example"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), "ALL"),
 				),
 			},
 			{
@@ -118,14 +119,14 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, "name 1"),
 					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, "prefix name 1 suffix"),
 					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), "metric_name_example"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), "SUM"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldSliType), "application"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldApplicationID), "application_id_example"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldServiceID), "service_id_example"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldEndpointID), "endpoint_id_example"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf("%s.0.%s", SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), "ALL"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), "metric_name_example"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), "SUM"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), "application"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), "application_id_example"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), "service_id_example"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), "endpoint_id_example"),
+					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), "ALL"),
 				),
 			},
 		},
