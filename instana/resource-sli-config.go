@@ -159,14 +159,7 @@ func NewSliConfigResourceHandle() *ResourceHandle {
 			SliConfigFieldMetricConfiguration:        SliConfigMetricConfiguration,
 			SliConfigFieldSliEntity:                  SliConfigSliEntity,
 		},
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    sliConfigSchemaV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: sliConfigStateUpgradeV0,
-				Version: 0,
-			},
-		},
+		SchemaVersion:        0,
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.SliConfigs() },
 		UpdateState:          updateStateForSliConfig,
 		MapStateToDataObject: mapStateToDataObjectForSliConfig,
@@ -200,32 +193,16 @@ func updateStateForSliConfig(d *schema.ResourceData, obj restapi.InstanaDataObje
 }
 
 func mapStateToDataObjectForSliConfig(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	metricConfigurationsList := d.Get(SliConfigFieldMetricConfiguration).([]interface{})
+	metricConfigurationsStateObject := d.Get(SliConfigFieldMetricConfiguration).([]interface{})
 	var metricConfiguration restapi.MetricConfiguration
-	if len(metricConfigurationsList) > 0 {
-		metricConfigurationState := metricConfigurationsList[0].(map[string]interface{})
-		if len(metricConfigurationState) != 0 {
-			metricConfiguration = restapi.MetricConfiguration{
-				Name:        metricConfigurationState[SliConfigFieldMetricName].(string),
-				Aggregation: metricConfigurationState[SliConfigFieldMetricAggregation].(string),
-				Threshold:   metricConfigurationState[SliConfigFieldMetricThreshold].(float64),
-			}
-		}
+	if len(metricConfigurationsStateObject) > 0 {
+		metricConfiguration = mapMetricConfigurationEntityFromState(metricConfigurationsStateObject)
 	}
 
-	sliEntitiesList := d.Get(SliConfigFieldSliEntity).([]interface{})
+	sliEntitiesStateObject := d.Get(SliConfigFieldSliEntity).([]interface{})
 	var sliEntity restapi.SliEntity
-	if len(sliEntitiesList) > 0 {
-		sliEntitiesState := sliEntitiesList[0].(map[string]interface{})
-		if len(sliEntitiesState) != 0 {
-			sliEntity = restapi.SliEntity{
-				Type:          sliEntitiesState[SliConfigFieldSliType].(string),
-				ApplicationID: sliEntitiesState[SliConfigFieldApplicationID].(string),
-				ServiceID:     sliEntitiesState[SliConfigFieldServiceID].(string),
-				EndpointID:    sliEntitiesState[SliConfigFieldEndpointID].(string),
-				BoundaryScope: sliEntitiesState[SliConfigFieldBoundaryScope].(string),
-			}
-		}
+	if len(sliEntitiesStateObject) > 0 {
+		sliEntity = mapSliEntityListFromState(sliEntitiesStateObject)
 	}
 
 	name := computeFullSliConfigNameString(d, formatter)
@@ -236,6 +213,32 @@ func mapStateToDataObjectForSliConfig(d *schema.ResourceData, formatter utils.Re
 		MetricConfiguration:        metricConfiguration,
 		SliEntity:                  sliEntity,
 	}, nil
+}
+
+func mapMetricConfigurationEntityFromState(stateObject []interface{}) restapi.MetricConfiguration {
+	metricConfigurationState := stateObject[0].(map[string]interface{})
+	if len(metricConfigurationState) != 0 {
+		return restapi.MetricConfiguration{
+			Name:        metricConfigurationState[SliConfigFieldMetricName].(string),
+			Aggregation: metricConfigurationState[SliConfigFieldMetricAggregation].(string),
+			Threshold:   metricConfigurationState[SliConfigFieldMetricThreshold].(float64),
+		}
+	}
+	return restapi.MetricConfiguration{}
+}
+
+func mapSliEntityListFromState(stateObject []interface{}) restapi.SliEntity {
+	sliEntitiesState := stateObject[0].(map[string]interface{})
+	if len(sliEntitiesState) != 0 {
+		return restapi.SliEntity{
+			Type:          sliEntitiesState[SliConfigFieldSliType].(string),
+			ApplicationID: sliEntitiesState[SliConfigFieldApplicationID].(string),
+			ServiceID:     sliEntitiesState[SliConfigFieldServiceID].(string),
+			EndpointID:    sliEntitiesState[SliConfigFieldEndpointID].(string),
+			BoundaryScope: sliEntitiesState[SliConfigFieldBoundaryScope].(string),
+		}
+	}
+	return restapi.SliEntity{}
 }
 
 func computeFullSliConfigNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
@@ -254,8 +257,4 @@ func sliConfigSchemaV0() *schema.Resource {
 			SliConfigFieldSliEntity:                  SliConfigSliEntity,
 		},
 	}
-}
-
-func sliConfigStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-	return rawState, nil
 }

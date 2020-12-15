@@ -166,7 +166,7 @@ func TestShouldReturnCorrectResourceNameForSliConfigs(t *testing.T) {
 }
 
 func TestSliConfigResourceShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 1, NewSliConfigResourceHandle().SchemaVersion)
+	assert.Equal(t, 0, NewSliConfigResourceHandle().SchemaVersion)
 }
 
 func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
@@ -196,6 +196,26 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	resourceData.Set(SliConfigFieldFullName, "prefix name suffix")
 	resourceData.Set(SliConfigFieldInitialEvaluationTimestamp, 0)
 
+	metricConfigurationStateObject := []map[string]interface{}{
+		{
+			"metric_name": "test",
+			"aggregation": "SUM",
+			"threshold":   1.0,
+		},
+	}
+	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
+
+	sliEntityStateObject := []map[string]interface{}{
+		{
+			"type":           "test_sli_type",
+			"application_id": "test_application_id",
+			"service_id":     "test_service_id",
+			"endpoint_id":    "test_endpoint_id",
+			"boundary_scope": "ALL",
+		},
+	}
+	resourceData.Set(SliConfigFieldSliEntity, sliEntityStateObject)
+
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
@@ -203,4 +223,34 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	assert.Equal(t, "id", model.GetID())
 	assert.Equal(t, "prefix name suffix", model.(restapi.SliConfig).Name, "name should be equal to full name")
 	assert.Equal(t, 0, model.(restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
+	assert.Equal(t, "test", model.(restapi.SliConfig).MetricConfiguration.Name)
+	assert.Equal(t, "SUM", model.(restapi.SliConfig).MetricConfiguration.Aggregation)
+	assert.Equal(t, 1.0, model.(restapi.SliConfig).MetricConfiguration.Threshold)
+	assert.Equal(t, "test_sli_type", model.(restapi.SliConfig).SliEntity.Type)
+	assert.Equal(t, "test_application_id", model.(restapi.SliConfig).SliEntity.ApplicationID)
+	assert.Equal(t, "test_service_id", model.(restapi.SliConfig).SliEntity.ServiceID)
+	assert.Equal(t, "test_endpoint_id", model.(restapi.SliConfig).SliEntity.EndpointID)
+	assert.Equal(t, "ALL", model.(restapi.SliConfig).SliEntity.BoundaryScope)
+}
+
+func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewSliConfigResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId("id")
+	resourceData.Set(SliConfigFieldName, "name")
+	resourceData.Set(SliConfigFieldFullName, "prefix name suffix")
+	resourceData.Set(SliConfigFieldInitialEvaluationTimestamp, 0)
+
+	metricConfigurationStateObject := []map[string]interface{}{
+		{
+			"metric_name": "test",
+			"aggregation": "SUM",
+			"threshold":   0.0,
+		},
+	}
+	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
+
+	_, metricThresholdIsOK := resourceData.GetOk("metric_configuration.0.threshold")
+	assert.False(t, metricThresholdIsOK)
 }
