@@ -69,13 +69,25 @@ const sliConfigServerResponseTemplate = `
 }
 `
 
-const sliConfigApiPath = restapi.SliConfigResourcePath + "/{id}"
-const sliConfigDefinition = "instana_sli_config.example_sli_config"
-const nestedResourceFieldPattern = "%s.0.%s"
+const (
+	sliConfigApiPath    = restapi.SliConfigResourcePath + "/{id}"
+	sliConfigDefinition = "instana_sli_config.example_sli_config"
 
-const sliConfigID = "id"
-const sliConfigName = "name"
-const sliConfigFullName = "prefix name suffix"
+	nestedResourceFieldPattern = "%s.0.%s"
+
+	sliConfigID                         = "id"
+	sliConfigName                       = "name"
+	sliConfigFullName                   = "prefix name suffix"
+	sliConfigInitialEvaluationTimestamp = 0
+	sliConfigMetricName                 = "metric_name"
+	sliConfigMetricAggregation          = "SUM"
+	sliConfigMetricThreshold            = 1.0
+	sliConfigEntityType                 = "application"
+	sliConfigEntityApplicationID        = "application_id"
+	sliConfigEntityServiceID            = "service_id"
+	sliConfigEntityEndpointID           = "endpoint_id"
+	sliConfigEntityBoundaryScope        = "ALL"
+)
 
 func TestCRUDOfSliConfiguration(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
@@ -203,20 +215,20 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 
 	metricConfigurationStateObject := []map[string]interface{}{
 		{
-			"metric_name": "test",
-			"aggregation": "SUM",
-			"threshold":   1.0,
+			SliConfigFieldMetricName:        sliConfigMetricName,
+			SliConfigFieldMetricAggregation: sliConfigMetricAggregation,
+			SliConfigFieldMetricThreshold:   sliConfigMetricThreshold,
 		},
 	}
 	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
 
 	sliEntityStateObject := []map[string]interface{}{
 		{
-			"type":           "test_sli_type",
-			"application_id": "test_application_id",
-			"service_id":     "test_service_id",
-			"endpoint_id":    "test_endpoint_id",
-			"boundary_scope": "ALL",
+			SliConfigFieldSliType:       sliConfigEntityType,
+			SliConfigFieldApplicationID: sliConfigEntityApplicationID,
+			SliConfigFieldServiceID:     sliConfigEntityServiceID,
+			SliConfigFieldEndpointID:    sliConfigEntityEndpointID,
+			SliConfigFieldBoundaryScope: sliConfigEntityBoundaryScope,
 		},
 	}
 	resourceData.Set(SliConfigFieldSliEntity, sliEntityStateObject)
@@ -227,15 +239,15 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	assert.IsType(t, restapi.SliConfig{}, model, "Model should be an sli config")
 	assert.Equal(t, sliConfigID, model.GetID())
 	assert.Equal(t, sliConfigFullName, model.(restapi.SliConfig).Name, "name should be equal to full name")
-	assert.Equal(t, 0, model.(restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
-	assert.Equal(t, "test", model.(restapi.SliConfig).MetricConfiguration.Name)
-	assert.Equal(t, "SUM", model.(restapi.SliConfig).MetricConfiguration.Aggregation)
-	assert.Equal(t, 1.0, model.(restapi.SliConfig).MetricConfiguration.Threshold)
-	assert.Equal(t, "test_sli_type", model.(restapi.SliConfig).SliEntity.Type)
-	assert.Equal(t, "test_application_id", model.(restapi.SliConfig).SliEntity.ApplicationID)
-	assert.Equal(t, "test_service_id", model.(restapi.SliConfig).SliEntity.ServiceID)
-	assert.Equal(t, "test_endpoint_id", model.(restapi.SliConfig).SliEntity.EndpointID)
-	assert.Equal(t, "ALL", model.(restapi.SliConfig).SliEntity.BoundaryScope)
+	assert.Equal(t, sliConfigInitialEvaluationTimestamp, model.(restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
+	assert.Equal(t, sliConfigMetricName, model.(restapi.SliConfig).MetricConfiguration.Name)
+	assert.Equal(t, sliConfigMetricAggregation, model.(restapi.SliConfig).MetricConfiguration.Aggregation)
+	assert.Equal(t, sliConfigMetricThreshold, model.(restapi.SliConfig).MetricConfiguration.Threshold)
+	assert.Equal(t, sliConfigEntityType, model.(restapi.SliConfig).SliEntity.Type)
+	assert.Equal(t, sliConfigEntityApplicationID, model.(restapi.SliConfig).SliEntity.ApplicationID)
+	assert.Equal(t, sliConfigEntityServiceID, model.(restapi.SliConfig).SliEntity.ServiceID)
+	assert.Equal(t, sliConfigEntityEndpointID, model.(restapi.SliConfig).SliEntity.EndpointID)
+	assert.Equal(t, sliConfigEntityBoundaryScope, model.(restapi.SliConfig).SliEntity.BoundaryScope)
 }
 
 func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.T) {
@@ -249,9 +261,9 @@ func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.
 
 	metricConfigurationStateObject := []map[string]interface{}{
 		{
-			"metric_name": "test",
-			"aggregation": "SUM",
-			"threshold":   0.0,
+			SliConfigFieldMetricName:        sliConfigMetricName,
+			SliConfigFieldMetricAggregation: sliConfigMetricAggregation,
+			SliConfigFieldMetricThreshold:   0.0,
 		},
 	}
 	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
