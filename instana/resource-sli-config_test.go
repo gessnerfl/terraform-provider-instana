@@ -113,40 +113,32 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, "name 0"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), sliConfigEntityType),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), sliConfigEntityServiceID),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
-				),
+				Check:  resource.ComposeTestCheckFunc(createSliConfigTestCheckFunctions(0)...),
 			},
 			{
 				Config: resourceDefinitionWithName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, "name 1"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), sliConfigEntityType),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), sliConfigEntityServiceID),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
-					resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
-				),
+				Check:  resource.ComposeTestCheckFunc(createSliConfigTestCheckFunctions(1)...),
 			},
 		},
 	})
+}
+
+func createSliConfigTestCheckFunctions(iteration int) []resource.TestCheckFunc {
+	testCheckFunctions := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, fmt.Sprintf("name %d", iteration)),
+		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, fmt.Sprintf("prefix name %d suffix", iteration)),
+		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), sliConfigEntityType),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), sliConfigEntityServiceID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+	}
+	return testCheckFunctions
 }
 
 func TestResourceSliConfigDefinition(t *testing.T) {
