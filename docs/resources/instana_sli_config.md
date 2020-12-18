@@ -22,9 +22,9 @@ resource "instana_sli_config" "example" {
     }
     sli_entity {
         type           = "application"
-	    application_id = "application_id_example"
+        application_id = "application_id_example"
         service_id     = "service_id_example"
-	    endpoint_id    = "endpoint_id_example"
+        endpoint_id    = "endpoint_id_example"
         boundary_scope = "ALL"
     }
 }
