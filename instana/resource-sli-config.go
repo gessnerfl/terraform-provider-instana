@@ -247,14 +247,3 @@ func computeFullSliConfigNameString(d *schema.ResourceData, formatter utils.Reso
 	}
 	return d.Get(SliConfigFieldFullName).(string)
 }
-
-func sliConfigSchemaV0() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			SliConfigFieldName:                       SliConfigName,
-			SliConfigFieldInitialEvaluationTimestamp: SliConfigInitialEvaluationTimestamp,
-			SliConfigFieldMetricConfiguration:        SliConfigMetricConfiguration,
-			SliConfigFieldSliEntity:                  SliConfigSliEntity,
-		},
-	}
-}
