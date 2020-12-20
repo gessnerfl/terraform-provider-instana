@@ -94,7 +94,7 @@ var (
 					ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
 						v := val.(float64)
 						if v <= 0 {
-							errs = append(errs, fmt.Errorf("Metric threshold must be higher than 0"))
+							errs = append(errs, fmt.Errorf("Metric threshold must be greater than 0"))
 						}
 						return
 					},
