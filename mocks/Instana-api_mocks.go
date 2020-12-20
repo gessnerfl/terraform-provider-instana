@@ -102,3 +102,15 @@ func (mr *MockInstanaAPIMockRecorder) AlertingConfigurations() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlertingConfigurations", reflect.TypeOf((*MockInstanaAPI)(nil).AlertingConfigurations))
 }
+
+func (m *MockInstanaAPI) SliConfigs() restapi.RestResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SliConfigs")
+	ret0, _ := ret[0].(restapi.RestResource)
+	return ret0
+}
+
+func (mr *MockInstanaAPIMockRecorder) SliConfigs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SliConfigs", reflect.TypeOf((*MockInstanaAPI)(nil).SliConfigs))
+}

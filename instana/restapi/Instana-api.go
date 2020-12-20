@@ -20,6 +20,7 @@ type InstanaAPI interface {
 	ApplicationConfigs() RestResource
 	AlertingChannels() RestResource
 	AlertingConfigurations() RestResource
+	SliConfigs() RestResource
 }
 
 //NewInstanaAPI creates a new instance of the instana API
@@ -55,4 +56,8 @@ func (api *baseInstanaAPI) AlertingChannels() RestResource {
 //AlertingConfigurations implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingConfigurations() RestResource {
 	return NewRestResource(AlertsResourcePath, NewAlertingConfigurationUnmarshaller(), api.client)
+}
+
+func (api *baseInstanaAPI) SliConfigs() RestResource {
+	return NewRestResource(SliConfigResourcePath, NewSliConfigUnmarshaller(), api.client)
 }

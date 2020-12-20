@@ -35,4 +35,9 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 
 		assert.NotNil(t, resource)
 	})
+	t.Run("Should return SliConfig instance", func(t *testing.T) {
+		resource := api.SliConfigs()
+
+		assert.NotNil(t, resource)
+	})
 }
