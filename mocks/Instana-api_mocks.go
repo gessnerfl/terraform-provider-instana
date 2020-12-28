@@ -103,6 +103,7 @@ func (mr *MockInstanaAPIMockRecorder) AlertingConfigurations() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlertingConfigurations", reflect.TypeOf((*MockInstanaAPI)(nil).AlertingConfigurations))
 }
 
+// SliConfigs mocks base method
 func (m *MockInstanaAPI) SliConfigs() restapi.RestResource {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SliConfigs")
@@ -110,7 +111,22 @@ func (m *MockInstanaAPI) SliConfigs() restapi.RestResource {
 	return ret0
 }
 
+// SliConfigs indicates an expected call of SliConfigs
 func (mr *MockInstanaAPIMockRecorder) SliConfigs() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SliConfigs", reflect.TypeOf((*MockInstanaAPI)(nil).SliConfigs))
+}
+
+// WebsiteMonitoringConfig mocks base method
+func (m *MockInstanaAPI) WebsiteMonitoringConfig() restapi.RestResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WebsiteMonitoringConfig")
+	ret0, _ := ret[0].(restapi.RestResource)
+	return ret0
+}
+
+// WebsiteMonitoringConfig indicates an expected call of WebsiteMonitoringConfig
+func (mr *MockInstanaAPIMockRecorder) WebsiteMonitoringConfig() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WebsiteMonitoringConfig", reflect.TypeOf((*MockInstanaAPI)(nil).WebsiteMonitoringConfig))
 }

@@ -76,3 +76,33 @@ func (mr *MockRestClientMockRecorder) Delete(resourceID, resourceBasePath interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRestClient)(nil).Delete), resourceID, resourceBasePath)
 }
+
+// PostByQuery mocks base method
+func (m *MockRestClient) PostByQuery(resourcePath string, queryParams map[string]string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PostByQuery", resourcePath, queryParams)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PostByQuery indicates an expected call of PostByQuery
+func (mr *MockRestClientMockRecorder) PostByQuery(resourcePath, queryParams interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostByQuery", reflect.TypeOf((*MockRestClient)(nil).PostByQuery), resourcePath, queryParams)
+}
+
+// PutByQuery mocks base method
+func (m *MockRestClient) PutByQuery(resourcePath, is string, queryParams map[string]string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PutByQuery", resourcePath, is, queryParams)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PutByQuery indicates an expected call of PutByQuery
+func (mr *MockRestClientMockRecorder) PutByQuery(resourcePath, is, queryParams interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutByQuery", reflect.TypeOf((*MockRestClient)(nil).PutByQuery), resourcePath, is, queryParams)
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -19,6 +20,8 @@ type RestClient interface {
 	GetOne(id string, resourcePath string) ([]byte, error)
 	Put(data InstanaDataObject, resourcePath string) ([]byte, error)
 	Delete(resourceID string, resourceBasePath string) error
+	PostByQuery(resourcePath string, queryParams map[string]string) ([]byte, error)
+	PutByQuery(resourcePath string, is string, queryParams map[string]string) ([]byte, error)
 }
 
 type apiRequest struct {
@@ -84,6 +87,20 @@ func (client *restClientImpl) Delete(resourceID string, resourceBasePath string)
 	return err
 }
 
+//PostByQuery executes a HTTP POST request to create the resource by providing the data a query parameters
+func (client *restClientImpl) PostByQuery(resourcePath string, queryParams map[string]string) ([]byte, error) {
+	url := resourcePath + client.createQueryString(queryParams)
+	req := client.createRequest()
+	return client.executeRequest(resty.MethodGet, url, req)
+}
+
+//PutByQuery executes a HTTP PUT request to update the resource with the given ID by providing the data a query parameters
+func (client *restClientImpl) PutByQuery(resourcePath string, id string, queryParams map[string]string) ([]byte, error) {
+	url := client.buildResourceURL(resourcePath, id) + client.createQueryString(queryParams)
+	req := client.createRequest()
+	return client.executeRequest(resty.MethodGet, url, req)
+}
+
 func (client *restClientImpl) createRequest() *resty.Request {
 	return client.restyClient.R().SetHeader("Accept", "application/json").SetHeader("Authorization", fmt.Sprintf("apiToken %s", client.apiToken))
 }
@@ -146,6 +163,17 @@ func (client *restClientImpl) executeRequest(method string, url string, req *res
 		return emptyResponse, fmt.Errorf("failed to send HTTP %s request to Instana API; status code = %d; status message = %s; Headers %s\nBody: %s", method, statusCode, resp.Status(), resp.Header(), resp.Body())
 	}
 	return resp.Body(), nil
+}
+
+func (client *restClientImpl) createQueryString(queryParams map[string]string) string {
+	queryParameterString := ""
+	if len(queryParams) > 0 {
+		sign := "?"
+		for k, v := range queryParams {
+			queryParameterString = queryParameterString + sign + url.QueryEscape(k) + "=" + url.QueryEscape(v)
+		}
+	}
+	return queryParameterString
 }
 
 func (client *restClientImpl) buildResourceURL(resourceBasePath string, id string) string {
