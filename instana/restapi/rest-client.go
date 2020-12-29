@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
@@ -89,16 +88,18 @@ func (client *restClientImpl) Delete(resourceID string, resourceBasePath string)
 
 //PostByQuery executes a HTTP POST request to create the resource by providing the data a query parameters
 func (client *restClientImpl) PostByQuery(resourcePath string, queryParams map[string]string) ([]byte, error) {
-	url := resourcePath + client.createQueryString(queryParams)
+	url := client.buildURL(resourcePath)
 	req := client.createRequest()
-	return client.executeRequest(resty.MethodGet, url, req)
+	client.appendQueryParameters(req, queryParams)
+	return client.executeRequest(resty.MethodPost, url, req)
 }
 
 //PutByQuery executes a HTTP PUT request to update the resource with the given ID by providing the data a query parameters
 func (client *restClientImpl) PutByQuery(resourcePath string, id string, queryParams map[string]string) ([]byte, error) {
-	url := client.buildResourceURL(resourcePath, id) + client.createQueryString(queryParams)
+	url := client.buildResourceURL(resourcePath, id)
 	req := client.createRequest()
-	return client.executeRequest(resty.MethodGet, url, req)
+	client.appendQueryParameters(req, queryParams)
+	return client.executeRequest(resty.MethodPut, url, req)
 }
 
 func (client *restClientImpl) createRequest() *resty.Request {
@@ -165,15 +166,10 @@ func (client *restClientImpl) executeRequest(method string, url string, req *res
 	return resp.Body(), nil
 }
 
-func (client *restClientImpl) createQueryString(queryParams map[string]string) string {
-	queryParameterString := ""
-	if len(queryParams) > 0 {
-		sign := "?"
-		for k, v := range queryParams {
-			queryParameterString = queryParameterString + sign + url.QueryEscape(k) + "=" + url.QueryEscape(v)
-		}
+func (client *restClientImpl) appendQueryParameters(req *resty.Request, queryParams map[string]string) {
+	for k, v := range queryParams {
+		req.QueryParam.Add(k, v)
 	}
-	return queryParameterString
 }
 
 func (client *restClientImpl) buildResourceURL(resourceBasePath string, id string) string {
