@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const nameIsMissingError = "Name is missing"
+
 var websiteMonitoringConfigSerialized = []byte("serialized")
 var nameQueryParameter = map[string]string{"name": websiteMonitoringConfigName}
 
@@ -93,7 +95,7 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfWebsiteMonitoringConfigRest
 	_, err := sut.GetOne(websiteMonitoringConfigID)
 
 	require.Error(t, err)
-	require.Contains(t, "Name is missing", err.Error())
+	require.Contains(t, nameIsMissingError, err.Error())
 }
 
 // ########################################################
@@ -133,7 +135,7 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigR
 	_, err := sut.Create(websiteMonitoringConfig)
 
 	require.Error(t, err)
-	require.Contains(t, "Name is missing", err.Error())
+	require.Contains(t, nameIsMissingError, err.Error())
 }
 
 func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigRestResourceAndPostOperationFails(t *testing.T) {
@@ -189,7 +191,7 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigR
 	_, err := sut.Create(websiteMonitoringConfig)
 
 	require.Error(t, err)
-	require.Contains(t, "Name is missing", err.Error())
+	require.Contains(t, nameIsMissingError, err.Error())
 }
 
 // ########################################################
@@ -229,7 +231,7 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigR
 	_, err := sut.Update(websiteMonitoringConfig)
 
 	require.Error(t, err)
-	require.Contains(t, "Name is missing", err.Error())
+	require.Contains(t, nameIsMissingError, err.Error())
 }
 
 func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigRestResourceAndPutOperationFails(t *testing.T) {
@@ -285,7 +287,7 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigR
 	_, err := sut.Update(websiteMonitoringConfig)
 
 	require.Error(t, err)
-	require.Contains(t, "Name is missing", err.Error())
+	require.Contains(t, nameIsMissingError, err.Error())
 }
 
 // ########################################################
