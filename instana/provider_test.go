@@ -39,10 +39,12 @@ func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
 }
 
 func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	assert.Equal(t, 16, len(resourceMap))
+	assert.Equal(t, 17, len(resourceMap))
 
 	assert.NotNil(t, resourceMap[ResourceInstanaUserRole])
 	assert.NotNil(t, resourceMap[ResourceInstanaApplicationConfig])
+	assert.NotNil(t, resourceMap[ResourceInstanaSliConfig])
+	assert.NotNil(t, resourceMap[ResourceInstanaWebsiteMonitoringConfig])
 
 	validateResourcesMapForCustomEvents(resourceMap, t)
 	validateResourcesMapForAlerting(resourceMap, t)
