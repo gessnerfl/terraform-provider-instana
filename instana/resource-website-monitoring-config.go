@@ -41,8 +41,8 @@ var WebsiteMonitoringConfigSchemaAppName = &schema.Schema{
 	Description: "Configures the calculated app name of the website monitoring configuration",
 }
 
-//NewWebsiteMonitoringResourceHandle creates the resource handle for Alerting Configuration
-func NewWebsiteMonitoringResourceHandle() *ResourceHandle {
+//NewWebsiteMonitoringConfigResourceHandle creates the resource handle for Alerting Configuration
+func NewWebsiteMonitoringConfigResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
 		ResourceName: ResourceInstanaWebsiteMonitoringConfig,
 		Schema: map[string]*schema.Schema{
@@ -50,7 +50,6 @@ func NewWebsiteMonitoringResourceHandle() *ResourceHandle {
 			WebsiteMonitoringConfigFieldFullName: WebsiteMonitoringConfigSchemaFullName,
 			WebsiteMonitoringConfigFieldAppName:  WebsiteMonitoringConfigSchemaAppName,
 		},
-		SchemaVersion:        1,
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.WebsiteMonitoringConfig() },
 		UpdateState:          updateStateForWebsiteMonitoring,
 		MapStateToDataObject: mapStateToDataObjectForWebsiteMonitoring,

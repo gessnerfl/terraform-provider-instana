@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -160,4 +161,65 @@ func (s *websiteMonitoringConfigTestServer) Close() {
 	if s.httpServer != nil {
 		s.httpServer.Close()
 	}
+}
+
+func TestResourceWebsiteMonitoringConfigDefinition(t *testing.T) {
+	resource := NewWebsiteMonitoringConfigResourceHandle()
+
+	schemaMap := resource.Schema
+
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(WebsiteMonitoringConfigFieldName)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(WebsiteMonitoringConfigFieldFullName)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(WebsiteMonitoringConfigFieldAppName)
+}
+
+func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	fullname := "fullname"
+	appname := "appname"
+	data := restapi.WebsiteMonitoringConfig{
+		ID:      "id",
+		Name:    fullname,
+		AppName: appname,
+	}
+
+	err := resourceHandle.UpdateState(resourceData, data)
+
+	require.Nil(t, err)
+	require.Equal(t, "id", resourceData.Id(), "id should be equal")
+	require.Equal(t, fullname, resourceData.Get(WebsiteMonitoringConfigFieldFullName))
+	require.Equal(t, appname, resourceData.Get(WebsiteMonitoringConfigFieldAppName))
+}
+
+func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId("id")
+	resourceData.Set(WebsiteMonitoringConfigFieldName, "name")
+	resourceData.Set(WebsiteMonitoringConfigFieldFullName, "prefix name suffix")
+
+	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+
+	require.Nil(t, err)
+	require.IsType(t, restapi.WebsiteMonitoringConfig{}, model, "Model should be an alerting channel")
+	require.Equal(t, "id", model.GetID())
+	require.Equal(t, "prefix name suffix", model.(restapi.WebsiteMonitoringConfig).Name)
+}
+
+func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {
+	require.Equal(t, 0, NewWebsiteMonitoringConfigResourceHandle().SchemaVersion)
+}
+
+func TestWebsiteMonitoringConfigShouldHaveNoStateUpgrader(t *testing.T) {
+	require.Equal(t, 0, len(NewWebsiteMonitoringConfigResourceHandle().StateUpgraders))
+}
+
+func TestShouldReturnCorrectResourceNameForWebsiteMonitoringConfig(t *testing.T) {
+	name := NewWebsiteMonitoringConfigResourceHandle().ResourceName
+
+	require.Equal(t, name, "instana_website_monitoring_config")
 }
