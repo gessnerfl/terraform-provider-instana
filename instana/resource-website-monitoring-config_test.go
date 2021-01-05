@@ -200,14 +200,14 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(WebsiteMonitoringConfigFieldName, "name")
-	resourceData.Set(WebsiteMonitoringConfigFieldFullName, "prefix name suffix")
+	resourceData.Set(WebsiteMonitoringConfigFieldFullName, websiteMonitoringConfigFullName)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	require.Nil(t, err)
 	require.IsType(t, restapi.WebsiteMonitoringConfig{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetID())
-	require.Equal(t, "prefix name suffix", model.(restapi.WebsiteMonitoringConfig).Name)
+	require.Equal(t, websiteMonitoringConfigFullName, model.(restapi.WebsiteMonitoringConfig).Name)
 }
 
 func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {
