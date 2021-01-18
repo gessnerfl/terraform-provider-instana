@@ -8,7 +8,7 @@
       "url": "http://instana.com",
       "email": "support@instana.com"
     },
-    "version": "1.190.696",
+    "version": "1.191.1473",
     "x-logo": {
       "url": "header-logo.svg",
       "backgroundColor": "#FAFBFC",
@@ -120,6 +120,10 @@
       "name": "Health"
     },
     {
+      "name": "Custom Dashboards",
+      "description": "You can use these API endpoints to manage custom dashboards. We recommend\nthat you leverage the `Edit as JSON` feature found within our user interface\nto construct the desired request payloads. Specifically to help you build\ncorrect widget configurations and access rules.\n\nTo identify the correct values for the `relatedId` field of the access rules,\nwe recommend using the `/api/custom-dashboard/shareable-users` and\n`/api/custom-dashboard/shareable-api-tokens` endpoints. These endpoints return\nour internal IDs for users and API tokens."
+    },
+    {
       "name": "Usage"
     }
   ],
@@ -175,6 +179,85 @@
             ]
           }
         ]
+      }
+    },
+    "/api/host-agent/configuration": {
+      "post": {
+        "tags": [
+          "Host Agent"
+        ],
+        "summary": "Update agent configuration by query",
+        "operationId": "updateConfigurationByQuery",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "windowSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "offline",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentConfigurationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "canConfigureAgents"
+            ]
+          }
+        ],
+        "description": "This endpoint can be used to initialize or change configuration management settings for all agents selected by the given Dynamic Focus Query.\n\n"
       }
     },
     "/api/host-agent/{hostId}/configuration": {
@@ -282,85 +365,6 @@
             ]
           }
         ]
-      }
-    },
-    "/api/host-agent/configuration": {
-      "post": {
-        "tags": [
-          "Host Agent"
-        ],
-        "summary": "Update agent configuration by query",
-        "operationId": "updateConfigurationByQuery",
-        "parameters": [
-          {
-            "name": "query",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "to",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "windowSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "size",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "offline",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AgentConfigurationUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          },
-          {
-            "ApiKeyAuth": [
-              "canConfigureAgents"
-            ]
-          }
-        ],
-        "description": "This endpoint can be used to initialize or change configuration management settings for all agents selected by the given Dynamic Focus Query.\n\n"
       }
     },
     "/api/host-agent/{hostId}/update": {
@@ -645,6 +649,51 @@
         ]
       }
     },
+    "/api/application-monitoring/metrics/applications": {
+      "post": {
+        "tags": [
+          "Application Metrics"
+        ],
+        "summary": "Get Application Metrics",
+        "operationId": "getApplicationMetrics",
+        "parameters": [
+          {
+            "name": "fillTimeSeries",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetApplications"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationMetricResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/application-monitoring/metrics/services": {
       "post": {
         "tags": [
@@ -735,37 +784,71 @@
         ]
       }
     },
-    "/api/application-monitoring/metrics/applications": {
-      "post": {
+    "/api/application-monitoring/applications": {
+      "get": {
         "tags": [
-          "Application Metrics"
+          "Application Resources"
         ],
-        "summary": "Get Application Metrics",
-        "operationId": "getApplicationMetrics",
+        "summary": "Get applications",
+        "operationId": "getApplications",
         "parameters": [
           {
-            "name": "fillTimeSeries",
+            "name": "nameFilter",
             "in": "query",
             "schema": {
-              "type": "boolean"
+              "type": "string"
+            }
+          },
+          {
+            "name": "windowSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "applicationBoundaryScope",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ALL",
+                "INBOUND"
+              ]
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetApplications"
-              }
-            }
-          }
-        },
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApplicationMetricResult"
+                  "$ref": "#/components/schemas/ApplicationResult"
                 }
               }
             }
@@ -960,85 +1043,6 @@
         ]
       }
     },
-    "/api/application-monitoring/applications": {
-      "get": {
-        "tags": [
-          "Application Resources"
-        ],
-        "summary": "Get applications",
-        "operationId": "getApplications",
-        "parameters": [
-          {
-            "name": "nameFilter",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "windowSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "to",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "applicationBoundaryScope",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ALL",
-                "INBOUND"
-              ]
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApplicationResult"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "Default"
-            ]
-          }
-        ]
-      }
-    },
     "/api/application-monitoring/services": {
       "get": {
         "tags": [
@@ -1133,6 +1137,18 @@
                 "TRACES"
               ]
             }
+          },
+          {
+            "name": "useCase",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "GROUPING",
+                "FILTERING",
+                "SMART_ALERTS"
+              ]
+            }
           }
         ],
         "responses": {
@@ -1169,6 +1185,29 @@
             "schema": {
               "type": "integer",
               "format": "int64"
+            }
+          },
+          {
+            "name": "dataSource",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CALLS",
+                "TRACES"
+              ]
+            }
+          },
+          {
+            "name": "useCase",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "GROUPING",
+                "FILTERING",
+                "SMART_ALERTS"
+              ]
             }
           }
         ],
@@ -1843,6 +1882,293 @@
         ]
       }
     },
+    "/api/custom-dashboard": {
+      "get": {
+        "tags": [
+          "Custom Dashboards"
+        ],
+        "summary": "Get accessible custom dashboards",
+        "operationId": "getCustomDashboards",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomDashboard"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Custom Dashboards"
+        ],
+        "summary": "Add custom dashboard",
+        "operationId": "addCustomDashboard",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomDashboard"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid payload or when attempting to share dashboards without the canCreatePublicCustomDashboards permission."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDashboard"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/custom-dashboard/shareable-users": {
+      "get": {
+        "tags": [
+          "Custom Dashboards"
+        ],
+        "summary": "Get all users (without invitations).",
+        "operationId": "getShareableUsers",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "CreatePublicCustomDashboards"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/custom-dashboard/shareable-api-tokens": {
+      "get": {
+        "tags": [
+          "Custom Dashboards"
+        ],
+        "summary": "Get all API tokens.",
+        "operationId": "getShareableApiTokens",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiToken"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          },
+          {
+            "ApiKeyAuth": [
+              "CreatePublicCustomDashboards"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/custom-dashboard/{customDashboardId}": {
+      "get": {
+        "tags": [
+          "Custom Dashboards"
+        ],
+        "summary": "Get custom dashboard",
+        "operationId": "getCustomDashboard",
+        "parameters": [
+          {
+            "name": "customDashboardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDashboard"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Custom Dashboards"
+        ],
+        "summary": "Update custom dashboard",
+        "operationId": "updateCustomDashboard",
+        "parameters": [
+          {
+            "name": "customDashboardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomDashboard"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid payload or when attempting to share dashboards without the canCreatePublicCustomDashboards permission."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDashboard"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Custom Dashboards"
+        ],
+        "summary": "Remove custom dashboard",
+        "operationId": "deleteCustomDashboard",
+        "parameters": [
+          {
+            "name": "customDashboardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Custom dashboard successfully removed"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/{eventId}": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Get Event",
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
+      }
+    },
     "/api/events": {
       "get": {
         "tags": [
@@ -1906,20 +2232,23 @@
         ]
       }
     },
-    "/api/events/{eventId}": {
+    "/api/events/settings/alertingChannels/infos": {
       "get": {
         "tags": [
-          "Events"
+          "Event Settings"
         ],
-        "summary": "Get Event",
-        "operationId": "getEvent",
+        "summary": "Overview over all alerting channels",
+        "operationId": "getAlertingChannelsOverview",
         "parameters": [
           {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
+            "name": "ids",
+            "in": "query",
             "schema": {
-              "type": "string"
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         ],
@@ -1928,7 +2257,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EventResult"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IntegrationOverview"
+                  }
                 }
               }
             }
@@ -1937,7 +2269,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "CanConfigureIntegrations"
             ]
           }
         ]
@@ -2132,88 +2464,6 @@
         ]
       }
     },
-    "/api/events/settings/alertingChannels/infos": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "Overview over all alerting channels",
-        "operationId": "getAlertingChannelsOverview",
-        "parameters": [
-          {
-            "name": "ids",
-            "in": "query",
-            "schema": {
-              "uniqueItems": true,
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/IntegrationOverview"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureIntegrations"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/settings/alerts/infos": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "All alerting configuration info",
-        "operationId": "getAlertingConfigurationInfos",
-        "parameters": [
-          {
-            "name": "integrationId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ValidatedAlertingChannelInputInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
     "/api/events/settings/alerts": {
       "get": {
         "tags": [
@@ -2353,6 +2603,159 @@
           {
             "ApiKeyAuth": [
               "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/settings/alerts/infos": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All alerting configuration info",
+        "operationId": "getAlertingConfigurationInfos",
+        "parameters": [
+          {
+            "name": "integrationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValidatedAlertingChannelInputInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/settings/custom-payload-configurations/catalog": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Get tag catalog for custom payload in alerting",
+        "operationId": "getCustomPayloadTagCatalog",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagCatalog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertPayload"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/settings/custom-payload-configurations": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Get Custom Payload Configuration",
+        "operationId": "getCustomPayloadConfigurations",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomPayloadWithLastUpdated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertPayload"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Create / Update Custom Payload Configuration",
+        "operationId": "upsertCustomPayloadConfiguration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomPayloadConfiguration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomPayloadWithLastUpdated"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertPayload"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Delete Custom Payload Configuration",
+        "operationId": "deleteCustomPayloadConfiguration",
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertPayload"
             ]
           }
         ]
@@ -2564,64 +2967,39 @@
         ]
       }
     },
-    "/api/events/settings/event-specifications/infos": {
-      "get": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "Summary of all built-in and custom event specifications",
-        "operationId": "getEventSpecificationInfos",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EventSpecificationInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      },
+    "/api/events/settings/event-specifications/custom/{eventSpecificationId}/enable": {
       "post": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "All built-in and custom event specifications",
-        "description": "Summary of all built-in and custom event specifications by IDs",
-        "operationId": "getEventSpecificationInfosByIds",
+        "summary": "Enable custom event specification",
+        "operationId": "enableCustomEventSpecification",
+        "parameters": [
+          {
+            "name": "eventSpecificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+                "type": "string",
+                "nullable": true
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EventSpecificationInfo"
-                  }
+                  "$ref": "#/components/schemas/CustomEventSpecificationWithLastUpdated"
                 }
               }
             }
@@ -2636,22 +3014,39 @@
         ]
       }
     },
-    "/api/events/settings/event-specifications/custom": {
-      "get": {
+    "/api/events/settings/event-specifications/custom/{eventSpecificationId}/disable": {
+      "post": {
         "tags": [
           "Event Settings"
         ],
-        "summary": "All custom event specifications",
-        "operationId": "getCustomEventSpecifications",
+        "summary": "Disable custom event specification",
+        "operationId": "disableCustomEventSpecification",
+        "parameters": [
+          {
+            "name": "eventSpecificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        },
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CustomEventSpecificationWithLastUpdated"
-                  }
+                  "$ref": "#/components/schemas/CustomEventSpecificationWithLastUpdated"
                 }
               }
             }
@@ -2781,6 +3176,108 @@
         ]
       }
     },
+    "/api/events/settings/event-specifications/infos": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "Summary of all built-in and custom event specifications",
+        "operationId": "getEventSpecificationInfos",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventSpecificationInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All built-in and custom event specifications",
+        "description": "Summary of all built-in and custom event specifications by IDs",
+        "operationId": "getEventSpecificationInfosByIds",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventSpecificationInfo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/events/settings/event-specifications/custom": {
+      "get": {
+        "tags": [
+          "Event Settings"
+        ],
+        "summary": "All custom event specifications",
+        "operationId": "getCustomEventSpecifications",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomEventSpecificationWithLastUpdated"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureCustomAlerts"
+            ]
+          }
+        ]
+      }
+    },
     "/api/events/settings/event-specifications/custom/systemRules": {
       "get": {
         "tags": [
@@ -2797,100 +3294,6 @@
                   "items": {
                     "$ref": "#/components/schemas/SystemRuleLabel"
                   }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/settings/event-specifications/custom/{eventSpecificationId}/enable": {
-      "post": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "Enable custom event specification",
-        "operationId": "enableCustomEventSpecification",
-        "parameters": [
-          {
-            "name": "eventSpecificationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string",
-                "nullable": true
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomEventSpecificationWithLastUpdated"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
-            ]
-          }
-        ]
-      }
-    },
-    "/api/events/settings/event-specifications/custom/{eventSpecificationId}/disable": {
-      "post": {
-        "tags": [
-          "Event Settings"
-        ],
-        "summary": "Disable custom event specification",
-        "operationId": "disableCustomEventSpecification",
-        "parameters": [
-          {
-            "name": "eventSpecificationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string",
-                "nullable": true
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CustomEventSpecificationWithLastUpdated"
                 }
               }
             }
@@ -4239,123 +4642,6 @@
         ]
       }
     },
-    "/api/settings/api-tokens/{apiTokenId}": {
-      "get": {
-        "tags": [
-          "API Token"
-        ],
-        "summary": "API token",
-        "operationId": "getApiToken",
-        "parameters": [
-          {
-            "name": "apiTokenId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiToken"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureApiTokens"
-            ]
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "API Token"
-        ],
-        "summary": "Create or update an API token",
-        "operationId": "putApiToken",
-        "parameters": [
-          {
-            "name": "apiTokenId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApiToken"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "400": {
-            "description": "If token already exist on other environment."
-          },
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiToken"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureApiTokens"
-            ]
-          }
-        ]
-      },
-      "delete": {
-        "tags": [
-          "API Token"
-        ],
-        "summary": "Delete API token",
-        "operationId": "deleteApiToken",
-        "parameters": [
-          {
-            "name": "apiTokenId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "*/*": {}
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureApiTokens"
-            ]
-          }
-        ]
-      }
-    },
     "/api/settings/api-tokens": {
       "get": {
         "tags": [
@@ -4412,6 +4698,123 @@
                   "$ref": "#/components/schemas/ApiToken"
                 }
               }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureApiTokens"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/settings/api-tokens/{internalId}": {
+      "get": {
+        "tags": [
+          "API Token"
+        ],
+        "summary": "API token",
+        "operationId": "getApiToken",
+        "parameters": [
+          {
+            "name": "internalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiToken"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureApiTokens"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "API Token"
+        ],
+        "summary": "Create or update an API token",
+        "operationId": "putApiToken",
+        "parameters": [
+          {
+            "name": "internalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiToken"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "If token already exist on other environment."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiToken"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureApiTokens"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "API Token"
+        ],
+        "summary": "Delete API token",
+        "operationId": "deleteApiToken",
+        "parameters": [
+          {
+            "name": "internalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "*/*": {}
             }
           }
         },
@@ -4572,7 +4975,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RbacGroup"
+                "$ref": "#/components/schemas/ScopedGroup"
               }
             }
           },
@@ -4583,7 +4986,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RbacGroup"
+                  "$ref": "#/components/schemas/ScopedGroup"
                 }
               }
             }
@@ -4712,7 +5115,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RbacGroup"
+                "$ref": "#/components/schemas/ScopedGroup"
               }
             }
           },
@@ -4723,7 +5126,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RbacGroup"
+                  "$ref": "#/components/schemas/ScopedGroup"
                 }
               }
             }
@@ -5500,6 +5903,74 @@
         ]
       }
     },
+    "/api/settings/sli": {
+      "get": {
+        "tags": [
+          "SLI Settings"
+        ],
+        "summary": "Get All SLI Configs",
+        "operationId": "getSli_2",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "SLI Settings"
+        ],
+        "summary": "Create SLI Config",
+        "operationId": "createSli",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SliConfiguration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ]
+      }
+    },
     "/api/settings/sli/{id}": {
       "get": {
         "tags": [
@@ -5617,74 +6088,6 @@
         ]
       }
     },
-    "/api/settings/sli": {
-      "get": {
-        "tags": [
-          "SLI Settings"
-        ],
-        "summary": "Get All SLI Configs",
-        "operationId": "getSli_2",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "canConfigureServiceLevelIndicators"
-            ]
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "SLI Settings"
-        ],
-        "summary": "Create SLI Config",
-        "operationId": "createSli",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SliConfiguration"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "canConfigureServiceLevelIndicators"
-            ]
-          }
-        ]
-      }
-    },
     "/api/website-monitoring/analyze/beacon-groups": {
       "post": {
         "tags": [
@@ -5771,7 +6174,7 @@
         "tags": [
           "Website Catalog"
         ],
-        "summary": "Filter tag catalog",
+        "summary": "Get all existing website tags",
         "operationId": "getWebsiteCatalogTags",
         "responses": {
           "default": {
@@ -5795,6 +6198,59 @@
           }
         ],
         "description": "This endpoint retrieves all available tags for your monitored system.\n\nThese tags can be used to group metric results.\n```\n\"group\": {\n  \"groupbyTag\": \"beacon.page.name\"\n}\n```\n\nThese tags can be used to filter metric results.\n```\n\"tagFilters\": [{\n\t\"name\": \"beacon.website.name\",\n\t\"operator\": \"EQUALS\",\n\t\"value\": \"example\"\n}]\n```\n"
+      }
+    },
+    "/api/website-monitoring/catalog": {
+      "get": {
+        "tags": [
+          "Website Catalog"
+        ],
+        "summary": "Get website tag catalog",
+        "operationId": "getWebsiteTagCatalog",
+        "parameters": [
+          {
+            "name": "beaconType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "useCase",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "GROUPING",
+                "FILTERING",
+                "SMART_ALERTS"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "When the combination of beaconType and useCase is unsupported/unknown."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagCatalog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ]
       }
     },
     "/api/website-monitoring/catalog/metrics": {
@@ -6616,6 +7072,8 @@
               "P95",
               "P98",
               "P99",
+              "P99_9",
+              "P99_99",
               "DISTINCT_COUNT"
             ]
           }
@@ -7004,6 +7462,193 @@
           }
         }
       },
+      "ApplicationItem": {
+        "required": [
+          "application",
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "application": {
+            "$ref": "#/components/schemas/Application"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ApplicationMetricResult": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationItem"
+            }
+          },
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalHits": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AppDataMetricConfiguration": {
+        "required": [
+          "aggregation",
+          "metric"
+        ],
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string"
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "P99_9",
+              "P99_99",
+              "DISTINCT_COUNT"
+            ]
+          }
+        }
+      },
+      "GetApplications": {
+        "required": [
+          "metrics"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "metrics": {
+            "maxItems": 5,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AppDataMetricConfiguration"
+            }
+          },
+          "nameFilter": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "applicationId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "serviceId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "endpointId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "endpointTypes": {
+            "uniqueItems": true,
+            "type": "array",
+            "writeOnly": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "UNDEFINED",
+                "RPC",
+                "EVENT",
+                "GRAPHQL",
+                "BATCH",
+                "SHELL",
+                "HTTP",
+                "SDK",
+                "INTERNAL",
+                "DATABASE",
+                "MESSAGING",
+                "PAGE",
+                "PAGE_RESOURCE"
+              ]
+            }
+          },
+          "technologies": {
+            "uniqueItems": true,
+            "type": "array",
+            "writeOnly": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "applicationBoundaryScope": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "INBOUND"
+            ]
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "ServiceItem": {
         "required": [
           "metrics",
@@ -7054,39 +7699,6 @@
             "minimum": 0,
             "type": "integer",
             "format": "int64"
-          }
-        }
-      },
-      "AppDataMetricConfiguration": {
-        "required": [
-          "aggregation",
-          "metric"
-        ],
-        "type": "object",
-        "properties": {
-          "metric": {
-            "type": "string"
-          },
-          "granularity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "aggregation": {
-            "type": "string",
-            "enum": [
-              "SUM",
-              "MEAN",
-              "MAX",
-              "MIN",
-              "P25",
-              "P50",
-              "P75",
-              "P90",
-              "P95",
-              "P98",
-              "P99",
-              "DISTINCT_COUNT"
-            ]
           }
         }
       },
@@ -7151,22 +7763,6 @@
               "ALL",
               "INBOUND"
             ]
-          }
-        }
-      },
-      "Pagination": {
-        "type": "object",
-        "properties": {
-          "page": {
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "maximum": 200,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -7302,139 +7898,26 @@
           }
         }
       },
-      "ApplicationItem": {
-        "required": [
-          "application",
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "application": {
-            "$ref": "#/components/schemas/Application"
-          },
-          "metrics": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "number"
-                }
-              }
-            }
-          }
-        }
-      },
-      "ApplicationMetricResult": {
-        "required": [
-          "items"
-        ],
+      "ApplicationResult": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ApplicationItem"
+              "$ref": "#/components/schemas/Application"
             }
           },
           "page": {
-            "minimum": 1,
             "type": "integer",
             "format": "int32"
           },
           "pageSize": {
-            "minimum": 1,
             "type": "integer",
             "format": "int32"
           },
           "totalHits": {
-            "minimum": 0,
             "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "GetApplications": {
-        "required": [
-          "metrics"
-        ],
-        "type": "object",
-        "properties": {
-          "pagination": {
-            "$ref": "#/components/schemas/Pagination"
-          },
-          "order": {
-            "$ref": "#/components/schemas/Order"
-          },
-          "timeFrame": {
-            "$ref": "#/components/schemas/TimeFrame"
-          },
-          "metrics": {
-            "maxItems": 5,
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AppDataMetricConfiguration"
-            }
-          },
-          "nameFilter": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "applicationId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "serviceId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "endpointId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "endpointTypes": {
-            "uniqueItems": true,
-            "type": "array",
-            "writeOnly": true,
-            "items": {
-              "type": "string",
-              "enum": [
-                "UNDEFINED",
-                "RPC",
-                "EVENT",
-                "GRAPHQL",
-                "BATCH",
-                "SHELL",
-                "HTTP",
-                "SDK",
-                "INTERNAL",
-                "DATABASE",
-                "MESSAGING",
-                "PAGE",
-                "PAGE_RESOURCE"
-              ]
-            }
-          },
-          "technologies": {
-            "uniqueItems": true,
-            "type": "array",
-            "writeOnly": true,
-            "items": {
-              "type": "string"
-            }
-          },
-          "applicationBoundaryScope": {
-            "type": "string",
-            "enum": [
-              "ALL",
-              "INBOUND"
-            ]
+            "format": "int32"
           }
         }
       },
@@ -7484,45 +7967,33 @@
           }
         }
       },
-      "ApplicationResult": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Application"
-            }
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalHits": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "Tag": {
+        "required": [
+          "name",
+          "type"
+        ],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
+          "label": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
           "type": {
             "type": "string",
             "enum": [
+              "BOOLEAN",
               "STRING",
               "NUMBER",
-              "BOOLEAN",
+              "STRING_SET",
+              "STRING_LIST",
               "KEY_VALUE_PAIR"
             ]
           },
-          "category": {
+          "description": {
             "type": "string"
           },
           "canApplyToSource": {
@@ -7530,14 +8001,14 @@
           },
           "canApplyToDestination": {
             "type": "boolean"
-          },
-          "sourceValueAvailableFrom": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
       "TagCatalog": {
+        "required": [
+          "tagTree",
+          "tags"
+        ],
         "type": "object",
         "properties": {
           "tagTree": {
@@ -7608,9 +8079,6 @@
       },
       "TagTreeTag": {
         "required": [
-          "allowFiltering",
-          "allowGrouping",
-          "description",
           "label",
           "tagName"
         ],
@@ -7627,12 +8095,6 @@
               },
               "tagName": {
                 "type": "string"
-              },
-              "allowFiltering": {
-                "type": "boolean"
-              },
-              "allowGrouping": {
-                "type": "boolean"
               }
             }
           }
@@ -8040,6 +8502,235 @@
           }
         }
       },
+      "AccessRule": {
+        "required": [
+          "accessType",
+          "relationType"
+        ],
+        "type": "object",
+        "properties": {
+          "accessType": {
+            "type": "string",
+            "enum": [
+              "READ",
+              "READ_WRITE"
+            ]
+          },
+          "relationType": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "API_TOKEN",
+              "ROLE",
+              "TEAM",
+              "GLOBAL"
+            ]
+          },
+          "relatedId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "CustomDashboard": {
+        "required": [
+          "accessRules",
+          "id",
+          "title",
+          "widgets"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "accessRules": {
+            "maxItems": 64,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessRule"
+            }
+          },
+          "widgets": {
+            "maxItems": 128,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Widget"
+            }
+          }
+        }
+      },
+      "Widget": {
+        "required": [
+          "config",
+          "id",
+          "title",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "width": {
+            "maximum": 12,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "x": {
+            "maximum": 11,
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "y": {
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "type": "string"
+          },
+          "config": {
+            "type": "object"
+          }
+        }
+      },
+      "UserResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "roleId": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiToken": {
+        "required": [
+          "accessGrantingToken",
+          "internalId",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "accessGrantingToken": {
+            "type": "string"
+          },
+          "internalId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "canConfigureServiceMapping": {
+            "type": "boolean"
+          },
+          "canConfigureEumApplications": {
+            "type": "boolean"
+          },
+          "canConfigureMobileAppMonitoring": {
+            "type": "boolean"
+          },
+          "canConfigureUsers": {
+            "type": "boolean"
+          },
+          "canInstallNewAgents": {
+            "type": "boolean"
+          },
+          "canSeeUsageInformation": {
+            "type": "boolean"
+          },
+          "canConfigureIntegrations": {
+            "type": "boolean"
+          },
+          "canSeeOnPremLicenseInformation": {
+            "type": "boolean"
+          },
+          "canConfigureRoles": {
+            "type": "boolean"
+          },
+          "canConfigureCustomAlerts": {
+            "type": "boolean"
+          },
+          "canConfigureApiTokens": {
+            "type": "boolean"
+          },
+          "canConfigureAgentRunMode": {
+            "type": "boolean"
+          },
+          "canViewAuditLog": {
+            "type": "boolean"
+          },
+          "canConfigureAgents": {
+            "type": "boolean"
+          },
+          "canConfigureAuthenticationMethods": {
+            "type": "boolean"
+          },
+          "canConfigureApplications": {
+            "type": "boolean"
+          },
+          "canConfigureTeams": {
+            "type": "boolean"
+          },
+          "canConfigureReleases": {
+            "type": "boolean"
+          },
+          "canConfigureLogManagement": {
+            "type": "boolean"
+          },
+          "canCreatePublicCustomDashboards": {
+            "type": "boolean"
+          },
+          "canViewLogs": {
+            "type": "boolean"
+          },
+          "canViewTraceDetails": {
+            "type": "boolean"
+          },
+          "canConfigureSessionSettings": {
+            "type": "boolean"
+          },
+          "canConfigureServiceLevelIndicators": {
+            "type": "boolean"
+          },
+          "canConfigureGlobalAlertPayload": {
+            "type": "boolean"
+          },
+          "canViewAccountAndBillingInformation": {
+            "type": "boolean"
+          }
+        }
+      },
       "EventResult": {
         "type": "object",
         "properties": {
@@ -8093,6 +8784,31 @@
               "additionalProperties": {
                 "type": "object"
               }
+            }
+          }
+        }
+      },
+      "IntegrationOverview": {
+        "required": [
+          "id",
+          "kind",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "properties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
             }
           }
         }
@@ -8419,96 +9135,6 @@
           }
         ]
       },
-      "IntegrationOverview": {
-        "required": [
-          "id",
-          "kind",
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "kind": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "properties": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "ValidatedAlertingChannelInputInfo": {
-        "required": [
-          "id",
-          "label",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "label": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "query": {
-            "maxLength": 2048,
-            "minLength": 0,
-            "type": "string"
-          },
-          "eventTypes": {
-            "maxItems": 6,
-            "minItems": 0,
-            "uniqueItems": true,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "incident",
-                "critical",
-                "warning",
-                "change",
-                "online",
-                "offline",
-                "agent_monitoring_issue",
-                "none"
-              ]
-            }
-          },
-          "selectedEvents": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "Alert",
-              "WebsiteSmartAlert",
-              "ApplicationSmartAlert"
-            ]
-          },
-          "entityId": {
-            "type": "string"
-          },
-          "invalid": {
-            "type": "boolean"
-          }
-        }
-      },
       "EventFilteringConfiguration": {
         "type": "object",
         "properties": {
@@ -8582,11 +9208,6 @@
           "eventFilteringConfiguration": {
             "$ref": "#/components/schemas/EventFilteringConfiguration"
           },
-          "customPayload": {
-            "maxLength": 65536,
-            "minLength": 0,
-            "type": "string"
-          },
           "lastUpdated": {
             "minimum": 1,
             "type": "integer",
@@ -8646,11 +9267,6 @@
           "eventFilteringConfiguration": {
             "$ref": "#/components/schemas/EventFilteringConfiguration"
           },
-          "customPayload": {
-            "maxLength": 65536,
-            "minLength": 0,
-            "type": "string"
-          },
           "lastUpdated": {
             "minimum": 1,
             "type": "integer",
@@ -8692,11 +9308,229 @@
           },
           "eventFilteringConfiguration": {
             "$ref": "#/components/schemas/EventFilteringConfiguration"
-          },
-          "customPayload": {
-            "maxLength": 65536,
+          }
+        }
+      },
+      "ValidatedAlertingChannelInputInfo": {
+        "required": [
+          "id",
+          "label",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
             "minLength": 0,
             "type": "string"
+          },
+          "label": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "query": {
+            "maxLength": 2048,
+            "minLength": 0,
+            "type": "string"
+          },
+          "eventTypes": {
+            "maxItems": 6,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "incident",
+                "critical",
+                "warning",
+                "change",
+                "online",
+                "offline",
+                "agent_monitoring_issue",
+                "none"
+              ]
+            }
+          },
+          "selectedEvents": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Alert",
+              "WebsiteSmartAlert",
+              "ApplicationSmartAlert"
+            ]
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "invalid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CustomPayloadField": {
+        "required": [
+          "key",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "staticString": "#/components/schemas/StaticStringField",
+            "staticNumber": "#/components/schemas/StaticNumberField",
+            "staticBoolean": "#/components/schemas/StaticBooleanField",
+            "dynamic": "#/components/schemas/DynamicField"
+          }
+        }
+      },
+      "CustomPayloadWithLastUpdated": {
+        "required": [
+          "fields"
+        ],
+        "type": "object",
+        "properties": {
+          "fields": {
+            "maxItems": 20,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomPayloadField"
+            }
+          },
+          "lastUpdated": {
+            "minimum": 1,
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "DynamicField": {
+        "required": [
+          "key",
+          "type",
+          "value"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CustomPayloadField"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "value": {
+                "$ref": "#/components/schemas/DynamicFieldValue"
+              }
+            }
+          }
+        ]
+      },
+      "DynamicFieldValue": {
+        "required": [
+          "tagName"
+        ],
+        "type": "object",
+        "properties": {
+          "tagName": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "StaticBooleanField": {
+        "required": [
+          "key",
+          "type"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CustomPayloadField"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "StaticNumberField": {
+        "required": [
+          "key",
+          "type",
+          "value"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CustomPayloadField"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number"
+              }
+            }
+          }
+        ]
+      },
+      "StaticStringField": {
+        "required": [
+          "key",
+          "type",
+          "value"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CustomPayloadField"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "CustomPayloadConfiguration": {
+        "required": [
+          "fields"
+        ],
+        "type": "object",
+        "properties": {
+          "fields": {
+            "maxItems": 20,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomPayloadField"
+            }
           }
         }
       },
@@ -8889,53 +9723,6 @@
             "format": "int32"
           },
           "triggering": {
-            "type": "boolean"
-          },
-          "enabled": {
-            "type": "boolean"
-          }
-        }
-      },
-      "EventSpecificationInfo": {
-        "required": [
-          "entityType",
-          "id",
-          "name",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string"
-          },
-          "name": {
-            "maxLength": 256,
-            "minLength": 0,
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "entityType": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "BUILT_IN",
-              "CUSTOM"
-            ]
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "triggering": {
-            "type": "boolean"
-          },
-          "invalid": {
             "type": "boolean"
           },
           "enabled": {
@@ -9174,6 +9961,53 @@
           }
         ]
       },
+      "EventSpecificationInfo": {
+        "required": [
+          "entityType",
+          "id",
+          "name",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 256,
+            "minLength": 0,
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "BUILT_IN",
+              "CUSTOM"
+            ]
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "triggering": {
+            "type": "boolean"
+          },
+          "invalid": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
       "SystemRuleLabel": {
         "required": [
           "id",
@@ -9311,6 +10145,8 @@
                   "P95",
                   "P98",
                   "P99",
+                  "P99_9",
+                  "P99_99",
                   "DISTINCT_COUNT"
                 ]
               }
@@ -10093,13 +10929,33 @@
           }
         }
       },
+      "ApplicationScopeWithMetadata": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "ReleaseScope": {
         "type": "object",
         "properties": {
           "serviceId": {
             "type": "string"
           },
+          "serviceName": {
+            "type": "string"
+          },
           "applicationId": {
+            "type": "string"
+          },
+          "applicationName": {
             "type": "string"
           }
         }
@@ -10136,6 +10992,55 @@
             "writeOnly": true,
             "items": {
               "$ref": "#/components/schemas/ReleaseScope"
+            }
+          },
+          "services": {
+            "maxItems": 10,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceScopeWithMetadata"
+            }
+          },
+          "applications": {
+            "maxItems": 10,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationScopeWithMetadata"
+            }
+          }
+        }
+      },
+      "ServiceScopeWithMetadata": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scopedTo": {
+            "$ref": "#/components/schemas/ServiceScopedToWithMetadata"
+          }
+        }
+      },
+      "ServiceScopedToWithMetadata": {
+        "required": [
+          "applications"
+        ],
+        "type": "object",
+        "properties": {
+          "applications": {
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApplicationScopeWithMetadata"
             }
           }
         }
@@ -10216,99 +11121,6 @@
             "items": {
               "$ref": "#/components/schemas/ApplicationScope"
             }
-          }
-        }
-      },
-      "ApiToken": {
-        "required": [
-          "id",
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "canConfigureServiceMapping": {
-            "type": "boolean"
-          },
-          "canConfigureEumApplications": {
-            "type": "boolean"
-          },
-          "canConfigureMobileAppMonitoring": {
-            "type": "boolean"
-          },
-          "canConfigureUsers": {
-            "type": "boolean"
-          },
-          "canInstallNewAgents": {
-            "type": "boolean"
-          },
-          "canSeeUsageInformation": {
-            "type": "boolean"
-          },
-          "canConfigureIntegrations": {
-            "type": "boolean"
-          },
-          "canSeeOnPremLicenseInformation": {
-            "type": "boolean"
-          },
-          "canConfigureRoles": {
-            "type": "boolean"
-          },
-          "canConfigureCustomAlerts": {
-            "type": "boolean"
-          },
-          "canConfigureApiTokens": {
-            "type": "boolean"
-          },
-          "canConfigureAgentRunMode": {
-            "type": "boolean"
-          },
-          "canViewAuditLog": {
-            "type": "boolean"
-          },
-          "canConfigureObjectives": {
-            "type": "boolean"
-          },
-          "canConfigureAgents": {
-            "type": "boolean"
-          },
-          "canConfigureAuthenticationMethods": {
-            "type": "boolean"
-          },
-          "canConfigureApplications": {
-            "type": "boolean"
-          },
-          "canConfigureTeams": {
-            "type": "boolean"
-          },
-          "canConfigureReleases": {
-            "type": "boolean"
-          },
-          "canConfigureLogManagement": {
-            "type": "boolean"
-          },
-          "canCreatePublicCustomDashboards": {
-            "type": "boolean"
-          },
-          "canViewLogs": {
-            "type": "boolean"
-          },
-          "canViewTraceDetails": {
-            "type": "boolean"
-          },
-          "canConfigureSessionSettings": {
-            "type": "boolean"
-          },
-          "canConfigureServiceLevelIndicators": {
-            "type": "boolean"
-          },
-          "canConfigureGlobalAlertPayload": {
-            "type": "boolean"
           }
         }
       },
@@ -10507,6 +11319,73 @@
           },
           "permissionSet": {
             "$ref": "#/components/schemas/PermissionSet"
+          }
+        }
+      },
+      "GroupMember": {
+        "required": [
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          }
+        }
+      },
+      "GroupPermission": {
+        "required": [
+          "scope"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "T",
+              "TU"
+            ]
+          }
+        }
+      },
+      "ScopedGroup": {
+        "required": [
+          "members",
+          "name",
+          "permissions"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "members": {
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupMember"
+            }
+          },
+          "permissions": {
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GroupPermission"
+            }
           }
         }
       },
@@ -10714,9 +11593,6 @@
           "canViewAuditLog": {
             "type": "boolean"
           },
-          "canConfigureObjectives": {
-            "type": "boolean"
-          },
           "canConfigureAgents": {
             "type": "boolean"
           },
@@ -10754,6 +11630,9 @@
             "type": "boolean"
           },
           "canConfigureGlobalAlertPayload": {
+            "type": "boolean"
+          },
+          "canViewAccountAndBillingInformation": {
             "type": "boolean"
           }
         }
@@ -10842,23 +11721,6 @@
             "items": {
               "$ref": "#/components/schemas/SyntheticCallRule"
             }
-          }
-        }
-      },
-      "UserResult": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "fullName": {
-            "type": "string"
-          },
-          "roleId": {
-            "type": "string"
           }
         }
       },
@@ -11022,6 +11884,8 @@
                   "P95",
                   "P98",
                   "P99",
+                  "P99_9",
+                  "P99_99",
                   "DISTINCT_COUNT"
                 ]
               },
@@ -11055,6 +11919,8 @@
               "P95",
               "P98",
               "P99",
+              "P99_9",
+              "P99_99",
               "DISTINCT_COUNT"
             ]
           },
@@ -11314,6 +12180,8 @@
               "P95",
               "P98",
               "P99",
+              "P99_9",
+              "P99_99",
               "DISTINCT_COUNT"
             ]
           }
@@ -11968,6 +12836,7 @@
     {
       "name": "Settings",
       "tags": [
+        "Custom Dashboards",
         "User",
         "Groups",
         "Audit Log",

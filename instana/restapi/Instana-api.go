@@ -11,6 +11,8 @@ const (
 	EventSettingsBasePath = EventsBasePath + settingsPathElement
 	//SettingsBasePath path to Event Settings resource of Instana RESTful API
 	SettingsBasePath = InstanaAPIBasePath + settingsPathElement
+	//WebsiteMonitoringResourcePath path to website monitoring
+	WebsiteMonitoringResourcePath = InstanaAPIBasePath + "/website-monitoring"
 )
 
 //InstanaAPI is the interface to all resources of the Instana Rest API
@@ -21,6 +23,7 @@ type InstanaAPI interface {
 	AlertingChannels() RestResource
 	AlertingConfigurations() RestResource
 	SliConfigs() RestResource
+	WebsiteMonitoringConfig() RestResource
 }
 
 //NewInstanaAPI creates a new instance of the instana API
@@ -35,29 +38,33 @@ type baseInstanaAPI struct {
 
 //CustomEventSpecifications implementation of InstanaAPI interface
 func (api *baseInstanaAPI) CustomEventSpecifications() RestResource {
-	return NewRestResource(CustomEventSpecificationResourcePath, NewCustomEventSpecificationUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(CustomEventSpecificationResourcePath, NewCustomEventSpecificationUnmarshaller(), api.client)
 }
 
 //UserRoles implementation of InstanaAPI interface
 func (api *baseInstanaAPI) UserRoles() RestResource {
-	return NewRestResource(UserRolesResourcePath, NewUserRoleUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(UserRolesResourcePath, NewUserRoleUnmarshaller(), api.client)
 }
 
 //ApplicationConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) ApplicationConfigs() RestResource {
-	return NewRestResource(ApplicationConfigsResourcePath, NewApplicationConfigUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(ApplicationConfigsResourcePath, NewApplicationConfigUnmarshaller(), api.client)
 }
 
 //AlertingChannels implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingChannels() RestResource {
-	return NewRestResource(AlertingChannelsResourcePath, NewAlertingChannelUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(AlertingChannelsResourcePath, NewAlertingChannelUnmarshaller(), api.client)
 }
 
 //AlertingConfigurations implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingConfigurations() RestResource {
-	return NewRestResource(AlertsResourcePath, NewAlertingConfigurationUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(AlertsResourcePath, NewAlertingConfigurationUnmarshaller(), api.client)
 }
 
 func (api *baseInstanaAPI) SliConfigs() RestResource {
-	return NewRestResource(SliConfigResourcePath, NewSliConfigUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(SliConfigResourcePath, NewSliConfigUnmarshaller(), api.client)
+}
+
+func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource {
+	return NewWebsiteMonitoringConfigRestResource(NewWebsiteMonitoringConfigUnmarshaller(), api.client)
 }
