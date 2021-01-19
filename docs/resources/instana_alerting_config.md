@@ -10,6 +10,16 @@ The ID of the resource which is also used as unique identifier in Instana is aut
 Alerting configurations support `default_name_prefix` and `default_name_suffix`. The string will be appended automatically
 to the alert_name.
 
+---
+**Note:**
+
+Instana web UI provides the option to select for applications or a dynamic filter query. This is a UI feature only. To setup
+altering configuration for applications you need to express this by a dynamic filter query:
+
+`entity.application.id:\"my-application-perspective-id\""`
+
+---
+
 ## Example Usage
 
 ### Rule ids
