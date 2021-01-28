@@ -63,23 +63,30 @@ var (
 	}
 )
 
+var currentSchema = map[string]*schema.Schema{
+	ApplicationConfigFieldLabel:              ApplicationConfigLabel,
+	ApplicationConfigFieldFullLabel:          ApplicationConfigFullLabel,
+	ApplicationConfigFieldScope:              ApplicationConfigScope,
+	ApplicationConfigFieldBoundaryScope:      ApplicationConfigBoundaryScope,
+	ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
+}
+
 //NewApplicationConfigResourceHandle creates a new instance of the ResourceHandle for application configs
 func NewApplicationConfigResourceHandle() *ResourceHandle {
 	return &ResourceHandle{
-		ResourceName: ResourceInstanaApplicationConfig,
-		Schema: map[string]*schema.Schema{
-			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
-			ApplicationConfigFieldFullLabel:          ApplicationConfigFullLabel,
-			ApplicationConfigFieldScope:              ApplicationConfigScope,
-			ApplicationConfigFieldBoundaryScope:      ApplicationConfigBoundaryScope,
-			ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
-		},
-		SchemaVersion: 1,
+		ResourceName:  ResourceInstanaApplicationConfig,
+		Schema:        currentSchema,
+		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    applicationConfigSchemaV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: applicationConfigStateUpgradeV0,
 				Version: 0,
+			},
+			{
+				Type:    applicationConfigSchemaV1().CoreConfigSchema().ImpliedType(),
+				Upgrade: updateToVersion1AndRecalculateHarmonizedMatchSpecification,
+				Version: 1,
 			},
 		},
 		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.ApplicationConfigs() },
@@ -159,5 +166,24 @@ func applicationConfigSchemaV0() *schema.Resource {
 
 func applicationConfigStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[ApplicationConfigFieldFullLabel] = rawState[ApplicationConfigFieldLabel]
+	return rawState, nil
+}
+
+func applicationConfigSchemaV1() *schema.Resource {
+	return &schema.Resource{
+		Schema: currentSchema,
+	}
+}
+
+func updateToVersion1AndRecalculateHarmonizedMatchSpecification(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	spec := rawState[ApplicationConfigFieldMatchSpecification]
+	if spec != nil {
+		parser := filterexpression.NewParser()
+		expr, err := parser.Parse(spec.(string))
+		if err != nil {
+			return rawState, err
+		}
+		rawState[ApplicationConfigFieldMatchSpecification] = expr.Render()
+	}
 	return rawState, nil
 }
