@@ -1,7 +1,6 @@
 package filterexpression
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -33,20 +32,16 @@ type EntitySpec struct {
 
 //Capture captures the string representation of an entity path from the given string. Interface of participle
 func (o *EntitySpec) Capture(values []string) error {
-	if len(values) == 1 {
-		val := values[0]
-		if val == "@" {
-			o.OriginDefined = true
-		} else if o.OriginDefined {
-			o.Origin = EntityOrigin(strings.ToLower(val))
-		} else {
-			*o = EntitySpec{
-				Key:    values[0],
-				Origin: EntityOriginDestination,
-			}
-		}
+	val := values[0]
+	if val == "@" {
+		o.OriginDefined = true
+	} else if o.OriginDefined {
+		o.Origin = EntityOrigin(strings.ToLower(val))
 	} else {
-		return errors.New("expected exactly one value for capturing entity specs")
+		*o = EntitySpec{
+			Key:    values[0],
+			Origin: EntityOriginDestination,
+		}
 	}
 	return nil
 }
