@@ -1,12 +1,60 @@
 package filterexpression
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/alecthomas/participle"
 	"github.com/alecthomas/participle/lexer"
 )
+
+//ExpressionRenderer interface definition for all types of the Filter expression to render the corresponding value
+type ExpressionRenderer interface {
+	Render() string
+}
+
+//EntityOrigin custom type for the origin (source or destination) of a entity spec
+type EntityOrigin string
+
+const (
+	//EntityOriginSource constant value for the source EntityOrigin
+	EntityOriginSource = EntityOrigin("src")
+	//EntityOriginDestination constant value for the destination EntityOrigin
+	EntityOriginDestination = EntityOrigin("dest")
+)
+
+//EntitySpec custom type for any kind of entity path specification
+type EntitySpec struct {
+	Key           string
+	Origin        EntityOrigin
+	OriginDefined bool
+}
+
+//Capture captures the string representation of an entity path from the given string. Interface of participle
+func (o *EntitySpec) Capture(values []string) error {
+	if len(values) == 1 {
+		val := values[0]
+		if val == "@" {
+			o.OriginDefined = true
+		} else if o.OriginDefined {
+			o.Origin = EntityOrigin(strings.ToLower(val))
+		} else {
+			*o = EntitySpec{
+				Key:    values[0],
+				Origin: EntityOriginDestination,
+			}
+		}
+	} else {
+		return errors.New("expected exactly one value for capturing entity specs")
+	}
+	return nil
+}
+
+//Render implementation of the ExpressionRenderer interface of EntitySpec
+func (o *EntitySpec) Render() string {
+	return o.Key + "@" + string(o.Origin)
+}
 
 //Operator custom type for any kind of operator
 type Operator string
@@ -15,11 +63,6 @@ type Operator string
 func (o *Operator) Capture(values []string) error {
 	*o = Operator(strings.ToUpper(values[0]))
 	return nil
-}
-
-//ExpressionRenderer interface definition for all types of the Filter expression to render the corresponding value
-type ExpressionRenderer interface {
-	Render() string
 }
 
 //FilterExpression repressentation of a dynamic focus filter expression
@@ -85,40 +128,42 @@ func (e *PrimaryExpression) Render() string {
 
 //ComparisionExpression representation of a comparision expression.
 type ComparisionExpression struct {
-	Key      string   `parser:"@Ident"`
-	Operator Operator `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
-	Value    string   `parser:"@String"`
+	Entity   *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
+	Operator Operator    `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
+	Value    string      `parser:"@String"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *ComparisionExpression) Render() string {
-	return fmt.Sprintf("%s %s '%s'", e.Key, e.Operator, e.Value)
+	return fmt.Sprintf("%s %s '%s'", e.Entity.Render(), e.Operator, e.Value)
 }
 
 //UnaryOperationExpression representation of a unary expression representing a unary operator
 type UnaryOperationExpression struct {
-	Key      string   `parser:"@Ident"`
-	Operator Operator `parser:"@( \"IS_EMPTY\" | \"IS_BLANK\"  | \"NOT_EMPTY\" | \"NOT_BLANK\" )"`
+	Entity   *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
+	Operator Operator    `parser:"@( \"IS_EMPTY\" | \"IS_BLANK\"  | \"NOT_EMPTY\" | \"NOT_BLANK\" )"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *UnaryOperationExpression) Render() string {
-	return fmt.Sprintf("%s %s", e.Key, e.Operator)
+	return fmt.Sprintf("%s %s", e.Entity.Render(), e.Operator)
 }
 
 var (
 	filterLexer = lexer.Must(lexer.Regexp(`(\s+)` +
-		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN)` +
+		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|STARTS_WITH|ENDS_WITH|NOT_STARTS_WITH|NOT_ENDS_WITH|GREATER_OR_EQUAL_THAN|LESS_OR_EQUAL_THAN|LESS_THAN|GREATER_THAN)` +
+		`|(?P<EntityOrigin>(?i)src|dest)` +
+		`|(?P<EntityOriginOperator>(?i)@)` +
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_\-/]*)` +
 		`|(?P<Number>[-+]?\d+(\.\d+)?)` +
-		`|(?P<String>'[^']*'|"[^"]*")` +
-		`|(?P<Operators>EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK)`,
+		`|(?P<String>'[^']*'|"[^"]*")`,
 	))
 	filterParser = participle.MustBuild(
 		&FilterExpression{},
 		participle.Lexer(filterLexer),
 		participle.Unquote("String"),
-		participle.CaseInsensitive("Keyword", "Operators"),
+		participle.CaseInsensitive("Keyword"),
+		participle.UseLookahead(3),
 	)
 )
 

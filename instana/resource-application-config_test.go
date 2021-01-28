@@ -50,6 +50,7 @@ const serverResponseTemplate = `
 			"left" : {
 				"type" : "LEAF",
 				"key" : "entity.name",
+				"entity" : "DESTINATION",
 				"operator" : "CONTAINS",
 				"value" : "foo"
 			},
@@ -57,6 +58,7 @@ const serverResponseTemplate = `
 			"right" : {
 				"type" : "LEAF",
 				"key" : "entity.type",
+				"entity" : "DESTINATION",
 				"operator" : "EQUALS",
 				"value" : "mysql"
 			}
@@ -65,6 +67,7 @@ const serverResponseTemplate = `
 		"right" : {
 			"type" : "LEAF",
 			"key" : "entity.type",
+			"entity" : "DESTINATION",
 			"operator" : "EQUALS",
 			"value" : "elasticsearch"
 		}
@@ -74,16 +77,16 @@ const serverResponseTemplate = `
 
 const applicationConfigApiPath = restapi.ApplicationConfigsResourcePath + "/{id}"
 const testApplicationConfigDefinition = "instana_application_config.example"
-const defaultMatchSpecification = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type EQUALS 'elasticsearch'"
+const defaultMatchSpecification = "entity.name@dest CONTAINS 'foo' AND entity.type@dest EQUALS 'mysql' OR entity.type@dest EQUALS 'elasticsearch'"
 
 var defaultMatchSpecificationModel = restapi.NewBinaryOperator(
 	restapi.NewBinaryOperator(
-		restapi.NewComparisionExpression("entity.name", restapi.ContainsOperator, "foo"),
+		restapi.NewComparisionExpression("entity.name", restapi.MatcherExpressionEntityDestination, restapi.ContainsOperator, "foo"),
 		restapi.LogicalAnd,
-		restapi.NewComparisionExpression("entity.type", restapi.EqualsOperator, "mysql"),
+		restapi.NewComparisionExpression("entity.type", restapi.MatcherExpressionEntityDestination, restapi.EqualsOperator, "mysql"),
 	),
 	restapi.LogicalOr,
-	restapi.NewComparisionExpression("entity.type", restapi.EqualsOperator, "elasticsearch"))
+	restapi.NewComparisionExpression("entity.type", restapi.MatcherExpressionEntityDestination, restapi.EqualsOperator, "elasticsearch"))
 
 const applicationConfigID = "application-config-id"
 
@@ -215,7 +218,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 }
 
 func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsNotalid(t *testing.T) {
-	comparision := restapi.NewComparisionExpression("entity.name", "INVALID", "foo")
+	comparision := restapi.NewComparisionExpression("entity.name", restapi.MatcherExpressionEntityDestination, "INVALID", "foo")
 	label := "label"
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 applicationConfigID,

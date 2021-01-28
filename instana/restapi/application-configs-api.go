@@ -213,30 +213,70 @@ type BinaryOperator struct {
 }
 
 //NewComparisionExpression creates and new tag matcher expression for a comparision
-func NewComparisionExpression(key string, operator MatcherOperator, value string) MatchExpression {
+func NewComparisionExpression(key string, entity MatcherExpressionEntity, operator MatcherOperator, value string) MatchExpression {
 	return TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
+		Entity:   entity,
 		Operator: operator,
 		Value:    &value,
 	}
 }
 
 //NewUnaryOperationExpression creates and new tag matcher expression for a unary operation
-func NewUnaryOperationExpression(key string, operator MatcherOperator) MatchExpression {
+func NewUnaryOperationExpression(key string, entity MatcherExpressionEntity, operator MatcherOperator) MatchExpression {
 	return TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
+		Entity:   entity,
 		Operator: operator,
 	}
 }
 
+//MatcherExpressionEntity type representing the matcher expression entity of a Matcher Expression (either source or destination or not applicable)
+type MatcherExpressionEntity string
+
+//MatcherExpressionEntities custom type representing a slice of MatcherExpressionEntity
+type MatcherExpressionEntities []MatcherExpressionEntity
+
+//ToStringSlice Returns the string representations fo the aggregations
+func (types MatcherExpressionEntities) ToStringSlice() []string {
+	result := make([]string, len(types))
+	for i, v := range types {
+		result[i] = string(v)
+	}
+	return result
+}
+
+const (
+	//MatcherExpressionEntitySource const for a SOURCE matcher expression entity
+	MatcherExpressionEntitySource = MatcherExpressionEntity("SOURCE")
+	//MatcherExpressionEntityDestination const for a DESTINATION matcher expression entity
+	MatcherExpressionEntityDestination = MatcherExpressionEntity("DESTINATION")
+	//MatcherExpressionEntityNotApplicable const for a NOT_APPLICABLE matcher expression entity
+	MatcherExpressionEntityNotApplicable = MatcherExpressionEntity("NOT_APPLICABLE")
+)
+
+//SupportedMatcherExpressionEntities slice of supported matcher expression entity types
+var SupportedMatcherExpressionEntities = MatcherExpressionEntities{MatcherExpressionEntitySource, MatcherExpressionEntityDestination, MatcherExpressionEntityNotApplicable}
+
+//IsSupportedMatcherExpressionEntity check if the provided matcher expression entity is supported
+func IsSupportedMatcherExpressionEntity(entity MatcherExpressionEntity) bool {
+	for _, v := range SupportedMatcherExpressionEntities {
+		if v == entity {
+			return true
+		}
+	}
+	return false
+}
+
 //TagMatcherExpression is the representation of a tag matcher expression in Instana
 type TagMatcherExpression struct {
-	Dtype    MatchExpressionType `json:"type"`
-	Key      string              `json:"key"`
-	Operator MatcherOperator     `json:"operator"`
-	Value    *string             `json:"value"`
+	Dtype    MatchExpressionType     `json:"type"`
+	Key      string                  `json:"key"`
+	Entity   MatcherExpressionEntity `json:"entity"`
+	Operator MatcherOperator         `json:"operator"`
+	Value    *string                 `json:"value"`
 }
 
 //ApplicationConfig is the representation of a application perspective configuration in Instana
