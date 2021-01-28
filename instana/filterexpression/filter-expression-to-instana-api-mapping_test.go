@@ -6,7 +6,11 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+const (
+	entitySpecKey = "key"
 )
 
 func TestShouldMapSimpleComparisionToRepresentationOfInstanaAPI(t *testing.T) {
@@ -22,7 +26,7 @@ func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operator restapi
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						Comparision: &ComparisionExpression{
-							Entity:   &EntitySpec{Key: "key", Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Key: entitySpecKey, Origin: EntityOriginDestination},
 							Operator: Operator(operator),
 							Value:    "value",
 						},
@@ -31,7 +35,7 @@ func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operator restapi
 			},
 		}
 
-		expectedResult := restapi.NewComparisionExpression("key", restapi.MatcherExpressionEntityDestination, operator, "value")
+		expectedResult := restapi.NewComparisionExpression(entitySpecKey, restapi.MatcherExpressionEntityDestination, operator, "value")
 		runTestCaseForMappingToAPI(expr, expectedResult, t)
 	}
 }
@@ -49,7 +53,7 @@ func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName r
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: "key", Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Key: entitySpecKey, Origin: EntityOriginDestination},
 							Operator: Operator(operatorName),
 						},
 					},
@@ -57,7 +61,7 @@ func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName r
 			},
 		}
 
-		expectedResult := restapi.NewUnaryOperationExpression("key", restapi.MatcherExpressionEntityDestination, operatorName)
+		expectedResult := restapi.NewUnaryOperationExpression(entitySpecKey, restapi.MatcherExpressionEntityDestination, operatorName)
 		runTestCaseForMappingToAPI(expr, expectedResult, t)
 	}
 }
@@ -66,7 +70,7 @@ func TestShouldMapLogicalAndExpression(t *testing.T) {
 	logicalAnd := Operator(restapi.LogicalAnd)
 	primaryExpression := PrimaryExpression{
 		UnaryOperation: &UnaryOperationExpression{
-			Entity:   &EntitySpec{Key: "key", Origin: EntityOriginDestination},
+			Entity:   &EntitySpec{Key: entitySpecKey, Origin: EntityOriginDestination},
 			Operator: Operator(restapi.IsEmptyOperator),
 		},
 	}
@@ -82,7 +86,7 @@ func TestShouldMapLogicalAndExpression(t *testing.T) {
 		},
 	}
 
-	expectedPrimaryExpression := restapi.NewUnaryOperationExpression("key", restapi.MatcherExpressionEntityDestination, restapi.IsEmptyOperator)
+	expectedPrimaryExpression := restapi.NewUnaryOperationExpression(entitySpecKey, restapi.MatcherExpressionEntityDestination, restapi.IsEmptyOperator)
 	expectedResult := restapi.NewBinaryOperator(expectedPrimaryExpression, restapi.LogicalAnd, expectedPrimaryExpression)
 	runTestCaseForMappingToAPI(expr, expectedResult, t)
 }
@@ -91,7 +95,7 @@ func TestShouldMapLogicalOrExpression(t *testing.T) {
 	logicalOr := Operator(restapi.LogicalOr)
 	primaryExpression := PrimaryExpression{
 		UnaryOperation: &UnaryOperationExpression{
-			Entity:   &EntitySpec{Key: "key", Origin: EntityOriginDestination},
+			Entity:   &EntitySpec{Key: entitySpecKey, Origin: EntityOriginDestination},
 			Operator: Operator(restapi.IsEmptyOperator),
 		},
 	}
@@ -109,14 +113,41 @@ func TestShouldMapLogicalOrExpression(t *testing.T) {
 		},
 	}
 
-	expectedPrimaryExpression := restapi.NewUnaryOperationExpression("key", restapi.MatcherExpressionEntityDestination, restapi.IsEmptyOperator)
+	expectedPrimaryExpression := restapi.NewUnaryOperationExpression(entitySpecKey, restapi.MatcherExpressionEntityDestination, restapi.IsEmptyOperator)
 	expectedResult := restapi.NewBinaryOperator(expectedPrimaryExpression, restapi.LogicalOr, expectedPrimaryExpression)
 	runTestCaseForMappingToAPI(expr, expectedResult, t)
+}
+
+func TestShouldMapEntityOriginDestination(t *testing.T) {
+	testShouldMapEntityOrigin(t, EntityOriginDestination, restapi.MatcherExpressionEntityDestination)
+}
+
+func TestShouldMapEntityOriginSource(t *testing.T) {
+	testShouldMapEntityOrigin(t, EntityOriginSource, restapi.MatcherExpressionEntitySource)
+}
+
+func testShouldMapEntityOrigin(t *testing.T, entityOrigin EntityOrigin, entity restapi.MatcherExpressionEntity) {
+	expression := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					UnaryOperation: &UnaryOperationExpression{
+						Entity:   &EntitySpec{Key: entitySpecKey, Origin: entityOrigin},
+						Operator: Operator(restapi.IsEmptyOperator),
+					},
+				},
+			},
+		},
+	}
+
+	expectedExpression := restapi.NewUnaryOperationExpression(entitySpecKey, entity, restapi.IsEmptyOperator)
+
+	runTestCaseForMappingToAPI(expression, expectedExpression, t)
 }
 
 func runTestCaseForMappingToAPI(input *FilterExpression, expectedResult restapi.MatchExpression, t *testing.T) {
 	mapper := NewMapper()
 	result := mapper.ToAPIModel(input)
 
-	assert.Equal(t, expectedResult, result)
+	require.Equal(t, expectedResult, result)
 }

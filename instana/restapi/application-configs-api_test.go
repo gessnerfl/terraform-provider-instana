@@ -342,6 +342,15 @@ func TestShouldFailToValidateComparisionExpressionWhenKeyIsMissing(t *testing.T)
 	assert.Contains(t, err.Error(), "key")
 }
 
+func TestShouldFailToValidateComparisionExpressionWhenEntityIsNotValid(t *testing.T) {
+	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntity("invalid"), EqualsOperator, valueFieldValue)
+
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "entity")
+}
+
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsMissing(t *testing.T) {
 	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, "", valueFieldValue)
 
@@ -393,6 +402,15 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenKeyIsMissing(t *testing.
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "key")
+}
+
+func TestShouldFailToValidateUnaryOperatorExpressionWhenEntityIsNotValid(t *testing.T) {
+	exp := NewUnaryOperationExpression(keyFieldValue, MatcherExpressionEntity("invalid"), IsEmptyOperator)
+
+	err := exp.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "entity")
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsMissing(t *testing.T) {
@@ -460,4 +478,24 @@ func TestShouldReturnfalseWhenApplicationConfigBoundaryScopeIsNotSupported(t *te
 
 func TestShouldReturnStringRepresentationOfSupporedApplicationConfigBoundaryScopes(t *testing.T) {
 	assert.Equal(t, []string{"ALL", "INBOUND", "DEFAULT"}, SupportedBoundaryScopes.ToStringSlice())
+}
+
+func TestShouldReturnTrueForAllSupportedMatcherExpressionEntities(t *testing.T) {
+	for _, entity := range SupportedMatcherExpressionEntities {
+		t.Run(fmt.Sprintf("TestShouldReturnTrueForSupportedMatcherExpressionEntity%s", string(entity)), createTestCaseToVerifySupportedMatcherExpressionEntity(entity))
+	}
+}
+
+func createTestCaseToVerifySupportedMatcherExpressionEntity(entity MatcherExpressionEntity) func(t *testing.T) {
+	return func(t *testing.T) {
+		assert.True(t, SupportedMatcherExpressionEntities.IsSupported(entity))
+	}
+}
+
+func TestShouldReturnfalseWhenMatcherExpressionEntityIsNotSupported(t *testing.T) {
+	assert.False(t, SupportedMatcherExpressionEntities.IsSupported(MatcherExpressionEntity(valueInvalid)))
+}
+
+func TestShouldReturnStringRepresentationOfSupporedMatcherExpressionEntities(t *testing.T) {
+	assert.Equal(t, []string{"SOURCE", "DESTINATION"}, SupportedMatcherExpressionEntities.ToStringSlice())
 }

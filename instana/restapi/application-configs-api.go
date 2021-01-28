@@ -240,9 +240,9 @@ type MatcherExpressionEntity string
 type MatcherExpressionEntities []MatcherExpressionEntity
 
 //ToStringSlice Returns the string representations fo the aggregations
-func (types MatcherExpressionEntities) ToStringSlice() []string {
-	result := make([]string, len(types))
-	for i, v := range types {
+func (entities MatcherExpressionEntities) ToStringSlice() []string {
+	result := make([]string, len(entities))
+	for i, v := range entities {
 		result[i] = string(v)
 	}
 	return result
@@ -253,16 +253,14 @@ const (
 	MatcherExpressionEntitySource = MatcherExpressionEntity("SOURCE")
 	//MatcherExpressionEntityDestination const for a DESTINATION matcher expression entity
 	MatcherExpressionEntityDestination = MatcherExpressionEntity("DESTINATION")
-	//MatcherExpressionEntityNotApplicable const for a NOT_APPLICABLE matcher expression entity
-	MatcherExpressionEntityNotApplicable = MatcherExpressionEntity("NOT_APPLICABLE")
 )
 
 //SupportedMatcherExpressionEntities slice of supported matcher expression entity types
-var SupportedMatcherExpressionEntities = MatcherExpressionEntities{MatcherExpressionEntitySource, MatcherExpressionEntityDestination, MatcherExpressionEntityNotApplicable}
+var SupportedMatcherExpressionEntities = MatcherExpressionEntities{MatcherExpressionEntitySource, MatcherExpressionEntityDestination}
 
-//IsSupportedMatcherExpressionEntity check if the provided matcher expression entity is supported
-func IsSupportedMatcherExpressionEntity(entity MatcherExpressionEntity) bool {
-	for _, v := range SupportedMatcherExpressionEntities {
+//IsSupported check if the provided matcher expression entity is supported
+func (entities MatcherExpressionEntities) IsSupported(entity MatcherExpressionEntity) bool {
+	for _, v := range entities {
 		if v == entity {
 			return true
 		}
@@ -364,6 +362,9 @@ func (t TagMatcherExpression) GetType() MatchExpressionType {
 func (t TagMatcherExpression) Validate() error {
 	if len(t.Key) == 0 {
 		return errors.New("key of tag expression is missing")
+	}
+	if !SupportedMatcherExpressionEntities.IsSupported(t.Entity) {
+		return fmt.Errorf("entity %s of tag expression is not supported", t.Entity)
 	}
 	if len(t.Operator) == 0 {
 		return errors.New("operator of tag expression is missing")

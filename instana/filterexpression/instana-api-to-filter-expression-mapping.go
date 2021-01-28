@@ -162,7 +162,7 @@ func (m *mapperImpl) mapPrimaryExpressionFromAPIModel(matcher *restapi.TagMatche
 func (m *mapperImpl) mapOrigin(entity restapi.MatcherExpressionEntity) (EntityOrigin, error) {
 	if entity == restapi.MatcherExpressionEntityDestination {
 		return EntityOriginDestination, nil
-	} else if entity == restapi.MatcherExpressionEntityDestination {
+	} else if entity == restapi.MatcherExpressionEntitySource {
 		return EntityOriginSource, nil
 	}
 	return EntityOriginDestination, fmt.Errorf("Invalid entity origin: %s is not a supported entity of an entity match specification leaf element", entity)
