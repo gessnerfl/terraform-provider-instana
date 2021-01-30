@@ -118,33 +118,6 @@ func TestShouldMapLogicalOrExpression(t *testing.T) {
 	runTestCaseForMappingToAPI(expr, expectedResult, t)
 }
 
-func TestShouldMapEntityOriginDestination(t *testing.T) {
-	testShouldMapEntityOrigin(t, EntityOriginDestination, restapi.MatcherExpressionEntityDestination)
-}
-
-func TestShouldMapEntityOriginSource(t *testing.T) {
-	testShouldMapEntityOrigin(t, EntityOriginSource, restapi.MatcherExpressionEntitySource)
-}
-
-func testShouldMapEntityOrigin(t *testing.T, entityOrigin EntityOrigin, entity restapi.MatcherExpressionEntity) {
-	expression := &FilterExpression{
-		Expression: &LogicalOrExpression{
-			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Key: entitySpecKey, Origin: entityOrigin},
-						Operator: Operator(restapi.IsEmptyOperator),
-					},
-				},
-			},
-		},
-	}
-
-	expectedExpression := restapi.NewUnaryOperationExpression(entitySpecKey, entity, restapi.IsEmptyOperator)
-
-	runTestCaseForMappingToAPI(expression, expectedExpression, t)
-}
-
 func runTestCaseForMappingToAPI(input *FilterExpression, expectedResult restapi.MatchExpression, t *testing.T) {
 	mapper := NewMapper()
 	result := mapper.ToAPIModel(input)

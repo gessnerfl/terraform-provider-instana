@@ -497,5 +497,5 @@ func TestShouldReturnfalseWhenMatcherExpressionEntityIsNotSupported(t *testing.T
 }
 
 func TestShouldReturnStringRepresentationOfSupporedMatcherExpressionEntities(t *testing.T) {
-	assert.Equal(t, []string{"SOURCE", "DESTINATION"}, SupportedMatcherExpressionEntities.ToStringSlice())
+	assert.Equal(t, []string{"SOURCE", "DESTINATION", "NOT_APPLICABLE"}, SupportedMatcherExpressionEntities.ToStringSlice())
 }

@@ -64,18 +64,6 @@ func TestShouldFailToMapComparisionWhenOperatorOfTagExpressionIsNotValid(t *test
 	require.Contains(t, err.Error(), comparision)
 }
 
-func TestShouldFailToMapComparisionWhenEntityOriginOfTagExpressionIsNotValid(t *testing.T) {
-	key := "key"
-	value := "value"
-	input := restapi.NewComparisionExpression(key, restapi.MatcherExpressionEntity("invalid"), restapi.StartsWithOperator, value)
-
-	mapper := NewMapper()
-	_, err := mapper.FromAPIModel(input)
-
-	require.NotNil(t, err)
-	require.Contains(t, err.Error(), invalidEntityOrigin)
-}
-
 func TestShouldMapValidUnaryOperationsOfTagExpression(t *testing.T) {
 	for _, v := range restapi.SupportedUnaryExpressionOperators {
 		t.Run(fmt.Sprintf("test mapping of %s ", v), testMappingOfUnaryOperationOfTagExpression(v))
@@ -114,46 +102,6 @@ func TestShouldFailToMapUnaryOperationWhenOperatorOfTagExpressionIsNotValid(t *t
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), invalidOperator)
 	require.Contains(t, err.Error(), unaryOperator)
-}
-
-func TestShouldMapUnaryExpressionWithEntityOriginSourceOfTagExpression(t *testing.T) {
-	testMappingOfUnaryEntityOfTagExpression(t, EntityOriginSource, restapi.MatcherExpressionEntitySource)
-}
-
-func TestShouldMapUnaryExpressionWithEntityOriginDestinationOfTagExpression(t *testing.T) {
-	testMappingOfUnaryEntityOfTagExpression(t, EntityOriginDestination, restapi.MatcherExpressionEntityDestination)
-}
-
-func testMappingOfUnaryEntityOfTagExpression(t *testing.T, entityOrigin EntityOrigin, entity restapi.MatcherExpressionEntity) {
-	key := "key"
-	input := restapi.NewUnaryOperationExpression(key, entity, restapi.NotEmptyOperator)
-
-	expectedResult := &FilterExpression{
-		Expression: &LogicalOrExpression{
-			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Key: key, Origin: entityOrigin},
-						Operator: Operator(restapi.NotEmptyOperator),
-					},
-				},
-			},
-		},
-	}
-
-	runTestCaseForMappingFromAPI(input, expectedResult, t)
-
-}
-
-func TestShouldFailToMapUnaryOperationWhenEntityOriginOfTagExpressionIsNotValid(t *testing.T) {
-	key := "key"
-	input := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntity("invalid"), restapi.IsBlankOperator)
-
-	mapper := NewMapper()
-	_, err := mapper.FromAPIModel(input)
-
-	require.NotNil(t, err)
-	require.Contains(t, err.Error(), invalidEntityOrigin)
 }
 
 func TestShouldFailMapToMapExpressionWhenTypeIsMissing(t *testing.T) {

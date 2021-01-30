@@ -2,10 +2,12 @@ package filterexpression
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/alecthomas/participle"
 	"github.com/alecthomas/participle/lexer"
+	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
 //ExpressionRenderer interface definition for all types of the Filter expression to render the corresponding value
@@ -14,14 +16,68 @@ type ExpressionRenderer interface {
 }
 
 //EntityOrigin custom type for the origin (source or destination) of a entity spec
-type EntityOrigin string
+type EntityOrigin interface {
+	//Key returns the key of the entity origin
+	Key() string
+	//MatcherExpressionEntity returns the Instana API Matcher Expression Entity
+	MatcherExpressionEntity() restapi.MatcherExpressionEntity
+}
 
-const (
+func newEntityOrigin(key string, entity restapi.MatcherExpressionEntity) EntityOrigin {
+	return &baseEntityOrigin{key: key, instanaAPIEntity: entity}
+}
+
+type baseEntityOrigin struct {
+	key              string
+	instanaAPIEntity restapi.MatcherExpressionEntity
+}
+
+//Key interface implementation of EntityOrigin
+func (o *baseEntityOrigin) Key() string {
+	return o.key
+}
+
+//MatcherExpressionEntity interface implementation of EntityOrigin
+func (o *baseEntityOrigin) MatcherExpressionEntity() restapi.MatcherExpressionEntity {
+	return o.instanaAPIEntity
+}
+
+var (
 	//EntityOriginSource constant value for the source EntityOrigin
-	EntityOriginSource = EntityOrigin("src")
+	EntityOriginSource = newEntityOrigin("src", restapi.MatcherExpressionEntitySource)
 	//EntityOriginDestination constant value for the destination EntityOrigin
-	EntityOriginDestination = EntityOrigin("dest")
+	EntityOriginDestination = newEntityOrigin("dest", restapi.MatcherExpressionEntityDestination)
+	//EntityOriginNotApplicable constant value for the not applicable EntityOrigin
+	EntityOriginNotApplicable = newEntityOrigin("na", restapi.MatcherExpressionEntityNotApplicable)
 )
+
+//EntityOrigins custom type for a slice of entity origins
+type EntityOrigins []EntityOrigin
+
+//ForInstanaAPIEntity returns the EntityOrigin for its cooresponding MatchExpressionEntity from the Instana API
+func (origins EntityOrigins) ForInstanaAPIEntity(input restapi.MatcherExpressionEntity) EntityOrigin {
+	for _, o := range origins {
+		if o.MatcherExpressionEntity() == input {
+			return o
+		}
+	}
+	log.Printf("match specification entity %s is not supported; fall back to default origin %s", input, EntityOriginDestination.Key())
+	return EntityOriginDestination
+}
+
+//ForKey returns the EntityOrigin for its string representation
+func (origins EntityOrigins) ForKey(input string) EntityOrigin {
+	for _, o := range origins {
+		if o.Key() == input {
+			return o
+		}
+	}
+	log.Printf("entity origin %s is not supported; fall back to default origin %s", input, EntityOriginDestination.Key())
+	return EntityOriginDestination
+}
+
+//SupportedEntityOrigins slice of supported EntityOrigins
+var SupportedEntityOrigins = EntityOrigins{EntityOriginSource, EntityOriginDestination, EntityOriginNotApplicable}
 
 //EntitySpec custom type for any kind of entity path specification
 type EntitySpec struct {
@@ -36,7 +92,7 @@ func (o *EntitySpec) Capture(values []string) error {
 	if val == "@" {
 		o.OriginDefined = true
 	} else if o.OriginDefined {
-		o.Origin = EntityOrigin(strings.ToLower(val))
+		o.Origin = SupportedEntityOrigins.ForKey(val)
 	} else {
 		*o = EntitySpec{
 			Key:    values[0],
@@ -48,7 +104,7 @@ func (o *EntitySpec) Capture(values []string) error {
 
 //Render implementation of the ExpressionRenderer interface of EntitySpec
 func (o *EntitySpec) Render() string {
-	return o.Key + "@" + string(o.Origin)
+	return o.Key + "@" + string(o.Origin.Key())
 }
 
 //Operator custom type for any kind of operator
@@ -147,7 +203,7 @@ func (e *UnaryOperationExpression) Render() string {
 var (
 	filterLexer = lexer.Must(lexer.Regexp(`(\s+)` +
 		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|STARTS_WITH|ENDS_WITH|NOT_STARTS_WITH|NOT_ENDS_WITH|GREATER_OR_EQUAL_THAN|LESS_OR_EQUAL_THAN|LESS_THAN|GREATER_THAN)` +
-		`|(?P<EntityOrigin>(?i)src|dest)` +
+		`|(?P<EntityOrigin>(?i)src|dest|na)` +
 		`|(?P<EntityOriginOperator>(?i)@)` +
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_\-/]*)` +
 		`|(?P<Number>[-+]?\d+(\.\d+)?)` +

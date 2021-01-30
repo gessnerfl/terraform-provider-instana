@@ -253,10 +253,12 @@ const (
 	MatcherExpressionEntitySource = MatcherExpressionEntity("SOURCE")
 	//MatcherExpressionEntityDestination const for a DESTINATION matcher expression entity
 	MatcherExpressionEntityDestination = MatcherExpressionEntity("DESTINATION")
+	//MatcherExpressionEntityNotApplicable const for a NOT_APPLICABLE matcher expression entity
+	MatcherExpressionEntityNotApplicable = MatcherExpressionEntity("NOT_APPLICABLE")
 )
 
 //SupportedMatcherExpressionEntities slice of supported matcher expression entity types
-var SupportedMatcherExpressionEntities = MatcherExpressionEntities{MatcherExpressionEntitySource, MatcherExpressionEntityDestination}
+var SupportedMatcherExpressionEntities = MatcherExpressionEntities{MatcherExpressionEntitySource, MatcherExpressionEntityDestination, MatcherExpressionEntityNotApplicable}
 
 //IsSupported check if the provided matcher expression entity is supported
 func (entities MatcherExpressionEntities) IsSupported(entity MatcherExpressionEntity) bool {

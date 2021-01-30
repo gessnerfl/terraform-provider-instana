@@ -443,3 +443,27 @@ func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperati
 
 	require.Equal(t, expectedResult, rendered)
 }
+
+func TestShouldGetEntityOriginByKey(t *testing.T) {
+	for _, o := range SupportedEntityOrigins {
+		t.Run(fmt.Sprintf("TestShouldGetEntityOriginForKey%s", o.Key()), func(t *testing.T) {
+			require.Equal(t, o, SupportedEntityOrigins.ForKey(o.Key()))
+		})
+	}
+}
+
+func TestShouldReturnEntityOriginDestinationAsFallbackValueWhenKeyIsNotValid(t *testing.T) {
+	require.Equal(t, EntityOriginDestination, SupportedEntityOrigins.ForKey("invalid"))
+}
+
+func TestShouldGetEntityOriginByInstanaAPIEntity(t *testing.T) {
+	for _, e := range restapi.SupportedMatcherExpressionEntities {
+		t.Run(fmt.Sprintf("TestShouldGetEntityOriginForInstanaAPIEntity%s", e), func(t *testing.T) {
+			require.Equal(t, e, SupportedEntityOrigins.ForInstanaAPIEntity(e).MatcherExpressionEntity())
+		})
+	}
+}
+
+func TestShouldReturnEntityOriginDestinationAsFallbackValueWhenMatcherExpressionEntityIsNotValid(t *testing.T) {
+	require.Equal(t, EntityOriginDestination, SupportedEntityOrigins.ForInstanaAPIEntity(restapi.MatcherExpressionEntity("invalid")))
+}

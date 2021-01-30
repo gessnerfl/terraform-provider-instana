@@ -132,10 +132,7 @@ func (m *mapperImpl) mapLogicalAndFromAPIModel(left *expressionHandle, right *ex
 }
 
 func (m *mapperImpl) mapPrimaryExpressionFromAPIModel(matcher *restapi.TagMatcherExpression) (*PrimaryExpression, error) {
-	origin, err := m.mapOrigin(matcher.Entity)
-	if err != nil {
-		return nil, err
-	}
+	origin := SupportedEntityOrigins.ForInstanaAPIEntity(matcher.Entity)
 	if matcher.Value != nil {
 		if !restapi.IsSupportedComparision(matcher.Operator) {
 			return nil, fmt.Errorf("invalid operator: %s is not a supported comparision operator", matcher.Operator)
@@ -157,15 +154,6 @@ func (m *mapperImpl) mapPrimaryExpressionFromAPIModel(matcher *restapi.TagMatche
 			Operator: Operator(matcher.Operator),
 		},
 	}, nil
-}
-
-func (m *mapperImpl) mapOrigin(entity restapi.MatcherExpressionEntity) (EntityOrigin, error) {
-	if entity == restapi.MatcherExpressionEntityDestination {
-		return EntityOriginDestination, nil
-	} else if entity == restapi.MatcherExpressionEntitySource {
-		return EntityOriginSource, nil
-	}
-	return EntityOriginDestination, fmt.Errorf("Invalid entity origin: %s is not a supported entity of an entity match specification leaf element", entity)
 }
 
 type expressionHandle struct {
