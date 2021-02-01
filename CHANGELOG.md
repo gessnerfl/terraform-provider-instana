@@ -1,5 +1,23 @@
 # Changelog
 
+## [v0.10.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.10.0) (2021-02-01)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.2...v0.10.0)
+
+**Closed issues:**
+
+- Add support for application config -\> matchspecification -\> entity? [\#84](https://github.com/gessnerfl/terraform-provider-instana/issues/84)
+- Add support to website monitoring [\#72](https://github.com/gessnerfl/terraform-provider-instana/issues/72)
+- Improve system to support rest resources with separated create and update endpoints [\#79](https://github.com/gessnerfl/terraform-provider-instana/issues/79)
+- Support SLI Configuration [\#77](https://github.com/gessnerfl/terraform-provider-instana/issues/77)
+
+**Merged pull requests:**
+
+- Feature/84 support entity origin in app config match spec [\#85](https://github.com/gessnerfl/terraform-provider-instana/pull/85) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/72 website monitoring [\#82](https://github.com/gessnerfl/terraform-provider-instana/pull/82) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/77 sli configuration [\#81](https://github.com/gessnerfl/terraform-provider-instana/pull/81) ([jonassiefker](https://github.com/jonassiefker))
+- Feature/79 rest resource improvement [\#80](https://github.com/gessnerfl/terraform-provider-instana/pull/80) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.9.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.9.2) (2020-11-10)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.1...v0.9.2)
