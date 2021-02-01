@@ -40,11 +40,26 @@ match_specification       := logical_or
 binary_operation          := logical_and OR logical_or | logical_and
 logical_and               := primary_expression AND logical_and | primary_expression
 primary_expression        := comparison | unary_operator_expression
-comparison                := key comparison_operator value
+comparison                := key comparison_operator value | key@entity_origin comparison_operator value
 comparison_operator       := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN | STARTS_WITH | ENDS_WITH | NOT_STARTS_WITH | NOT_ENDS_WITH | GREATER_OR_EQUAL_THAN | LESS_OR_EQUAL_THAN | LESS_THAN | GREATER_THAN
-unary_operator_expression := key unary_operator
+unary_operator_expression := key unary_operator | key@entity_origin unary_operator
 unary_operator            := IS_EMPTY | NOT_EMPTY | IS_BLANK | NOT_BLANK
+entity_origin             := src | dest | na
 key                       := [a-zA-Z][\.a-zA-Z0-9_\-/]*
 value                     := "'" <string> "'"
 
+```
+
+#### Examples:
+
+**Basic**
+
+```plain
+entity.service.name EQUALS 'my-service' AND entity.tag:stage EQUALS 'PROD'
+```
+
+**Calls filtered on source**
+
+```plain
+entity.service.name@src EQUALS 'my-service' AND entity.tag:stage@src EQUALS 'PROD'
 ```
