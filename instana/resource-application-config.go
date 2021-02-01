@@ -158,7 +158,7 @@ func mapExpressionStringToAPIModel(input string) (restapi.MatchExpression, error
 }
 
 func getMatchExpressionFieldToMapToAPIModel(d *schema.ResourceData) string {
-	if d.HasChange(ApplicationConfigFieldLabel) {
+	if d.HasChange(ApplicationConfigFieldMatchSpecification) {
 		return d.Get(ApplicationConfigFieldMatchSpecification).(string)
 	}
 	return d.Get(ApplicationConfigFieldNormalizedMatchSpecification).(string)
