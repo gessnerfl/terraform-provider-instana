@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -18,10 +17,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testCustomEventSpecificationWithThresholdRuleProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTemplate = `
 provider "instana" {
@@ -212,7 +207,7 @@ func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServ
 	completeTerraformDefinitionWithName2 := strings.ReplaceAll(completeTerraformDefinitionWithoutName, "{{ITERATION}}", "1")
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testCustomEventSpecificationWithThresholdRuleProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: completeTerraformDefinitionWithName1,

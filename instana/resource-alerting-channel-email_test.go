@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -19,10 +18,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
-
-var testAlertingChannelEmailProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceAlertingChannelEmailDefinitionTemplate = `
 provider "instana" {
@@ -73,7 +68,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 	emailAddress1 := "EMAIL1"
 	emailAddress2 := "EMAIL2"
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testAlertingChannelEmailProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithoutName0,

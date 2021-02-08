@@ -18,6 +18,7 @@ const (
 //InstanaAPI is the interface to all resources of the Instana Rest API
 type InstanaAPI interface {
 	CustomEventSpecifications() RestResource
+	BuiltinEventSpecifications() ReadOnlyRestResource
 	UserRoles() RestResource
 	ApplicationConfigs() RestResource
 	AlertingChannels() RestResource
@@ -39,6 +40,11 @@ type baseInstanaAPI struct {
 //CustomEventSpecifications implementation of InstanaAPI interface
 func (api *baseInstanaAPI) CustomEventSpecifications() RestResource {
 	return NewPUTOnlyRestResource(CustomEventSpecificationResourcePath, NewCustomEventSpecificationUnmarshaller(), api.client)
+}
+
+//CustomEventSpecifications implementation of InstanaAPI interface
+func (api *baseInstanaAPI) BuiltinEventSpecifications() ReadOnlyRestResource {
+	return NewReadOnlyRestResource(BuiltinEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&BuiltinEventSpecification{}), NewDefaultJSONUnmarshaller(&[]BuiltinEventSpecification{}), api.client)
 }
 
 //UserRoles implementation of InstanaAPI interface

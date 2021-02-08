@@ -47,6 +47,20 @@ func (mr *MockInstanaAPIMockRecorder) CustomEventSpecifications() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CustomEventSpecifications", reflect.TypeOf((*MockInstanaAPI)(nil).CustomEventSpecifications))
 }
 
+// BuiltinEventSpecifications mocks base method
+func (m *MockInstanaAPI) BuiltinEventSpecifications() restapi.ReadOnlyRestResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BuiltinEventSpecifications")
+	ret0, _ := ret[0].(restapi.ReadOnlyRestResource)
+	return ret0
+}
+
+// BuiltinEventSpecifications indicates an expected call of BuiltinEventSpecifications
+func (mr *MockInstanaAPIMockRecorder) BuiltinEventSpecifications() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuiltinEventSpecifications", reflect.TypeOf((*MockInstanaAPI)(nil).BuiltinEventSpecifications))
+}
+
 // UserRoles mocks base method
 func (m *MockInstanaAPI) UserRoles() restapi.RestResource {
 	m.ctrl.T.Helper()

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
-	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -16,38 +15,31 @@ func TestProviderShouldValidateInternally(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestValidConfigurationOfProvider(t *testing.T) {
+func TestProviderShouldContainValidSchemaDefinition(t *testing.T) {
 	config := Provider()
 
 	assert.NotNil(t, config.Schema)
-	validateSchema(config.Schema, t)
+	assert.Equal(t, 4, len(config.Schema))
 
-	assert.NotNil(t, config.ResourcesMap)
-	validateResourcesMap(config.ResourcesMap, t)
-
-	assert.NotNil(t, config.ConfigureFunc)
-}
-
-func validateSchema(schemaMap map[string]*schema.Schema, t *testing.T) {
-	assert.Equal(t, 4, len(schemaMap))
-
-	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	schemaAssert := testutils.NewTerraformSchemaAssert(config.Schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldAPIToken)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldEndpoint)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(SchemaFieldDefaultNamePrefix, "")
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(SchemaFieldDefaultNameSuffix, "(TF managed)")
 }
 
-func validateResourcesMap(resourceMap map[string]*schema.Resource, t *testing.T) {
-	assert.Equal(t, 17, len(resourceMap))
+func TestProviderShouldContainValidResourceDefinitions(t *testing.T) {
+	config := Provider()
 
-	assert.NotNil(t, resourceMap[ResourceInstanaUserRole])
-	assert.NotNil(t, resourceMap[ResourceInstanaApplicationConfig])
-	assert.NotNil(t, resourceMap[ResourceInstanaSliConfig])
-	assert.NotNil(t, resourceMap[ResourceInstanaWebsiteMonitoringConfig])
+	assert.Equal(t, 17, len(config.ResourcesMap))
 
-	validateResourcesMapForCustomEvents(resourceMap, t)
-	validateResourcesMapForAlerting(resourceMap, t)
+	assert.NotNil(t, config.ResourcesMap[ResourceInstanaUserRole])
+	assert.NotNil(t, config.ResourcesMap[ResourceInstanaApplicationConfig])
+	assert.NotNil(t, config.ResourcesMap[ResourceInstanaSliConfig])
+	assert.NotNil(t, config.ResourcesMap[ResourceInstanaWebsiteMonitoringConfig])
+
+	validateResourcesMapForCustomEvents(config.ResourcesMap, t)
+	validateResourcesMapForAlerting(config.ResourcesMap, t)
 }
 
 func validateResourcesMapForCustomEvents(resourceMap map[string]*schema.Resource, t *testing.T) {
@@ -69,15 +61,10 @@ func validateResourcesMapForAlerting(resourceMap map[string]*schema.Resource, t 
 	assert.NotNil(t, resourceMap[ResourceInstanaAlertingConfig])
 }
 
-func validateConfigureFunc(schemaMap map[string]*schema.Schema, configureFunc func(*schema.ResourceData) (interface{}, error), t *testing.T) {
-	data := make(map[string]interface{})
-	data[SchemaFieldAPIToken] = "api-token"
-	data[SchemaFieldEndpoint] = "instana.io"
-	resourceData := schema.TestResourceDataRaw(t, schemaMap, data)
+func TestProviderShouldContainValidDataSourceeDefinitions(t *testing.T) {
+	config := Provider()
 
-	result, err := configureFunc(resourceData)
+	assert.Equal(t, 1, len(config.DataSourcesMap))
 
-	assert.Nil(t, err)
-	_, ok := result.(restapi.InstanaAPI)
-	assert.True(t, ok)
+	assert.NotNil(t, config.DataSourcesMap[DataSourceBuiltinEvent])
 }

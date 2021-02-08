@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -17,10 +16,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testCustomEventSpecificationWithEntityVerificationRuleProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate = `
 provider "instana" {
@@ -98,7 +93,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 	resourceCustomEventSpecificationWithEntityVerificationRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testCustomEventSpecificationWithEntityVerificationRuleProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceCustomEventSpecificationWithEntityVerificationRuleDefinition,

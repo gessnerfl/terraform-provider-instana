@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -18,10 +17,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testAlertingChannelWebhookProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceAlertingChannelWebhookDefinitionTemplate = `
 provider "instana" {
@@ -77,7 +72,7 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 	url1 := "url1"
 	url2 := "url2"
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testAlertingChannelWebhookProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithoutName0,

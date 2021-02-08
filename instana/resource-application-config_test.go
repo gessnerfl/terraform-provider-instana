@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -16,10 +15,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testApplicationConfigProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceApplicationConfigDefinitionTemplate = `
 provider "instana" {
@@ -116,7 +111,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithLabel1 := strings.ReplaceAll(resourceDefinitionWithoutLabel, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testApplicationConfigProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithLabel0,

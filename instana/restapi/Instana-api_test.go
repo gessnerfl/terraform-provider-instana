@@ -15,6 +15,12 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 
 		require.NotNil(t, resource)
 	})
+
+	t.Run("Should return BuiltinEventSpecifications instance", func(t *testing.T) {
+		resource := api.BuiltinEventSpecifications()
+
+		require.NotNil(t, resource)
+	})
 	t.Run("Should return UserRole instance", func(t *testing.T) {
 		resource := api.UserRoles()
 

@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -18,10 +17,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testAlertingConfigProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceAlertingConfigTerraformTemplateWithRuleIds = `
 provider "instana" {
@@ -80,7 +75,6 @@ const alertingConfigServerResponseTemplateWithEventTypes = `
 `
 
 const iteratorPlaceholder = "{{ITERATOR}}"
-const contentType = "Content-Type"
 const alertingConfigApiPath = restapi.AlertsResourcePath + "/{id}"
 const testAlertingConfigDefinitionWithRuleIds = "instana_alerting_config.rule_ids"
 const testAlertingConfigDefinitionWithEventTypes = "instana_alerting_config.event_types"
@@ -108,7 +102,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 	rule2 := "rule-2"
 	hashFunctionRules := schema.HashSchema(AlertingConfigSchemaEventFilterRuleIDs.Elem.(*schema.Schema))
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testAlertingConfigProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithoutName0,
@@ -151,7 +145,7 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 
 	hashFunctionEventTypes := schema.HashSchema(AlertingConfigSchemaEventFilterEventTypes.Elem.(*schema.Schema))
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testAlertingConfigProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithoutName0,

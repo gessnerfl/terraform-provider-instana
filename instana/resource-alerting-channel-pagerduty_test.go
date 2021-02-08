@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -16,10 +15,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testAlertingChannelPagerDutyProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceAlertingChannelPagerDutyDefinitionTemplate = `
 provider "instana" {
@@ -67,7 +62,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testAlertingChannelPagerDutyProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithoutName0,

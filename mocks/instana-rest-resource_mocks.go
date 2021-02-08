@@ -157,6 +157,59 @@ func (mr *MockRestResourceMockRecorder) DeleteByID(id interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockRestResource)(nil).DeleteByID), id)
 }
 
+// MockReadOnlyRestResource is a mock of ReadOnlyRestResource interface
+type MockReadOnlyRestResource struct {
+	ctrl     *gomock.Controller
+	recorder *MockReadOnlyRestResourceMockRecorder
+}
+
+// MockReadOnlyRestResourceMockRecorder is the mock recorder for MockReadOnlyRestResource
+type MockReadOnlyRestResourceMockRecorder struct {
+	mock *MockReadOnlyRestResource
+}
+
+// NewMockReadOnlyRestResource creates a new mock instance
+func NewMockReadOnlyRestResource(ctrl *gomock.Controller) *MockReadOnlyRestResource {
+	mock := &MockReadOnlyRestResource{ctrl: ctrl}
+	mock.recorder = &MockReadOnlyRestResourceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockReadOnlyRestResource) EXPECT() *MockReadOnlyRestResourceMockRecorder {
+	return m.recorder
+}
+
+// GetAll mocks base method
+func (m *MockReadOnlyRestResource) GetAll() (*[]restapi.InstanaDataObject, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll")
+	ret0, _ := ret[0].(*[]restapi.InstanaDataObject)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll
+func (mr *MockReadOnlyRestResourceMockRecorder) GetAll() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockReadOnlyRestResource)(nil).GetAll))
+}
+
+// GetOne mocks base method
+func (m *MockReadOnlyRestResource) GetOne(id string) (restapi.InstanaDataObject, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOne", id)
+	ret0, _ := ret[0].(restapi.InstanaDataObject)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOne indicates an expected call of GetOne
+func (mr *MockReadOnlyRestResourceMockRecorder) GetOne(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockReadOnlyRestResource)(nil).GetOne), id)
+}
+
 // MockUnmarshaller is a mock of Unmarshaller interface
 type MockUnmarshaller struct {
 	ctrl     *gomock.Controller
@@ -193,4 +246,42 @@ func (m *MockUnmarshaller) Unmarshal(data []byte) (restapi.InstanaDataObject, er
 func (mr *MockUnmarshallerMockRecorder) Unmarshal(data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unmarshal", reflect.TypeOf((*MockUnmarshaller)(nil).Unmarshal), data)
+}
+
+// MockJSONUnmarshaller is a mock of JSONUnmarshaller interface
+type MockJSONUnmarshaller struct {
+	ctrl     *gomock.Controller
+	recorder *MockJSONUnmarshallerMockRecorder
+}
+
+// MockJSONUnmarshallerMockRecorder is the mock recorder for MockJSONUnmarshaller
+type MockJSONUnmarshallerMockRecorder struct {
+	mock *MockJSONUnmarshaller
+}
+
+// NewMockJSONUnmarshaller creates a new mock instance
+func NewMockJSONUnmarshaller(ctrl *gomock.Controller) *MockJSONUnmarshaller {
+	mock := &MockJSONUnmarshaller{ctrl: ctrl}
+	mock.recorder = &MockJSONUnmarshallerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockJSONUnmarshaller) EXPECT() *MockJSONUnmarshallerMockRecorder {
+	return m.recorder
+}
+
+// Unmarshal mocks base method
+func (m *MockJSONUnmarshaller) Unmarshal(data []byte) (interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Unmarshal", data)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Unmarshal indicates an expected call of Unmarshal
+func (mr *MockJSONUnmarshallerMockRecorder) Unmarshal(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unmarshal", reflect.TypeOf((*MockJSONUnmarshaller)(nil).Unmarshal), data)
 }

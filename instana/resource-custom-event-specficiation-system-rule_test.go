@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -16,10 +15,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testCustomEventSpecificationWithSystemRuleProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate = `
 provider "instana" {
@@ -88,7 +83,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 	resourceCustomEventSpecificationWithSystemRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testCustomEventSpecificationWithSystemRuleProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceCustomEventSpecificationWithSystemRuleDefinition,

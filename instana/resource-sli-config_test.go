@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -18,10 +17,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testSliConfigProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const sliConfigTerraformTemplate = `
 provider "instana" {
@@ -109,7 +104,7 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 	resourceDefinitionWithName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testSliConfigProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithName0,
