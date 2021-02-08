@@ -96,24 +96,10 @@ func TestDataSourceBuiltinEventDefinition(t *testing.T) {
 }
 
 func TestShouldSuccessFullyReadBuiltInEventWhenResponseContainsAnObjectWithTheExactNameAndShortPluginID(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	sut := NewBuiltinEventDataSource().CreateResource()
-
 	requestedName := "name-5"
 	requestedPluginId := "plugin-id-5"
 
-	response := createBuiltinEventSpecifications(10)
-	builtInEventSpecificationAPI := mocks.NewMockReadOnlyRestResource(ctrl)
-	builtInEventSpecificationAPI.EXPECT().GetAll().Times(1).Return(response, nil)
-	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
-	mockInstanaAPI.EXPECT().BuiltinEventSpecifications().Times(1).Return(builtInEventSpecificationAPI)
-
-	meta := &ProviderMeta{InstanaAPI: mockInstanaAPI}
-	resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{BuiltinEventSpecificationFieldName: requestedName, BuiltinEventSpecificationFieldShortPluginID: requestedPluginId})
-
-	err := sut.Read(resourceData, meta)
+	resourceData, err := executeReadWithTenGeneratedObjectsAsResponse(requestedName, requestedPluginId, t)
 
 	require.NoError(t, err)
 	require.Equal(t, "id-5", resourceData.Id())
@@ -127,13 +113,20 @@ func TestShouldSuccessFullyReadBuiltInEventWhenResponseContainsAnObjectWithTheEx
 }
 
 func TestShouldFailtToReadBuiltInEventWhenNoObjectFromResponseMatchesTheNameAndShortPluginIDCombination(t *testing.T) {
+	requestedName := "name-invalid"
+	requestedPluginId := "plugin-id-invalid"
+
+	_, err := executeReadWithTenGeneratedObjectsAsResponse(requestedName, requestedPluginId, t)
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "No built in event found")
+}
+
+func executeReadWithTenGeneratedObjectsAsResponse(requestedName string, requestedPluginId string, t *testing.T) (*schema.ResourceData, error) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	sut := NewBuiltinEventDataSource().CreateResource()
-
-	requestedName := "name-invalid"
-	requestedPluginId := "plugin-id-invalid"
 
 	response := createBuiltinEventSpecifications(10)
 	builtInEventSpecificationAPI := mocks.NewMockReadOnlyRestResource(ctrl)
@@ -145,9 +138,10 @@ func TestShouldFailtToReadBuiltInEventWhenNoObjectFromResponseMatchesTheNameAndS
 	resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{BuiltinEventSpecificationFieldName: requestedName, BuiltinEventSpecificationFieldShortPluginID: requestedPluginId})
 
 	err := sut.Read(resourceData, meta)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "No built in event found")
+	if err != nil {
+		return nil, err
+	}
+	return resourceData, nil
 }
 
 func TestShouldFailtToReadBuiltInEventWhenAPIRequestFails(t *testing.T) {
