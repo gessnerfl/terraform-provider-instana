@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -16,10 +15,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testUserRoleProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceUserRoleDefinitionTemplate = `
 provider "instana" {
@@ -137,7 +132,7 @@ func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 	resourceUserRoleDefinition := strings.ReplaceAll(resourceUserRoleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testUserRoleProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceUserRoleDefinition,
@@ -253,7 +248,7 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForUserRole(t *
 		Name: userRoleNameFieldValue,
 	}
 
-	err := sut.UpdateState(resourceData, userRole)
+	err := sut.UpdateState(resourceData, &userRole)
 
 	assert.Nil(t, err)
 	assert.Equal(t, userRoleID, resourceData.Id())
@@ -530,7 +525,7 @@ func testSingleUserRolePermissionSet(t *testing.T, userRole restapi.UserRole, ex
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, userRole)
+	err := sut.UpdateState(resourceData, &userRole)
 
 	assert.Nil(t, err)
 	assert.True(t, resourceData.Get(expectedPermissionField).(bool))
@@ -576,31 +571,31 @@ func TestShouldConvertStateOfUserRoleTerraformResourceToDataModel(t *testing.T) 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.UserRole{}, model, "Model should be an alerting channel")
+	assert.IsType(t, &restapi.UserRole{}, model, "Model should be an alerting channel")
 	assert.Equal(t, userRoleID, model.GetID())
-	assert.Equal(t, userRoleNameFieldValue, model.(restapi.UserRole).Name)
-	assert.True(t, model.(restapi.UserRole).CanConfigureServiceMapping)
-	assert.True(t, model.(restapi.UserRole).CanConfigureEumApplications)
-	assert.True(t, model.(restapi.UserRole).CanConfigureMobileAppMonitoring)
-	assert.True(t, model.(restapi.UserRole).CanConfigureUsers)
-	assert.True(t, model.(restapi.UserRole).CanInstallNewAgents)
-	assert.True(t, model.(restapi.UserRole).CanSeeUsageInformation)
-	assert.True(t, model.(restapi.UserRole).CanConfigureIntegrations)
-	assert.True(t, model.(restapi.UserRole).CanSeeOnPremiseLicenseInformation)
-	assert.True(t, model.(restapi.UserRole).CanConfigureRoles)
-	assert.True(t, model.(restapi.UserRole).CanConfigureCustomAlerts)
-	assert.True(t, model.(restapi.UserRole).CanConfigureAPITokens)
-	assert.True(t, model.(restapi.UserRole).CanConfigureAgentRunMode)
-	assert.True(t, model.(restapi.UserRole).CanViewAuditLog)
-	assert.True(t, model.(restapi.UserRole).CanConfigureObjectives)
-	assert.True(t, model.(restapi.UserRole).CanConfigureAgents)
-	assert.True(t, model.(restapi.UserRole).CanConfigureAuthenticationMethods)
-	assert.True(t, model.(restapi.UserRole).CanConfigureApplications)
-	assert.True(t, model.(restapi.UserRole).CanConfigureTeams)
-	assert.True(t, model.(restapi.UserRole).RestrictedAccess)
-	assert.True(t, model.(restapi.UserRole).CanConfigureReleases)
-	assert.True(t, model.(restapi.UserRole).CanConfigureLogManagement)
-	assert.True(t, model.(restapi.UserRole).CanCreatePublicCustomDashboards)
-	assert.True(t, model.(restapi.UserRole).CanViewLogs)
-	assert.True(t, model.(restapi.UserRole).CanViewTraceDetails)
+	assert.Equal(t, userRoleNameFieldValue, model.(*restapi.UserRole).Name)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureServiceMapping)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureEumApplications)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureMobileAppMonitoring)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureUsers)
+	assert.True(t, model.(*restapi.UserRole).CanInstallNewAgents)
+	assert.True(t, model.(*restapi.UserRole).CanSeeUsageInformation)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureIntegrations)
+	assert.True(t, model.(*restapi.UserRole).CanSeeOnPremiseLicenseInformation)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureRoles)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureCustomAlerts)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureAPITokens)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureAgentRunMode)
+	assert.True(t, model.(*restapi.UserRole).CanViewAuditLog)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureObjectives)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureAgents)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureAuthenticationMethods)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureApplications)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureTeams)
+	assert.True(t, model.(*restapi.UserRole).RestrictedAccess)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureReleases)
+	assert.True(t, model.(*restapi.UserRole).CanConfigureLogManagement)
+	assert.True(t, model.(*restapi.UserRole).CanCreatePublicCustomDashboards)
+	assert.True(t, model.(*restapi.UserRole).CanViewLogs)
+	assert.True(t, model.(*restapi.UserRole).CanViewTraceDetails)
 }

@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -17,10 +16,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testCustomEventSpecificationWithEntityVerificationRuleProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate = `
 provider "instana" {
@@ -98,7 +93,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 	resourceCustomEventSpecificationWithEntityVerificationRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testCustomEventSpecificationWithEntityVerificationRuleProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceCustomEventSpecificationWithEntityVerificationRuleDefinition,
@@ -253,7 +248,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 	description := customEntityVerificationEventDescription
 	expirationTime := customEntityVerificationEventExpirationTime
 	query := customEntityVerificationEventQuery
-	spec := restapi.CustomEventSpecification{
+	spec := &restapi.CustomEventSpecification{
 		ID:             customEntityVerificationEventID,
 		Name:           customEntityVerificationEventName,
 		EntityType:     EntityVerificationRuleEntityType,
@@ -297,7 +292,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithEntityVe
 	description := customEntityVerificationEventDescription
 	expirationTime := customEntityVerificationEventExpirationTime
 	query := customEntityVerificationEventQuery
-	spec := restapi.CustomEventSpecification{
+	spec := &restapi.CustomEventSpecification{
 		ID:             customEntityVerificationEventID,
 		Name:           customEntityVerificationEventName,
 		EntityType:     EntityVerificationRuleEntityType,
@@ -348,8 +343,8 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(restapi.CustomEventSpecification)
+	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
+	customEventSpec := result.(*restapi.CustomEventSpecification)
 	assert.Equal(t, customEntityVerificationEventID, customEventSpec.GetID())
 	assert.Equal(t, customEntityVerificationEventName, customEventSpec.Name)
 	assert.Equal(t, EntityVerificationRuleEntityType, customEventSpec.EntityType)

@@ -50,7 +50,7 @@ func NewAlertingChannelEmailResourceHandle() *ResourceHandle {
 }
 
 func updateStateForAlertingChannelEmail(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	alertingChannel := obj.(restapi.AlertingChannel)
+	alertingChannel := obj.(*restapi.AlertingChannel)
 	emails := alertingChannel.Emails
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelEmailFieldEmails, emails)
@@ -60,7 +60,7 @@ func updateStateForAlertingChannelEmail(d *schema.ResourceData, obj restapi.Inst
 
 func mapStateToDataObjectForAlertingChannelEmail(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
-	return restapi.AlertingChannel{
+	return &restapi.AlertingChannel{
 		ID:     d.Id(),
 		Name:   name,
 		Kind:   restapi.EmailChannelType,

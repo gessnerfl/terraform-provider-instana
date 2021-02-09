@@ -15,7 +15,18 @@ type RestResource interface {
 	DeleteByID(id string) error
 }
 
-//Unmarshaller interface definition for unmarshalling the binary data to the desired struct
-type Unmarshaller interface {
-	Unmarshal(data []byte) (InstanaDataObject, error)
+//DataFilterFunc function definition for filtering data received from Instana API
+type DataFilterFunc func(o InstanaDataObject) bool
+
+//ReadOnlyRestResource interface definition for a read only REST resource. The resource at instana might
+//implement more methods but the implementation of the provider is limited to read only.
+type ReadOnlyRestResource interface {
+	GetAll() (*[]InstanaDataObject, error)
+	GetOne(id string) (InstanaDataObject, error)
+}
+
+//JSONUnmarshaller interface definition for unmarshalling that unmarshalls JSON to go data structures
+type JSONUnmarshaller interface {
+	//Unmarshal converts the provided json bytes into the go data data structure as provided in the target
+	Unmarshal(data []byte) (interface{}, error)
 }

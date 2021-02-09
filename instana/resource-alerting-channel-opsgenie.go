@@ -58,7 +58,7 @@ func NewAlertingChannelOpsGenieResourceHandle() *ResourceHandle {
 }
 
 func updateStateForAlertingChannelOpsGenie(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	alertingChannel := obj.(restapi.AlertingChannel)
+	alertingChannel := obj.(*restapi.AlertingChannel)
 	tags := convertCommaSeparatedListToSlice(*alertingChannel.Tags)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelOpsGenieFieldAPIKey, alertingChannel.APIKey)
@@ -74,7 +74,7 @@ func mapStateToDataObjectForAlertingChannelOpsGenie(d *schema.ResourceData, form
 	region := restapi.OpsGenieRegionType(d.Get(AlertingChannelOpsGenieFieldRegion).(string))
 	tags := strings.Join(ReadStringArrayParameterFromResource(d, AlertingChannelOpsGenieFieldTags), ",")
 
-	return restapi.AlertingChannel{
+	return &restapi.AlertingChannel{
 		ID:     d.Id(),
 		Name:   name,
 		Kind:   restapi.OpsGenieChannelType,

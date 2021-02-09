@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -18,10 +17,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testAlertingChannelWebhookProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceAlertingChannelWebhookDefinitionTemplate = `
 provider "instana" {
@@ -77,7 +72,7 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 	url1 := "url1"
 	url2 := "url2"
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testAlertingChannelWebhookProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithoutName0,
@@ -186,7 +181,7 @@ func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headers
 		Headers:     headersFromApi,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
@@ -211,11 +206,11 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
-	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Len(t, model.(restapi.AlertingChannel).WebhookURLs, 2)
-	assert.Contains(t, model.(restapi.AlertingChannel).WebhookURLs, "url1")
-	assert.Contains(t, model.(restapi.AlertingChannel).WebhookURLs, "url2")
-	assert.Equal(t, []string{}, model.(restapi.AlertingChannel).Headers, "There should be no headers")
+	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Len(t, model.(*restapi.AlertingChannel).WebhookURLs, 2)
+	assert.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url1")
+	assert.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url2")
+	assert.Equal(t, []string{}, model.(*restapi.AlertingChannel).Headers, "There should be no headers")
 }

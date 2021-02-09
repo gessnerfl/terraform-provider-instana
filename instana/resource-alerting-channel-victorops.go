@@ -40,7 +40,7 @@ func NewAlertingChannelVictorOpsResourceHandle() *ResourceHandle {
 }
 
 func updateStateForAlertingChannelVictorOps(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	alertingChannel := obj.(restapi.AlertingChannel)
+	alertingChannel := obj.(*restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelVictorOpsFieldAPIKey, alertingChannel.APIKey)
 	d.Set(AlertingChannelVictorOpsFieldRoutingKey, alertingChannel.RoutingKey)
@@ -52,7 +52,7 @@ func mapStateToDataObjectForAlertingChannelVictorOps(d *schema.ResourceData, for
 	name := computeFullAlertingChannelNameString(d, formatter)
 	apiKey := d.Get(AlertingChannelVictorOpsFieldAPIKey).(string)
 	routingKey := d.Get(AlertingChannelVictorOpsFieldRoutingKey).(string)
-	return restapi.AlertingChannel{
+	return &restapi.AlertingChannel{
 		ID:         d.Id(),
 		Name:       name,
 		Kind:       restapi.VictorOpsChannelType,

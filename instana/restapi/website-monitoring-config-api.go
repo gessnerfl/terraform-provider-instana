@@ -13,12 +13,12 @@ type WebsiteMonitoringConfig struct {
 }
 
 //GetID implemention of the interface InstanaDataObject
-func (r WebsiteMonitoringConfig) GetID() string {
+func (r *WebsiteMonitoringConfig) GetID() string {
 	return r.ID
 }
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (r WebsiteMonitoringConfig) Validate() error {
+func (r *WebsiteMonitoringConfig) Validate() error {
 	if len(r.Name) == 0 {
 		return errors.New("Name is missing")
 	}

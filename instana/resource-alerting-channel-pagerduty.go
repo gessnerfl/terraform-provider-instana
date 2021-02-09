@@ -33,7 +33,7 @@ func NewAlertingChannelPagerDutyResourceHandle() *ResourceHandle {
 }
 
 func updateStateForAlertingChannelPagerDuty(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	alertingChannel := obj.(restapi.AlertingChannel)
+	alertingChannel := obj.(*restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, alertingChannel.ServiceIntegrationKey)
 	d.SetId(alertingChannel.ID)
@@ -43,7 +43,7 @@ func updateStateForAlertingChannelPagerDuty(d *schema.ResourceData, obj restapi.
 func mapStateToDataObjectForAlertingChannelPagerDuty(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	serviceIntegrationKey := d.Get(AlertingChannelPagerDutyFieldServiceIntegrationKey).(string)
-	return restapi.AlertingChannel{
+	return &restapi.AlertingChannel{
 		ID:                    d.Id(),
 		Name:                  name,
 		Kind:                  restapi.PagerDutyChannelType,

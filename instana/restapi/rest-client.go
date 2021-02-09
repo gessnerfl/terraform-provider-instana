@@ -16,6 +16,7 @@ var ErrEntityNotFound = errors.New("Failed to get resource from Instana API. 404
 
 //RestClient interface to access REST resources of the Instana API
 type RestClient interface {
+	Get(resourcePath string) ([]byte, error)
 	GetOne(id string, resourcePath string) ([]byte, error)
 	Put(data InstanaDataObject, resourcePath string) ([]byte, error)
 	Delete(resourceID string, resourceBasePath string) error
@@ -63,6 +64,13 @@ type restClientImpl struct {
 }
 
 var emptyResponse = make([]byte, 0)
+
+//Get request data via HTTP GET for the given resourcePath
+func (client *restClientImpl) Get(resourcePath string) ([]byte, error) {
+	url := client.buildURL(resourcePath)
+	req := client.createRequest()
+	return client.executeRequest(resty.MethodGet, url, req)
+}
 
 //GetOne request the resource with the given ID
 func (client *restClientImpl) GetOne(id string, resourcePath string) ([]byte, error) {

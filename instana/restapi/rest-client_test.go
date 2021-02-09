@@ -16,6 +16,37 @@ const testID = "test-1234"
 const testData = "testData"
 const testPathWithID = testPath + "/" + testID
 
+func TestShouldReturnDataForSuccessfulGetRequest(t *testing.T) {
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, testPath)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	response, err := restClient.Get(testPath)
+
+	verifySuccessResponseData(response, err, t)
+}
+
+func TestShouldReturnErrorMessageForGetRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
+	statusCode := http.StatusBadRequest
+	httpServer := setupAndStartHttpServer(http.MethodGet, testPath, statusCode)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	_, err := restClient.Get(testPath)
+
+	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
+}
+
+func TestShouldReturnNotFoundErrorMessageForGetRequestWhenStatusIsNotEnityNotFound(t *testing.T) {
+	httpServer := setupAndStartHttpServer(http.MethodGet, testPath, http.StatusNotFound)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	data, err := restClient.Get(testPath)
+
+	verifyNotFoundResponse(data, err, t)
+}
+
 func TestShouldReturnDataForSuccessfulGetOneRequest(t *testing.T) {
 	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodGet, testPathWithID)
 	defer httpServer.Close()

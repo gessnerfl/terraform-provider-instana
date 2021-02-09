@@ -90,7 +90,7 @@ func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() *Reso
 }
 
 func updateStateForCustomEventSpecificationWithEntityVerificationRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	customEventSpecification := obj.(restapi.CustomEventSpecification)
+	customEventSpecification := obj.(*restapi.CustomEventSpecification)
 	updateStateForBasicCustomEventSpecification(d, customEventSpecification)
 
 	ruleSpec := customEventSpecification.Rules[0]
@@ -113,7 +113,7 @@ func updateStateForCustomEventSpecificationWithEntityVerificationRule(d *schema.
 func mapStateToDataObjectForCustomEventSpecificationWithEntityVerificationRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
-		return restapi.CustomEventSpecification{}, err
+		return &restapi.CustomEventSpecification{}, err
 	}
 	entityLabel := d.Get(EntityVerificationRuleFieldMatchingEntityLabel).(string)
 	entityType := d.Get(EntityVerificationRuleFieldMatchingEntityType).(string)
@@ -121,7 +121,7 @@ func mapStateToDataObjectForCustomEventSpecificationWithEntityVerificationRule(d
 	matchingOperatorString := d.Get(EntityVerificationRuleFieldMatchingOperator).(string)
 	matchingOperator, err := restapi.SupportedMatchingOperators.FromTerraformValue(matchingOperatorString)
 	if err != nil {
-		return restapi.CustomEventSpecification{}, err
+		return &restapi.CustomEventSpecification{}, err
 	}
 	offlineDuration := d.Get(EntityVerificationRuleFieldOfflineDuration).(int)
 

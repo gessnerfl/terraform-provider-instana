@@ -33,6 +33,21 @@ func (m *MockRestClient) EXPECT() *MockRestClientMockRecorder {
 	return m.recorder
 }
 
+// Get mocks base method
+func (m *MockRestClient) Get(resourcePath string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", resourcePath)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockRestClientMockRecorder) Get(resourcePath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRestClient)(nil).Get), resourcePath)
+}
+
 // GetOne mocks base method
 func (m *MockRestClient) GetOne(id, resourcePath string) ([]byte, error) {
 	m.ctrl.T.Helper()

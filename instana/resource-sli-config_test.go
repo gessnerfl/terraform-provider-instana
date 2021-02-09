@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -18,10 +17,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testSliConfigProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const sliConfigTerraformTemplate = `
 provider "instana" {
@@ -109,7 +104,7 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 	resourceDefinitionWithName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testSliConfigProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithName0,
@@ -187,7 +182,7 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 		Name: sliConfigName,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	assert.Nil(t, err)
 
@@ -228,18 +223,18 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.SliConfig{}, model, "Model should be an sli config")
+	assert.IsType(t, &restapi.SliConfig{}, model, "Model should be an sli config")
 	assert.Equal(t, sliConfigID, model.GetID())
-	assert.Equal(t, sliConfigFullName, model.(restapi.SliConfig).Name, "name should be equal to full name")
-	assert.Equal(t, sliConfigInitialEvaluationTimestamp, model.(restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
-	assert.Equal(t, sliConfigMetricName, model.(restapi.SliConfig).MetricConfiguration.Name)
-	assert.Equal(t, sliConfigMetricAggregation, model.(restapi.SliConfig).MetricConfiguration.Aggregation)
-	assert.Equal(t, sliConfigMetricThreshold, model.(restapi.SliConfig).MetricConfiguration.Threshold)
-	assert.Equal(t, sliConfigEntityType, model.(restapi.SliConfig).SliEntity.Type)
-	assert.Equal(t, sliConfigEntityApplicationID, model.(restapi.SliConfig).SliEntity.ApplicationID)
-	assert.Equal(t, sliConfigEntityServiceID, model.(restapi.SliConfig).SliEntity.ServiceID)
-	assert.Equal(t, sliConfigEntityEndpointID, model.(restapi.SliConfig).SliEntity.EndpointID)
-	assert.Equal(t, sliConfigEntityBoundaryScope, model.(restapi.SliConfig).SliEntity.BoundaryScope)
+	assert.Equal(t, sliConfigFullName, model.(*restapi.SliConfig).Name, "name should be equal to full name")
+	assert.Equal(t, sliConfigInitialEvaluationTimestamp, model.(*restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
+	assert.Equal(t, sliConfigMetricName, model.(*restapi.SliConfig).MetricConfiguration.Name)
+	assert.Equal(t, sliConfigMetricAggregation, model.(*restapi.SliConfig).MetricConfiguration.Aggregation)
+	assert.Equal(t, sliConfigMetricThreshold, model.(*restapi.SliConfig).MetricConfiguration.Threshold)
+	assert.Equal(t, sliConfigEntityType, model.(*restapi.SliConfig).SliEntity.Type)
+	assert.Equal(t, sliConfigEntityApplicationID, model.(*restapi.SliConfig).SliEntity.ApplicationID)
+	assert.Equal(t, sliConfigEntityServiceID, model.(*restapi.SliConfig).SliEntity.ServiceID)
+	assert.Equal(t, sliConfigEntityEndpointID, model.(*restapi.SliConfig).SliEntity.EndpointID)
+	assert.Equal(t, sliConfigEntityBoundaryScope, model.(*restapi.SliConfig).SliEntity.BoundaryScope)
 }
 
 func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.T) {

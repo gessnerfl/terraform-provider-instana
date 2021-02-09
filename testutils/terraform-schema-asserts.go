@@ -48,6 +48,10 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsOptionalAndOfTypeSetOfStrings(fieldName string)
 	//AssertSchemaIsComputedAndOfTypeString checks if the given schema field is computed and of type string
 	AssertSchemaIsComputedAndOfTypeString(fieldName string)
+	//AssertSchemaIsComputedAndOfTypeInt checks if the given schema field is computed and of type int
+	AssertSchemaIsComputedAndOfTypeInt(fieldName string)
+	//AssertSchemaIsComputedAndOfTypeBool checks if the given schema field is computed and of type bool
+	AssertSchemaIsComputedAndOfTypeBool(fieldName string)
 }
 
 type terraformSchemaAssertImpl struct {
@@ -170,5 +174,21 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsComputedAndOfTypeString(sch
 
 	assert.NotNil(inst.t, s)
 	inst.assertSchemaIsOfType(s, schema.TypeString)
+	assert.True(inst.t, s.Computed)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsComputedAndOfTypeInt(schemaField string) {
+	s := inst.schemaMap[schemaField]
+
+	assert.NotNil(inst.t, s)
+	inst.assertSchemaIsOfType(s, schema.TypeInt)
+	assert.True(inst.t, s.Computed)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsComputedAndOfTypeBool(schemaField string) {
+	s := inst.schemaMap[schemaField]
+
+	assert.NotNil(inst.t, s)
+	inst.assertSchemaIsOfType(s, schema.TypeBool)
 	assert.True(inst.t, s.Computed)
 }

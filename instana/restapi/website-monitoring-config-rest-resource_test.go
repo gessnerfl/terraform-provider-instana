@@ -15,8 +15,8 @@ const nameIsMissingError = "Name is missing"
 var websiteMonitoringConfigSerialized = []byte("serialized")
 var nameQueryParameter = map[string]string{"name": websiteMonitoringConfigName}
 
-func makeTestWebsiteMonitoringConfig() WebsiteMonitoringConfig {
-	return WebsiteMonitoringConfig{
+func makeTestWebsiteMonitoringConfig() *WebsiteMonitoringConfig {
+	return &WebsiteMonitoringConfig{
 		ID:      websiteMonitoringConfigID,
 		Name:    websiteMonitoringConfigName,
 		AppName: websiteMonitoringConfigAppName,
@@ -31,7 +31,7 @@ func TestShouldSuccessfullyExecuteGetOperationOfWebsiteMonitoringConfigRestResou
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
 	client.EXPECT().GetOne(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(websiteMonitoringConfigSerialized, nil)
@@ -49,7 +49,7 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfWebsiteMonitoringConfigRest
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	expectedError := errors.New("Error")
 
 	client.EXPECT().GetOne(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(websiteMonitoringConfigSerialized, expectedError)
@@ -67,7 +67,7 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfWebsiteMonitoringConfigRest
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	expectedError := errors.New("Error")
 
 	client.EXPECT().GetOne(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(websiteMonitoringConfigSerialized, nil)
@@ -81,14 +81,33 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfWebsiteMonitoringConfigRest
 	require.Equal(t, expectedError, err)
 }
 
+type InvalidWebsiteMonitoringConfig struct{}
+
+func TestShouldReturnErrorWhenExecutingGetOperationOfWebsiteMonitoringConfigRestResourceAndUnmarshallingDoesNotProvideAInstanaDataObject(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	client := mocks.NewMockRestClient(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+
+	client.EXPECT().GetOne(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(websiteMonitoringConfigSerialized, nil)
+	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&InvalidWebsiteMonitoringConfig{}, nil)
+
+	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
+
+	_, err := sut.GetOne(websiteMonitoringConfigID)
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Unmarshalled object does not implement InstanaDataObject")
+}
+
 func TestShouldReturnErrorWhenExecutingGetOperationOfWebsiteMonitoringConfigRestResourceAndReceivedObjectIsNotValid(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 
 	client.EXPECT().GetOne(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(websiteMonitoringConfigSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(WebsiteMonitoringConfig{}, nil)
+	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&WebsiteMonitoringConfig{}, nil)
 
 	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
 
@@ -106,7 +125,7 @@ func TestShouldSuccessfullyExecuteCreateOperationOfWebsiteMonitoringConfigRestRe
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
 	client.EXPECT().PostByQuery(WebsiteMonitoringConfigResourcePath, nameQueryParameter).Times(1).Return(websiteMonitoringConfigSerialized, nil)
@@ -124,8 +143,8 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigR
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
-	websiteMonitoringConfig := WebsiteMonitoringConfig{}
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	websiteMonitoringConfig := &WebsiteMonitoringConfig{}
 
 	client.EXPECT().PostByQuery(WebsiteMonitoringConfigResourcePath, nameQueryParameter).Times(0)
 	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(0)
@@ -142,7 +161,7 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigR
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	expectedError := errors.New("Error")
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
@@ -161,12 +180,12 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigR
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	expectedError := errors.New("Error")
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
 	client.EXPECT().PostByQuery(WebsiteMonitoringConfigResourcePath, nameQueryParameter).Times(1).Return(websiteMonitoringConfigSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(WebsiteMonitoringConfig{}, expectedError)
+	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&WebsiteMonitoringConfig{}, expectedError)
 
 	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
 
@@ -180,11 +199,11 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigR
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
 	client.EXPECT().PostByQuery(WebsiteMonitoringConfigResourcePath, nameQueryParameter).Times(1).Return(websiteMonitoringConfigSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(WebsiteMonitoringConfig{}, nil)
+	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&WebsiteMonitoringConfig{}, nil)
 
 	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
 
@@ -202,7 +221,7 @@ func TestShouldSuccessfullyExecuteUpdateOperationOfWebsiteMonitoringConfigRestRe
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
 	client.EXPECT().PutByQuery(WebsiteMonitoringConfigResourcePath, websiteMonitoringConfigID, nameQueryParameter).Times(1).Return(websiteMonitoringConfigSerialized, nil)
@@ -220,8 +239,8 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigR
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
-	websiteMonitoringConfig := WebsiteMonitoringConfig{}
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	websiteMonitoringConfig := &WebsiteMonitoringConfig{}
 
 	client.EXPECT().PutByQuery(WebsiteMonitoringConfigResourcePath, websiteMonitoringConfigID, nameQueryParameter).Times(0)
 	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(0)
@@ -238,7 +257,7 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigR
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	expectedError := errors.New("Error")
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
@@ -257,12 +276,12 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigR
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	expectedError := errors.New("Error")
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
 	client.EXPECT().PutByQuery(WebsiteMonitoringConfigResourcePath, websiteMonitoringConfigID, nameQueryParameter).Times(1).Return(websiteMonitoringConfigSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(WebsiteMonitoringConfig{}, expectedError)
+	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&WebsiteMonitoringConfig{}, expectedError)
 
 	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
 
@@ -276,11 +295,11 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigR
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
 	client.EXPECT().PutByQuery(WebsiteMonitoringConfigResourcePath, websiteMonitoringConfigID, nameQueryParameter).Times(1).Return(websiteMonitoringConfigSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(WebsiteMonitoringConfig{}, nil)
+	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&WebsiteMonitoringConfig{}, nil)
 
 	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
 
@@ -298,7 +317,7 @@ func TestShouldSuccessfullyExecuteDeleteByObjectOperationOfWebsiteMonitoringConf
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
 	client.EXPECT().Delete(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(nil)
@@ -314,7 +333,7 @@ func TestShouldReturnErrorWhenExecutingDeleteByObjectOperationOfWebsiteMonitorin
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	expectedError := errors.New("Error")
 	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
 
@@ -331,7 +350,7 @@ func TestShouldSuccessfullyExecuteDeleteByIdOperationOfWebsiteMonitoringConfigRe
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 
 	client.EXPECT().Delete(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(nil)
 
@@ -346,7 +365,7 @@ func TestShouldReturnErrorWhenExecutingDeleteByIdOperationOfWebsiteMonitoringCon
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
 	expectedError := errors.New("Error")
 
 	client.EXPECT().Delete(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(expectedError)

@@ -10,7 +10,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -18,10 +17,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testWebsiteMonitoringConfigProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const websiteMonitoringConfigTerraformTemplate = `
 provider "instana" {
@@ -56,7 +51,7 @@ func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
 	resourceDefinitionWithName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testWebsiteMonitoringConfigProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithName0,
@@ -186,7 +181,7 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 		AppName: appname,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id(), "id should be equal")
@@ -205,9 +200,9 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	require.Nil(t, err)
-	require.IsType(t, restapi.WebsiteMonitoringConfig{}, model, "Model should be an alerting channel")
+	require.IsType(t, &restapi.WebsiteMonitoringConfig{}, model)
 	require.Equal(t, "id", model.GetID())
-	require.Equal(t, websiteMonitoringConfigFullName, model.(restapi.WebsiteMonitoringConfig).Name)
+	require.Equal(t, websiteMonitoringConfigFullName, model.(*restapi.WebsiteMonitoringConfig).Name)
 }
 
 func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {

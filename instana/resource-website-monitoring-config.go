@@ -57,7 +57,7 @@ func NewWebsiteMonitoringConfigResourceHandle() *ResourceHandle {
 }
 
 func updateStateForWebsiteMonitoring(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	config := obj.(restapi.WebsiteMonitoringConfig)
+	config := obj.(*restapi.WebsiteMonitoringConfig)
 	d.Set(WebsiteMonitoringConfigFieldFullName, config.Name)
 	d.Set(WebsiteMonitoringConfigFieldAppName, config.AppName)
 	d.SetId(config.ID)
@@ -67,7 +67,7 @@ func updateStateForWebsiteMonitoring(d *schema.ResourceData, obj restapi.Instana
 func mapStateToDataObjectForWebsiteMonitoring(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullWebsiteMonitoringNameString(d, formatter)
 
-	return restapi.WebsiteMonitoringConfig{
+	return &restapi.WebsiteMonitoringConfig{
 		ID:   d.Id(),
 		Name: name,
 	}, nil

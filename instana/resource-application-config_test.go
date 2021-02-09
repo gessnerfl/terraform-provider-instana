@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -16,10 +15,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testApplicationConfigProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceApplicationConfigDefinitionTemplate = `
 provider "instana" {
@@ -116,7 +111,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithLabel1 := strings.ReplaceAll(resourceDefinitionWithoutLabel, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testApplicationConfigProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithLabel0,
@@ -248,7 +243,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, applicationConfig)
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	assert.Nil(t, err)
 	assert.Equal(t, applicationConfigID, resourceData.Id())
@@ -272,7 +267,7 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenM
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, applicationConfig)
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	assert.NotNil(t, err)
 }
@@ -293,12 +288,12 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.ApplicationConfig{}, result)
+	assert.IsType(t, &restapi.ApplicationConfig{}, result)
 	assert.Equal(t, applicationConfigID, result.GetID())
-	assert.Equal(t, label, result.(restapi.ApplicationConfig).Label)
-	assert.Equal(t, defaultMatchSpecificationModel, result.(restapi.ApplicationConfig).MatchSpecification)
-	assert.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(restapi.ApplicationConfig).Scope)
-	assert.Equal(t, restapi.BoundaryScopeAll, result.(restapi.ApplicationConfig).BoundaryScope)
+	assert.Equal(t, label, result.(*restapi.ApplicationConfig).Label)
+	assert.Equal(t, defaultMatchSpecificationModel, result.(*restapi.ApplicationConfig).MatchSpecification)
+	assert.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)
+	assert.Equal(t, restapi.BoundaryScopeAll, result.(*restapi.ApplicationConfig).BoundaryScope)
 }
 
 func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsNotValid(t *testing.T) {

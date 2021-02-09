@@ -167,7 +167,7 @@ func NewSliConfigResourceHandle() *ResourceHandle {
 }
 
 func updateStateForSliConfig(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	sliConfig := obj.(restapi.SliConfig)
+	sliConfig := obj.(*restapi.SliConfig)
 
 	metricConfiguration := map[string]string{
 		SliConfigFieldMetricName:        sliConfig.MetricConfiguration.Name,
@@ -206,7 +206,7 @@ func mapStateToDataObjectForSliConfig(d *schema.ResourceData, formatter utils.Re
 	}
 
 	name := computeFullSliConfigNameString(d, formatter)
-	return restapi.SliConfig{
+	return &restapi.SliConfig{
 		ID:                         d.Id(),
 		Name:                       name,
 		InitialEvaluationTimestamp: d.Get(SliConfigFieldInitialEvaluationTimestamp).(int),

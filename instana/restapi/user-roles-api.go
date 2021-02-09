@@ -36,12 +36,12 @@ type UserRole struct {
 }
 
 //GetID implemention of the interface InstanaDataObject
-func (r UserRole) GetID() string {
+func (r *UserRole) GetID() string {
 	return r.ID
 }
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (r UserRole) Validate() error {
+func (r *UserRole) Validate() error {
 	if len(r.ID) == 0 {
 		return errors.New("ID is missing")
 	}

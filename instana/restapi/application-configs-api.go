@@ -289,12 +289,12 @@ type ApplicationConfig struct {
 }
 
 //GetID implemention of the interface InstanaDataObject
-func (a ApplicationConfig) GetID() string {
+func (a *ApplicationConfig) GetID() string {
 	return a.ID
 }
 
 //Validate implemention of the interface InstanaDataObject for ApplicationConfig
-func (a ApplicationConfig) Validate() error {
+func (a *ApplicationConfig) Validate() error {
 	if utils.IsBlank(a.ID) {
 		return errors.New("id is missing")
 	}

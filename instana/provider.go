@@ -27,9 +27,10 @@ type ProviderMeta struct {
 //Provider interface implementation of hashicorp terraform provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
-		Schema:        providerSchema(),
-		ResourcesMap:  providerResources(),
-		ConfigureFunc: providerConfigure,
+		Schema:         providerSchema(),
+		ResourcesMap:   providerResources(),
+		DataSourcesMap: providerDataSources(),
+		ConfigureFunc:  providerConfigure,
 	}
 }
 
@@ -98,4 +99,10 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		InstanaAPI:            instanaAPI,
 		ResourceNameFormatter: formatter,
 	}, nil
+}
+
+func providerDataSources() map[string]*schema.Resource {
+	dataSources := make(map[string]*schema.Resource)
+	dataSources[DataSourceBuiltinEvent] = NewBuiltinEventDataSource().CreateResource()
+	return dataSources
 }

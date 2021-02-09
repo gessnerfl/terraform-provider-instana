@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -19,10 +18,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
-
-var testAlertingChannelEmailProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceAlertingChannelEmailDefinitionTemplate = `
 provider "instana" {
@@ -73,7 +68,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 	emailAddress1 := "EMAIL1"
 	emailAddress2 := "EMAIL2"
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testAlertingChannelEmailProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithoutName0,
@@ -153,7 +148,7 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 		Emails: []string{"email1", "email2"},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
@@ -178,10 +173,10 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
-	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Len(t, model.(restapi.AlertingChannel).Emails, 2)
-	assert.Contains(t, model.(restapi.AlertingChannel).Emails, "email1")
-	assert.Contains(t, model.(restapi.AlertingChannel).Emails, "email2")
+	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Len(t, model.(*restapi.AlertingChannel).Emails, 2)
+	assert.Contains(t, model.(*restapi.AlertingChannel).Emails, "email1")
+	assert.Contains(t, model.(*restapi.AlertingChannel).Emails, "email2")
 }

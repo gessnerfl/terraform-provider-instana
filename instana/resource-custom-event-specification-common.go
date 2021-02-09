@@ -148,7 +148,7 @@ func mergeSchemaMap(mapA map[string]*schema.Schema, mapB map[string]*schema.Sche
 	return mergedMap
 }
 
-func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter utils.ResourceNameFormatter) restapi.CustomEventSpecification {
+func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter utils.ResourceNameFormatter) *restapi.CustomEventSpecification {
 	name := computeFullCustomEventNameString(d, formatter)
 	apiModel := restapi.CustomEventSpecification{
 		ID:             d.Id(),
@@ -160,7 +160,7 @@ func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, form
 		ExpirationTime: GetIntPointerFromResourceData(d, CustomEventSpecificationFieldExpirationTime),
 		Enabled:        d.Get(CustomEventSpecificationFieldEnabled).(bool),
 	}
-	return apiModel
+	return &apiModel
 }
 
 func computeFullCustomEventNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
@@ -170,7 +170,7 @@ func computeFullCustomEventNameString(d *schema.ResourceData, formatter utils.Re
 	return d.Get(CustomEventSpecificationFieldFullName).(string)
 }
 
-func updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec restapi.CustomEventSpecification) {
+func updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec *restapi.CustomEventSpecification) {
 	d.SetId(spec.ID)
 	d.Set(CustomEventSpecificationFieldFullName, spec.Name)
 	d.Set(CustomEventSpecificationFieldQuery, spec.Query)

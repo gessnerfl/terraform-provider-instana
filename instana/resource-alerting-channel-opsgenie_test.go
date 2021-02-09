@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -17,10 +16,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
-
-var testAlertingChannelOpsGenieProviders = map[string]terraform.ResourceProvider{
-	"instana": Provider(),
-}
 
 const resourceAlertingChannelOpsGenieDefinitionTemplate = `
 provider "instana" {
@@ -72,7 +67,7 @@ func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testAlertingChannelOpsGenieProviders,
+		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinitionWithoutName0,
@@ -148,10 +143,10 @@ func assertBasicAlertingChannelEmailsFieldsSet(t *testing.T, resourceData *schem
 	assert.Equal(t, "EU", resourceData.Get(AlertingChannelOpsGenieFieldRegion), "region should be EU")
 }
 
-func createAlertingChannelEmailModelForResourceUpdateWithoutTags() restapi.AlertingChannel {
+func createAlertingChannelEmailModelForResourceUpdateWithoutTags() *restapi.AlertingChannel {
 	apiKey := "apiKey"
 	region := restapi.EuOpsGenieRegion
-	return restapi.AlertingChannel{
+	return &restapi.AlertingChannel{
 		ID:     "id",
 		Name:   "name",
 		APIKey: &apiKey,
@@ -174,12 +169,12 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
-	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Equal(t, "api key", *model.(restapi.AlertingChannel).APIKey, "api key should be equal")
-	assert.Equal(t, restapi.EuOpsGenieRegion, *model.(restapi.AlertingChannel).Region, "region should be EU")
-	assert.Equal(t, "tag1,tag2", *model.(restapi.AlertingChannel).Tags, "tags should be equal")
+	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Equal(t, "api key", *model.(*restapi.AlertingChannel).APIKey, "api key should be equal")
+	assert.Equal(t, restapi.EuOpsGenieRegion, *model.(*restapi.AlertingChannel).Region, "region should be EU")
+	assert.Equal(t, "tag1,tag2", *model.(*restapi.AlertingChannel).Tags, "tags should be equal")
 }
 
 func TestAlertingChannelOpsGenieShouldHaveSchemaVersionZero(t *testing.T) {
