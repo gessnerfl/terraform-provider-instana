@@ -72,5 +72,5 @@ func (api *baseInstanaAPI) SliConfigs() RestResource {
 }
 
 func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource {
-	return NewWebsiteMonitoringConfigRestResource(NewWebsiteMonitoringConfigUnmarshaller(), api.client)
+	return NewWebsiteMonitoringConfigRestResource(NewDefaultJSONUnmarshaller(&WebsiteMonitoringConfig{}), api.client)
 }

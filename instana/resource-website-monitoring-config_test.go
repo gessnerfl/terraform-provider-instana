@@ -181,7 +181,7 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 		AppName: appname,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id(), "id should be equal")
@@ -200,9 +200,9 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	require.Nil(t, err)
-	require.IsType(t, restapi.WebsiteMonitoringConfig{}, model, "Model should be an alerting channel")
+	require.IsType(t, &restapi.WebsiteMonitoringConfig{}, model)
 	require.Equal(t, "id", model.GetID())
-	require.Equal(t, websiteMonitoringConfigFullName, model.(restapi.WebsiteMonitoringConfig).Name)
+	require.Equal(t, websiteMonitoringConfigFullName, model.(*restapi.WebsiteMonitoringConfig).Name)
 }
 
 func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {

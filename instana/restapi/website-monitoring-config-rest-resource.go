@@ -1,7 +1,9 @@
 package restapi
 
+import "errors"
+
 //NewWebsiteMonitoringConfigRestResource creates a new REST for the website monitoring config
-func NewWebsiteMonitoringConfigRestResource(unmarshaller Unmarshaller, client RestClient) RestResource {
+func NewWebsiteMonitoringConfigRestResource(unmarshaller JSONUnmarshaller, client RestClient) RestResource {
 	return &websiteMonitoringConfigRestResource{
 		resourcePath: WebsiteMonitoringConfigResourcePath,
 		unmarshaller: unmarshaller,
@@ -11,7 +13,7 @@ func NewWebsiteMonitoringConfigRestResource(unmarshaller Unmarshaller, client Re
 
 type websiteMonitoringConfigRestResource struct {
 	resourcePath string
-	unmarshaller Unmarshaller
+	unmarshaller JSONUnmarshaller
 	client       RestClient
 }
 
@@ -27,7 +29,7 @@ func (r *websiteMonitoringConfigRestResource) Create(data InstanaDataObject) (In
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
-	response, err := r.client.PostByQuery(r.resourcePath, map[string]string{"name": data.(WebsiteMonitoringConfig).Name})
+	response, err := r.client.PostByQuery(r.resourcePath, map[string]string{"name": data.(*WebsiteMonitoringConfig).Name})
 	if err != nil {
 		return data, err
 	}
@@ -38,7 +40,7 @@ func (r *websiteMonitoringConfigRestResource) Update(data InstanaDataObject) (In
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
-	response, err := r.client.PutByQuery(r.resourcePath, data.GetID(), map[string]string{"name": data.(WebsiteMonitoringConfig).Name})
+	response, err := r.client.PutByQuery(r.resourcePath, data.GetID(), map[string]string{"name": data.(*WebsiteMonitoringConfig).Name})
 	if err != nil {
 		return data, err
 	}
@@ -48,13 +50,17 @@ func (r *websiteMonitoringConfigRestResource) Update(data InstanaDataObject) (In
 func (r *websiteMonitoringConfigRestResource) validateResponseAndConvertToStruct(data []byte) (InstanaDataObject, error) {
 	object, err := r.unmarshaller.Unmarshal(data)
 	if err != nil {
-		return object, err
+		return nil, err
+	}
+	dataObject, ok := object.(InstanaDataObject)
+	if !ok {
+		return dataObject, errors.New("Unmarshalled object does not implement InstanaDataObject")
 	}
 
-	if err := object.Validate(); err != nil {
-		return object, err
+	if err := dataObject.Validate(); err != nil {
+		return dataObject, err
 	}
-	return object, nil
+	return dataObject, nil
 }
 
 func (r *websiteMonitoringConfigRestResource) Delete(data InstanaDataObject) error {
