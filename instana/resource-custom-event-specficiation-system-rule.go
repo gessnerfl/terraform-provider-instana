@@ -58,7 +58,7 @@ func NewCustomEventSpecificationWithSystemRuleResourceHandle() *ResourceHandle {
 }
 
 func updateStateForCustomEventSpecificationWithSystemRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	customEventSpecification := obj.(restapi.CustomEventSpecification)
+	customEventSpecification := obj.(*restapi.CustomEventSpecification)
 	updateStateForBasicCustomEventSpecification(d, customEventSpecification)
 
 	ruleSpec := customEventSpecification.Rules[0]
@@ -75,7 +75,7 @@ func updateStateForCustomEventSpecificationWithSystemRule(d *schema.ResourceData
 func mapStateToDataObjectForCustomEventSpecificationWithSystemRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
-		return restapi.CustomEventSpecification{}, err
+		return &restapi.CustomEventSpecification{}, err
 	}
 	systemRuleID := d.Get(SystemRuleSpecificationSystemRuleID).(string)
 	rule := restapi.NewSystemRuleSpecification(systemRuleID, severity)

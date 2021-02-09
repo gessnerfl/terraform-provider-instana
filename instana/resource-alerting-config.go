@@ -123,7 +123,7 @@ func NewAlertingConfigResourceHandle() *ResourceHandle {
 }
 
 func updateStateForAlertingConfig(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	config := obj.(restapi.AlertingConfiguration)
+	config := obj.(*restapi.AlertingConfiguration)
 	d.Set(AlertingConfigFieldFullAlertName, config.AlertName)
 	d.Set(AlertingConfigFieldIntegrationIds, config.IntegrationIDs)
 	d.Set(AlertingConfigFieldEventFilterQuery, config.EventFilteringConfiguration.Query)
@@ -146,7 +146,7 @@ func mapStateToDataObjectForAlertingConfig(d *schema.ResourceData, formatter uti
 	name := computeFullAlertingConfigAlertNameString(d, formatter)
 	query := GetStringPointerFromResourceData(d, AlertingConfigFieldEventFilterQuery)
 
-	return restapi.AlertingConfiguration{
+	return &restapi.AlertingConfiguration{
 		ID:             d.Id(),
 		AlertName:      name,
 		IntegrationIDs: ReadStringSetParameterFromResource(d, AlertingConfigFieldIntegrationIds),

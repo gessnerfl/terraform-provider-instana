@@ -54,7 +54,7 @@ func TestShouldFailToReadTestObjectFromInstanaAPIAndDeleteResourceWhenRoleDoesNo
 		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
-		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(restapi.AlertingChannel{}, restapi.ErrEntityNotFound).Times(1)
+		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(&restapi.AlertingChannel{}, restapi.ErrEntityNotFound).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
@@ -73,7 +73,7 @@ func TestShouldFailToReadTestObjectFromInstanaAPIAndReturnErrorWhenAPICallFails(
 		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
-		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(restapi.AlertingChannel{}, expectedError).Times(1)
+		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(&restapi.AlertingChannel{}, expectedError).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
@@ -93,7 +93,7 @@ func TestShouldCreateTestObjectThroughInstanaAPI(t *testing.T) {
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockTestObjectApi.EXPECT().Create(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
+		mockTestObjectApi.EXPECT().Create(gomock.AssignableToTypeOf(&restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Create(resourceData, providerMeta)
@@ -113,7 +113,7 @@ func TestShouldReturnErrorWhenCreateTestObjectFailsThroughInstanaAPI(t *testing.
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockTestObjectApi.EXPECT().Create(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(restapi.AlertingChannel{}, expectedError).Times(1)
+		mockTestObjectApi.EXPECT().Create(gomock.AssignableToTypeOf(&restapi.AlertingChannel{})).Return(&restapi.AlertingChannel{}, expectedError).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Create(resourceData, providerMeta)
@@ -132,7 +132,7 @@ func TestShouldUpdateTestObjectThroughInstanaAPI(t *testing.T) {
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockTestObjectApi.EXPECT().Update(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
+		mockTestObjectApi.EXPECT().Update(gomock.AssignableToTypeOf(&restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Update(resourceData, providerMeta)
@@ -152,7 +152,7 @@ func TestShouldReturnErrorWhenUpdateTestObjectFailsThroughInstanaAPI(t *testing.
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
-		mockTestObjectApi.EXPECT().Update(gomock.AssignableToTypeOf(restapi.AlertingChannel{})).Return(restapi.AlertingChannel{}, expectedError).Times(1)
+		mockTestObjectApi.EXPECT().Update(gomock.AssignableToTypeOf(&restapi.AlertingChannel{})).Return(&restapi.AlertingChannel{}, expectedError).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
 		err := NewTerraformResource(resourceHandle).Update(resourceData, providerMeta)
@@ -204,7 +204,7 @@ func TestShouldReturnErrorWhenDeleteTestObjectFailsThroughInstanaAPI(t *testing.
 	})
 }
 
-func verifyTestObjectModelAppliedToResource(model restapi.AlertingChannel, resourceData *schema.ResourceData, t *testing.T) {
+func verifyTestObjectModelAppliedToResource(model *restapi.AlertingChannel, resourceData *schema.ResourceData, t *testing.T) {
 	assert.Equal(t, model.ID, resourceData.Id())
 	assert.Equal(t, model.Name, resourceData.Get(AlertingChannelFieldFullName))
 
@@ -215,8 +215,8 @@ func verifyTestObjectModelAppliedToResource(model restapi.AlertingChannel, resou
 	}
 }
 
-func createTestAlertingChannelEmailObject() restapi.AlertingChannel {
-	return restapi.AlertingChannel{
+func createTestAlertingChannelEmailObject() *restapi.AlertingChannel {
+	return &restapi.AlertingChannel{
 		ID:     "id",
 		Name:   "name",
 		Emails: []string{"Email1", "Email2"},

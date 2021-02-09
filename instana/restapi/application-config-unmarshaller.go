@@ -6,26 +6,26 @@ import (
 )
 
 //NewApplicationConfigUnmarshaller creates a new Unmarshaller instance for application configs
-func NewApplicationConfigUnmarshaller() Unmarshaller {
+func NewApplicationConfigUnmarshaller() JSONUnmarshaller {
 	return &applicationConfigUnmarshaller{}
 }
 
 type applicationConfigUnmarshaller struct{}
 
 //Unmarshal Unmarshaller interface implementation
-func (u *applicationConfigUnmarshaller) Unmarshal(data []byte) (InstanaDataObject, error) {
+func (u *applicationConfigUnmarshaller) Unmarshal(data []byte) (interface{}, error) {
 	var matchExpression json.RawMessage
-	temp := ApplicationConfig{
+	temp := &ApplicationConfig{
 		MatchSpecification: &matchExpression,
 	}
 	if err := json.Unmarshal(data, &temp); err != nil {
-		return ApplicationConfig{}, err
+		return &ApplicationConfig{}, err
 	}
 	matchSpecification, err := u.unmarshalMatchSpecification(matchExpression)
 	if err != nil {
-		return ApplicationConfig{}, err
+		return &ApplicationConfig{}, err
 	}
-	return ApplicationConfig{
+	return &ApplicationConfig{
 		ID:                 temp.ID,
 		Label:              temp.Label,
 		MatchSpecification: matchSpecification,

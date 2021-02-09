@@ -181,7 +181,7 @@ func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headers
 		Headers:     headersFromApi,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
@@ -206,11 +206,11 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
-	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Len(t, model.(restapi.AlertingChannel).WebhookURLs, 2)
-	assert.Contains(t, model.(restapi.AlertingChannel).WebhookURLs, "url1")
-	assert.Contains(t, model.(restapi.AlertingChannel).WebhookURLs, "url2")
-	assert.Equal(t, []string{}, model.(restapi.AlertingChannel).Headers, "There should be no headers")
+	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Len(t, model.(*restapi.AlertingChannel).WebhookURLs, 2)
+	assert.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url1")
+	assert.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url2")
+	assert.Equal(t, []string{}, model.(*restapi.AlertingChannel).Headers, "There should be no headers")
 }

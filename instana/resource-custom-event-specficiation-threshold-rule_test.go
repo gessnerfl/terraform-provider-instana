@@ -373,7 +373,7 @@ func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithThreshold
 }
 
 func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFromApiObject(t *testing.T) {
-	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, func(spec restapi.CustomEventSpecification) { /* Default testcase without additional fields =< no additional mappings */
+	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, func(spec *restapi.CustomEventSpecification) { /* Default testcase without additional fields =< no additional mappings */
 	}, func(resourceData *schema.ResourceData) { /* Default testcase without additional fields => no additional asserts */
 	})
 }
@@ -384,7 +384,7 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleAndMetricPatternTe
 	placeholder := "placeholder"
 	operator := restapi.MetricPatternOperatorTypeStartsWith
 
-	additionalMappings := func(spec restapi.CustomEventSpecification) {
+	additionalMappings := func(spec *restapi.CustomEventSpecification) {
 		metricPattern := restapi.MetricPattern{
 			Prefix:      prefix,
 			Postfix:     &postfix,
@@ -404,7 +404,7 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleAndMetricPatternTe
 	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, additionalMappings, additionalAsserts)
 }
 
-func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t *testing.T, additionalMappings func(spec restapi.CustomEventSpecification), additionalAsserts func(resourceData *schema.ResourceData)) {
+func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t *testing.T, additionalMappings func(spec *restapi.CustomEventSpecification), additionalAsserts func(resourceData *schema.ResourceData)) {
 	description := customEventSpecificationWithThresholdRuleDescription
 	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
 	query := customEventSpecificationWithThresholdRuleQuery
@@ -416,7 +416,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 	metricName := customEventSpecificationWithThresholdRuleMetricName
 	conditionOperator := restapi.ConditionOperatorEquals.InstanaAPIValue()
 
-	spec := restapi.CustomEventSpecification{
+	spec := &restapi.CustomEventSpecification{
 		ID:             customEventSpecificationWithThresholdRuleID,
 		Name:           customEventSpecificationWithThresholdRuleName,
 		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
@@ -466,7 +466,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 }
 
 func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThresholdRuleWhenSeverityIsNotSupported(t *testing.T) {
-	spec := restapi.CustomEventSpecification{
+	spec := &restapi.CustomEventSpecification{
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:    restapi.ThresholdRuleType,
@@ -488,7 +488,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThreshol
 func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThresholdRuleWhenConditionOperatorTypeIsNotSupported(t *testing.T) {
 	conditionOperator := "invalid"
 
-	spec := restapi.CustomEventSpecification{
+	spec := &restapi.CustomEventSpecification{
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:             restapi.ThresholdRuleType,
@@ -563,8 +563,8 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(restapi.CustomEventSpecification)
+	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
+	customEventSpec := result.(*restapi.CustomEventSpecification)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetID())
 	assert.Equal(t, customEventSpecificationWithThresholdRuleName, customEventSpec.Name)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)

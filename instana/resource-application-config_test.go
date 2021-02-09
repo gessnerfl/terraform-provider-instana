@@ -243,7 +243,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, applicationConfig)
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	assert.Nil(t, err)
 	assert.Equal(t, applicationConfigID, resourceData.Id())
@@ -267,7 +267,7 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenM
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, applicationConfig)
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	assert.NotNil(t, err)
 }
@@ -288,12 +288,12 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.ApplicationConfig{}, result)
+	assert.IsType(t, &restapi.ApplicationConfig{}, result)
 	assert.Equal(t, applicationConfigID, result.GetID())
-	assert.Equal(t, label, result.(restapi.ApplicationConfig).Label)
-	assert.Equal(t, defaultMatchSpecificationModel, result.(restapi.ApplicationConfig).MatchSpecification)
-	assert.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(restapi.ApplicationConfig).Scope)
-	assert.Equal(t, restapi.BoundaryScopeAll, result.(restapi.ApplicationConfig).BoundaryScope)
+	assert.Equal(t, label, result.(*restapi.ApplicationConfig).Label)
+	assert.Equal(t, defaultMatchSpecificationModel, result.(*restapi.ApplicationConfig).MatchSpecification)
+	assert.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)
+	assert.Equal(t, restapi.BoundaryScopeAll, result.(*restapi.ApplicationConfig).BoundaryScope)
 }
 
 func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsNotValid(t *testing.T) {

@@ -25,11 +25,6 @@ type ReadOnlyRestResource interface {
 	GetOne(id string) (InstanaDataObject, error)
 }
 
-//Unmarshaller interface definition for unmarshalling the binary data to the desired struct
-type Unmarshaller interface {
-	Unmarshal(data []byte) (InstanaDataObject, error)
-}
-
 //JSONUnmarshaller interface definition for unmarshalling that unmarshalls JSON to go data structures
 type JSONUnmarshaller interface {
 	//Unmarshal converts the provided json bytes into the go data data structure as provided in the target

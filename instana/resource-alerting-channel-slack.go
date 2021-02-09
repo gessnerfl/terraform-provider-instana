@@ -46,7 +46,7 @@ func NewAlertingChannelSlackResourceHandle() *ResourceHandle {
 	}
 }
 func updateStateForAlertingChannelSlack(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	alertingChannel := obj.(restapi.AlertingChannel)
+	alertingChannel := obj.(*restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelSlackFieldWebhookURL, alertingChannel.WebhookURL)
 	d.Set(AlertingChannelSlackFieldIconURL, alertingChannel.IconURL)
@@ -60,7 +60,7 @@ func mapStateToDataObjectForAlertingChannelSlack(d *schema.ResourceData, formatt
 	webhookURL := d.Get(AlertingChannelSlackFieldWebhookURL).(string)
 	iconURL := d.Get(AlertingChannelSlackFieldIconURL).(string)
 	channel := d.Get(AlertingChannelSlackFieldChannel).(string)
-	return restapi.AlertingChannel{
+	return &restapi.AlertingChannel{
 		ID:         d.Id(),
 		Name:       name,
 		Kind:       restapi.SlackChannelType,

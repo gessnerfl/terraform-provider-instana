@@ -115,7 +115,7 @@ func TestShouldUpdateResourceStateForAlertingChanneSplunk(t *testing.T) {
 		Token: &token,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, data)
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	assert.Nil(t, err)
 	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
@@ -139,11 +139,11 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	assert.Equal(t, "id", model.GetID())
-	assert.Equal(t, "prefix name suffix", model.(restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Equal(t, url, *model.(restapi.AlertingChannel).URL, "url should be equal")
-	assert.Equal(t, token, *model.(restapi.AlertingChannel).Token, "token should be equal")
+	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	assert.Equal(t, url, *model.(*restapi.AlertingChannel).URL, "url should be equal")
+	assert.Equal(t, token, *model.(*restapi.AlertingChannel).Token, "token should be equal")
 }
 
 func TestAlertingChannelSplunkkShouldHaveSchemaVersionZero(t *testing.T) {

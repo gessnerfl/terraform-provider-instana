@@ -138,7 +138,7 @@ func NewCustomEventSpecificationWithThresholdRuleResourceHandle() *ResourceHandl
 }
 
 func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	customEventSpecification := obj.(restapi.CustomEventSpecification)
+	customEventSpecification := obj.(*restapi.CustomEventSpecification)
 	ruleSpec := customEventSpecification.Rules[0]
 
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
@@ -171,13 +171,13 @@ func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceD
 func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
-		return restapi.CustomEventSpecification{}, err
+		return &restapi.CustomEventSpecification{}, err
 	}
 	metricName := d.Get(ThresholdRuleFieldMetricName).(string)
 	conditionOperatorString := d.Get(ThresholdRuleFieldConditionOperator).(string)
 	conditionOperator, err := restapi.SupportedConditionOperators.FromTerraformValue(conditionOperatorString)
 	if err != nil {
-		return restapi.CustomEventSpecification{}, err
+		return &restapi.CustomEventSpecification{}, err
 	}
 	conditionOperatorInstanaValue := conditionOperator.InstanaAPIValue()
 

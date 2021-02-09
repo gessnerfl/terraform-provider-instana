@@ -62,12 +62,12 @@ type SliConfig struct {
 }
 
 //GetID implemention of the interface InstanaDataObject
-func (s SliConfig) GetID() string {
+func (s *SliConfig) GetID() string {
 	return s.ID
 }
 
 //Validate implemention of the interface InstanaDataObject for SliConfig
-func (s SliConfig) Validate() error {
+func (s *SliConfig) Validate() error {
 	if utils.IsBlank(s.ID) {
 		return errors.New("id is missing")
 	}

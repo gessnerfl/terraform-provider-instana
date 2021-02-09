@@ -248,7 +248,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 	description := customEntityVerificationEventDescription
 	expirationTime := customEntityVerificationEventExpirationTime
 	query := customEntityVerificationEventQuery
-	spec := restapi.CustomEventSpecification{
+	spec := &restapi.CustomEventSpecification{
 		ID:             customEntityVerificationEventID,
 		Name:           customEntityVerificationEventName,
 		EntityType:     EntityVerificationRuleEntityType,
@@ -292,7 +292,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithEntityVe
 	description := customEntityVerificationEventDescription
 	expirationTime := customEntityVerificationEventExpirationTime
 	query := customEntityVerificationEventQuery
-	spec := restapi.CustomEventSpecification{
+	spec := &restapi.CustomEventSpecification{
 		ID:             customEntityVerificationEventID,
 		Name:           customEntityVerificationEventName,
 		EntityType:     EntityVerificationRuleEntityType,
@@ -343,8 +343,8 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(restapi.CustomEventSpecification)
+	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
+	customEventSpec := result.(*restapi.CustomEventSpecification)
 	assert.Equal(t, customEntityVerificationEventID, customEventSpec.GetID())
 	assert.Equal(t, customEntityVerificationEventName, customEventSpec.Name)
 	assert.Equal(t, EntityVerificationRuleEntityType, customEventSpec.EntityType)

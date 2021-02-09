@@ -210,44 +210,6 @@ func (mr *MockReadOnlyRestResourceMockRecorder) GetOne(id interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockReadOnlyRestResource)(nil).GetOne), id)
 }
 
-// MockUnmarshaller is a mock of Unmarshaller interface
-type MockUnmarshaller struct {
-	ctrl     *gomock.Controller
-	recorder *MockUnmarshallerMockRecorder
-}
-
-// MockUnmarshallerMockRecorder is the mock recorder for MockUnmarshaller
-type MockUnmarshallerMockRecorder struct {
-	mock *MockUnmarshaller
-}
-
-// NewMockUnmarshaller creates a new mock instance
-func NewMockUnmarshaller(ctrl *gomock.Controller) *MockUnmarshaller {
-	mock := &MockUnmarshaller{ctrl: ctrl}
-	mock.recorder = &MockUnmarshallerMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockUnmarshaller) EXPECT() *MockUnmarshallerMockRecorder {
-	return m.recorder
-}
-
-// Unmarshal mocks base method
-func (m *MockUnmarshaller) Unmarshal(data []byte) (restapi.InstanaDataObject, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Unmarshal", data)
-	ret0, _ := ret[0].(restapi.InstanaDataObject)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Unmarshal indicates an expected call of Unmarshal
-func (mr *MockUnmarshallerMockRecorder) Unmarshal(data interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unmarshal", reflect.TypeOf((*MockUnmarshaller)(nil).Unmarshal), data)
-}
-
 // MockJSONUnmarshaller is a mock of JSONUnmarshaller interface
 type MockJSONUnmarshaller struct {
 	ctrl     *gomock.Controller

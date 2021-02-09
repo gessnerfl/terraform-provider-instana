@@ -124,12 +124,12 @@ type AlertingConfiguration struct {
 }
 
 //GetID implemention of the interface InstanaDataObject
-func (c AlertingConfiguration) GetID() string {
+func (c *AlertingConfiguration) GetID() string {
 	return c.ID
 }
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (c AlertingConfiguration) Validate() error {
+func (c *AlertingConfiguration) Validate() error {
 	if utils.IsBlank(c.ID) {
 		return errors.New("ID is missing")
 	}

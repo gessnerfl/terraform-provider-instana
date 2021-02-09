@@ -95,12 +95,12 @@ type AlertingChannel struct {
 }
 
 //GetID implemention of the interface InstanaDataObject
-func (r AlertingChannel) GetID() string {
+func (r *AlertingChannel) GetID() string {
 	return r.ID
 }
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (r AlertingChannel) Validate() error {
+func (r *AlertingChannel) Validate() error {
 	if utils.IsBlank(r.ID) {
 		return errors.New("ID is missing")
 	}
@@ -131,21 +131,21 @@ func (r AlertingChannel) Validate() error {
 	}
 }
 
-func (r AlertingChannel) validateEmailIntegration() error {
+func (r *AlertingChannel) validateEmailIntegration() error {
 	if len(r.Emails) == 0 {
 		return errors.New("Email addresses are missing")
 	}
 	return nil
 }
 
-func (r AlertingChannel) validateWebHookBasedIntegrations() error {
+func (r *AlertingChannel) validateWebHookBasedIntegrations() error {
 	if r.WebhookURL == nil || utils.IsBlank(*r.WebhookURL) {
 		return errors.New("Webhook URL is missing")
 	}
 	return nil
 }
 
-func (r AlertingChannel) validateOpsGenieIntegration() error {
+func (r *AlertingChannel) validateOpsGenieIntegration() error {
 	if r.APIKey == nil || utils.IsBlank(*r.APIKey) {
 		return errors.New("API key is missing")
 	}
@@ -161,14 +161,14 @@ func (r AlertingChannel) validateOpsGenieIntegration() error {
 	return nil
 }
 
-func (r AlertingChannel) validatePagerDutyIntegration() error {
+func (r *AlertingChannel) validatePagerDutyIntegration() error {
 	if r.ServiceIntegrationKey == nil || utils.IsBlank(*r.ServiceIntegrationKey) {
 		return errors.New("Service integration key is missing")
 	}
 	return nil
 }
 
-func (r AlertingChannel) validateSplunkIntegration() error {
+func (r *AlertingChannel) validateSplunkIntegration() error {
 	if r.URL == nil || utils.IsBlank(*r.URL) {
 		return errors.New("URL is missing")
 	}
@@ -178,7 +178,7 @@ func (r AlertingChannel) validateSplunkIntegration() error {
 	return nil
 }
 
-func (r AlertingChannel) validateVictorOpsIntegration() error {
+func (r *AlertingChannel) validateVictorOpsIntegration() error {
 	if r.APIKey == nil || utils.IsBlank(*r.APIKey) {
 		return errors.New("API Key is missing")
 	}
@@ -188,7 +188,7 @@ func (r AlertingChannel) validateVictorOpsIntegration() error {
 	return nil
 }
 
-func (r AlertingChannel) validateGenericWebHookIntegration() error {
+func (r *AlertingChannel) validateGenericWebHookIntegration() error {
 	if len(r.WebhookURLs) == 0 {
 		return errors.New("Webhook URLs are missing")
 	}

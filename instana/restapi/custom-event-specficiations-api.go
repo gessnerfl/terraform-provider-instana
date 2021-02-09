@@ -286,12 +286,12 @@ type CustomEventSpecification struct {
 }
 
 //GetID implemention of the interface InstanaDataObject
-func (spec CustomEventSpecification) GetID() string {
+func (spec *CustomEventSpecification) GetID() string {
 	return spec.ID
 }
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (spec CustomEventSpecification) Validate() error {
+func (spec *CustomEventSpecification) Validate() error {
 	if len(spec.ID) == 0 {
 		return errors.New("ID is missing")
 	}

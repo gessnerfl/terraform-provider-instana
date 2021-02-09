@@ -206,7 +206,7 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 	sut := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec)
+	err := sut.UpdateState(resourceData, &spec)
 
 	assert.Nil(t, err)
 	assert.Equal(t, customSystemEventID, resourceData.Id())
@@ -241,8 +241,8 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
 	assert.Nil(t, err)
-	assert.IsType(t, restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(restapi.CustomEventSpecification)
+	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
+	customEventSpec := result.(*restapi.CustomEventSpecification)
 	assert.Equal(t, customSystemEventID, customEventSpec.GetID())
 	assert.Equal(t, customSystemEventName, customEventSpec.Name)
 	assert.Equal(t, SystemRuleEntityType, customEventSpec.EntityType)

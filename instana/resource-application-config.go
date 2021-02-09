@@ -106,7 +106,7 @@ func NewApplicationConfigResourceHandle() *ResourceHandle {
 }
 
 func updateStateForApplicationConfig(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	applicationConfig := obj.(restapi.ApplicationConfig)
+	applicationConfig := obj.(*restapi.ApplicationConfig)
 	normalizedExpressionString, err := mapAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 	if err != nil {
 		return err
@@ -133,11 +133,11 @@ func mapAPIModelToNormalizedStringRepresentation(input restapi.MatchExpression) 
 func mapStateToDataObjectForApplicationConfig(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	matchSpecification, err := mapExpressionStringToAPIModel(getMatchExpressionFieldToMapToAPIModel(d))
 	if err != nil {
-		return restapi.ApplicationConfig{}, err
+		return &restapi.ApplicationConfig{}, err
 	}
 
 	label := computeFullApplicationConfigLabelString(d, formatter)
-	return restapi.ApplicationConfig{
+	return &restapi.ApplicationConfig{
 		ID:                 d.Id(),
 		Label:              label,
 		Scope:              restapi.ApplicationConfigScope(d.Get(ApplicationConfigFieldScope).(string)),

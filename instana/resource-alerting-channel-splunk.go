@@ -40,7 +40,7 @@ func NewAlertingChannelSplunkResourceHandle() *ResourceHandle {
 }
 
 func updateStateForAlertingChannelSplunk(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	alertingChannel := obj.(restapi.AlertingChannel)
+	alertingChannel := obj.(*restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelSplunkFieldURL, alertingChannel.URL)
 	d.Set(AlertingChannelSplunkFieldToken, alertingChannel.Token)
@@ -52,7 +52,7 @@ func monvertStateToDataObjectForAlertingChannelSplunk(d *schema.ResourceData, fo
 	name := computeFullAlertingChannelNameString(d, formatter)
 	url := d.Get(AlertingChannelSplunkFieldURL).(string)
 	token := d.Get(AlertingChannelSplunkFieldToken).(string)
-	return restapi.AlertingChannel{
+	return &restapi.AlertingChannel{
 		ID:    d.Id(),
 		Name:  name,
 		Kind:  restapi.SplunkChannelType,

@@ -25,7 +25,7 @@ func TestShouldSuccessfullyUnmarshalApplicationConfig(t *testing.T) {
 	result, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
 
 	assert.Nil(t, err)
-	assert.Equal(t, applicationConfig, result)
+	assert.Equal(t, &applicationConfig, result)
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsAJsonArray(t *testing.T) {

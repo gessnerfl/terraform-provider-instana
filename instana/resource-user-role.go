@@ -261,7 +261,7 @@ func NewUserRoleResourceHandle() *ResourceHandle {
 }
 
 func updateStateForUserRole(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	userRole := obj.(restapi.UserRole)
+	userRole := obj.(*restapi.UserRole)
 	d.Set(UserRoleFieldName, userRole.Name)
 	d.Set(UserRoleFieldCanConfigureServiceMapping, userRole.CanConfigureServiceMapping)
 	d.Set(UserRoleFieldCanConfigureEumApplications, userRole.CanConfigureEumApplications)
@@ -293,7 +293,7 @@ func updateStateForUserRole(d *schema.ResourceData, obj restapi.InstanaDataObjec
 }
 
 func mapStateToDataObjectForUserRole(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	return restapi.UserRole{
+	return &restapi.UserRole{
 		ID:                                d.Id(),
 		Name:                              d.Get(UserRoleFieldName).(string),
 		CanConfigureServiceMapping:        d.Get(UserRoleFieldCanConfigureServiceMapping).(bool),

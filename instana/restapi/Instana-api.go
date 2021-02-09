@@ -39,7 +39,7 @@ type baseInstanaAPI struct {
 
 //CustomEventSpecifications implementation of InstanaAPI interface
 func (api *baseInstanaAPI) CustomEventSpecifications() RestResource {
-	return NewPUTOnlyRestResource(CustomEventSpecificationResourcePath, NewCustomEventSpecificationUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(CustomEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&CustomEventSpecification{}), api.client)
 }
 
 //CustomEventSpecifications implementation of InstanaAPI interface
@@ -49,7 +49,7 @@ func (api *baseInstanaAPI) BuiltinEventSpecifications() ReadOnlyRestResource {
 
 //UserRoles implementation of InstanaAPI interface
 func (api *baseInstanaAPI) UserRoles() RestResource {
-	return NewPUTOnlyRestResource(UserRolesResourcePath, NewUserRoleUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(UserRolesResourcePath, NewDefaultJSONUnmarshaller(&UserRole{}), api.client)
 }
 
 //ApplicationConfigs implementation of InstanaAPI interface
@@ -59,16 +59,16 @@ func (api *baseInstanaAPI) ApplicationConfigs() RestResource {
 
 //AlertingChannels implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingChannels() RestResource {
-	return NewPUTOnlyRestResource(AlertingChannelsResourcePath, NewAlertingChannelUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(AlertingChannelsResourcePath, NewDefaultJSONUnmarshaller(&AlertingChannel{}), api.client)
 }
 
 //AlertingConfigurations implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingConfigurations() RestResource {
-	return NewPUTOnlyRestResource(AlertsResourcePath, NewAlertingConfigurationUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(AlertsResourcePath, NewDefaultJSONUnmarshaller(&AlertingConfiguration{}), api.client)
 }
 
 func (api *baseInstanaAPI) SliConfigs() RestResource {
-	return NewPUTOnlyRestResource(SliConfigResourcePath, NewSliConfigUnmarshaller(), api.client)
+	return NewPUTOnlyRestResource(SliConfigResourcePath, NewDefaultJSONUnmarshaller(&SliConfig{}), api.client)
 }
 
 func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource {

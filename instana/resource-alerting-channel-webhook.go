@@ -66,7 +66,7 @@ func NewAlertingChannelWebhookResourceHandle() *ResourceHandle {
 }
 
 func updateStateForAlertingChannelWebhook(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
-	alertingChannel := obj.(restapi.AlertingChannel)
+	alertingChannel := obj.(*restapi.AlertingChannel)
 	urls := alertingChannel.WebhookURLs
 	headers := createHTTPHeaderMapFromList(alertingChannel.Headers)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
@@ -92,7 +92,7 @@ func createHTTPHeaderMapFromList(headers []string) map[string]interface{} {
 func mapStateToDataObjectForAlertingChannelWebhook(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	headers := createHTTPHeaderListFromMap(d)
-	return restapi.AlertingChannel{
+	return &restapi.AlertingChannel{
 		ID:          d.Id(),
 		Name:        name,
 		Kind:        restapi.WebhookChannelType,
