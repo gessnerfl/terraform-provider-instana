@@ -62,7 +62,9 @@ func (r *alertingChannelWebhookBasedResource) GetRestResource(api restapi.Instan
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelWebhookBasedResource) SetComputedFields(d *schema.ResourceData) {}
+func (r *alertingChannelWebhookBasedResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
 
 func (r *alertingChannelWebhookBasedResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)

@@ -155,6 +155,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) GetRestResource(api 
 }
 
 func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
 }
 
 func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {

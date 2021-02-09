@@ -119,7 +119,9 @@ func (r *applicationConfigResource) GetRestResource(api restapi.InstanaAPI) rest
 	return api.ApplicationConfigs()
 }
 
-func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {}
+func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
 
 func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	applicationConfig := obj.(*restapi.ApplicationConfig)

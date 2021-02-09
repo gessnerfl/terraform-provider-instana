@@ -181,7 +181,9 @@ func (r *sliConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.Rest
 	return api.SliConfigs()
 }
 
-func (r *sliConfigResource) SetComputedFields(d *schema.ResourceData) {}
+func (r *sliConfigResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
 
 func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	sliConfig := obj.(*restapi.SliConfig)

@@ -274,7 +274,9 @@ func (r *useerRoleResource) GetRestResource(api restapi.InstanaAPI) restapi.Rest
 	return api.UserRoles()
 }
 
-func (r *useerRoleResource) SetComputedFields(d *schema.ResourceData) {}
+func (r *useerRoleResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
 
 func (r *useerRoleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	userRole := obj.(*restapi.UserRole)

@@ -54,7 +54,9 @@ func (r *alertingChannelVictorOpsResource) GetRestResource(api restapi.InstanaAP
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelVictorOpsResource) SetComputedFields(d *schema.ResourceData) {}
+func (r *alertingChannelVictorOpsResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
 
 func (r *alertingChannelVictorOpsResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)

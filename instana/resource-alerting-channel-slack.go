@@ -61,7 +61,9 @@ func (r *alertingChannelSlackResource) GetRestResource(api restapi.InstanaAPI) r
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelSlackResource) SetComputedFields(d *schema.ResourceData) {}
+func (r *alertingChannelSlackResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
 
 func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)

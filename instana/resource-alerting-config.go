@@ -144,7 +144,9 @@ func (r *alertingConfigResource) GetRestResource(api restapi.InstanaAPI) restapi
 	return api.AlertingConfigurations()
 }
 
-func (r *alertingConfigResource) SetComputedFields(d *schema.ResourceData) {}
+func (r *alertingConfigResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
 
 func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	config := obj.(*restapi.AlertingConfiguration)

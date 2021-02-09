@@ -71,7 +71,9 @@ func (r *websiteMonitoringConfigResource) GetRestResource(api restapi.InstanaAPI
 	return api.WebsiteMonitoringConfig()
 }
 
-func (r *websiteMonitoringConfigResource) SetComputedFields(d *schema.ResourceData) {}
+func (r *websiteMonitoringConfigResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
 
 func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	config := obj.(*restapi.WebsiteMonitoringConfig)
