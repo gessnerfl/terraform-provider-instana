@@ -12,6 +12,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const contentTypeHeaderName = "Content-Type"
+const healthPath = "/health"
+
 //EchoHandlerFunc is a handler function for the TestHTTPServer which echos the request
 //with a http status code 200
 func EchoHandlerFunc(w http.ResponseWriter, r *http.Request) {
@@ -20,14 +23,11 @@ func EchoHandlerFunc(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		r.Write(bytes.NewBufferString("Failed to get request"))
 	} else {
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		w.Header().Set(contentTypeHeaderName, r.Header.Get(contentTypeHeaderName))
 		w.WriteHeader(http.StatusOK)
 		w.Write(requestBody)
 	}
 }
-
-const contentType = "Content-Type"
-const healthPath = "/health"
 
 //healthFunc is a handler function which is registered on path /health to check if server
 //is running
@@ -122,13 +122,13 @@ func (server *TestHTTPServer) Close() {
 //WriteInternalServerError Writes the provided error message as a response message and sets status code 501 - Internal Server Error with content type text/plain
 func (server *TestHTTPServer) WriteInternalServerError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set(contentTypeHeaderName, "text/plain; charset=utf-8")
 	w.Write([]byte(err.Error()))
 }
 
 //WriteJSONResponse Writes the provided data with content type application/json and status code 200 OK to the ResponseWriter
 func (server *TestHTTPServer) WriteJSONResponse(w http.ResponseWriter, jsonData []byte) {
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set(contentTypeHeaderName, "application/json; charset=utf-8")
 	w.Write(jsonData)
 }

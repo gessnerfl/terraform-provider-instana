@@ -10,10 +10,15 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
+const (
+	defaultObjectId   = "object-id"
+	defaultObjectName = "object-name"
+)
+
 func TestShouldSuccessfullyUnmarshalSingleObject(t *testing.T) {
 	testObject := TestObject{
-		ID:   "event-id",
-		Name: "event-name",
+		ID:   defaultObjectId,
+		Name: defaultObjectName,
 	}
 
 	serializedJSON, _ := json.Marshal(testObject)
@@ -28,8 +33,8 @@ func TestShouldSuccessfullyUnmarshalSingleObject(t *testing.T) {
 
 func TestShouldSuccessfullyUnmarshalArrayOfObjects(t *testing.T) {
 	testObject := TestObject{
-		ID:   "event-id",
-		Name: "event-name",
+		ID:   defaultObjectId,
+		Name: defaultObjectName,
 	}
 	testObjects := []TestObject{testObject, testObject}
 	arrayOfObjects := make([]TestObject, 0)
@@ -46,8 +51,8 @@ func TestShouldSuccessfullyUnmarshalArrayOfObjects(t *testing.T) {
 
 func TestShouldFailToUnmarshalWhenObjectIsRequestedButResponseIsAJsonArray(t *testing.T) {
 	testObject := TestObject{
-		ID:   "event-id",
-		Name: "event-name",
+		ID:   defaultObjectId,
+		Name: defaultObjectName,
 	}
 	testObjects := []TestObject{testObject, testObject}
 
