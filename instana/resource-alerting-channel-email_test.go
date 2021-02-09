@@ -97,7 +97,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 	resource := NewAlertingChannelEmailResourceHandle()
 
-	schemaMap := resource.Schema
+	schemaMap := resource.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -106,20 +106,20 @@ func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelEmail(t *testing.T) {
-	name := NewAlertingChannelEmailResourceHandle().ResourceName
+	name := NewAlertingChannelEmailResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, "instana_alerting_channel_email", name, "Expected resource name to be instana_alerting_channel_email")
 }
 
 func TestAlertingChannelEmailResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewAlertingChannelEmailResourceHandle().SchemaVersion)
+	assert.Equal(t, 1, NewAlertingChannelEmailResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelEmailShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewAlertingChannelEmailResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
+	assert.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 }
 
 func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
@@ -132,7 +132,7 @@ func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersio
 	rawData[AlertingChannelEmailFieldEmails] = emails
 	meta := "dummy"
 
-	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)

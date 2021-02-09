@@ -105,7 +105,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 }
 
 func TestCustomEventSpecificationWithSystemRuleSchemaDefinitionIsValid(t *testing.T) {
-	schema := NewCustomEventSpecificationWithSystemRuleResourceHandle().Schema
+	schema := NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
@@ -121,15 +121,15 @@ func TestCustomEventSpecificationWithSystemRuleSchemaDefinitionIsValid(t *testin
 }
 
 func TestCustomEventSpecificationWithSystemRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 2, NewCustomEventSpecificationWithSystemRuleResourceHandle().SchemaVersion)
+	assert.Equal(t, 2, NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestCustomEventSpecificationWithSystemRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 
-	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
-	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
+	assert.Equal(t, 2, len(resourceHandler.StateUpgraders()))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	assert.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -138,7 +138,7 @@ func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateAndAddFullNameW
 	rawData[CustomEventSpecificationFieldName] = name
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, name, result[CustomEventSpecificationFieldFullName])
@@ -148,7 +148,7 @@ func TestShouldMigrateEmptyCustomEventSpecificationWithSystemRuleStateFromVersio
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
@@ -160,7 +160,7 @@ func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateToVersion2WhenD
 	rawData["downstream_broadcast_to_all_alerting_configs"] = true
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result["downstream_integration_ids"])
@@ -171,7 +171,7 @@ func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateToVersion2WhenN
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result["downstream_integration_ids"])
@@ -179,7 +179,7 @@ func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateToVersion2WhenN
 }
 
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithSystemRuleResource(t *testing.T) {
-	name := NewCustomEventSpecificationWithSystemRuleResourceHandle().ResourceName
+	name := NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, name, "instana_custom_event_spec_system_rule")
 }

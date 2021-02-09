@@ -109,35 +109,55 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 }
 
 //NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
-func NewCustomEventSpecificationWithThresholdRuleResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName:  ResourceInstanaCustomEventSpecificationThresholdRule,
-		Schema:        mergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
-		SchemaVersion: 3,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    customEventSpecificationWithThresholdRuleSchemaV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: migrateCustomEventConfigFullNameInStateFromV0toV1,
-				Version: 0,
-			},
-			{
-				Type:    customEventSpecificationWithThresholdRuleSchemaV1().CoreConfigSchema().ImpliedType(),
-				Upgrade: migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration,
-				Version: 1,
-			},
-			{
-				Type:    customEventSpecificationWithThresholdRuleSchemaV2().CoreConfigSchema().ImpliedType(),
-				Upgrade: migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation,
-				Version: 2,
-			},
+func NewCustomEventSpecificationWithThresholdRuleResourceHandle() ResourceHandle {
+	commons := &customEventSpecificationCommons{}
+	return &customEventSpecificationWithThresholdRuleResource{
+		metaData: ResourceMetaData{
+			ResourceName:  ResourceInstanaCustomEventSpecificationThresholdRule,
+			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
+			SchemaVersion: 3,
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.CustomEventSpecifications() },
-		UpdateState:          updateStateForCustomEventSpecificationWithThresholdRule,
-		MapStateToDataObject: mapStateToDataObjectForCustomEventSpecificationWithThresholdRule,
+		commons: commons,
 	}
 }
 
-func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type customEventSpecificationWithThresholdRuleResource struct {
+	metaData ResourceMetaData
+	commons  *customEventSpecificationCommons
+}
+
+func (r *customEventSpecificationWithThresholdRuleResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *customEventSpecificationWithThresholdRuleResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{
+		{
+			Type:    r.schemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.commons.migrateCustomEventConfigFullNameInStateFromV0toV1,
+			Version: 0,
+		},
+		{
+			Type:    r.schemaV1().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.commons.migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration,
+			Version: 1,
+		},
+		{
+			Type:    r.schemaV2().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation,
+			Version: 2,
+		},
+	}
+}
+
+func (r *customEventSpecificationWithThresholdRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.CustomEventSpecifications()
+}
+
+func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(d *schema.ResourceData) {
+}
+
+func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	customEventSpecification := obj.(*restapi.CustomEventSpecification)
 	ruleSpec := customEventSpecification.Rules[0]
 
@@ -150,7 +170,7 @@ func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceD
 		return err
 	}
 
-	updateStateForBasicCustomEventSpecification(d, customEventSpecification)
+	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification)
 	d.Set(CustomEventSpecificationRuleSeverity, severity)
 	d.Set(ThresholdRuleFieldMetricName, ruleSpec.MetricName)
 	d.Set(ThresholdRuleFieldRollup, ruleSpec.Rollup)
@@ -168,7 +188,7 @@ func updateStateForCustomEventSpecificationWithThresholdRule(d *schema.ResourceD
 	return nil
 }
 
-func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err
@@ -187,7 +207,7 @@ func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.
 		MetricName:        &metricName,
 		Rollup:            GetIntPointerFromResourceData(d, ThresholdRuleFieldRollup),
 		Window:            GetIntPointerFromResourceData(d, ThresholdRuleFieldWindow),
-		Aggregation:       getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
+		Aggregation:       r.getAggregationTypePointerFromResourceData(d, ThresholdRuleFieldAggregation),
 		ConditionOperator: &conditionOperatorInstanaValue,
 		ConditionValue:    GetFloat64PointerFromResourceData(d, ThresholdRuleFieldConditionValue),
 	}
@@ -203,12 +223,12 @@ func mapStateToDataObjectForCustomEventSpecificationWithThresholdRule(d *schema.
 		rule.MetricPattern = &metricPattern
 	}
 
-	customEventSpecification := createCustomEventSpecificationFromResourceData(d, formatter)
+	customEventSpecification := r.commons.createCustomEventSpecificationFromResourceData(d, formatter)
 	customEventSpecification.Rules = []restapi.RuleSpecification{rule}
 	return customEventSpecification, nil
 }
 
-func getAggregationTypePointerFromResourceData(d *schema.ResourceData, key string) *restapi.AggregationType {
+func (r *customEventSpecificationWithThresholdRuleResource) getAggregationTypePointerFromResourceData(d *schema.ResourceData, key string) *restapi.AggregationType {
 	val, ok := d.GetOk(key)
 	if ok {
 		value := restapi.AggregationType(val.(string))
@@ -217,25 +237,25 @@ func getAggregationTypePointerFromResourceData(d *schema.ResourceData, key strin
 	return nil
 }
 
-func customEventSpecificationWithThresholdRuleSchemaV0() *schema.Resource {
+func (r *customEventSpecificationWithThresholdRuleResource) schemaV0() *schema.Resource {
 	return &schema.Resource{
-		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV0, thresholdRuleSchemaFields),
+		Schema: MergeSchemaMap(defaultCustomEventSchemaFieldsV0, thresholdRuleSchemaFields),
 	}
 }
 
-func customEventSpecificationWithThresholdRuleSchemaV1() *schema.Resource {
+func (r *customEventSpecificationWithThresholdRuleResource) schemaV1() *schema.Resource {
 	return &schema.Resource{
-		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV1, thresholdRuleSchemaFields),
+		Schema: MergeSchemaMap(defaultCustomEventSchemaFieldsV1, thresholdRuleSchemaFields),
 	}
 }
 
-func customEventSpecificationWithThresholdRuleSchemaV2() *schema.Resource {
+func (r *customEventSpecificationWithThresholdRuleResource) schemaV2() *schema.Resource {
 	return &schema.Resource{
-		Schema: mergeSchemaMap(defaultCustomEventSchemaFieldsV1, thresholdRuleSchemaFields),
+		Schema: MergeSchemaMap(defaultCustomEventSchemaFieldsV1, thresholdRuleSchemaFields),
 	}
 }
 
-func migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *customEventSpecificationWithThresholdRuleResource) migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	v, ok := rawState[ThresholdRuleFieldConditionOperator]
 	if ok {
 		operator, err := restapi.SupportedConditionOperators.FromTerraformValue(v.(string))

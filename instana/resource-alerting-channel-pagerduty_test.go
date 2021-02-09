@@ -89,7 +89,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelPagerDutyDefinition(t *testing.T) {
 	resource := NewAlertingChannelPagerDutyResourceHandle()
 
-	schemaMap := resource.Schema
+	schemaMap := resource.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -136,15 +136,15 @@ func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
 }
 
 func TestAlertingChannelPagerDutyShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelPagerDutyResourceHandle().SchemaVersion)
+	assert.Equal(t, 0, NewAlertingChannelPagerDutyResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelPagerDutyShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelPagerDutyResourceHandle().StateUpgraders))
+	assert.Equal(t, 0, len(NewAlertingChannelPagerDutyResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelPagerDuty(t *testing.T) {
-	name := NewAlertingChannelPagerDutyResourceHandle().ResourceName
+	name := NewAlertingChannelPagerDutyResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_pager_duty")
 }

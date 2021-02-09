@@ -184,7 +184,7 @@ func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration 
 func TestResourceAlertingConfigDefinition(t *testing.T) {
 	resource := NewAlertingConfigResourceHandle()
 
-	schemaMap := resource.Schema
+	schemaMap := resource.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingConfigFieldAlertName)
@@ -196,20 +196,20 @@ func TestResourceAlertingConfigDefinition(t *testing.T) {
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingConfig(t *testing.T) {
-	name := NewAlertingConfigResourceHandle().ResourceName
+	name := NewAlertingConfigResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, "instana_alerting_config", name, "Expected resource name to be instana_alerting_config")
 }
 
 func TestAlertingConfigShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewAlertingConfigResourceHandle().SchemaVersion)
+	assert.Equal(t, 1, NewAlertingConfigResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingConfigShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewAlertingConfigResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
+	assert.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 }
 
 func TestShouldReturnStateOfAlertingConfigWithRuleIdsUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
@@ -221,7 +221,7 @@ func TestShouldReturnStateOfAlertingConfigWithRuleIdsUnchangedWhenMigratingFromV
 	rawData[AlertingConfigFieldEventFilterRuleIDs] = []interface{}{"rule-id1", "rule-id2"}
 	meta := "dummy"
 
-	result, err := NewAlertingConfigResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)
@@ -236,7 +236,7 @@ func TestShouldReturnStateOfAlertingConfigWithEventTypesUnchangedWhenMigratingFr
 	rawData[AlertingConfigFieldEventFilterEventTypes] = []interface{}{"incident", "critical"}
 	meta := "dummy"
 
-	result, err := NewAlertingConfigResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)

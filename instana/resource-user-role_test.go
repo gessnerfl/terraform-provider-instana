@@ -170,7 +170,7 @@ func TestCRUDOfUserRoleResourceWithMockServer(t *testing.T) {
 }
 
 func TestUserRoleSchemaDefinitionIsValid(t *testing.T) {
-	schema := NewUserRoleResourceHandle().Schema
+	schema := NewUserRoleResourceHandle().MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(UserRoleFieldName)
@@ -201,12 +201,12 @@ func TestUserRoleSchemaDefinitionIsValid(t *testing.T) {
 }
 
 func TestUserRoleResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewUserRoleResourceHandle().SchemaVersion)
+	assert.Equal(t, 1, NewUserRoleResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestUserRoleResourceShouldHaveOneStateUpgraderForVersion0(t *testing.T) {
-	assert.Equal(t, 1, len(NewUserRoleResourceHandle().StateUpgraders))
-	assert.Equal(t, 0, NewUserRoleResourceHandle().StateUpgraders[0].Version)
+	assert.Equal(t, 1, len(NewUserRoleResourceHandle().StateUpgraders()))
+	assert.Equal(t, 0, NewUserRoleResourceHandle().StateUpgraders()[0].Version)
 }
 
 func TestShouldDeleteValueOfImplicitViewFilterFieldWhenMigratingToVersion1AndValueIsSet(t *testing.T) {
@@ -215,7 +215,7 @@ func TestShouldDeleteValueOfImplicitViewFilterFieldWhenMigratingToVersion1AndVal
 	rawData[field] = "value"
 	meta := "dummy"
 
-	result, err := NewUserRoleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewUserRoleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	_, found := result[field]
@@ -226,14 +226,14 @@ func TestShouldDoNothingWhenMigratingToVersion1AndImplicitViewFilterValueIsSet(t
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewUserRoleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewUserRoleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)
 }
 
 func TestShouldReturnCorrectResourceNameForUserroleResource(t *testing.T) {
-	name := NewUserRoleResourceHandle().ResourceName
+	name := NewUserRoleResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, name, "instana_user_role")
 }

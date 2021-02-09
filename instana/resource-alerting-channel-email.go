@@ -25,31 +25,47 @@ var AlertingChannelEmailEmailsSchemaField = &schema.Schema{
 }
 
 //NewAlertingChannelEmailResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelEmailResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaAlertingChannelEmail,
-		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:        alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName:    alertingChannelFullNameSchemaField,
-			AlertingChannelEmailFieldEmails: AlertingChannelEmailEmailsSchemaField,
-		},
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type: alertingChannelEmailSchemaV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-					return rawState, nil
-				},
-				Version: 0,
+func NewAlertingChannelEmailResourceHandle() ResourceHandle {
+	return &alertingChannelEmailResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaAlertingChannelEmail,
+			Schema: map[string]*schema.Schema{
+				AlertingChannelFieldName:        alertingChannelNameSchemaField,
+				AlertingChannelFieldFullName:    alertingChannelFullNameSchemaField,
+				AlertingChannelEmailFieldEmails: AlertingChannelEmailEmailsSchemaField,
 			},
+			SchemaVersion: 1,
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
-		UpdateState:          updateStateForAlertingChannelEmail,
-		MapStateToDataObject: mapStateToDataObjectForAlertingChannelEmail,
 	}
 }
 
-func updateStateForAlertingChannelEmail(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type alertingChannelEmailResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *alertingChannelEmailResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *alertingChannelEmailResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{
+		{
+			Type: r.alertingChannelEmailSchemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+				return rawState, nil
+			},
+			Version: 0,
+		},
+	}
+}
+
+func (r *alertingChannelEmailResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.AlertingChannels()
+}
+
+func (r *alertingChannelEmailResource) SetComputedFields(d *schema.ResourceData) {}
+
+func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
 	emails := alertingChannel.Emails
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
@@ -58,7 +74,7 @@ func updateStateForAlertingChannelEmail(d *schema.ResourceData, obj restapi.Inst
 	return nil
 }
 
-func mapStateToDataObjectForAlertingChannelEmail(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelEmailResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	return &restapi.AlertingChannel{
 		ID:     d.Id(),
@@ -68,7 +84,7 @@ func mapStateToDataObjectForAlertingChannelEmail(d *schema.ResourceData, formatt
 	}, nil
 }
 
-func alertingChannelEmailSchemaV0() *schema.Resource {
+func (r *alertingChannelEmailResource) alertingChannelEmailSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,

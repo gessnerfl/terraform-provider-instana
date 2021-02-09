@@ -40,35 +40,51 @@ var AlertingChannelWebhookHTTPHeadersSchemaField = &schema.Schema{
 }
 
 //NewAlertingChannelWebhookResourceHandle creates the resource handle for Alerting Channels of type Webhook
-func NewAlertingChannelWebhookResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaAlertingChannelWebhook,
-		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:               alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName:           alertingChannelFullNameSchemaField,
-			AlertingChannelWebhookFieldWebhookURLs: AlertingChannelWebhookWebhookURLsSchemaField,
-			AlertingChannelWebhookFieldHTTPHeaders: AlertingChannelWebhookHTTPHeadersSchemaField,
-		},
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type: alertingChannelWebhookSchemaV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-					return rawState, nil
-				},
-				Version: 0,
+func NewAlertingChannelWebhookResourceHandle() ResourceHandle {
+	return &alertingChannelWebhookResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaAlertingChannelWebhook,
+			Schema: map[string]*schema.Schema{
+				AlertingChannelFieldName:               alertingChannelNameSchemaField,
+				AlertingChannelFieldFullName:           alertingChannelFullNameSchemaField,
+				AlertingChannelWebhookFieldWebhookURLs: AlertingChannelWebhookWebhookURLsSchemaField,
+				AlertingChannelWebhookFieldHTTPHeaders: AlertingChannelWebhookHTTPHeadersSchemaField,
 			},
+			SchemaVersion: 1,
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
-		UpdateState:          updateStateForAlertingChannelWebhook,
-		MapStateToDataObject: mapStateToDataObjectForAlertingChannelWebhook,
 	}
 }
 
-func updateStateForAlertingChannelWebhook(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type alertingChannelWebhookResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *alertingChannelWebhookResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *alertingChannelWebhookResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{
+		{
+			Type: r.alertingChannelWebhookSchemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+				return rawState, nil
+			},
+			Version: 0,
+		},
+	}
+}
+
+func (r *alertingChannelWebhookResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.AlertingChannels()
+}
+
+func (r *alertingChannelWebhookResource) SetComputedFields(d *schema.ResourceData) {}
+
+func (r *alertingChannelWebhookResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
 	urls := alertingChannel.WebhookURLs
-	headers := createHTTPHeaderMapFromList(alertingChannel.Headers)
+	headers := r.createHTTPHeaderMapFromList(alertingChannel.Headers)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelWebhookFieldWebhookURLs, urls)
 	d.Set(AlertingChannelWebhookFieldHTTPHeaders, headers)
@@ -76,7 +92,7 @@ func updateStateForAlertingChannelWebhook(d *schema.ResourceData, obj restapi.In
 	return nil
 }
 
-func createHTTPHeaderMapFromList(headers []string) map[string]interface{} {
+func (r *alertingChannelWebhookResource) createHTTPHeaderMapFromList(headers []string) map[string]interface{} {
 	result := make(map[string]interface{})
 	for _, header := range headers {
 		keyValue := strings.Split(header, ":")
@@ -89,9 +105,9 @@ func createHTTPHeaderMapFromList(headers []string) map[string]interface{} {
 	return result
 }
 
-func mapStateToDataObjectForAlertingChannelWebhook(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelWebhookResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
-	headers := createHTTPHeaderListFromMap(d)
+	headers := r.createHTTPHeaderListFromMap(d)
 	return &restapi.AlertingChannel{
 		ID:          d.Id(),
 		Name:        name,
@@ -101,7 +117,7 @@ func mapStateToDataObjectForAlertingChannelWebhook(d *schema.ResourceData, forma
 	}, nil
 }
 
-func createHTTPHeaderListFromMap(d *schema.ResourceData) []string {
+func (r *alertingChannelWebhookResource) createHTTPHeaderListFromMap(d *schema.ResourceData) []string {
 	if attr, ok := d.GetOk(AlertingChannelWebhookFieldHTTPHeaders); ok {
 		headerMap := attr.(map[string]interface{})
 		result := make([]string, len(headerMap))
@@ -117,7 +133,7 @@ func createHTTPHeaderListFromMap(d *schema.ResourceData) []string {
 	return []string{}
 }
 
-func alertingChannelWebhookSchemaV0() *schema.Resource {
+func (r *alertingChannelWebhookResource) alertingChannelWebhookSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,

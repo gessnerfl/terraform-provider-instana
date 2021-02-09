@@ -75,39 +75,55 @@ var (
 )
 
 //NewApplicationConfigResourceHandle creates a new instance of the ResourceHandle for application configs
-func NewApplicationConfigResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaApplicationConfig,
-		Schema: map[string]*schema.Schema{
-			ApplicationConfigFieldLabel:                        ApplicationConfigLabel,
-			ApplicationConfigFieldFullLabel:                    ApplicationConfigFullLabel,
-			ApplicationConfigFieldScope:                        ApplicationConfigScope,
-			ApplicationConfigFieldBoundaryScope:                ApplicationConfigBoundaryScope,
-			ApplicationConfigFieldMatchSpecification:           ApplicationConfigMatchSpecification,
-			ApplicationConfigFieldNormalizedMatchSpecification: ApplicationConfigNormalizedMatchSpecification,
-		},
-		SchemaVersion: 2,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    applicationConfigSchemaV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: applicationConfigStateUpgradeV0,
-				Version: 0,
+func NewApplicationConfigResourceHandle() ResourceHandle {
+	return &applicationConfigResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaApplicationConfig,
+			Schema: map[string]*schema.Schema{
+				ApplicationConfigFieldLabel:                        ApplicationConfigLabel,
+				ApplicationConfigFieldFullLabel:                    ApplicationConfigFullLabel,
+				ApplicationConfigFieldScope:                        ApplicationConfigScope,
+				ApplicationConfigFieldBoundaryScope:                ApplicationConfigBoundaryScope,
+				ApplicationConfigFieldMatchSpecification:           ApplicationConfigMatchSpecification,
+				ApplicationConfigFieldNormalizedMatchSpecification: ApplicationConfigNormalizedMatchSpecification,
 			},
-			{
-				Type:    applicationConfigSchemaV1().CoreConfigSchema().ImpliedType(),
-				Upgrade: updateToVersion1AndRecalculateNormalizedMatchSpecification,
-				Version: 1,
-			},
+			SchemaVersion: 2,
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.ApplicationConfigs() },
-		UpdateState:          updateStateForApplicationConfig,
-		MapStateToDataObject: mapStateToDataObjectForApplicationConfig,
 	}
 }
 
-func updateStateForApplicationConfig(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type applicationConfigResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *applicationConfigResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *applicationConfigResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{
+		{
+			Type:    r.applicationConfigSchemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.applicationConfigStateUpgradeV0,
+			Version: 0,
+		},
+		{
+			Type:    r.applicationConfigSchemaV1().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.updateToVersion1AndRecalculateNormalizedMatchSpecification,
+			Version: 1,
+		},
+	}
+}
+
+func (r *applicationConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.ApplicationConfigs()
+}
+
+func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {}
+
+func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	applicationConfig := obj.(*restapi.ApplicationConfig)
-	normalizedExpressionString, err := mapAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
+	normalizedExpressionString, err := r.mapAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 	if err != nil {
 		return err
 	}
@@ -121,7 +137,7 @@ func updateStateForApplicationConfig(d *schema.ResourceData, obj restapi.Instana
 	return nil
 }
 
-func mapAPIModelToNormalizedStringRepresentation(input restapi.MatchExpression) (string, error) {
+func (r *applicationConfigResource) mapAPIModelToNormalizedStringRepresentation(input restapi.MatchExpression) (string, error) {
 	mapper := filterexpression.NewMapper()
 	expr, err := mapper.FromAPIModel(input)
 	if err != nil {
@@ -130,13 +146,13 @@ func mapAPIModelToNormalizedStringRepresentation(input restapi.MatchExpression) 
 	return expr.Render(), nil
 }
 
-func mapStateToDataObjectForApplicationConfig(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	matchSpecification, err := mapExpressionStringToAPIModel(getMatchExpressionFieldToMapToAPIModel(d))
+func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+	matchSpecification, err := r.mapExpressionStringToAPIModel(r.getMatchExpressionFieldToMapToAPIModel(d))
 	if err != nil {
 		return &restapi.ApplicationConfig{}, err
 	}
 
-	label := computeFullApplicationConfigLabelString(d, formatter)
+	label := r.computeFullApplicationConfigLabelString(d, formatter)
 	return &restapi.ApplicationConfig{
 		ID:                 d.Id(),
 		Label:              label,
@@ -146,7 +162,7 @@ func mapStateToDataObjectForApplicationConfig(d *schema.ResourceData, formatter 
 	}, nil
 }
 
-func mapExpressionStringToAPIModel(input string) (restapi.MatchExpression, error) {
+func (r *applicationConfigResource) mapExpressionStringToAPIModel(input string) (restapi.MatchExpression, error) {
 	parser := filterexpression.NewParser()
 	expr, err := parser.Parse(input)
 	if err != nil {
@@ -157,21 +173,21 @@ func mapExpressionStringToAPIModel(input string) (restapi.MatchExpression, error
 	return mapper.ToAPIModel(expr), nil
 }
 
-func getMatchExpressionFieldToMapToAPIModel(d *schema.ResourceData) string {
+func (r *applicationConfigResource) getMatchExpressionFieldToMapToAPIModel(d *schema.ResourceData) string {
 	if d.HasChange(ApplicationConfigFieldMatchSpecification) {
 		return d.Get(ApplicationConfigFieldMatchSpecification).(string)
 	}
 	return d.Get(ApplicationConfigFieldNormalizedMatchSpecification).(string)
 }
 
-func computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
+func (r *applicationConfigResource) computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
 	if d.HasChange(ApplicationConfigFieldLabel) {
 		return formatter.Format(d.Get(ApplicationConfigFieldLabel).(string))
 	}
 	return d.Get(ApplicationConfigFieldFullLabel).(string)
 }
 
-func applicationConfigSchemaV0() *schema.Resource {
+func (r *applicationConfigResource) applicationConfigSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
@@ -181,12 +197,12 @@ func applicationConfigSchemaV0() *schema.Resource {
 	}
 }
 
-func applicationConfigStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) applicationConfigStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[ApplicationConfigFieldFullLabel] = rawState[ApplicationConfigFieldLabel]
 	return rawState, nil
 }
 
-func applicationConfigSchemaV1() *schema.Resource {
+func (r *applicationConfigResource) applicationConfigSchemaV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
@@ -198,7 +214,7 @@ func applicationConfigSchemaV1() *schema.Resource {
 	}
 }
 
-func updateToVersion1AndRecalculateNormalizedMatchSpecification(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatchSpecification(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	spec := rawState[ApplicationConfigFieldMatchSpecification]
 	if spec != nil {
 		log.Printf("[DEBUG] Instana Provider: migrate application config match specification to include entity")

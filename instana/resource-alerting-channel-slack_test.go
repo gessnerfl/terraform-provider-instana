@@ -100,7 +100,7 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelSlackDefinition(t *testing.T) {
 	resource := NewAlertingChannelSlackResourceHandle()
 
-	schemaMap := resource.Schema
+	schemaMap := resource.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -161,15 +161,15 @@ func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
 }
 
 func TestAlertingChannelSlackShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelSlackResourceHandle().SchemaVersion)
+	assert.Equal(t, 0, NewAlertingChannelSlackResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelSlackShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelSlackResourceHandle().StateUpgraders))
+	assert.Equal(t, 0, len(NewAlertingChannelSlackResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelSlack(t *testing.T) {
-	name := NewAlertingChannelSlackResourceHandle().ResourceName
+	name := NewAlertingChannelSlackResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_slack")
 }

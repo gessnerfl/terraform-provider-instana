@@ -135,21 +135,10 @@ var defaultCustomEventSchemaFields = map[string]*schema.Schema{
 	CustomEventSpecificationRuleSeverity:        customEventSpecificationSchemaRuleSeverity,
 }
 
-func mergeSchemaMap(mapA map[string]*schema.Schema, mapB map[string]*schema.Schema) map[string]*schema.Schema {
-	mergedMap := make(map[string]*schema.Schema)
+type customEventSpecificationCommons struct{}
 
-	for k, v := range mapA {
-		mergedMap[k] = v
-	}
-	for k, v := range mapB {
-		mergedMap[k] = v
-	}
-
-	return mergedMap
-}
-
-func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter utils.ResourceNameFormatter) *restapi.CustomEventSpecification {
-	name := computeFullCustomEventNameString(d, formatter)
+func (c *customEventSpecificationCommons) createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter utils.ResourceNameFormatter) *restapi.CustomEventSpecification {
+	name := c.computeFullCustomEventNameString(d, formatter)
 	apiModel := restapi.CustomEventSpecification{
 		ID:             d.Id(),
 		Name:           name,
@@ -163,14 +152,14 @@ func createCustomEventSpecificationFromResourceData(d *schema.ResourceData, form
 	return &apiModel
 }
 
-func computeFullCustomEventNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
+func (c *customEventSpecificationCommons) computeFullCustomEventNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
 	if d.HasChange(CustomEventSpecificationFieldName) {
 		return formatter.Format(d.Get(CustomEventSpecificationFieldName).(string))
 	}
 	return d.Get(CustomEventSpecificationFieldFullName).(string)
 }
 
-func updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec *restapi.CustomEventSpecification) {
+func (c *customEventSpecificationCommons) updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec *restapi.CustomEventSpecification) {
 	d.SetId(spec.ID)
 	d.Set(CustomEventSpecificationFieldFullName, spec.Name)
 	d.Set(CustomEventSpecificationFieldQuery, spec.Query)
@@ -181,12 +170,12 @@ func updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec *r
 	d.Set(CustomEventSpecificationFieldEnabled, spec.Enabled)
 }
 
-func migrateCustomEventConfigFullNameInStateFromV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullNameInStateFromV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[CustomEventSpecificationFieldFullName] = rawState[CustomEventSpecificationFieldName]
 	return rawState, nil
 }
 
-func migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	delete(rawState, customEventSpecificationDownstreamIntegrationIds)
 	delete(rawState, customEventSpecificationDownstreamBroadcastToAllAlertingConfigs)
 	return rawState, nil

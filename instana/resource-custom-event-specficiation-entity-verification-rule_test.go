@@ -118,7 +118,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 }
 
 func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsValid(t *testing.T) {
-	schema := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().Schema
+	schema := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
@@ -137,16 +137,16 @@ func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsVal
 }
 
 func TestCustomEventSpecificationWithEntityVerificationRuleResourceShouldHaveSchemaVersionThree(t *testing.T) {
-	assert.Equal(t, 3, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().SchemaVersion)
+	assert.Equal(t, 3, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestCustomEventSpecificationWithEntityVerificationRuleShouldHaveThreeStateUpgraderForVersionZeroToTwo(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
-	assert.Equal(t, 3, len(resourceHandler.StateUpgraders))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
-	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
-	assert.Equal(t, 2, resourceHandler.StateUpgraders[2].Version)
+	assert.Equal(t, 3, len(resourceHandler.StateUpgraders()))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	assert.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
+	assert.Equal(t, 2, resourceHandler.StateUpgraders()[2].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -155,7 +155,7 @@ func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateAnd
 	rawData[CustomEventSpecificationFieldName] = name
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, name, result[CustomEventSpecificationFieldFullName])
@@ -165,7 +165,7 @@ func TestShouldMigrateEmptyCustomEventSpecificationWithEntityVerificationRuleSta
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
@@ -177,7 +177,7 @@ func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateToV
 	rawData["downstream_broadcast_to_all_alerting_configs"] = true
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result["downstream_integration_ids"])
@@ -188,7 +188,7 @@ func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateToV
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result["downstream_integration_ids"])
@@ -209,7 +209,7 @@ func createTestCaseForSuccessfulMigrationOfCustomEventSpecificationWithEntityVer
 		rawData[EntityVerificationRuleFieldMatchingOperator] = value
 		meta := "dummy"
 
-		result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+		result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[2].Upgrade(rawData, meta)
 
 		assert.Nil(t, err)
 		assert.Equal(t, mo.InstanaAPIValue(), result[EntityVerificationRuleFieldMatchingOperator])
@@ -220,7 +220,7 @@ func TestShouldDoNothingWhenMigratingCustomEventSpecificationWithEntityVerificat
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[2].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[EntityVerificationRuleFieldMatchingOperator])
@@ -231,7 +231,7 @@ func TestShouldReturnErrorWhenCustomEventSpecificationWithEntityVerificationRule
 	rawData[EntityVerificationRuleFieldMatchingOperator] = "invalid"
 	meta := "dummy"
 
-	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders[2].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[2].Upgrade(rawData, meta)
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "not a supported matching operator")
@@ -239,7 +239,7 @@ func TestShouldReturnErrorWhenCustomEventSpecificationWithEntityVerificationRule
 }
 
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithEntityVerificationRuleResource(t *testing.T) {
-	name := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().ResourceName
+	name := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, name, "instana_custom_event_spec_entity_verification_rule")
 }

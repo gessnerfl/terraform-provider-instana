@@ -18,34 +18,52 @@ const (
 )
 
 //NewAlertingChannelSlackResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelSlackResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaAlertingChannelSlack,
-		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:     alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelSlackFieldWebhookURL: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The webhook URL of the Slack alerting channel",
-			},
-			AlertingChannelSlackFieldIconURL: {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The icon URL of the Slack alerting channel",
-			},
-			AlertingChannelSlackFieldChannel: {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The Slack channel of the Slack alerting channel",
+func NewAlertingChannelSlackResourceHandle() ResourceHandle {
+	return &alertingChannelSlackResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaAlertingChannelSlack,
+			Schema: map[string]*schema.Schema{
+				AlertingChannelFieldName:     alertingChannelNameSchemaField,
+				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+				AlertingChannelSlackFieldWebhookURL: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The webhook URL of the Slack alerting channel",
+				},
+				AlertingChannelSlackFieldIconURL: {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "The icon URL of the Slack alerting channel",
+				},
+				AlertingChannelSlackFieldChannel: {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "The Slack channel of the Slack alerting channel",
+				},
 			},
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
-		UpdateState:          updateStateForAlertingChannelSlack,
-		MapStateToDataObject: mapStateToDataObjectForAlertingChannelSlack,
 	}
 }
-func updateStateForAlertingChannelSlack(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+
+type alertingChannelSlackResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *alertingChannelSlackResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *alertingChannelSlackResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (r *alertingChannelSlackResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.AlertingChannels()
+}
+
+func (r *alertingChannelSlackResource) SetComputedFields(d *schema.ResourceData) {}
+
+func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelSlackFieldWebhookURL, alertingChannel.WebhookURL)
@@ -55,7 +73,7 @@ func updateStateForAlertingChannelSlack(d *schema.ResourceData, obj restapi.Inst
 	return nil
 }
 
-func mapStateToDataObjectForAlertingChannelSlack(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelSlackResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	webhookURL := d.Get(AlertingChannelSlackFieldWebhookURL).(string)
 	iconURL := d.Get(AlertingChannelSlackFieldIconURL).(string)

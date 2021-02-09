@@ -16,30 +16,47 @@ const (
 )
 
 //NewAlertingChannelSplunkResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelSplunkResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaAlertingChannelSplunk,
-		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:     alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelSplunkFieldURL: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The URL of the Splunk alerting channel",
-			},
-			AlertingChannelSplunkFieldToken: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The token of the Splunk alerting channel",
+func NewAlertingChannelSplunkResourceHandle() ResourceHandle {
+	return &alertingChannelSplunkResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaAlertingChannelSplunk,
+			Schema: map[string]*schema.Schema{
+				AlertingChannelFieldName:     alertingChannelNameSchemaField,
+				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+				AlertingChannelSplunkFieldURL: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The URL of the Splunk alerting channel",
+				},
+				AlertingChannelSplunkFieldToken: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The token of the Splunk alerting channel",
+				},
 			},
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
-		UpdateState:          updateStateForAlertingChannelSplunk,
-		MapStateToDataObject: monvertStateToDataObjectForAlertingChannelSplunk,
 	}
 }
 
-func updateStateForAlertingChannelSplunk(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type alertingChannelSplunkResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *alertingChannelSplunkResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *alertingChannelSplunkResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (r *alertingChannelSplunkResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.AlertingChannels()
+}
+
+func (r *alertingChannelSplunkResource) SetComputedFields(d *schema.ResourceData) {}
+
+func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelSplunkFieldURL, alertingChannel.URL)
@@ -48,7 +65,7 @@ func updateStateForAlertingChannelSplunk(d *schema.ResourceData, obj restapi.Ins
 	return nil
 }
 
-func monvertStateToDataObjectForAlertingChannelSplunk(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelSplunkResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	url := d.Get(AlertingChannelSplunkFieldURL).(string)
 	token := d.Get(AlertingChannelSplunkFieldToken).(string)

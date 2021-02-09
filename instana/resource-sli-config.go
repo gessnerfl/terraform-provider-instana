@@ -149,24 +149,41 @@ var (
 )
 
 //NewSliConfigResourceHandle creates the resource handle for SLI configuration
-func NewSliConfigResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaSliConfig,
-		Schema: map[string]*schema.Schema{
-			SliConfigFieldName:                       SliConfigName,
-			SliConfigFieldFullName:                   SliConfigFullName,
-			SliConfigFieldInitialEvaluationTimestamp: SliConfigInitialEvaluationTimestamp,
-			SliConfigFieldMetricConfiguration:        SliConfigMetricConfiguration,
-			SliConfigFieldSliEntity:                  SliConfigSliEntity,
+func NewSliConfigResourceHandle() ResourceHandle {
+	return &sliConfigResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaSliConfig,
+			Schema: map[string]*schema.Schema{
+				SliConfigFieldName:                       SliConfigName,
+				SliConfigFieldFullName:                   SliConfigFullName,
+				SliConfigFieldInitialEvaluationTimestamp: SliConfigInitialEvaluationTimestamp,
+				SliConfigFieldMetricConfiguration:        SliConfigMetricConfiguration,
+				SliConfigFieldSliEntity:                  SliConfigSliEntity,
+			},
+			SchemaVersion: 0,
 		},
-		SchemaVersion:        0,
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.SliConfigs() },
-		UpdateState:          updateStateForSliConfig,
-		MapStateToDataObject: mapStateToDataObjectForSliConfig,
 	}
 }
 
-func updateStateForSliConfig(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type sliConfigResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *sliConfigResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *sliConfigResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (r *sliConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.SliConfigs()
+}
+
+func (r *sliConfigResource) SetComputedFields(d *schema.ResourceData) {}
+
+func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	sliConfig := obj.(*restapi.SliConfig)
 
 	metricConfiguration := map[string]string{
@@ -192,20 +209,20 @@ func updateStateForSliConfig(d *schema.ResourceData, obj restapi.InstanaDataObje
 	return nil
 }
 
-func mapStateToDataObjectForSliConfig(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	metricConfigurationsStateObject := d.Get(SliConfigFieldMetricConfiguration).([]interface{})
 	var metricConfiguration restapi.MetricConfiguration
 	if len(metricConfigurationsStateObject) > 0 {
-		metricConfiguration = mapMetricConfigurationEntityFromState(metricConfigurationsStateObject)
+		metricConfiguration = r.mapMetricConfigurationEntityFromState(metricConfigurationsStateObject)
 	}
 
 	sliEntitiesStateObject := d.Get(SliConfigFieldSliEntity).([]interface{})
 	var sliEntity restapi.SliEntity
 	if len(sliEntitiesStateObject) > 0 {
-		sliEntity = mapSliEntityListFromState(sliEntitiesStateObject)
+		sliEntity = r.mapSliEntityListFromState(sliEntitiesStateObject)
 	}
 
-	name := computeFullSliConfigNameString(d, formatter)
+	name := r.computeFullSliConfigNameString(d, formatter)
 	return &restapi.SliConfig{
 		ID:                         d.Id(),
 		Name:                       name,
@@ -215,7 +232,7 @@ func mapStateToDataObjectForSliConfig(d *schema.ResourceData, formatter utils.Re
 	}, nil
 }
 
-func mapMetricConfigurationEntityFromState(stateObject []interface{}) restapi.MetricConfiguration {
+func (r *sliConfigResource) mapMetricConfigurationEntityFromState(stateObject []interface{}) restapi.MetricConfiguration {
 	metricConfigurationState := stateObject[0].(map[string]interface{})
 	if len(metricConfigurationState) != 0 {
 		return restapi.MetricConfiguration{
@@ -227,7 +244,7 @@ func mapMetricConfigurationEntityFromState(stateObject []interface{}) restapi.Me
 	return restapi.MetricConfiguration{}
 }
 
-func mapSliEntityListFromState(stateObject []interface{}) restapi.SliEntity {
+func (r *sliConfigResource) mapSliEntityListFromState(stateObject []interface{}) restapi.SliEntity {
 	sliEntitiesState := stateObject[0].(map[string]interface{})
 	if len(sliEntitiesState) != 0 {
 		return restapi.SliEntity{
@@ -241,7 +258,7 @@ func mapSliEntityListFromState(stateObject []interface{}) restapi.SliEntity {
 	return restapi.SliEntity{}
 }
 
-func computeFullSliConfigNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
+func (r *sliConfigResource) computeFullSliConfigNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
 	if d.HasChange(SliConfigFieldName) {
 		return formatter.Format(d.Get(SliConfigFieldName).(string))
 	}
