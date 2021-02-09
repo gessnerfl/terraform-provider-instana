@@ -25,8 +25,18 @@ resource.
     * Splunk - `instana_alerting_channel_splunk`
     * VictorOps - `instana_alerting_channel_victor_ops`
     * Webhook - `instana_alerting_channel_webhook`
+  * Alerting Config - `instana_alerting_config`
 * Settings
   * User Roles - `instana_user_role`
+* SLI Settings
+  * SLI Config - `instana_sli_config`
+* Website Monitoring
+  * Website Monitoring Config - `instana_website_monitoring_config`
+
+## Supported Data Source:
+
+* Event Settings
+  * Builtin Event Specifications - `instana_builtin_event_spec`
 
 ## Example Usage
 

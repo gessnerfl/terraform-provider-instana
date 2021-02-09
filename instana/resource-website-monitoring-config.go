@@ -42,21 +42,40 @@ var WebsiteMonitoringConfigSchemaAppName = &schema.Schema{
 }
 
 //NewWebsiteMonitoringConfigResourceHandle creates the resource handle for Alerting Configuration
-func NewWebsiteMonitoringConfigResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaWebsiteMonitoringConfig,
-		Schema: map[string]*schema.Schema{
-			WebsiteMonitoringConfigFieldName:     WebsiteMonitoringConfigSchemaName,
-			WebsiteMonitoringConfigFieldFullName: WebsiteMonitoringConfigSchemaFullName,
-			WebsiteMonitoringConfigFieldAppName:  WebsiteMonitoringConfigSchemaAppName,
+func NewWebsiteMonitoringConfigResourceHandle() ResourceHandle {
+	return &websiteMonitoringConfigResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaWebsiteMonitoringConfig,
+			Schema: map[string]*schema.Schema{
+				WebsiteMonitoringConfigFieldName:     WebsiteMonitoringConfigSchemaName,
+				WebsiteMonitoringConfigFieldFullName: WebsiteMonitoringConfigSchemaFullName,
+				WebsiteMonitoringConfigFieldAppName:  WebsiteMonitoringConfigSchemaAppName,
+			},
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.WebsiteMonitoringConfig() },
-		UpdateState:          updateStateForWebsiteMonitoring,
-		MapStateToDataObject: mapStateToDataObjectForWebsiteMonitoring,
 	}
 }
 
-func updateStateForWebsiteMonitoring(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type websiteMonitoringConfigResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *websiteMonitoringConfigResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *websiteMonitoringConfigResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (r *websiteMonitoringConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.WebsiteMonitoringConfig()
+}
+
+func (r *websiteMonitoringConfigResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
+
+func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	config := obj.(*restapi.WebsiteMonitoringConfig)
 	d.Set(WebsiteMonitoringConfigFieldFullName, config.Name)
 	d.Set(WebsiteMonitoringConfigFieldAppName, config.AppName)
@@ -64,8 +83,8 @@ func updateStateForWebsiteMonitoring(d *schema.ResourceData, obj restapi.Instana
 	return nil
 }
 
-func mapStateToDataObjectForWebsiteMonitoring(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	name := computeFullWebsiteMonitoringNameString(d, formatter)
+func (r *websiteMonitoringConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+	name := r.computeFullWebsiteMonitoringNameString(d, formatter)
 
 	return &restapi.WebsiteMonitoringConfig{
 		ID:   d.Id(),
@@ -73,7 +92,7 @@ func mapStateToDataObjectForWebsiteMonitoring(d *schema.ResourceData, formatter 
 	}, nil
 }
 
-func computeFullWebsiteMonitoringNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
+func (r *websiteMonitoringConfigResource) computeFullWebsiteMonitoringNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
 	if d.HasChange(WebsiteMonitoringConfigFieldName) {
 		return formatter.Format(d.Get(WebsiteMonitoringConfigFieldName).(string))
 	}

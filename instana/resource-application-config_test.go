@@ -142,7 +142,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 }
 
 func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
-	schema := NewApplicationConfigResourceHandle().Schema
+	schema := NewApplicationConfigResourceHandle().MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldLabel)
@@ -154,15 +154,15 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 }
 
 func TestApplicationConfigResourceShouldHaveSchemaVersionTwo(t *testing.T) {
-	assert.Equal(t, 2, NewApplicationConfigResourceHandle().SchemaVersion)
+	assert.Equal(t, 2, NewApplicationConfigResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestApplicationConfigResourceShouldHaveTwoStateUpgraderForVersionZeroToOne(t *testing.T) {
 	resourceHandler := NewApplicationConfigResourceHandle()
 
-	assert.Equal(t, 2, len(resourceHandler.StateUpgraders))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
-	assert.Equal(t, 1, resourceHandler.StateUpgraders[1].Version)
+	assert.Equal(t, 2, len(resourceHandler.StateUpgraders()))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	assert.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 }
 
 func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelWhenMigratingFromVersion0To1(t *testing.T) {
@@ -171,7 +171,7 @@ func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelW
 	rawData[ApplicationConfigFieldLabel] = label
 	meta := "dummy"
 
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, label, result[ApplicationConfigFieldFullLabel])
@@ -181,7 +181,7 @@ func TestShouldMigrateEmptyApplicationConfigStateFromVersion0To1(t *testing.T) {
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[ApplicationConfigFieldFullLabel])
@@ -194,7 +194,7 @@ func TestShouldHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To2(t *t
 	rawData[ApplicationConfigFieldMatchSpecification] = input
 	meta := "dummy"
 
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, input, result[ApplicationConfigFieldMatchSpecification])
@@ -207,7 +207,7 @@ func TestShouldFailToHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To
 	rawData[ApplicationConfigFieldMatchSpecification] = input
 	meta := "dummy"
 
-	_, err := NewApplicationConfigResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+	_, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
 
 	assert.Error(t, err)
 }
@@ -216,7 +216,7 @@ func TestShouldMigrateEmptyApplicationConfigStateFromVersion1To2(t *testing.T) {
 	rawData := make(map[string]interface{})
 	meta := "dummy"
 
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders[1].Upgrade(rawData, meta)
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[ApplicationConfigFieldMatchSpecification])
@@ -224,7 +224,7 @@ func TestShouldMigrateEmptyApplicationConfigStateFromVersion1To2(t *testing.T) {
 }
 
 func TestShouldReturnCorrectResourceNameForApplicationConfigResource(t *testing.T) {
-	name := NewApplicationConfigResourceHandle().ResourceName
+	name := NewApplicationConfigResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, name, "instana_application_config")
 }

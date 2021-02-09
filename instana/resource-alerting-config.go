@@ -29,6 +29,14 @@ const (
 
 var supportedEventTypes = convertSupportedEventTypesToStringSlice()
 
+func convertSupportedEventTypesToStringSlice() []string {
+	result := make([]string, len(restapi.SupportedAlertEventTypes))
+	for i, t := range restapi.SupportedAlertEventTypes {
+		result[i] = string(t)
+	}
+	return result
+}
+
 //AlertingConfigSchemaAlertName schema field definition of instana_alerting_config field alert_name
 var AlertingConfigSchemaAlertName = &schema.Schema{
 	Type:         schema.TypeString,
@@ -95,45 +103,63 @@ var AlertingConfigSchemaEventFilterRuleIDs = &schema.Schema{
 }
 
 //NewAlertingConfigResourceHandle creates the resource handle for Alerting Configuration
-func NewAlertingConfigResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaAlertingConfig,
-		Schema: map[string]*schema.Schema{
-			AlertingConfigFieldAlertName:             AlertingConfigSchemaAlertName,
-			AlertingConfigFieldFullAlertName:         AlertingConfigSchemaFullAlertName,
-			AlertingConfigFieldIntegrationIds:        AlertingConfigSchemaIntegrationIds,
-			AlertingConfigFieldEventFilterQuery:      AlertingConfigSchemaEventFilterQuery,
-			AlertingConfigFieldEventFilterEventTypes: AlertingConfigSchemaEventFilterEventTypes,
-			AlertingConfigFieldEventFilterRuleIDs:    AlertingConfigSchemaEventFilterRuleIDs,
-		},
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type: alertingChannelConfigSchemaV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
-					return rawState, nil
-				},
-				Version: 0,
+func NewAlertingConfigResourceHandle() ResourceHandle {
+	return &alertingConfigResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaAlertingConfig,
+			Schema: map[string]*schema.Schema{
+				AlertingConfigFieldAlertName:             AlertingConfigSchemaAlertName,
+				AlertingConfigFieldFullAlertName:         AlertingConfigSchemaFullAlertName,
+				AlertingConfigFieldIntegrationIds:        AlertingConfigSchemaIntegrationIds,
+				AlertingConfigFieldEventFilterQuery:      AlertingConfigSchemaEventFilterQuery,
+				AlertingConfigFieldEventFilterEventTypes: AlertingConfigSchemaEventFilterEventTypes,
+				AlertingConfigFieldEventFilterRuleIDs:    AlertingConfigSchemaEventFilterRuleIDs,
 			},
+			SchemaVersion: 1,
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingConfigurations() },
-		UpdateState:          updateStateForAlertingConfig,
-		MapStateToDataObject: mapStateToDataObjectForAlertingConfig,
 	}
 }
 
-func updateStateForAlertingConfig(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type alertingConfigResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *alertingConfigResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *alertingConfigResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{
+		{
+			Type: r.alertingChannelConfigSchemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+				return rawState, nil
+			},
+			Version: 0,
+		},
+	}
+}
+
+func (r *alertingConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.AlertingConfigurations()
+}
+
+func (r *alertingConfigResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
+
+func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	config := obj.(*restapi.AlertingConfiguration)
 	d.Set(AlertingConfigFieldFullAlertName, config.AlertName)
 	d.Set(AlertingConfigFieldIntegrationIds, config.IntegrationIDs)
 	d.Set(AlertingConfigFieldEventFilterQuery, config.EventFilteringConfiguration.Query)
-	d.Set(AlertingConfigFieldEventFilterEventTypes, convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes))
+	d.Set(AlertingConfigFieldEventFilterEventTypes, r.convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes))
 	d.Set(AlertingConfigFieldEventFilterRuleIDs, config.EventFilteringConfiguration.RuleIDs)
 	d.SetId(config.ID)
 	return nil
 }
 
-func convertEventTypesToHarmonizedStringRepresentation(input []restapi.AlertEventType) []string {
+func (r *alertingConfigResource) convertEventTypesToHarmonizedStringRepresentation(input []restapi.AlertEventType) []string {
 	result := make([]string, len(input))
 	for i, v := range input {
 		value := strings.ToLower(string(v))
@@ -142,8 +168,8 @@ func convertEventTypesToHarmonizedStringRepresentation(input []restapi.AlertEven
 	return result
 }
 
-func mapStateToDataObjectForAlertingConfig(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	name := computeFullAlertingConfigAlertNameString(d, formatter)
+func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+	name := r.computeFullAlertingConfigAlertNameString(d, formatter)
 	query := GetStringPointerFromResourceData(d, AlertingConfigFieldEventFilterQuery)
 
 	return &restapi.AlertingConfiguration{
@@ -153,12 +179,12 @@ func mapStateToDataObjectForAlertingConfig(d *schema.ResourceData, formatter uti
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:      query,
 			RuleIDs:    ReadStringSetParameterFromResource(d, AlertingConfigFieldEventFilterRuleIDs),
-			EventTypes: readEventTypesFromResourceData(d),
+			EventTypes: r.readEventTypesFromResourceData(d),
 		},
 	}, nil
 }
 
-func readEventTypesFromResourceData(d *schema.ResourceData) []restapi.AlertEventType {
+func (r *alertingConfigResource) readEventTypesFromResourceData(d *schema.ResourceData) []restapi.AlertEventType {
 	rawData := ReadStringSetParameterFromResource(d, AlertingConfigFieldEventFilterEventTypes)
 	result := make([]restapi.AlertEventType, len(rawData))
 	for i, v := range rawData {
@@ -168,22 +194,14 @@ func readEventTypesFromResourceData(d *schema.ResourceData) []restapi.AlertEvent
 	return result
 }
 
-func computeFullAlertingConfigAlertNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
+func (r *alertingConfigResource) computeFullAlertingConfigAlertNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
 	if d.HasChange(AlertingConfigFieldAlertName) {
 		return formatter.Format(d.Get(AlertingConfigFieldAlertName).(string))
 	}
 	return d.Get(AlertingConfigFieldFullAlertName).(string)
 }
 
-func convertSupportedEventTypesToStringSlice() []string {
-	result := make([]string, len(restapi.SupportedAlertEventTypes))
-	for i, t := range restapi.SupportedAlertEventTypes {
-		result[i] = string(t)
-	}
-	return result
-}
-
-func alertingChannelConfigSchemaV0() *schema.Resource {
+func (r *alertingConfigResource) alertingChannelConfigSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			AlertingConfigFieldAlertName:     AlertingConfigSchemaAlertName,

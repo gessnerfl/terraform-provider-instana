@@ -161,7 +161,7 @@ func (s *websiteMonitoringConfigTestServer) Close() {
 func TestResourceWebsiteMonitoringConfigDefinition(t *testing.T) {
 	resource := NewWebsiteMonitoringConfigResourceHandle()
 
-	schemaMap := resource.Schema
+	schemaMap := resource.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(WebsiteMonitoringConfigFieldName)
@@ -206,15 +206,15 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 }
 
 func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewWebsiteMonitoringConfigResourceHandle().SchemaVersion)
+	require.Equal(t, 0, NewWebsiteMonitoringConfigResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestWebsiteMonitoringConfigShouldHaveNoStateUpgrader(t *testing.T) {
-	require.Equal(t, 0, len(NewWebsiteMonitoringConfigResourceHandle().StateUpgraders))
+	require.Equal(t, 0, len(NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForWebsiteMonitoringConfig(t *testing.T) {
-	name := NewWebsiteMonitoringConfigResourceHandle().ResourceName
+	name := NewWebsiteMonitoringConfigResourceHandle().MetaData().ResourceName
 
 	require.Equal(t, name, "instana_website_monitoring_config")
 }

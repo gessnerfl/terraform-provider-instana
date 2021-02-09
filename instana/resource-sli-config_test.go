@@ -139,7 +139,7 @@ func createSliConfigTestCheckFunctions(iteration int) []resource.TestCheckFunc {
 func TestResourceSliConfigDefinition(t *testing.T) {
 	resource := NewSliConfigResourceHandle()
 
-	schemaMap := resource.Schema
+	schemaMap := resource.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SliConfigFieldName)
@@ -164,13 +164,13 @@ func TestResourceSliConfigDefinition(t *testing.T) {
 }
 
 func TestShouldReturnCorrectResourceNameForSliConfigs(t *testing.T) {
-	name := NewSliConfigResourceHandle().ResourceName
+	name := NewSliConfigResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, "instana_sli_config", name, "Expected resource name to be instana_sli_config")
 }
 
 func TestSliConfigResourceShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewSliConfigResourceHandle().SchemaVersion)
+	assert.Equal(t, 0, NewSliConfigResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {

@@ -21,45 +21,68 @@ const (
 	ResourceInstanaAlertingChannelOpsGenie = "instana_alerting_channel_ops_genie"
 )
 
-var opsGenieRegions = convertOpsGenieRegionsToStringSlice()
-
 //NewAlertingChannelOpsGenieResourceHandle creates the resource handle for Alerting Channels of type OpsGenie
-func NewAlertingChannelOpsGenieResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaAlertingChannelOpsGenie,
-		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:     alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelOpsGenieFieldAPIKey: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The OpsGenie API Key of the OpsGenie alerting channel",
-			},
-			AlertingChannelOpsGenieFieldTags: {
-				Type:     schema.TypeList,
-				MinItems: 1,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle {
+	opsGenieRegions := make([]string, len(restapi.SupportedOpsGenieRegions))
+	for i, r := range restapi.SupportedOpsGenieRegions {
+		opsGenieRegions[i] = string(r)
+	}
+
+	return &alertingChannelOpsGenieResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaAlertingChannelOpsGenie,
+			Schema: map[string]*schema.Schema{
+				AlertingChannelFieldName:     alertingChannelNameSchemaField,
+				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+				AlertingChannelOpsGenieFieldAPIKey: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The OpsGenie API Key of the OpsGenie alerting channel",
 				},
-				Required:    true,
-				Description: "The OpsGenie tags of the OpsGenie alerting channel",
-			},
-			AlertingChannelOpsGenieFieldRegion: {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice(opsGenieRegions, false),
-				Description:  fmt.Sprintf("The OpsGenie region (%s) of the OpsGenie alerting channel", strings.Join(opsGenieRegions, "/")),
+				AlertingChannelOpsGenieFieldTags: {
+					Type:     schema.TypeList,
+					MinItems: 1,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+					Required:    true,
+					Description: "The OpsGenie tags of the OpsGenie alerting channel",
+				},
+				AlertingChannelOpsGenieFieldRegion: {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(opsGenieRegions, false),
+					Description:  fmt.Sprintf("The OpsGenie region (%s) of the OpsGenie alerting channel", strings.Join(opsGenieRegions, "/")),
+				},
 			},
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
-		UpdateState:          updateStateForAlertingChannelOpsGenie,
-		MapStateToDataObject: mapStateToDataObjectForAlertingChannelOpsGenie,
 	}
 }
 
-func updateStateForAlertingChannelOpsGenie(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type alertingChannelOpsGenieResource struct {
+	metaData        ResourceMetaData
+	opsGenieRegions []string
+}
+
+func (r *alertingChannelOpsGenieResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *alertingChannelOpsGenieResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (r *alertingChannelOpsGenieResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.AlertingChannels()
+}
+
+func (r *alertingChannelOpsGenieResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
+
+func (r *alertingChannelOpsGenieResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
-	tags := convertCommaSeparatedListToSlice(*alertingChannel.Tags)
+	tags := r.convertCommaSeparatedListToSlice(*alertingChannel.Tags)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelOpsGenieFieldAPIKey, alertingChannel.APIKey)
 	d.Set(AlertingChannelOpsGenieFieldRegion, alertingChannel.Region)
@@ -68,7 +91,7 @@ func updateStateForAlertingChannelOpsGenie(d *schema.ResourceData, obj restapi.I
 	return nil
 }
 
-func mapStateToDataObjectForAlertingChannelOpsGenie(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelOpsGenieResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	apiKey := d.Get(AlertingChannelOpsGenieFieldAPIKey).(string)
 	region := restapi.OpsGenieRegionType(d.Get(AlertingChannelOpsGenieFieldRegion).(string))
@@ -84,19 +107,11 @@ func mapStateToDataObjectForAlertingChannelOpsGenie(d *schema.ResourceData, form
 	}, nil
 }
 
-func convertCommaSeparatedListToSlice(csv string) []string {
+func (r *alertingChannelOpsGenieResource) convertCommaSeparatedListToSlice(csv string) []string {
 	entries := strings.Split(csv, ",")
 	result := make([]string, len(entries))
 	for i, e := range entries {
 		result[i] = strings.TrimSpace(e)
-	}
-	return result
-}
-
-func convertOpsGenieRegionsToStringSlice() []string {
-	result := make([]string, len(restapi.SupportedOpsGenieRegions))
-	for i, r := range restapi.SupportedOpsGenieRegions {
-		result[i] = string(r)
 	}
 	return result
 }

@@ -96,7 +96,7 @@ func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {
 	resource := NewAlertingChannelOpsGenieResourceHandle()
 
-	schemaMap := resource.Schema
+	schemaMap := resource.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -178,15 +178,15 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 }
 
 func TestAlertingChannelOpsGenieShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelOpsGenieResourceHandle().SchemaVersion)
+	assert.Equal(t, 0, NewAlertingChannelOpsGenieResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelOpsGenieShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelOpsGenieResourceHandle().StateUpgraders))
+	assert.Equal(t, 0, len(NewAlertingChannelOpsGenieResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelOpsGenie(t *testing.T) {
-	name := NewAlertingChannelOpsGenieResourceHandle().ResourceName
+	name := NewAlertingChannelOpsGenieResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_ops_genie")
 }

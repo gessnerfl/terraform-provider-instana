@@ -5,6 +5,7 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -94,4 +95,14 @@ func TestShouldFailToConvertIntRepresentationForSeverityWhenStringValueIsNotVali
 
 	assert.NotNil(t, err)
 	assert.Equal(t, -1, result)
+}
+
+func TestShoulSuccessfullyMergeTheTwoPrividedMapsIntoASingleMap(t *testing.T) {
+	mapA := map[string]*schema.Schema{"a": {}, "b": {}}
+	mapB := map[string]*schema.Schema{"c": {}, "d": {}}
+	mapMerged := map[string]*schema.Schema{"a": {}, "b": {}, "c": {}, "d": {}}
+
+	result := MergeSchemaMap(mapA, mapB)
+
+	assert.Equal(t, mapMerged, result)
 }

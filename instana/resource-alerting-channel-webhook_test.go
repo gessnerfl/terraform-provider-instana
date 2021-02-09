@@ -105,7 +105,7 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 	resource := NewAlertingChannelWebhookResourceHandle()
 
-	schemaMap := resource.Schema
+	schemaMap := resource.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -114,20 +114,20 @@ func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelWebhook(t *testing.T) {
-	name := NewAlertingChannelWebhookResourceHandle().ResourceName
+	name := NewAlertingChannelWebhookResourceHandle().MetaData().ResourceName
 
 	assert.Equal(t, name, "instana_alerting_channel_webhook")
 }
 
 func TestAlertingChannelWebhookShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewAlertingChannelWebhookResourceHandle().SchemaVersion)
+	assert.Equal(t, 1, NewAlertingChannelWebhookResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelWebhookShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewAlertingChannelWebhookResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders[0].Version)
+	assert.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 }
 
 func TestShouldReturnStateOfAlertingChannelWebhookUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
@@ -141,7 +141,7 @@ func TestShouldReturnStateOfAlertingChannelWebhookUnchangedWhenMigratingFromVers
 	}
 	meta := "dummy"
 
-	result, err := NewAlertingChannelWebhookResourceHandle().StateUpgraders[0].Upgrade(rawData, meta)
+	result, err := NewAlertingChannelWebhookResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)

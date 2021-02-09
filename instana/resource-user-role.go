@@ -216,51 +216,69 @@ var (
 )
 
 //NewUserRoleResourceHandle creates a ResourceHandle instance for the terraform resource user role
-func NewUserRoleResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaUserRole,
-		Schema: map[string]*schema.Schema{
-			UserRoleFieldName:                              userRoleSchemaName,
-			UserRoleFieldCanConfigureServiceMapping:        userRoleSchemaCanConfigureServiceMapping,
-			UserRoleFieldCanConfigureEumApplications:       userRoleSchemaCanConfigureEumApplications,
-			UserRoleFieldCanConfigureMobileAppMonitoring:   userRoleSchemaCanConfigureMobileAppMonitoring,
-			UserRoleFieldCanConfigureUsers:                 userRoleSchemaCanConfigureUsers,
-			UserRoleFieldCanInstallNewAgents:               userRoleSchemaCanInstallNewAgents,
-			UserRoleFieldCanSeeUsageInformation:            userRoleSchemaCanSeeUsageInformation,
-			UserRoleFieldCanConfigureIntegrations:          userRoleSchemaCanConfigureIntegrations,
-			UserRoleFieldCanSeeOnPremiseLicenseInformation: userRoleSchemaCanSeeOnPremiseLicenseInformation,
-			UserRoleFieldCanConfigureRoles:                 userRoleSchemaCanConfigureRoles,
-			UserRoleFieldCanConfigureCustomAlerts:          userRoleSchemaCanConfigureCustomAlerts,
-			UserRoleFieldCanConfigureAPITokens:             userRoleSchemaCanConfigureAPITokens,
-			UserRoleFieldCanConfigureAgentRunMode:          userRoleSchemaCanConfigureAgentRunMode,
-			UserRoleFieldCanViewAuditLog:                   userRoleSchemaCanViewAuditLog,
-			UserRoleFieldCanConfigureObjectives:            userRoleSchemaCanConfigureObjectives,
-			UserRoleFieldCanConfigureAgents:                userRoleSchemaCanConfigureAgents,
-			UserRoleFieldCanConfigureAuthenticationMethods: userRoleSchemaCanConfigureAuthenticationMethods,
-			UserRoleFieldCanConfigureApplications:          userRoleSchemaCanConfigureApplications,
-			UserRoleFieldCanConfigureTeams:                 userRoleFieldCanConfigureTeams,
-			UserRoleFieldRestrictedAccess:                  userRoleFieldRestrictedAccess,
-			UserRoleFieldCanConfigureReleases:              userRoleFieldCanConfigureReleases,
-			UserRoleFieldCanConfigureLogManagement:         userRoleFieldCanConfigureLogManagement,
-			UserRoleFieldCanCreatePublicCustomDashboards:   userRoleFieldCanCreatePublicCustomDashboards,
-			UserRoleFieldCanViewLogs:                       userRoleFieldCanViewLogs,
-			UserRoleFieldCanViewTraceDetails:               userRoleFieldCanViewTraceDetails,
-		},
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    userRoleSchemaV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: migrateUserRoleFromVersion0ToVersion1,
-				Version: 0,
+func NewUserRoleResourceHandle() ResourceHandle {
+	return &useerRoleResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaUserRole,
+			Schema: map[string]*schema.Schema{
+				UserRoleFieldName:                              userRoleSchemaName,
+				UserRoleFieldCanConfigureServiceMapping:        userRoleSchemaCanConfigureServiceMapping,
+				UserRoleFieldCanConfigureEumApplications:       userRoleSchemaCanConfigureEumApplications,
+				UserRoleFieldCanConfigureMobileAppMonitoring:   userRoleSchemaCanConfigureMobileAppMonitoring,
+				UserRoleFieldCanConfigureUsers:                 userRoleSchemaCanConfigureUsers,
+				UserRoleFieldCanInstallNewAgents:               userRoleSchemaCanInstallNewAgents,
+				UserRoleFieldCanSeeUsageInformation:            userRoleSchemaCanSeeUsageInformation,
+				UserRoleFieldCanConfigureIntegrations:          userRoleSchemaCanConfigureIntegrations,
+				UserRoleFieldCanSeeOnPremiseLicenseInformation: userRoleSchemaCanSeeOnPremiseLicenseInformation,
+				UserRoleFieldCanConfigureRoles:                 userRoleSchemaCanConfigureRoles,
+				UserRoleFieldCanConfigureCustomAlerts:          userRoleSchemaCanConfigureCustomAlerts,
+				UserRoleFieldCanConfigureAPITokens:             userRoleSchemaCanConfigureAPITokens,
+				UserRoleFieldCanConfigureAgentRunMode:          userRoleSchemaCanConfigureAgentRunMode,
+				UserRoleFieldCanViewAuditLog:                   userRoleSchemaCanViewAuditLog,
+				UserRoleFieldCanConfigureObjectives:            userRoleSchemaCanConfigureObjectives,
+				UserRoleFieldCanConfigureAgents:                userRoleSchemaCanConfigureAgents,
+				UserRoleFieldCanConfigureAuthenticationMethods: userRoleSchemaCanConfigureAuthenticationMethods,
+				UserRoleFieldCanConfigureApplications:          userRoleSchemaCanConfigureApplications,
+				UserRoleFieldCanConfigureTeams:                 userRoleFieldCanConfigureTeams,
+				UserRoleFieldRestrictedAccess:                  userRoleFieldRestrictedAccess,
+				UserRoleFieldCanConfigureReleases:              userRoleFieldCanConfigureReleases,
+				UserRoleFieldCanConfigureLogManagement:         userRoleFieldCanConfigureLogManagement,
+				UserRoleFieldCanCreatePublicCustomDashboards:   userRoleFieldCanCreatePublicCustomDashboards,
+				UserRoleFieldCanViewLogs:                       userRoleFieldCanViewLogs,
+				UserRoleFieldCanViewTraceDetails:               userRoleFieldCanViewTraceDetails,
 			},
+			SchemaVersion: 1,
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.UserRoles() },
-		UpdateState:          updateStateForUserRole,
-		MapStateToDataObject: mapStateToDataObjectForUserRole,
 	}
 }
 
-func updateStateForUserRole(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type useerRoleResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *useerRoleResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *useerRoleResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{
+		{
+			Type:    r.schemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.migrateVersion0ToVersion1,
+			Version: 0,
+		},
+	}
+}
+
+func (r *useerRoleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.UserRoles()
+}
+
+func (r *useerRoleResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
+
+func (r *useerRoleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	userRole := obj.(*restapi.UserRole)
 	d.Set(UserRoleFieldName, userRole.Name)
 	d.Set(UserRoleFieldCanConfigureServiceMapping, userRole.CanConfigureServiceMapping)
@@ -292,7 +310,7 @@ func updateStateForUserRole(d *schema.ResourceData, obj restapi.InstanaDataObjec
 	return nil
 }
 
-func mapStateToDataObjectForUserRole(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *useerRoleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	return &restapi.UserRole{
 		ID:                                d.Id(),
 		Name:                              d.Get(UserRoleFieldName).(string),
@@ -323,7 +341,7 @@ func mapStateToDataObjectForUserRole(d *schema.ResourceData, formatter utils.Res
 	}, nil
 }
 
-func userRoleSchemaV0() *schema.Resource {
+func (r *useerRoleResource) schemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			UserRoleFieldName: userRoleSchemaName,
@@ -353,7 +371,7 @@ func userRoleSchemaV0() *schema.Resource {
 	}
 }
 
-func migrateUserRoleFromVersion0ToVersion1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *useerRoleResource) migrateVersion0ToVersion1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	delete(rawState, "implicit_view_filter")
 	return rawState, nil
 }

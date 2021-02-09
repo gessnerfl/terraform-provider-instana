@@ -14,25 +14,44 @@ const (
 )
 
 //NewAlertingChannelPagerDutyResourceHandle creates the resource handle for Alerting Channels of type PagerDuty
-func NewAlertingChannelPagerDutyResourceHandle() *ResourceHandle {
-	return &ResourceHandle{
-		ResourceName: ResourceInstanaAlertingChannelPagerDuty,
-		Schema: map[string]*schema.Schema{
-			AlertingChannelFieldName:     alertingChannelNameSchemaField,
-			AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-			AlertingChannelPagerDutyFieldServiceIntegrationKey: {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The Service Integration Key of the PagerDuty alerting channel",
+func NewAlertingChannelPagerDutyResourceHandle() ResourceHandle {
+	return &alertingChannelPagerDutyResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaAlertingChannelPagerDuty,
+			Schema: map[string]*schema.Schema{
+				AlertingChannelFieldName:     alertingChannelNameSchemaField,
+				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
+				AlertingChannelPagerDutyFieldServiceIntegrationKey: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The Service Integration Key of the PagerDuty alerting channel",
+				},
 			},
 		},
-		RestResourceFactory:  func(api restapi.InstanaAPI) restapi.RestResource { return api.AlertingChannels() },
-		UpdateState:          updateStateForAlertingChannelPagerDuty,
-		MapStateToDataObject: mapStateToDataObjectForAlertingChannelPagerDuty,
 	}
 }
 
-func updateStateForAlertingChannelPagerDuty(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+type alertingChannelPagerDutyResource struct {
+	metaData ResourceMetaData
+}
+
+func (r *alertingChannelPagerDutyResource) MetaData() *ResourceMetaData {
+	return &r.metaData
+}
+
+func (r *alertingChannelPagerDutyResource) StateUpgraders() []schema.StateUpgrader {
+	return []schema.StateUpgrader{}
+}
+
+func (r *alertingChannelPagerDutyResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+	return api.AlertingChannels()
+}
+
+func (r *alertingChannelPagerDutyResource) SetComputedFields(d *schema.ResourceData) {
+	//No computed fields defined
+}
+
+func (r *alertingChannelPagerDutyResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, alertingChannel.ServiceIntegrationKey)
@@ -40,7 +59,7 @@ func updateStateForAlertingChannelPagerDuty(d *schema.ResourceData, obj restapi.
 	return nil
 }
 
-func mapStateToDataObjectForAlertingChannelPagerDuty(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelPagerDutyResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	serviceIntegrationKey := d.Get(AlertingChannelPagerDutyFieldServiceIntegrationKey).(string)
 	return &restapi.AlertingChannel{

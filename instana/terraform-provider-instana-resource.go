@@ -8,33 +8,32 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-//SetComputedFieldsFunc function definition used by a ResourceHandle to set computed fieds of a terraform resource at the time of creation
-type SetComputedFieldsFunc func(d *schema.ResourceData)
-
-//UpdateStateFunc function definition used by a ResourceHandle to update the state of a terraform resource with the data provided by the InstanaDataObject
-type UpdateStateFunc func(d *schema.ResourceData, obj restapi.InstanaDataObject) error
-
-//MapStateFunc function definition used by a ResourceHandle to map the terraform state to the corresponting struct of type InstanaDataObject
-type MapStateFunc func(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error)
-
-//RestResourceFactoryFunc factory method definition to create/return the RestResource from the given InstanaAPI for a ResourceHandle
-type RestResourceFactoryFunc func(api restapi.InstanaAPI) restapi.RestResource
+//ResourceMetaData the meta data of a terraform ResourceHandle
+type ResourceMetaData struct {
+	ResourceName  string
+	Schema        map[string]*schema.Schema
+	SchemaVersion int
+}
 
 //ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
-type ResourceHandle struct {
-	ResourceName   string
-	Schema         map[string]*schema.Schema
-	SchemaVersion  int
-	StateUpgraders []schema.StateUpgrader
+type ResourceHandle interface {
+	//MetaData returns the meta data of this ResourceHandle
+	MetaData() *ResourceMetaData
+	//StateUpgraders returns the slice of state upgraders used to migrate states from one version to another
+	StateUpgraders() []schema.StateUpgrader
 
-	RestResourceFactory  RestResourceFactoryFunc
-	UpdateState          UpdateStateFunc
-	MapStateToDataObject MapStateFunc
-	SetComputedFields    SetComputedFieldsFunc
+	//GetRestResource provides the restapi.RestResource used by the ResourceHandle
+	GetRestResource(api restapi.InstanaAPI) restapi.RestResource
+	//UpdateState updates the state of the resource provided as schema.ResourceData with the actual data from the Instana API provided as restapi.InstanaDataObject
+	UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error
+	//MapStateToDataObject maps the current state of the resource provided as schema.ResourceData to the API model of the Instana API represented as an implementation of restapi.InstanaDataObject
+	MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error)
+	//SetComputedFields calculate and set the calculated value of computed fields of the given resource
+	SetComputedFields(d *schema.ResourceData)
 }
 
 //NewTerraformResource creates a new terraform resource for the given handle
-func NewTerraformResource(handle *ResourceHandle) TerraformResource {
+func NewTerraformResource(handle ResourceHandle) TerraformResource {
 	return &terraformResourceImpl{
 		resourceHandle: handle,
 	}
@@ -50,7 +49,7 @@ type TerraformResource interface {
 }
 
 type terraformResourceImpl struct {
-	resourceHandle *ResourceHandle
+	resourceHandle ResourceHandle
 }
 
 //Create defines the create operation for the terraform resource
@@ -59,15 +58,13 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 	instanaAPI := providerMeta.InstanaAPI
 
 	d.SetId(RandomID())
-	if r.resourceHandle.SetComputedFields != nil {
-		r.resourceHandle.SetComputedFields(d)
-	}
+	r.resourceHandle.SetComputedFields(d)
 
 	createRequest, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
 	if err != nil {
 		return err
 	}
-	createdObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Create(createRequest)
+	createdObject, err := r.resourceHandle.GetRestResource(instanaAPI).Create(createRequest)
 	if err != nil {
 		return err
 	}
@@ -81,9 +78,9 @@ func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) e
 	instanaAPI := providerMeta.InstanaAPI
 	id := d.Id()
 	if len(id) == 0 {
-		return fmt.Errorf("ID of %s is missing", r.resourceHandle.ResourceName)
+		return fmt.Errorf("ID of %s is missing", r.resourceHandle.MetaData().ResourceName)
 	}
-	obj, err := r.resourceHandle.RestResourceFactory(instanaAPI).GetOne(id)
+	obj, err := r.resourceHandle.GetRestResource(instanaAPI).GetOne(id)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
@@ -104,7 +101,7 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	updatedObject, err := r.resourceHandle.RestResourceFactory(instanaAPI).Update(obj)
+	updatedObject, err := r.resourceHandle.GetRestResource(instanaAPI).Update(obj)
 	if err != nil {
 		return err
 	}
@@ -121,7 +118,7 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	err = r.resourceHandle.RestResourceFactory(instanaAPI).DeleteByID(object.GetID())
+	err = r.resourceHandle.GetRestResource(instanaAPI).DeleteByID(object.GetID())
 	if err != nil {
 		return err
 	}
@@ -130,13 +127,14 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 }
 
 func (r *terraformResourceImpl) ToSchemaResource() *schema.Resource {
+	metaData := r.resourceHandle.MetaData()
 	return &schema.Resource{
 		Create:         r.Create,
 		Read:           r.Read,
 		Update:         r.Update,
 		Delete:         r.Delete,
-		Schema:         r.resourceHandle.Schema,
-		SchemaVersion:  r.resourceHandle.SchemaVersion,
-		StateUpgraders: r.resourceHandle.StateUpgraders,
+		Schema:         metaData.Schema,
+		SchemaVersion:  metaData.SchemaVersion,
+		StateUpgraders: r.resourceHandle.StateUpgraders(),
 	}
 }
