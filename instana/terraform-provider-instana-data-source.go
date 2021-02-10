@@ -1,6 +1,6 @@
 package instana
 
-import "github.com/hashicorp/terraform/helper/schema"
+import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 //DataSource interface definition of a Terraform DataSource implementation in this provider
 type DataSource interface {

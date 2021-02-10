@@ -6,7 +6,7 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	schema "github.com/hashicorp/terraform/helper/schema"
+	schema "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	reflect "reflect"
 )
 
