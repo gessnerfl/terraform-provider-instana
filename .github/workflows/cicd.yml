@@ -16,6 +16,10 @@ jobs:
       with:
         go-version: '1.15.0'
 
+    - name: Get version number
+      id: get_version
+      run: echo ::set-output name=VERSION::$(git describe --tags --match "v*" --always --dirty)
+
     - name: Install dependencies
       run: |
         go version
@@ -40,6 +44,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
+      with:
+        args: >
+          -Dsonar.projectVersion=${{ steps.get_version.outputs.VERSION }}
   
   release:
     runs-on: ubuntu-latest
