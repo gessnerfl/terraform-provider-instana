@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 //NewBuiltinEventDataSource creates a new DataSource for Builtin Events

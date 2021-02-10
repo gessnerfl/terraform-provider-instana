@@ -1,13 +1,14 @@
 package instana_test
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -170,8 +171,9 @@ func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelW
 	rawData := make(map[string]interface{})
 	rawData[ApplicationConfigFieldLabel] = label
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, label, result[ApplicationConfigFieldFullLabel])
@@ -180,8 +182,9 @@ func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelW
 func TestShouldMigrateEmptyApplicationConfigStateFromVersion0To1(t *testing.T) {
 	rawData := make(map[string]interface{})
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[ApplicationConfigFieldFullLabel])
@@ -193,8 +196,9 @@ func TestShouldHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To2(t *t
 	rawData := make(map[string]interface{})
 	rawData[ApplicationConfigFieldMatchSpecification] = input
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, input, result[ApplicationConfigFieldMatchSpecification])
@@ -206,8 +210,9 @@ func TestShouldFailToHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To
 	rawData := make(map[string]interface{})
 	rawData[ApplicationConfigFieldMatchSpecification] = input
 	meta := "dummy"
+	ctx := context.Background()
 
-	_, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
+	_, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
 	assert.Error(t, err)
 }
@@ -215,8 +220,9 @@ func TestShouldFailToHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To
 func TestShouldMigrateEmptyApplicationConfigStateFromVersion1To2(t *testing.T) {
 	rawData := make(map[string]interface{})
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[ApplicationConfigFieldMatchSpecification])

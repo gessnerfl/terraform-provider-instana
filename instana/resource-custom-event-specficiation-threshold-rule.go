@@ -1,10 +1,12 @@
 package instana
 
 import (
+	"context"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 //ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
@@ -256,7 +258,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) schemaV2() *schema.R
 	}
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *customEventSpecificationWithThresholdRuleResource) migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	v, ok := rawState[ThresholdRuleFieldConditionOperator]
 	if ok {
 		operator, err := restapi.SupportedConditionOperators.FromTerraformValue(v.(string))

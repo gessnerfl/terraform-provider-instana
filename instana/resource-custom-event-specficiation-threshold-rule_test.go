@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -282,8 +283,9 @@ func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateAndAddFullNa
 	rawData := make(map[string]interface{})
 	rawData[CustomEventSpecificationFieldName] = name
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, name, result[CustomEventSpecificationFieldFullName])
@@ -292,8 +294,9 @@ func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateAndAddFullNa
 func TestShouldMigrateEmptyCustomEventSpecificationWithThresholdRuleStateFromVersion0To1(t *testing.T) {
 	rawData := make(map[string]interface{})
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
@@ -304,8 +307,9 @@ func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2Wh
 	rawData["downstream_integration_ids"] = []interface{}{"id1", "id2"}
 	rawData["downstream_broadcast_to_all_alerting_configs"] = true
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[1].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result["downstream_integration_ids"])
@@ -315,8 +319,9 @@ func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2Wh
 func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2WhenNoDownstreamConfigurationIsProvided(t *testing.T) {
 	rawData := make(map[string]interface{})
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result["downstream_integration_ids"])
@@ -336,8 +341,9 @@ func createTestCaseForSuccessfulMigrationOfCustomEventSpecificationWithThreshold
 		rawData := make(map[string]interface{})
 		rawData[ThresholdRuleFieldConditionOperator] = value
 		meta := "dummy"
+		ctx := context.Background()
 
-		result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(rawData, meta)
+		result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(ctx, rawData, meta)
 
 		assert.Nil(t, err)
 		assert.Equal(t, mo.InstanaAPIValue(), result[ThresholdRuleFieldConditionOperator])
@@ -347,8 +353,9 @@ func createTestCaseForSuccessfulMigrationOfCustomEventSpecificationWithThreshold
 func TestShouldDoNothingWhenMigratingCustomEventSpecificationWithThresholdRuleToVersion3AndNoConditionOperatorIsDefined(t *testing.T) {
 	rawData := make(map[string]interface{})
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Nil(t, result[ThresholdRuleFieldConditionOperator])
@@ -358,8 +365,9 @@ func TestShouldReturnErrorWhenCustomEventSpecificationWithThresholdRuleCannotBeM
 	rawData := make(map[string]interface{})
 	rawData[ThresholdRuleFieldConditionOperator] = "invalid"
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(rawData, meta)
+	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(ctx, rawData, meta)
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "not a supported condition operator")

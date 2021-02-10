@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -100,7 +101,6 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 
 	rule1 := "rule-1"
 	rule2 := "rule-2"
-	hashFunctionRules := schema.HashSchema(AlertingConfigSchemaEventFilterRuleIDs.Elem.(*schema.Schema))
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
@@ -108,16 +108,16 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 0),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, hashFunctionRules(rule1)), rule1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, hashFunctionRules(rule2)), rule2),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 0), rule1),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 1), rule2),
 				),
 			},
 			{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, hashFunctionRules(rule1)), rule1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, hashFunctionRules(rule2)), rule2),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 0), rule1),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 1), rule2),
 				),
 			},
 		},
@@ -143,7 +143,6 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
 	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
-	hashFunctionEventTypes := schema.HashSchema(AlertingConfigSchemaEventFilterEventTypes.Elem.(*schema.Schema))
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
@@ -151,16 +150,16 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 				Config: resourceDefinitionWithoutName0,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 0),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, hashFunctionEventTypes(string(restapi.IncidentAlertEventType))), string(restapi.IncidentAlertEventType)),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, hashFunctionEventTypes(string(restapi.CriticalAlertEventType))), string(restapi.CriticalAlertEventType)),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 1), string(restapi.IncidentAlertEventType)),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 0), string(restapi.CriticalAlertEventType)),
 				),
 			},
 			{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, hashFunctionEventTypes(string(restapi.IncidentAlertEventType))), string(restapi.IncidentAlertEventType)),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, hashFunctionEventTypes(string(restapi.CriticalAlertEventType))), string(restapi.CriticalAlertEventType)),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 1), string(restapi.IncidentAlertEventType)),
+					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 0), string(restapi.CriticalAlertEventType)),
 				),
 			},
 		},
@@ -170,13 +169,12 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration int) resource.TestCheckFunc {
 	integrationId1 := "integration_id1"
 	integrationId2 := "integration_id2"
-	hashFunctionIntegrationIds := schema.HashSchema(AlertingConfigSchemaIntegrationIds.Elem.(*schema.Schema))
 	return resource.ComposeTestCheckFunc(
 		resource.TestCheckResourceAttrSet(config, "id"),
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldAlertName, fmt.Sprintf("name %d", iteration)),
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldFullAlertName, fmt.Sprintf("prefix name %d suffix", iteration)),
-		resource.TestCheckResourceAttr(config, fmt.Sprintf("%s.%d", AlertingConfigFieldIntegrationIds, hashFunctionIntegrationIds(integrationId1)), integrationId1),
-		resource.TestCheckResourceAttr(config, fmt.Sprintf("%s.%d", AlertingConfigFieldIntegrationIds, hashFunctionIntegrationIds(integrationId2)), integrationId2),
+		resource.TestCheckResourceAttr(config, fmt.Sprintf("%s.%d", AlertingConfigFieldIntegrationIds, 0), integrationId1),
+		resource.TestCheckResourceAttr(config, fmt.Sprintf("%s.%d", AlertingConfigFieldIntegrationIds, 1), integrationId2),
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldEventFilterQuery, "query"),
 	)
 }
@@ -220,8 +218,9 @@ func TestShouldReturnStateOfAlertingConfigWithRuleIdsUnchangedWhenMigratingFromV
 	rawData[AlertingConfigFieldEventFilterQuery] = "filter"
 	rawData[AlertingConfigFieldEventFilterRuleIDs] = []interface{}{"rule-id1", "rule-id2"}
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)
@@ -235,8 +234,9 @@ func TestShouldReturnStateOfAlertingConfigWithEventTypesUnchangedWhenMigratingFr
 	rawData[AlertingConfigFieldEventFilterQuery] = "filter"
 	rawData[AlertingConfigFieldEventFilterEventTypes] = []interface{}{"incident", "critical"}
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)

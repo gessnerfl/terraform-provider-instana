@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -68,7 +69,6 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
 	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
-	hashFunctionUrls := schema.HashSchema(AlertingChannelWebhookWebhookURLsSchemaField.Elem.(*schema.Schema))
 	url1 := "url1"
 	url2 := "url2"
 	resource.UnitTest(t, resource.TestCase{
@@ -80,8 +80,8 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelWebhookDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldName, "name 0"),
 					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, hashFunctionUrls(url1)), url1),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, hashFunctionUrls(url2)), url2),
+					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 0), url1),
+					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 1), url2),
 					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key1", "value1"),
 					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key2", "value2"),
 				),
@@ -92,8 +92,8 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelWebhookDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldName, "name 1"),
 					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, hashFunctionUrls(url1)), "url1"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, hashFunctionUrls(url2)), "url2"),
+					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 0), "url1"),
+					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 1), "url2"),
 					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key1", "value1"),
 					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key2", "value2"),
 				),
@@ -140,8 +140,9 @@ func TestShouldReturnStateOfAlertingChannelWebhookUnchangedWhenMigratingFromVers
 		"key2": "value2",
 	}
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewAlertingChannelWebhookResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewAlertingChannelWebhookResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)
