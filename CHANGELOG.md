@@ -4,13 +4,14 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.10.1...v0.11.0)
 
+**Implemented enhancements:**
+
+- Use structs to encapsulate resource implementation [\#90](https://github.com/gessnerfl/terraform-provider-instana/issues/90)
+- Support Builtin Events as a data source e.g. for built in events [\#86](https://github.com/gessnerfl/terraform-provider-instana/issues/86)
+
 **Fixed bugs:**
 
 - release 0.10.0 with mismatching checksums/SHA [\#88](https://github.com/gessnerfl/terraform-provider-instana/issues/88)
-
-**Closed issues:**
-
-- Use structs to encapsulate resource implementation [\#90](https://github.com/gessnerfl/terraform-provider-instana/issues/90)
 
 **Merged pull requests:**
 
@@ -21,7 +22,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.10.0...v0.10.1)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Add support for application config -\> matchspecification -\> entity? [\#84](https://github.com/gessnerfl/terraform-provider-instana/issues/84)
 - Add support to website monitoring [\#72](https://github.com/gessnerfl/terraform-provider-instana/issues/72)
@@ -30,9 +31,12 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.2...v0.10.0)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Improve system to support rest resources with separated create and update endpoints [\#79](https://github.com/gessnerfl/terraform-provider-instana/issues/79)
+
+**Closed issues:**
+
 - Support SLI Configuration [\#77](https://github.com/gessnerfl/terraform-provider-instana/issues/77)
 
 **Merged pull requests:**
@@ -46,7 +50,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.1...v0.9.2)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Match Specification for Application Configuration is to strict [\#75](https://github.com/gessnerfl/terraform-provider-instana/issues/75)
 - Mocks are out of sync / readme does not match [\#71](https://github.com/gessnerfl/terraform-provider-instana/issues/71)
@@ -72,12 +76,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.8.2...v0.9.0)
 
-**Fixed bugs:**
-
-- Breaking change of matching\_operator in Instana API [\#48](https://github.com/gessnerfl/terraform-provider-instana/issues/48)
-- Idempotence in "instana\_alerting\_config" only with priorities/event\_filter\_event\_types in alphabetical order [\#43](https://github.com/gessnerfl/terraform-provider-instana/issues/43)
-
-**Closed issues:**
+**Implemented enhancements:**
 
 - Adjust user role to changes in REST API [\#65](https://github.com/gessnerfl/terraform-provider-instana/issues/65)
 - Migrate to Github Actions [\#63](https://github.com/gessnerfl/terraform-provider-instana/issues/63)
@@ -87,6 +86,11 @@
 - Add new operators to application config [\#50](https://github.com/gessnerfl/terraform-provider-instana/issues/50)
 - Add Event Type `agent\_monitoring\_issue` [\#49](https://github.com/gessnerfl/terraform-provider-instana/issues/49)
 - Add support for custom event configurations of rule type "Threshold Rule using a dynamic built-in metric by pattern" [\#47](https://github.com/gessnerfl/terraform-provider-instana/issues/47)
+
+**Fixed bugs:**
+
+- Breaking change of matching\_operator in Instana API [\#48](https://github.com/gessnerfl/terraform-provider-instana/issues/48)
+- Idempotence in "instana\_alerting\_config" only with priorities/event\_filter\_event\_types in alphabetical order [\#43](https://github.com/gessnerfl/terraform-provider-instana/issues/43)
 
 **Merged pull requests:**
 
@@ -105,14 +109,14 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.8.1...v0.8.2)
 
-**Fixed bugs:**
-
-- Downstream integration Ids not supported anymore for Custom Event [\#44](https://github.com/gessnerfl/terraform-provider-instana/issues/44)
-
-**Closed issues:**
+**Implemented enhancements:**
 
 - Consistently use testify assert [\#41](https://github.com/gessnerfl/terraform-provider-instana/issues/41)
 - Allow up to 1024 rule-ids per instana\_alerting\_config [\#39](https://github.com/gessnerfl/terraform-provider-instana/issues/39)
+
+**Fixed bugs:**
+
+- Downstream integration Ids not supported anymore for Custom Event [\#44](https://github.com/gessnerfl/terraform-provider-instana/issues/44)
 
 **Merged pull requests:**
 
@@ -132,7 +136,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.7.0...v0.8.0)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Migrate to new resource approach [\#35](https://github.com/gessnerfl/terraform-provider-instana/issues/35)
 - REST Client should support retries [\#32](https://github.com/gessnerfl/terraform-provider-instana/issues/32)
@@ -150,7 +154,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.6.0...v0.7.0)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Add support for Entity Verification Rule Type [\#27](https://github.com/gessnerfl/terraform-provider-instana/issues/27)
 
@@ -162,13 +166,13 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.5.0...v0.6.0)
 
+**Implemented enhancements:**
+
+- Update to terraform 0.12.x [\#20](https://github.com/gessnerfl/terraform-provider-instana/issues/20)
+
 **Fixed bugs:**
 
 - Threshold rule support window and rule together [\#24](https://github.com/gessnerfl/terraform-provider-instana/issues/24)
-
-**Closed issues:**
-
-- Update to terraform 0.12.x [\#20](https://github.com/gessnerfl/terraform-provider-instana/issues/20)
 
 **Merged pull requests:**
 
@@ -179,7 +183,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.4.0...v0.5.0)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Support for label/name prefix and suffix [\#22](https://github.com/gessnerfl/terraform-provider-instana/issues/22)
 
@@ -191,7 +195,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.3.2...v0.4.0)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Add support to append terraform managed string [\#19](https://github.com/gessnerfl/terraform-provider-instana/issues/19)
 
@@ -219,7 +223,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.2.2...v0.3.0)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Change release output [\#15](https://github.com/gessnerfl/terraform-provider-instana/issues/15)
 
@@ -231,7 +235,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.2.1...v0.2.2)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Add support for dashes in tags in match\_specification [\#12](https://github.com/gessnerfl/terraform-provider-instana/issues/12)
 
@@ -251,7 +255,7 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.1.0...v0.2.0)
 
-**Closed issues:**
+**Implemented enhancements:**
 
 - Severity for Rules are not user friendly [\#8](https://github.com/gessnerfl/terraform-provider-instana/issues/8)
 - Add support to manage events [\#7](https://github.com/gessnerfl/terraform-provider-instana/issues/7)
