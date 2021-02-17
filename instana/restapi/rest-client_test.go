@@ -88,6 +88,26 @@ func TestShouldReturnNotFoundErrorMessageForGetOneRequestWhenStatusIsNotEnityNot
 	verifyNotFoundResponse(data, err, t)
 }
 
+func TestShouldReturnDataForSuccessfulPostRequest(t *testing.T) {
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPost, testPath)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	response, err := restClient.Post(testDataObject{id: testID}, testPath)
+
+	verifySuccessResponseData(response, err, t)
+}
+
+func TestShouldReturnErrorMessageForPostRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
+	statusCode := http.StatusBadRequest
+	httpServer := setupAndStartHttpServer(http.MethodPost, testPath, statusCode)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	_, err := restClient.Post(testDataObject{id: testID}, testPath)
+
+	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
+}
 func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
 	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPut, testPathWithID)
 	defer httpServer.Close()

@@ -63,6 +63,21 @@ func (mr *MockRestClientMockRecorder) GetOne(id, resourcePath interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockRestClient)(nil).GetOne), id, resourcePath)
 }
 
+// Post mocks base method
+func (m *MockRestClient) Post(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Post", data, resourcePath)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Post indicates an expected call of Post
+func (mr *MockRestClientMockRecorder) Post(data, resourcePath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockRestClient)(nil).Post), data, resourcePath)
+}
+
 // Put mocks base method
 func (m *MockRestClient) Put(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
 	m.ctrl.T.Helper()
