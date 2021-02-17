@@ -1,10 +1,12 @@
 package instana
 
 import (
+	"context"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const (
@@ -170,12 +172,12 @@ func (c *customEventSpecificationCommons) updateStateForBasicCustomEventSpecific
 	d.Set(CustomEventSpecificationFieldEnabled, spec.Enabled)
 }
 
-func (c *customEventSpecificationCommons) migrateCustomEventConfigFullNameInStateFromV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullNameInStateFromV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[CustomEventSpecificationFieldFullName] = rawState[CustomEventSpecificationFieldName]
 	return rawState, nil
 }
 
-func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	delete(rawState, customEventSpecificationDownstreamIntegrationIds)
 	delete(rawState, customEventSpecificationDownstreamBroadcastToAllAlertingConfigs)
 	return rawState, nil

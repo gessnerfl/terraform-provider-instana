@@ -1,9 +1,11 @@
 package instana
 
 import (
+	"context"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
@@ -51,7 +53,7 @@ func (r *alertingChannelEmailResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{
 		{
 			Type: r.alertingChannelEmailSchemaV0().CoreConfigSchema().ImpliedType(),
-			Upgrade: func(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+			Upgrade: func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 				return rawState, nil
 			},
 			Version: 0,

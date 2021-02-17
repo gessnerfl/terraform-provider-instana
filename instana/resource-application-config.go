@@ -1,13 +1,14 @@
 package instana
 
 import (
+	"context"
 	"log"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 //ResourceInstanaApplicationConfig the name of the terraform-provider-instana resource to manage application config
@@ -199,7 +200,7 @@ func (r *applicationConfigResource) applicationConfigSchemaV0() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) applicationConfigStateUpgradeV0(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) applicationConfigStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	rawState[ApplicationConfigFieldFullLabel] = rawState[ApplicationConfigFieldLabel]
 	return rawState, nil
 }
@@ -216,7 +217,7 @@ func (r *applicationConfigResource) applicationConfigSchemaV1() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatchSpecification(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatchSpecification(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	spec := rawState[ApplicationConfigFieldMatchSpecification]
 	if spec != nil {
 		log.Printf("[DEBUG] Instana Provider: migrate application config match specification to include entity")

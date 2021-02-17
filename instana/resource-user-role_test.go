@@ -1,13 +1,14 @@
 package instana_test
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -214,8 +215,9 @@ func TestShouldDeleteValueOfImplicitViewFilterFieldWhenMigratingToVersion1AndVal
 	rawData := make(map[string]interface{})
 	rawData[field] = "value"
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewUserRoleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewUserRoleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	_, found := result[field]
@@ -225,8 +227,9 @@ func TestShouldDeleteValueOfImplicitViewFilterFieldWhenMigratingToVersion1AndVal
 func TestShouldDoNothingWhenMigratingToVersion1AndImplicitViewFilterValueIsSet(t *testing.T) {
 	rawData := make(map[string]interface{})
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewUserRoleResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewUserRoleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)

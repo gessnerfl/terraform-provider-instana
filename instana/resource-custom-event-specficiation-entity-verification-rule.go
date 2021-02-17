@@ -1,10 +1,12 @@
 package instana
 
 import (
+	"context"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 //ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
@@ -168,7 +170,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) schemaV2() 
 	}
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) migrateCustomEventConfigWithEntityVerificationRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) migrateCustomEventConfigWithEntityVerificationRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	v, ok := rawState[EntityVerificationRuleFieldMatchingOperator]
 	if ok {
 		operator, err := restapi.SupportedMatchingOperators.FromTerraformValue(v.(string))

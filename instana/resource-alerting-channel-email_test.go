@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -8,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -64,7 +65,6 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
 	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
-	hashFunctionEmails := schema.HashSchema(AlertingChannelEmailEmailsSchemaField.Elem.(*schema.Schema))
 	emailAddress1 := "EMAIL1"
 	emailAddress2 := "EMAIL2"
 	resource.UnitTest(t, resource.TestCase{
@@ -76,8 +76,8 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, "name 0"),
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress1)), emailAddress1),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress2)), emailAddress2),
+					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), emailAddress1),
+					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), emailAddress2),
 				),
 			},
 			{
@@ -86,8 +86,8 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, "name 1"),
 					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress1)), emailAddress1),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, hashFunctionEmails(emailAddress2)), emailAddress2),
+					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), emailAddress1),
+					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), emailAddress2),
 				),
 			},
 		},
@@ -131,8 +131,9 @@ func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersio
 	rawData[AlertingChannelFieldFullName] = fullname
 	rawData[AlertingChannelEmailFieldEmails] = emails
 	meta := "dummy"
+	ctx := context.Background()
 
-	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders()[0].Upgrade(rawData, meta)
+	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rawData, result)

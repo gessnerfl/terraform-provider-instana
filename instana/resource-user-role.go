@@ -1,9 +1,11 @@
 package instana
 
 import (
+	"context"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 //ResourceInstanaUserRole the name of the terraform-provider-instana resource to manage user roles
@@ -371,7 +373,7 @@ func (r *useerRoleResource) schemaV0() *schema.Resource {
 	}
 }
 
-func (r *useerRoleResource) migrateVersion0ToVersion1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *useerRoleResource) migrateVersion0ToVersion1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	delete(rawState, "implicit_view_filter")
 	return rawState, nil
 }
