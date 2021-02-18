@@ -11,6 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	invalidResponse = []byte("invalid response")
+)
+
 func TestSuccessfulCreateOfTestObjectThroughCreatePOSTUpdatePUTRestResource(t *testing.T) {
 	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
 		testObject := makeTestObject()
@@ -43,12 +47,11 @@ func TestShouldFailToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenE
 func TestShouldFailToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenResponseCannotBeUnmarshalled(t *testing.T) {
 	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
 		testObject := makeTestObject()
-		response := []byte("invalid response")
 		expectedError := errors.New("test")
 
-		client.EXPECT().Post(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(response, nil)
+		client.EXPECT().Post(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(invalidResponse, nil)
 		client.EXPECT().Put(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(nil, expectedError)
+		unmarshaller.EXPECT().Unmarshal(invalidResponse).Times(1).Return(nil, expectedError)
 
 		_, err := sut.Create(testObject)
 
@@ -93,11 +96,10 @@ func TestShouldFailedToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhe
 func TestShouldFailedToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenAnInvalidTestObjectIsReceived(t *testing.T) {
 	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
 		object := makeTestObject()
-		response := []byte("invalid response")
 
-		client.EXPECT().Post(gomock.Eq(object), gomock.Eq(testObjectResourcePath)).Times(1).Return(response, nil)
+		client.EXPECT().Post(gomock.Eq(object), gomock.Eq(testObjectResourcePath)).Times(1).Return(invalidResponse, nil)
 		client.EXPECT().Put(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(&testObject{ID: object.ID, Name: "invalid"}, nil)
+		unmarshaller.EXPECT().Unmarshal(invalidResponse).Times(1).Return(&testObject{ID: object.ID, Name: "invalid"}, nil)
 
 		_, err := sut.Create(object)
 
@@ -138,12 +140,11 @@ func TestShouldFailToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenE
 func TestShouldFailToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenResponseCannotBeUnmarshalled(t *testing.T) {
 	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
 		testObject := makeTestObject()
-		response := []byte("invalid response")
 		expectedError := errors.New("test")
 
-		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(response, nil)
+		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(invalidResponse, nil)
 		client.EXPECT().Post(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(nil, expectedError)
+		unmarshaller.EXPECT().Unmarshal(invalidResponse).Times(1).Return(nil, expectedError)
 
 		_, err := sut.Update(testObject)
 
@@ -188,11 +189,10 @@ func TestShouldFailedToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhe
 func TestShouldFailedToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenAnInvalidTestObjectIsReceived(t *testing.T) {
 	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
 		object := makeTestObject()
-		response := []byte("invalid response")
 
-		client.EXPECT().Put(gomock.Eq(object), gomock.Eq(testObjectResourcePath)).Times(1).Return(response, nil)
+		client.EXPECT().Put(gomock.Eq(object), gomock.Eq(testObjectResourcePath)).Times(1).Return(invalidResponse, nil)
 		client.EXPECT().Post(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(&testObject{ID: object.ID, Name: "invalid"}, nil)
+		unmarshaller.EXPECT().Unmarshal(invalidResponse).Times(1).Return(&testObject{ID: object.ID, Name: "invalid"}, nil)
 
 		_, err := sut.Update(object)
 
