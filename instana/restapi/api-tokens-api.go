@@ -47,8 +47,11 @@ func (r *APIToken) GetID() string {
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (r *APIToken) Validate() error {
-	if len(r.AccessGrantingToken) == 0 {
-		return errors.New("Access Granting Token is missing")
+	if len(r.ID) == 0 {
+		return errors.New("ID is missing")
+	}
+	if r.ID != r.AccessGrantingToken {
+		return errors.New("Access Granting Token and ID should be equal")
 	}
 	if len(r.Name) == 0 {
 		return errors.New("Name is missing")

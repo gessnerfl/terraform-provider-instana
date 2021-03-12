@@ -1,7 +1,8 @@
 package instana_test
 
 import (
-	"context"
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -98,7 +99,19 @@ var apiTokenPermissionFields = []string{
 func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPost, restapi.APITokensResourcePath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodPost, restapi.APITokensResourcePath, func(w http.ResponseWriter, r *http.Request) {
+		apiToken := &restapi.APIToken{}
+		err := json.NewDecoder(r.Body).Decode(apiToken)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			r.Write(bytes.NewBufferString("Failed to get request"))
+		} else {
+			apiToken.InternalID = apiTokenInternalID
+			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(apiToken)
+		}
+	})
 	httpServer.AddRoute(http.MethodPut, apiTokenApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodDelete, apiTokenApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, apiTokenApiPath, func(w http.ResponseWriter, r *http.Request) {
@@ -117,22 +130,25 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 			"canSeeUsageInformation" : true,
 			"canConfigureIntegrations" : true,
 			"canSeeOnPremLicenseInformation" : true,
-			"canConfigureRoles" : true,
 			"canConfigureCustomAlerts" : true,
 			"canConfigureApiTokens" : true,
 			"canConfigureAgentRunMode" : true,
 			"canViewAuditLog" : true,
-			"canConfigureObjectives" : true,
 			"canConfigureAgents" : true,
 			"canConfigureAuthenticationMethods" : true,
 			"canConfigureApplications" : true,
 			"canConfigureTeams" : true,
-			"restrictedAccess" : true,
 			"canConfigureReleases" : true,
 			"canConfigureLogManagement" : true,
 			"canCreatePublicCustomDashboards" : true,
 			"canViewLogs" : true,
-			"canViewTraceDetails" : true
+			"canViewTraceDetails" : true,
+			"canConfigureSessionSettings" : true,
+			"canConfigureServiceLevelIndicators" : true,
+			"canConfigureGlobalAlertPayload" : true,
+			"canConfigureGlobalAlertConfigs" : true,
+			"canViewAccountAndBillingInformation" : true,
+			"canEditAllAccessibleCustomDashboards" : true
 		}
 		`, "{{id}}", vars["id"])
 		w.Header().Set(contentType, r.Header.Get(contentType))
@@ -224,42 +240,32 @@ func TestAPITokenSchemaDefinitionIsValid(t *testing.T) {
 }
 
 func TestAPITokenResourceShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAPITokenResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 0, NewAPITokenResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAPITokenResourceShouldHaveNoStateMigrators(t *testing.T) {
-	assert.Equal(t, 0, len(NewAPITokenResourceHandle().StateUpgraders()))
-}
-
-func TestShouldDeleteValueOfImplicitViewFilterFieldWhenMigratingToVersion1AndValueIsSet(t *testing.T) {
-	field := "implicit_view_filter"
-	rawData := make(map[string]interface{})
-	rawData[field] = "value"
-	meta := "dummy"
-	ctx := context.Background()
-
-	result, err := NewAPITokenResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
-
-	assert.Nil(t, err)
-	_, found := result[field]
-	assert.False(t, found)
-}
-
-func TestShouldDoNothingWhenMigratingToVersion1AndImplicitViewFilterValueIsSet(t *testing.T) {
-	rawData := make(map[string]interface{})
-	meta := "dummy"
-	ctx := context.Background()
-
-	result, err := NewAPITokenResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
-
-	assert.Nil(t, err)
-	assert.Equal(t, rawData, result)
+	require.Equal(t, 0, len(NewAPITokenResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForUserroleResource(t *testing.T) {
 	name := NewAPITokenResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_api_token")
+	require.Equal(t, name, "instana_api_token")
+}
+
+func TestShouldSetCalculateAccessGrantingToken(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	sut := NewAPITokenResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+	resourceData.SetId(apiTokenID)
+	expectedResourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+	expectedResourceData.SetId(apiTokenID)
+	expectedResourceData.Set(APITokenFieldAccessGrantingToken, apiTokenID)
+
+	sut.SetComputedFields(resourceData)
+
+	require.Equal(t, expectedResourceData, resourceData)
 }
 
 func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
@@ -276,38 +282,38 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 
 	err := sut.UpdateState(resourceData, &apiToken)
 
-	assert.Nil(t, err)
-	assert.Equal(t, apiTokenID, resourceData.Id())
-	assert.Equal(t, apiTokenID, resourceData.Get(APITokenFieldAccessGrantingToken))
-	assert.Equal(t, apiTokenInternalID, resourceData.Get(APITokenFieldInternalID))
-	assert.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldName))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureServiceMapping).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureEumApplications).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureMobileAppMonitoring).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureUsers).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanInstallNewAgents).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanSeeUsageInformation).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureIntegrations).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanSeeOnPremiseLicenseInformation).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureCustomAlerts).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureAPITokens).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureAgentRunMode).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanViewAuditLog).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureAgents).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureAuthenticationMethods).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureApplications).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureTeams).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureReleases).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureLogManagement).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanCreatePublicCustomDashboards).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanViewLogs).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanViewTraceDetails).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureSessionSettings).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureServiceLevelIndicators).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureGlobalAlertPayload).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanConfigureGlobalAlertConfigs).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanViewAccountAndBillingInformation).(bool))
-	assert.False(t, resourceData.Get(APITokenFieldCanEditAllAccessibleCustomDashboards).(bool))
+	require.Nil(t, err)
+	require.Equal(t, apiTokenID, resourceData.Id())
+	require.Equal(t, apiTokenID, resourceData.Get(APITokenFieldAccessGrantingToken))
+	require.Equal(t, apiTokenInternalID, resourceData.Get(APITokenFieldInternalID))
+	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldName))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureServiceMapping).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureEumApplications).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureMobileAppMonitoring).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureUsers).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanInstallNewAgents).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanSeeUsageInformation).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureIntegrations).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanSeeOnPremiseLicenseInformation).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureCustomAlerts).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureAPITokens).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureAgentRunMode).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanViewAuditLog).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureAgents).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureAuthenticationMethods).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureApplications).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureTeams).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureReleases).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureLogManagement).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanCreatePublicCustomDashboards).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanViewLogs).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanViewTraceDetails).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureSessionSettings).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureServiceLevelIndicators).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureGlobalAlertPayload).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanConfigureGlobalAlertConfigs).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanViewAccountAndBillingInformation).(bool))
+	require.False(t, resourceData.Get(APITokenFieldCanEditAllAccessibleCustomDashboards).(bool))
 }
 
 func TestShouldUpdateCanConfigureServiceMappingPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
@@ -588,11 +594,11 @@ func testSingleAPITokenPermissionSet(t *testing.T, apiToken restapi.APIToken, ex
 
 	err := sut.UpdateState(resourceData, &apiToken)
 
-	assert.Nil(t, err)
-	assert.True(t, resourceData.Get(expectedPermissionField).(bool))
+	require.Nil(t, err)
+	require.True(t, resourceData.Get(expectedPermissionField).(bool))
 	for _, permissionField := range apiTokenPermissionFields {
 		if permissionField != expectedPermissionField {
-			assert.False(t, resourceData.Get(permissionField).(bool))
+			require.False(t, resourceData.Get(permissionField).(bool))
 		}
 	}
 }
@@ -636,37 +642,37 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.APIToken{}, model, "Model should be an alerting channel")
-	assert.Equal(t, apiTokenID, model.GetID())
-	assert.Equal(t, apiTokenID, model.(*restapi.APIToken).AccessGrantingToken)
-	assert.Equal(t, apiTokenInternalID, model.(*restapi.APIToken).InternalID)
-	assert.Equal(t, apiTokenNameFieldValue, model.(*restapi.APIToken).Name)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureServiceMapping)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureEumApplications)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureMobileAppMonitoring)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureUsers)
-	assert.True(t, model.(*restapi.APIToken).CanInstallNewAgents)
-	assert.True(t, model.(*restapi.APIToken).CanSeeUsageInformation)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureIntegrations)
-	assert.True(t, model.(*restapi.APIToken).CanSeeOnPremiseLicenseInformation)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureCustomAlerts)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureAPITokens)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureAgentRunMode)
-	assert.True(t, model.(*restapi.APIToken).CanViewAuditLog)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureAgents)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureAuthenticationMethods)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureApplications)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureTeams)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureReleases)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureLogManagement)
-	assert.True(t, model.(*restapi.APIToken).CanCreatePublicCustomDashboards)
-	assert.True(t, model.(*restapi.APIToken).CanViewLogs)
-	assert.True(t, model.(*restapi.APIToken).CanViewTraceDetails)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureSessionSettings)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureServiceLevelIndicators)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureGlobalAlertPayload)
-	assert.True(t, model.(*restapi.APIToken).CanConfigureGlobalAlertConfigs)
-	assert.True(t, model.(*restapi.APIToken).CanViewAccountAndBillingInformation)
-	assert.True(t, model.(*restapi.APIToken).CanEditAllAccessibleCustomDashboards)
+	require.Nil(t, err)
+	require.IsType(t, &restapi.APIToken{}, model, "Model should be an alerting channel")
+	require.Equal(t, apiTokenID, model.GetID())
+	require.Equal(t, apiTokenID, model.(*restapi.APIToken).AccessGrantingToken)
+	require.Equal(t, apiTokenInternalID, model.(*restapi.APIToken).InternalID)
+	require.Equal(t, apiTokenNameFieldValue, model.(*restapi.APIToken).Name)
+	require.True(t, model.(*restapi.APIToken).CanConfigureServiceMapping)
+	require.True(t, model.(*restapi.APIToken).CanConfigureEumApplications)
+	require.True(t, model.(*restapi.APIToken).CanConfigureMobileAppMonitoring)
+	require.True(t, model.(*restapi.APIToken).CanConfigureUsers)
+	require.True(t, model.(*restapi.APIToken).CanInstallNewAgents)
+	require.True(t, model.(*restapi.APIToken).CanSeeUsageInformation)
+	require.True(t, model.(*restapi.APIToken).CanConfigureIntegrations)
+	require.True(t, model.(*restapi.APIToken).CanSeeOnPremiseLicenseInformation)
+	require.True(t, model.(*restapi.APIToken).CanConfigureCustomAlerts)
+	require.True(t, model.(*restapi.APIToken).CanConfigureAPITokens)
+	require.True(t, model.(*restapi.APIToken).CanConfigureAgentRunMode)
+	require.True(t, model.(*restapi.APIToken).CanViewAuditLog)
+	require.True(t, model.(*restapi.APIToken).CanConfigureAgents)
+	require.True(t, model.(*restapi.APIToken).CanConfigureAuthenticationMethods)
+	require.True(t, model.(*restapi.APIToken).CanConfigureApplications)
+	require.True(t, model.(*restapi.APIToken).CanConfigureTeams)
+	require.True(t, model.(*restapi.APIToken).CanConfigureReleases)
+	require.True(t, model.(*restapi.APIToken).CanConfigureLogManagement)
+	require.True(t, model.(*restapi.APIToken).CanCreatePublicCustomDashboards)
+	require.True(t, model.(*restapi.APIToken).CanViewLogs)
+	require.True(t, model.(*restapi.APIToken).CanViewTraceDetails)
+	require.True(t, model.(*restapi.APIToken).CanConfigureSessionSettings)
+	require.True(t, model.(*restapi.APIToken).CanConfigureServiceLevelIndicators)
+	require.True(t, model.(*restapi.APIToken).CanConfigureGlobalAlertPayload)
+	require.True(t, model.(*restapi.APIToken).CanConfigureGlobalAlertConfigs)
+	require.True(t, model.(*restapi.APIToken).CanViewAccountAndBillingInformation)
+	require.True(t, model.(*restapi.APIToken).CanEditAllAccessibleCustomDashboards)
 }
