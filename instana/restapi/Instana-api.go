@@ -19,7 +19,7 @@ const (
 type InstanaAPI interface {
 	CustomEventSpecifications() RestResource
 	BuiltinEventSpecifications() ReadOnlyRestResource
-	UserRoles() RestResource
+	APITokens() RestResource
 	ApplicationConfigs() RestResource
 	AlertingChannels() RestResource
 	AlertingConfigurations() RestResource
@@ -47,9 +47,9 @@ func (api *baseInstanaAPI) BuiltinEventSpecifications() ReadOnlyRestResource {
 	return NewReadOnlyRestResource(BuiltinEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&BuiltinEventSpecification{}), NewDefaultJSONUnmarshaller(&[]BuiltinEventSpecification{}), api.client)
 }
 
-//UserRoles implementation of InstanaAPI interface
-func (api *baseInstanaAPI) UserRoles() RestResource {
-	return NewCreatePUTUpdatePUTRestResource(UserRolesResourcePath, NewDefaultJSONUnmarshaller(&UserRole{}), api.client)
+//APITokens implementation of InstanaAPI interface
+func (api *baseInstanaAPI) APITokens() RestResource {
+	return NewCreatePOSTUpdatePUTRestResource(APITokensResourcePath, NewDefaultJSONUnmarshaller(&APIToken{}), api.client)
 }
 
 //ApplicationConfigs implementation of InstanaAPI interface

@@ -64,7 +64,7 @@ func providerSchema() map[string]*schema.Schema {
 
 func providerResources() map[string]*schema.Resource {
 	resources := make(map[string]*schema.Resource)
-	bindResourceHandle(resources, NewUserRoleResourceHandle())
+	bindResourceHandle(resources, NewAPITokenResourceHandle())
 	bindResourceHandle(resources, NewApplicationConfigResourceHandle())
 	bindResourceHandle(resources, NewCustomEventSpecificationWithSystemRuleResourceHandle())
 	bindResourceHandle(resources, NewCustomEventSpecificationWithThresholdRuleResourceHandle())
