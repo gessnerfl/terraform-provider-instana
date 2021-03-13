@@ -81,7 +81,7 @@ var (
 	apiTokenSchemaInternalID = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
-		Description: "The internal ID of the access token from the Insana platform",
+		Description: "The internal ID of the access token from the Instana platform",
 	}
 	apiTokenSchemaName = &schema.Schema{
 		Type:        schema.TypeString,
@@ -242,7 +242,7 @@ var (
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
-		Description: "Configures if the API token is allowed to vie account and billing information",
+		Description: "Configures if the API token is allowed to view account and billing information",
 	}
 	apiTokenSchemaCanEditAllAccessibleCustomDashboards = &schema.Schema{
 		Type:        schema.TypeBool,
