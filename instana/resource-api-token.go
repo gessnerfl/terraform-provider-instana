@@ -16,6 +16,8 @@ const (
 	APITokenFieldInternalID = "internal_id"
 	//APITokenFieldName constant value for the schema field name
 	APITokenFieldName = "name"
+	//APITokenFieldFullName constant value for the schema field full_name
+	APITokenFieldFullName = "full_name"
 	//APITokenFieldCanConfigureServiceMapping constant value for the schema field can_configure_service_mapping
 	APITokenFieldCanConfigureServiceMapping = "can_configure_service_mapping"
 	//APITokenFieldCanConfigureEumApplications constant value for the schema field can_configure_eum_applications
@@ -87,6 +89,11 @@ var (
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The name of the API token",
+	}
+	apiTokenSchemaFullName = &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The full name of the API token including prefix in suffix",
 	}
 	apiTokenSchemaCanConfigureServiceMapping = &schema.Schema{
 		Type:        schema.TypeBool,
@@ -254,13 +261,14 @@ var (
 
 //NewAPITokenResourceHandle creates a ResourceHandle instance for the terraform resource API token
 func NewAPITokenResourceHandle() ResourceHandle {
-	return &useerRoleResource{
+	return &apiTokenResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAPIToken,
 			Schema: map[string]*schema.Schema{
 				APITokenFieldAccessGrantingToken:                  apiTokenSchemaAccessGrantingToken,
 				APITokenFieldInternalID:                           apiTokenSchemaInternalID,
 				APITokenFieldName:                                 apiTokenSchemaName,
+				APITokenFieldFullName:                             apiTokenSchemaFullName,
 				APITokenFieldCanConfigureServiceMapping:           apiTokenSchemaCanConfigureServiceMapping,
 				APITokenFieldCanConfigureEumApplications:          apiTokenSchemaCanConfigureEumApplications,
 				APITokenFieldCanConfigureMobileAppMonitoring:      apiTokenSchemaCanConfigureMobileAppMonitoring,
@@ -294,31 +302,31 @@ func NewAPITokenResourceHandle() ResourceHandle {
 	}
 }
 
-type useerRoleResource struct {
+type apiTokenResource struct {
 	metaData ResourceMetaData
 }
 
-func (r *useerRoleResource) MetaData() *ResourceMetaData {
+func (r *apiTokenResource) MetaData() *ResourceMetaData {
 	return &r.metaData
 }
 
-func (r *useerRoleResource) StateUpgraders() []schema.StateUpgrader {
+func (r *apiTokenResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *useerRoleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *apiTokenResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
 	return api.APITokens()
 }
 
-func (r *useerRoleResource) SetComputedFields(d *schema.ResourceData) {
+func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) {
 	d.Set(APITokenFieldAccessGrantingToken, d.Id())
 }
 
-func (r *useerRoleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	apiToken := obj.(*restapi.APIToken)
 	d.Set(APITokenFieldAccessGrantingToken, apiToken.AccessGrantingToken)
 	d.Set(APITokenFieldInternalID, apiToken.InternalID)
-	d.Set(APITokenFieldName, apiToken.Name)
+	d.Set(APITokenFieldFullName, apiToken.Name)
 	d.Set(APITokenFieldCanConfigureServiceMapping, apiToken.CanConfigureServiceMapping)
 	d.Set(APITokenFieldCanConfigureEumApplications, apiToken.CanConfigureEumApplications)
 	d.Set(APITokenFieldCanConfigureMobileAppMonitoring, apiToken.CanConfigureMobileAppMonitoring)
@@ -351,12 +359,13 @@ func (r *useerRoleResource) UpdateState(d *schema.ResourceData, obj restapi.Inst
 	return nil
 }
 
-func (r *useerRoleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+	name := r.computeFullNameString(d, formatter)
 	return &restapi.APIToken{
 		ID:                                   d.Id(),
 		AccessGrantingToken:                  d.Get(APITokenFieldAccessGrantingToken).(string),
 		InternalID:                           d.Get(APITokenFieldInternalID).(string),
-		Name:                                 d.Get(APITokenFieldName).(string),
+		Name:                                 name,
 		CanConfigureServiceMapping:           d.Get(APITokenFieldCanConfigureServiceMapping).(bool),
 		CanConfigureEumApplications:          d.Get(APITokenFieldCanConfigureEumApplications).(bool),
 		CanConfigureMobileAppMonitoring:      d.Get(APITokenFieldCanConfigureMobileAppMonitoring).(bool),
@@ -385,4 +394,11 @@ func (r *useerRoleResource) MapStateToDataObject(d *schema.ResourceData, formatt
 		CanViewAccountAndBillingInformation:  d.Get(APITokenFieldCanViewAccountAndBillingInformation).(bool),
 		CanEditAllAccessibleCustomDashboards: d.Get(APITokenFieldCanEditAllAccessibleCustomDashboards).(bool),
 	}, nil
+}
+
+func (r *apiTokenResource) computeFullNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
+	if d.HasChange(APITokenFieldName) {
+		return formatter.Format(d.Get(APITokenFieldName).(string))
+	}
+	return d.Get(APITokenFieldFullName).(string)
 }

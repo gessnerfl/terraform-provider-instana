@@ -22,6 +22,8 @@ const resourceAPITokenDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:{{PORT}}"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
 }
 
 resource "instana_api_token" "example" {
@@ -57,13 +59,14 @@ resource "instana_api_token" "example" {
 `
 
 const (
-	apiTokenApiPath        = restapi.APITokensResourcePath + "/{id}"
-	testAPITokenDefinition = "instana_api_token.example"
-	valueTrue              = "true"
-	apiTokenID             = "api-token-id"
-	viewFilterFieldValue   = "view filter"
-	apiTokenNameFieldValue = "name"
-	apiTokenInternalID     = "api-token-internal-id"
+	apiTokenApiPath            = restapi.APITokensResourcePath + "/{id}"
+	testAPITokenDefinition     = "instana_api_token.example"
+	valueTrue                  = "true"
+	apiTokenID                 = "api-token-id"
+	viewFilterFieldValue       = "view filter"
+	apiTokenNameFieldValue     = "name"
+	apiTokenFullNameFieldValue = "prefix name suffix"
+	apiTokenInternalID         = "api-token-internal-id"
 )
 
 var apiTokenPermissionFields = []string{
@@ -170,6 +173,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(testAPITokenDefinition, APITokenFieldAccessGrantingToken),
 					resource.TestCheckResourceAttrSet(testAPITokenDefinition, APITokenFieldInternalID),
 					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldName, apiTokenNameFieldValue),
+					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldFullName, apiTokenFullNameFieldValue),
 					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceMapping, valueTrue),
 					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureEumApplications, valueTrue),
 					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureMobileAppMonitoring, valueTrue),
@@ -210,6 +214,7 @@ func TestAPITokenSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(APITokenFieldAccessGrantingToken)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(APITokenFieldInternalID)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(APITokenFieldName)
+	schemaAssert.AssertSchemaIsComputedAndOfTypeString(APITokenFieldFullName)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(APITokenFieldCanConfigureServiceMapping, false)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(APITokenFieldCanConfigureEumApplications, false)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(APITokenFieldCanConfigureMobileAppMonitoring, false)
@@ -286,7 +291,7 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 	require.Equal(t, apiTokenID, resourceData.Id())
 	require.Equal(t, apiTokenID, resourceData.Get(APITokenFieldAccessGrantingToken))
 	require.Equal(t, apiTokenInternalID, resourceData.Get(APITokenFieldInternalID))
-	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldName))
+	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldFullName))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureServiceMapping).(bool))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureEumApplications).(bool))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureMobileAppMonitoring).(bool))
@@ -612,6 +617,7 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 	resourceData.Set(APITokenFieldAccessGrantingToken, apiTokenID)
 	resourceData.Set(APITokenFieldInternalID, apiTokenInternalID)
 	resourceData.Set(APITokenFieldName, apiTokenNameFieldValue)
+	resourceData.Set(APITokenFieldFullName, apiTokenFullNameFieldValue)
 	resourceData.Set(APITokenFieldCanConfigureServiceMapping, true)
 	resourceData.Set(APITokenFieldCanConfigureEumApplications, true)
 	resourceData.Set(APITokenFieldCanConfigureMobileAppMonitoring, true)
@@ -647,7 +653,7 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 	require.Equal(t, apiTokenID, model.GetID())
 	require.Equal(t, apiTokenID, model.(*restapi.APIToken).AccessGrantingToken)
 	require.Equal(t, apiTokenInternalID, model.(*restapi.APIToken).InternalID)
-	require.Equal(t, apiTokenNameFieldValue, model.(*restapi.APIToken).Name)
+	require.Equal(t, apiTokenFullNameFieldValue, model.(*restapi.APIToken).Name)
 	require.True(t, model.(*restapi.APIToken).CanConfigureServiceMapping)
 	require.True(t, model.(*restapi.APIToken).CanConfigureEumApplications)
 	require.True(t, model.(*restapi.APIToken).CanConfigureMobileAppMonitoring)
