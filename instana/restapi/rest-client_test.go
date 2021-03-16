@@ -224,8 +224,8 @@ type testDataObject struct {
 	id string
 }
 
-//GetID implementation of InstanaDataObject
-func (tdo testDataObject) GetID() string {
+//GetIDForResourcePath implementation of InstanaDataObject
+func (tdo testDataObject) GetIDForResourcePath() string {
 	return tdo.id
 }
 

@@ -59,14 +59,15 @@ resource "instana_api_token" "example" {
 `
 
 const (
-	apiTokenApiPath            = restapi.APITokensResourcePath + "/{id}"
-	testAPITokenDefinition     = "instana_api_token.example"
-	valueTrue                  = "true"
-	apiTokenID                 = "api-token-id"
-	viewFilterFieldValue       = "view filter"
-	apiTokenNameFieldValue     = "name"
-	apiTokenFullNameFieldValue = "prefix name suffix"
-	apiTokenInternalID         = "api-token-internal-id"
+	apiTokenApiPath             = restapi.APITokensResourcePath + "/{internal-id}"
+	testAPITokenDefinition      = "instana_api_token.example"
+	valueTrue                   = "true"
+	apiTokenID                  = "api-token-id"
+	viewFilterFieldValue        = "view filter"
+	apiTokenNameFieldValue      = "name"
+	apiTokenFullNameFieldValue  = "prefix name suffix"
+	apiTokenAccessGrantingToken = "api-token-access-granting-token"
+	apiTokenInternalID          = "api-token-internal-id"
 )
 
 var apiTokenPermissionFields = []string{
@@ -109,7 +110,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 			w.WriteHeader(http.StatusInternalServerError)
 			r.Write(bytes.NewBufferString("Failed to get request"))
 		} else {
-			apiToken.InternalID = apiTokenInternalID
+			apiToken.ID = RandomID()
 			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(apiToken)
@@ -121,9 +122,9 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 		vars := mux.Vars(r)
 		json := strings.ReplaceAll(`
 		{
-			"id" : "{{id}}",
-			"accessGrantingToken": "{{id}}",
-			"internalId" : "api-token-internal-id",
+			"id" : "id",
+			"accessGrantingToken": "api-token",
+			"internalId" : "{{internal-id}}",
 			"name" : "name",
 			"canConfigureServiceMapping" : true,
 			"canConfigureEumApplications" : true,
@@ -153,7 +154,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 			"canViewAccountAndBillingInformation" : true,
 			"canEditAllAccessibleCustomDashboards" : true
 		}
-		`, "{{id}}", vars["id"])
+		`, "{{internal-id}}", vars["internal-id"])
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -258,19 +259,16 @@ func TestShouldReturnCorrectResourceNameForUserroleResource(t *testing.T) {
 	require.Equal(t, name, "instana_api_token")
 }
 
-func TestShouldSetCalculateAccessGrantingToken(t *testing.T) {
+func TestShouldSetCalculateAccessGrantingTokenAndInternal(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	sut := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
-	resourceData.SetId(apiTokenID)
-	expectedResourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
-	expectedResourceData.SetId(apiTokenID)
-	expectedResourceData.Set(APITokenFieldAccessGrantingToken, apiTokenID)
 
 	sut.SetComputedFields(resourceData)
 
-	require.Equal(t, expectedResourceData, resourceData)
+	require.NotEmpty(t, resourceData.Get(APITokenFieldInternalID))
+	require.NotEmpty(t, resourceData.Get(APITokenFieldAccessGrantingToken))
 }
 
 func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
@@ -280,7 +278,7 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 	apiToken := restapi.APIToken{
 		ID:                  apiTokenID,
-		AccessGrantingToken: apiTokenID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
 		Name:                apiTokenNameFieldValue,
 		InternalID:          apiTokenInternalID,
 	}
@@ -289,7 +287,7 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 
 	require.Nil(t, err)
 	require.Equal(t, apiTokenID, resourceData.Id())
-	require.Equal(t, apiTokenID, resourceData.Get(APITokenFieldAccessGrantingToken))
+	require.Equal(t, apiTokenAccessGrantingToken, resourceData.Get(APITokenFieldAccessGrantingToken))
 	require.Equal(t, apiTokenInternalID, resourceData.Get(APITokenFieldInternalID))
 	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldFullName))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureServiceMapping).(bool))
@@ -324,6 +322,8 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 func TestShouldUpdateCanConfigureServiceMappingPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                         apiTokenID,
+		InternalID:                 apiTokenInternalID,
+		AccessGrantingToken:        apiTokenAccessGrantingToken,
 		Name:                       apiTokenNameFieldValue,
 		CanConfigureServiceMapping: true,
 	}
@@ -334,6 +334,8 @@ func TestShouldUpdateCanConfigureServiceMappingPermissionOfTerraformResourceStat
 func TestShouldUpdateCanConfigureEumApplicationsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                          apiTokenID,
+		InternalID:                  apiTokenInternalID,
+		AccessGrantingToken:         apiTokenAccessGrantingToken,
 		Name:                        apiTokenNameFieldValue,
 		CanConfigureEumApplications: true,
 	}
@@ -344,6 +346,8 @@ func TestShouldUpdateCanConfigureEumApplicationsPermissionOfTerraformResourceSta
 func TestShouldUpdateCanConfigureMobileAppMonitoringPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                              apiTokenID,
+		InternalID:                      apiTokenInternalID,
+		AccessGrantingToken:             apiTokenAccessGrantingToken,
 		Name:                            apiTokenNameFieldValue,
 		CanConfigureMobileAppMonitoring: true,
 	}
@@ -353,9 +357,11 @@ func TestShouldUpdateCanConfigureMobileAppMonitoringPermissionOfTerraformResourc
 
 func TestShouldUpdateCanConfigureUsersPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
-		ID:                apiTokenID,
-		Name:              apiTokenNameFieldValue,
-		CanConfigureUsers: true,
+		ID:                  apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
+		Name:                apiTokenNameFieldValue,
+		CanConfigureUsers:   true,
 	}
 
 	testSingleAPITokenPermissionSet(t, apiToken, APITokenFieldCanConfigureUsers)
@@ -364,6 +370,8 @@ func TestShouldUpdateCanConfigureUsersPermissionOfTerraformResourceStateFromMode
 func TestShouldUpdateCanInstallNewAgentsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                  apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
 		Name:                apiTokenNameFieldValue,
 		CanInstallNewAgents: true,
 	}
@@ -374,6 +382,8 @@ func TestShouldUpdateCanInstallNewAgentsPermissionOfTerraformResourceStateFromMo
 func TestShouldUpdateCanSeeUsageInformationPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                     apiTokenID,
+		InternalID:             apiTokenInternalID,
+		AccessGrantingToken:    apiTokenAccessGrantingToken,
 		Name:                   apiTokenNameFieldValue,
 		CanSeeUsageInformation: true,
 	}
@@ -384,6 +394,8 @@ func TestShouldUpdateCanSeeUsageInformationPermissionOfTerraformResourceStateFro
 func TestShouldUpdateCanConfigureIntegrationsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                       apiTokenID,
+		InternalID:               apiTokenInternalID,
+		AccessGrantingToken:      apiTokenAccessGrantingToken,
 		Name:                     apiTokenNameFieldValue,
 		CanConfigureIntegrations: true,
 	}
@@ -394,6 +406,8 @@ func TestShouldUpdateCanConfigureIntegrationsPermissionOfTerraformResourceStateF
 func TestShouldUpdateCanSeeOnPremiseLicenseInformationPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                                apiTokenID,
+		InternalID:                        apiTokenInternalID,
+		AccessGrantingToken:               apiTokenAccessGrantingToken,
 		Name:                              apiTokenNameFieldValue,
 		CanSeeOnPremiseLicenseInformation: true,
 	}
@@ -404,6 +418,8 @@ func TestShouldUpdateCanSeeOnPremiseLicenseInformationPermissionOfTerraformResou
 func TestShouldUpdateCanConfigureCustomAlertsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                       apiTokenID,
+		InternalID:               apiTokenInternalID,
+		AccessGrantingToken:      apiTokenAccessGrantingToken,
 		Name:                     apiTokenNameFieldValue,
 		CanConfigureCustomAlerts: true,
 	}
@@ -414,6 +430,8 @@ func TestShouldUpdateCanConfigureCustomAlertsPermissionOfTerraformResourceStateF
 func TestShouldUpdateCanConfigureAPITokensPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                    apiTokenID,
+		InternalID:            apiTokenInternalID,
+		AccessGrantingToken:   apiTokenAccessGrantingToken,
 		Name:                  apiTokenNameFieldValue,
 		CanConfigureAPITokens: true,
 	}
@@ -424,6 +442,8 @@ func TestShouldUpdateCanConfigureAPITokensPermissionOfTerraformResourceStateFrom
 func TestShouldUpdateCanConfigureAgentRunModePermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                       apiTokenID,
+		InternalID:               apiTokenInternalID,
+		AccessGrantingToken:      apiTokenAccessGrantingToken,
 		Name:                     apiTokenNameFieldValue,
 		CanConfigureAgentRunMode: true,
 	}
@@ -433,9 +453,11 @@ func TestShouldUpdateCanConfigureAgentRunModePermissionOfTerraformResourceStateF
 
 func TestShouldUpdateCanViewAuditLogPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
-		ID:              apiTokenID,
-		Name:            apiTokenNameFieldValue,
-		CanViewAuditLog: true,
+		ID:                  apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
+		Name:                apiTokenNameFieldValue,
+		CanViewAuditLog:     true,
 	}
 
 	testSingleAPITokenPermissionSet(t, apiToken, APITokenFieldCanViewAuditLog)
@@ -443,9 +465,11 @@ func TestShouldUpdateCanViewAuditLogPermissionOfTerraformResourceStateFromModelF
 
 func TestShouldUpdateCanConfigureAgentsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
-		ID:                 apiTokenID,
-		Name:               apiTokenNameFieldValue,
-		CanConfigureAgents: true,
+		ID:                  apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
+		Name:                apiTokenNameFieldValue,
+		CanConfigureAgents:  true,
 	}
 
 	testSingleAPITokenPermissionSet(t, apiToken, APITokenFieldCanConfigureAgents)
@@ -454,6 +478,8 @@ func TestShouldUpdateCanConfigureAgentsPermissionOfTerraformResourceStateFromMod
 func TestShouldUpdateCanConfigureAuthenticationMethodsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                                apiTokenID,
+		InternalID:                        apiTokenInternalID,
+		AccessGrantingToken:               apiTokenAccessGrantingToken,
 		Name:                              apiTokenNameFieldValue,
 		CanConfigureAuthenticationMethods: true,
 	}
@@ -464,6 +490,8 @@ func TestShouldUpdateCanConfigureAuthenticationMethodsPermissionOfTerraformResou
 func TestShouldUpdateCanConfigureApplicationsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                       apiTokenID,
+		InternalID:               apiTokenInternalID,
+		AccessGrantingToken:      apiTokenAccessGrantingToken,
 		Name:                     apiTokenNameFieldValue,
 		CanConfigureApplications: true,
 	}
@@ -473,9 +501,11 @@ func TestShouldUpdateCanConfigureApplicationsPermissionOfTerraformResourceStateF
 
 func TestShouldUpdateCanConfigureTeamsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
-		ID:                apiTokenID,
-		Name:              apiTokenNameFieldValue,
-		CanConfigureTeams: true,
+		ID:                  apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
+		Name:                apiTokenNameFieldValue,
+		CanConfigureTeams:   true,
 	}
 
 	testSingleAPITokenPermissionSet(t, apiToken, APITokenFieldCanConfigureTeams)
@@ -484,6 +514,8 @@ func TestShouldUpdateCanConfigureTeamsPermissionOfTerraformResourceStateFromMode
 func TestShouldUpdateCanConfigureReleasesPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                   apiTokenID,
+		InternalID:           apiTokenInternalID,
+		AccessGrantingToken:  apiTokenAccessGrantingToken,
 		Name:                 apiTokenNameFieldValue,
 		CanConfigureReleases: true,
 	}
@@ -494,6 +526,8 @@ func TestShouldUpdateCanConfigureReleasesPermissionOfTerraformResourceStateFromM
 func TestShouldUpdateCanConfigureLogManagementPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                        apiTokenID,
+		InternalID:                apiTokenInternalID,
+		AccessGrantingToken:       apiTokenAccessGrantingToken,
 		Name:                      apiTokenNameFieldValue,
 		CanConfigureLogManagement: true,
 	}
@@ -504,6 +538,8 @@ func TestShouldUpdateCanConfigureLogManagementPermissionOfTerraformResourceState
 func TestShouldUpdateCanCreatePublicCustomDashboardsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                              apiTokenID,
+		InternalID:                      apiTokenInternalID,
+		AccessGrantingToken:             apiTokenAccessGrantingToken,
 		Name:                            apiTokenNameFieldValue,
 		CanCreatePublicCustomDashboards: true,
 	}
@@ -513,9 +549,11 @@ func TestShouldUpdateCanCreatePublicCustomDashboardsPermissionOfTerraformResourc
 
 func TestShouldUpdateCanViewLogsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
-		ID:          apiTokenID,
-		Name:        apiTokenNameFieldValue,
-		CanViewLogs: true,
+		ID:                  apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
+		Name:                apiTokenNameFieldValue,
+		CanViewLogs:         true,
 	}
 
 	testSingleAPITokenPermissionSet(t, apiToken, APITokenFieldCanViewLogs)
@@ -524,6 +562,8 @@ func TestShouldUpdateCanViewLogsPermissionOfTerraformResourceStateFromModelForAP
 func TestShouldUpdateCanViewTraceDetailsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                  apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
 		Name:                apiTokenNameFieldValue,
 		CanViewTraceDetails: true,
 	}
@@ -534,6 +574,8 @@ func TestShouldUpdateCanViewTraceDetailsPermissionOfTerraformResourceStateFromMo
 func TestShouldUpdateCanConfigureSessionSettingsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                          apiTokenID,
+		InternalID:                  apiTokenInternalID,
+		AccessGrantingToken:         apiTokenAccessGrantingToken,
 		Name:                        apiTokenNameFieldValue,
 		CanConfigureSessionSettings: true,
 	}
@@ -544,6 +586,8 @@ func TestShouldUpdateCanConfigureSessionSettingsPermissionOfTerraformResourceSta
 func TestShouldUpdateCanConfigureServiceLevelIndicatorsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                                 apiTokenID,
+		InternalID:                         apiTokenInternalID,
+		AccessGrantingToken:                apiTokenAccessGrantingToken,
 		Name:                               apiTokenNameFieldValue,
 		CanConfigureServiceLevelIndicators: true,
 	}
@@ -564,6 +608,8 @@ func TestShouldUpdateCanConfigureGlobalAlertPayloadPermissionOfTerraformResource
 func TestShouldUpdateCanConfigureGlobalAlertConfigsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                             apiTokenID,
+		InternalID:                     apiTokenInternalID,
+		AccessGrantingToken:            apiTokenAccessGrantingToken,
 		Name:                           apiTokenNameFieldValue,
 		CanConfigureGlobalAlertConfigs: true,
 	}
@@ -574,6 +620,8 @@ func TestShouldUpdateCanConfigureGlobalAlertConfigsPermissionOfTerraformResource
 func TestShouldUpdateCanViewAccountAndBillingInformationPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                                  apiTokenID,
+		InternalID:                          apiTokenInternalID,
+		AccessGrantingToken:                 apiTokenAccessGrantingToken,
 		Name:                                apiTokenNameFieldValue,
 		CanViewAccountAndBillingInformation: true,
 	}
@@ -584,6 +632,8 @@ func TestShouldUpdateCanViewAccountAndBillingInformationPermissionOfTerraformRes
 func TestShouldUpdateCanEditAllAccessibleCustomDashboardsPermissionOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
 	apiToken := restapi.APIToken{
 		ID:                                   apiTokenID,
+		InternalID:                           apiTokenInternalID,
+		AccessGrantingToken:                  apiTokenAccessGrantingToken,
 		Name:                                 apiTokenNameFieldValue,
 		CanEditAllAccessibleCustomDashboards: true,
 	}
@@ -614,7 +664,7 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(apiTokenID)
-	resourceData.Set(APITokenFieldAccessGrantingToken, apiTokenID)
+	resourceData.Set(APITokenFieldAccessGrantingToken, apiTokenAccessGrantingToken)
 	resourceData.Set(APITokenFieldInternalID, apiTokenInternalID)
 	resourceData.Set(APITokenFieldName, apiTokenNameFieldValue)
 	resourceData.Set(APITokenFieldFullName, apiTokenFullNameFieldValue)
@@ -650,8 +700,9 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.APIToken{}, model, "Model should be an alerting channel")
-	require.Equal(t, apiTokenID, model.GetID())
-	require.Equal(t, apiTokenID, model.(*restapi.APIToken).AccessGrantingToken)
+	require.Equal(t, apiTokenID, model.(*restapi.APIToken).ID)
+	require.Equal(t, apiTokenAccessGrantingToken, model.(*restapi.APIToken).AccessGrantingToken)
+	require.Equal(t, apiTokenInternalID, model.GetIDForResourcePath())
 	require.Equal(t, apiTokenInternalID, model.(*restapi.APIToken).InternalID)
 	require.Equal(t, apiTokenFullNameFieldValue, model.(*restapi.APIToken).Name)
 	require.True(t, model.(*restapi.APIToken).CanConfigureServiceMapping)

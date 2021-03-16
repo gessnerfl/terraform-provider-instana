@@ -48,7 +48,6 @@ resource "instana_api_token" "example" {
 ## Argument Reference
 
 * `access_granting_token`-  Calculated - The token used for the api Client used in the Authorization header to authenticate the client
-* `internal_id`-  Calculated - The internal ID of the access token from the Instana platform
 * `name` - Required - the name of the alerting channel
 * `full_name` - Calculated - The resource name including prefix and suffix.
 * `can_configure_service_mapping` - Optional - default false - enables permission to configure service mappings

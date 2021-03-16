@@ -248,7 +248,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
 	customEventSpec := result.(*restapi.CustomEventSpecification)
-	assert.Equal(t, customSystemEventID, customEventSpec.GetID())
+	assert.Equal(t, customSystemEventID, customEventSpec.GetIDForResourcePath())
 	assert.Equal(t, customSystemEventName, customEventSpec.Name)
 	assert.Equal(t, SystemRuleEntityType, customEventSpec.EntityType)
 	assert.Equal(t, customSystemEventQuery, *customEventSpec.Query)

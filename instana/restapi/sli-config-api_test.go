@@ -36,7 +36,7 @@ func TestMinimalSliConfig(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, sliConfigID, sliConfig.GetID())
+	assert.Equal(t, sliConfigID, sliConfig.GetIDForResourcePath())
 
 	err := sliConfig.Validate()
 	assert.Nil(t, err)
@@ -61,7 +61,7 @@ func TestValidFullSliConfig(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, sliConfigID, sliConfig.GetID())
+	assert.Equal(t, sliConfigID, sliConfig.GetIDForResourcePath())
 
 	err := sliConfig.Validate()
 	assert.Nil(t, err)

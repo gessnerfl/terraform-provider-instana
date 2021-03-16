@@ -14,8 +14,8 @@ type BuiltinEventSpecification struct {
 	Enabled       bool    `json:"enabled"`
 }
 
-//GetID implemention of the interface InstanaDataObject
-func (spec BuiltinEventSpecification) GetID() string {
+//GetIDForResourcePath implemention of the interface InstanaDataObject
+func (spec BuiltinEventSpecification) GetIDForResourcePath() string {
 	return spec.ID
 }
 

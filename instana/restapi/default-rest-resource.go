@@ -86,7 +86,7 @@ func (r *defaultRestResource) validateResponseAndConvertToStruct(data []byte) (I
 }
 
 func (r *defaultRestResource) Delete(data InstanaDataObject) error {
-	return r.DeleteByID(data.GetID())
+	return r.DeleteByID(data.GetIDForResourcePath())
 }
 
 func (r *defaultRestResource) DeleteByID(id string) error {

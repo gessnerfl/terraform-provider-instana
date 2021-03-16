@@ -24,7 +24,7 @@ type testObject struct {
 	Name string
 }
 
-func (t *testObject) GetID() string {
+func (t *testObject) GetIDForResourcePath() string {
 	return t.ID
 }
 

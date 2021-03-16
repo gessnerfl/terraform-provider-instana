@@ -140,7 +140,7 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
-	assert.Equal(t, "id", model.GetID())
+	assert.Equal(t, "id", model.GetIDForResourcePath())
 	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
 	assert.Equal(t, url, *model.(*restapi.AlertingChannel).URL, "url should be equal")
 	assert.Equal(t, token, *model.(*restapi.AlertingChannel).Token, "token should be equal")

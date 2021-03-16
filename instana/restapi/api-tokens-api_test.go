@@ -8,26 +8,28 @@ import (
 )
 
 const (
-	apiTokenID   = "ID"
-	apiTokenName = "api-token-name"
+	apiTokenInternalID          = "internal-id"
+	apiTokenAccessGrantingToken = "access-granting-token"
+	apiTokenName                = "api-token-name"
 )
 
 func TestValidMinimalAPIToken(t *testing.T) {
 	apiToken := APIToken{
-		ID:                  apiTokenID,
-		AccessGrantingToken: apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenInternalID,
 		Name:                apiTokenName,
 	}
 
+	require.Equal(t, apiTokenInternalID, apiToken.GetIDForResourcePath())
 	err := apiToken.Validate()
 	require.Nil(t, err)
 }
 
 func TestValidFullAPIToken(t *testing.T) {
 	apiToken := APIToken{
-		ID:                                   apiTokenID,
-		AccessGrantingToken:                  apiTokenID,
-		InternalID:                           "internal-id",
+		ID:                                   "id",
+		AccessGrantingToken:                  apiTokenAccessGrantingToken,
+		InternalID:                           apiTokenInternalID,
 		Name:                                 apiTokenName,
 		CanConfigureServiceMapping:           true,
 		CanConfigureEumApplications:          true,
@@ -58,53 +60,79 @@ func TestValidFullAPIToken(t *testing.T) {
 		CanEditAllAccessibleCustomDashboards: true,
 	}
 
-	require.Equal(t, apiTokenID, apiToken.GetID())
+	require.Equal(t, apiTokenInternalID, apiToken.GetIDForResourcePath())
 
 	err := apiToken.Validate()
 	require.Nil(t, err)
 }
 
-func TestInvalidAPITokenWhenIdIsMissing(t *testing.T) {
+func TestInvalidAPITokenWhenInternalIdIsMissing(t *testing.T) {
 	apiToken := APIToken{
-		AccessGrantingToken: apiTokenID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
 		Name:                apiTokenName,
 	}
 
 	err := apiToken.Validate()
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "ID")
+	require.Contains(t, err.Error(), "Internal ID")
+}
+
+func TestInvalidAPITokenWhenInternalIdIsBlank(t *testing.T) {
+	apiToken := APIToken{
+		AccessGrantingToken: apiTokenAccessGrantingToken,
+		InternalID:          " ",
+		Name:                apiTokenName,
+	}
+
+	err := apiToken.Validate()
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Internal ID")
 }
 
 func TestInvalidAPITokenWhenAccessGrantingTokenIsMissing(t *testing.T) {
 	apiToken := APIToken{
-		ID:   apiTokenID,
-		Name: apiTokenName,
+		InternalID: apiTokenInternalID,
+		Name:       apiTokenName,
 	}
 
 	err := apiToken.Validate()
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Access Granting Token and ID")
+	require.Contains(t, err.Error(), "Access Granting Token")
 }
 
-func TestInvalidAPITokenWhenAccessGrantingTokenAndIDAreNotEqual(t *testing.T) {
+func TestInvalidAPITokenWhenAccessGrantingTokenIsBlank(t *testing.T) {
 	apiToken := APIToken{
-		ID:                  apiTokenID,
-		AccessGrantingToken: "foo",
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: " ",
 		Name:                apiTokenName,
 	}
 
 	err := apiToken.Validate()
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "Access Granting Token and ID")
+	require.Contains(t, err.Error(), "Access Granting Token")
 }
 
 func TestInvalidAPITokenWhenNameIsMissing(t *testing.T) {
 	apiToken := APIToken{
-		ID:                  apiTokenID,
-		AccessGrantingToken: apiTokenID,
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
+	}
+
+	err := apiToken.Validate()
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Name")
+}
+
+func TestInvalidAPITokenWhenNameIsBlank(t *testing.T) {
+	apiToken := APIToken{
+		InternalID:          apiTokenInternalID,
+		AccessGrantingToken: apiTokenAccessGrantingToken,
+		Name:                " ",
 	}
 
 	err := apiToken.Validate()

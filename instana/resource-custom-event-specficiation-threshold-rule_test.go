@@ -573,7 +573,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
 	customEventSpec := result.(*restapi.CustomEventSpecification)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetID())
+	assert.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
 	assert.Equal(t, customEventSpecificationWithThresholdRuleName, customEventSpec.Name)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
 	assert.Equal(t, customEventSpecificationWithThresholdRuleQuery, *customEventSpec.Query)

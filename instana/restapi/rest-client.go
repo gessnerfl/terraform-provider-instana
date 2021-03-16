@@ -89,7 +89,7 @@ func (client *restClientImpl) Post(data InstanaDataObject, resourcePath string) 
 
 //Put executes a HTTP PUT request to create or update the given resource
 func (client *restClientImpl) Put(data InstanaDataObject, resourcePath string) ([]byte, error) {
-	url := client.buildResourceURL(resourcePath, data.GetID())
+	url := client.buildResourceURL(resourcePath, data.GetIDForResourcePath())
 	req := client.createRequest().SetHeader("Content-Type", "application/json; charset=utf-8").SetBody(data)
 	return client.executeRequestWithThrottling(resty.MethodPut, url, req)
 }

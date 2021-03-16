@@ -297,7 +297,8 @@ func NewAPITokenResourceHandle() ResourceHandle {
 				APITokenFieldCanViewAccountAndBillingInformation:  apiTokenSchemaCanViewAccountAndBillingInformation,
 				APITokenFieldCanEditAllAccessibleCustomDashboards: apiTokenSchemaCanEditAllAccessibleCustomDashboards,
 			},
-			SchemaVersion: 0,
+			SchemaVersion:    0,
+			SkipIDGeneration: true,
 		},
 	}
 }
@@ -319,11 +320,13 @@ func (r *apiTokenResource) GetRestResource(api restapi.InstanaAPI) restapi.RestR
 }
 
 func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) {
-	d.Set(APITokenFieldAccessGrantingToken, d.Id())
+	d.Set(APITokenFieldInternalID, RandomID())
+	d.Set(APITokenFieldAccessGrantingToken, RandomID())
 }
 
 func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	apiToken := obj.(*restapi.APIToken)
+	d.SetId(apiToken.ID)
 	d.Set(APITokenFieldAccessGrantingToken, apiToken.AccessGrantingToken)
 	d.Set(APITokenFieldInternalID, apiToken.InternalID)
 	d.Set(APITokenFieldFullName, apiToken.Name)
@@ -354,8 +357,6 @@ func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.Insta
 	d.Set(APITokenFieldCanConfigureGlobalAlertConfigs, apiToken.CanConfigureGlobalAlertConfigs)
 	d.Set(APITokenFieldCanViewAccountAndBillingInformation, apiToken.CanViewAccountAndBillingInformation)
 	d.Set(APITokenFieldCanEditAllAccessibleCustomDashboards, apiToken.CanEditAllAccessibleCustomDashboards)
-
-	d.SetId(apiToken.ID)
 	return nil
 }
 

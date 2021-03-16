@@ -61,8 +61,8 @@ type SliConfig struct {
 	SliEntity                  SliEntity           `json:"sliEntity"`
 }
 
-//GetID implemention of the interface InstanaDataObject
-func (s *SliConfig) GetID() string {
+//GetIDForResourcePath implemention of the interface InstanaDataObject
+func (s *SliConfig) GetIDForResourcePath() string {
 	return s.ID
 }
 

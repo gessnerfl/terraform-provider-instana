@@ -224,7 +224,7 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.SliConfig{}, model, "Model should be an sli config")
-	assert.Equal(t, sliConfigID, model.GetID())
+	assert.Equal(t, sliConfigID, model.GetIDForResourcePath())
 	assert.Equal(t, sliConfigFullName, model.(*restapi.SliConfig).Name, "name should be equal to full name")
 	assert.Equal(t, sliConfigInitialEvaluationTimestamp, model.(*restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
 	assert.Equal(t, sliConfigMetricName, model.(*restapi.SliConfig).MetricConfiguration.Name)

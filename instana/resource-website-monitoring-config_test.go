@@ -201,7 +201,7 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.WebsiteMonitoringConfig{}, model)
-	require.Equal(t, "id", model.GetID())
+	require.Equal(t, "id", model.GetIDForResourcePath())
 	require.Equal(t, websiteMonitoringConfigFullName, model.(*restapi.WebsiteMonitoringConfig).Name)
 }
 

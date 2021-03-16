@@ -40,7 +40,7 @@ func (r *websiteMonitoringConfigRestResource) Update(data InstanaDataObject) (In
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
-	response, err := r.client.PutByQuery(r.resourcePath, data.GetID(), map[string]string{"name": data.(*WebsiteMonitoringConfig).Name})
+	response, err := r.client.PutByQuery(r.resourcePath, data.GetIDForResourcePath(), map[string]string{"name": data.(*WebsiteMonitoringConfig).Name})
 	if err != nil {
 		return data, err
 	}
@@ -64,7 +64,7 @@ func (r *websiteMonitoringConfigRestResource) validateResponseAndConvertToStruct
 }
 
 func (r *websiteMonitoringConfigRestResource) Delete(data InstanaDataObject) error {
-	return r.DeleteByID(data.GetID())
+	return r.DeleteByID(data.GetIDForResourcePath())
 }
 
 func (r *websiteMonitoringConfigRestResource) DeleteByID(id string) error {

@@ -12,8 +12,8 @@ type WebsiteMonitoringConfig struct {
 	AppName string `json:"appName"`
 }
 
-//GetID implemention of the interface InstanaDataObject
-func (r *WebsiteMonitoringConfig) GetID() string {
+//GetIDForResourcePath implemention of the interface InstanaDataObject
+func (r *WebsiteMonitoringConfig) GetIDForResourcePath() string {
 	return r.ID
 }
 

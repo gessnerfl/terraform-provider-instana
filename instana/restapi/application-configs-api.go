@@ -288,8 +288,8 @@ type ApplicationConfig struct {
 	BoundaryScope      BoundaryScope          `json:"boundaryScope"`
 }
 
-//GetID implemention of the interface InstanaDataObject
-func (a *ApplicationConfig) GetID() string {
+//GetIDForResourcePath implemention of the interface InstanaDataObject
+func (a *ApplicationConfig) GetIDForResourcePath() string {
 	return a.ID
 }
 

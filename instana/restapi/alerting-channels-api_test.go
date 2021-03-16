@@ -28,7 +28,7 @@ func TestShouldReturnIDOfAlteringChannel(t *testing.T) {
 		Emails: []string{email1FieldValue, email2FieldValue},
 	}
 
-	assert.Equal(t, idFieldValue, alertingChannel.GetID())
+	assert.Equal(t, idFieldValue, alertingChannel.GetIDForResourcePath())
 }
 
 func TestShouldSuccussullyValidateConsistentEmailAlteringChannel(t *testing.T) {

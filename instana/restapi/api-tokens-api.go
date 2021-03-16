@@ -1,6 +1,10 @@
 package restapi
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/gessnerfl/terraform-provider-instana/utils"
+)
 
 //APITokensResourcePath path to API Tokens resource of Instana RESTful API
 const APITokensResourcePath = SettingsBasePath + "/api-tokens"
@@ -40,20 +44,20 @@ type APIToken struct {
 	CanEditAllAccessibleCustomDashboards bool   `json:"canEditAllAccessibleCustomDashboards"`
 }
 
-//GetID implemention of the interface InstanaDataObject
-func (r *APIToken) GetID() string {
-	return r.ID
+//GetIDForResourcePath implemention of the interface InstanaDataObject
+func (r *APIToken) GetIDForResourcePath() string {
+	return r.InternalID
 }
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (r *APIToken) Validate() error {
-	if len(r.ID) == 0 {
-		return errors.New("ID is missing")
+	if utils.IsBlank(r.InternalID) {
+		return errors.New("Internal ID is missing")
 	}
-	if r.ID != r.AccessGrantingToken {
-		return errors.New("Access Granting Token and ID should be equal")
+	if utils.IsBlank(r.AccessGrantingToken) {
+		return errors.New("Access Granting Token is missing")
 	}
-	if len(r.Name) == 0 {
+	if utils.IsBlank(r.Name) {
 		return errors.New("Name is missing")
 	}
 	return nil
