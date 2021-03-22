@@ -60,8 +60,7 @@ func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle {
 }
 
 type alertingChannelOpsGenieResource struct {
-	metaData        ResourceMetaData
-	opsGenieRegions []string
+	metaData ResourceMetaData
 }
 
 func (r *alertingChannelOpsGenieResource) MetaData() *ResourceMetaData {

@@ -46,9 +46,6 @@ const (
 	customSystemEventDescription      = "description"
 	customSystemEventRuleSystemRuleId = "system-rule-id"
 
-	customSystemEventMessageNotAValidSeverity           = "not a valid severity"
-	customSystemEventTestMessageExpectedInvalidSeverity = "Expected to get error that the provided severity is not valid"
-
 	constSystemEventContentType = "Content-Type"
 )
 

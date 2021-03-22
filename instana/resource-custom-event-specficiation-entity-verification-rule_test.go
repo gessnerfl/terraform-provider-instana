@@ -52,9 +52,6 @@ const (
 	customEntityVerificationEventRuleMatchingEntityType  = "matching-entity-type"
 	customEntityVerificationEventRuleOfflineDuration     = 60000
 
-	customEntityVerificationEventMessageNotAValidSeverity           = "not a valid severity"
-	customEntityVerificationEventTestMessageExpectedInvalidSeverity = "Expected to get error that the provided severity is not valid"
-
 	constEntityVerificationEventContentType = "Content-Type"
 
 	suffixString = " suffix"

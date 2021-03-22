@@ -106,7 +106,7 @@ func (ds *builtInEventDataSource) findBuiltInEventByNameAndPluginID(name string,
 			return &builtInEvent, nil
 		}
 	}
-	return nil, fmt.Errorf("No built in event found for name '%s' and short plugin ID '%s'", name, shortPluginID)
+	return nil, fmt.Errorf("no built in event found for name '%s' and short plugin ID '%s'", name, shortPluginID)
 }
 
 func (ds *builtInEventDataSource) updateState(d *schema.ResourceData, builtInEvent *restapi.BuiltinEventSpecification) error {

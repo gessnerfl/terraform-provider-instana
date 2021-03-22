@@ -119,7 +119,7 @@ func TestShouldFailtToReadBuiltInEventWhenNoObjectFromResponseMatchesTheNameAndS
 	_, err := executeReadWithTenGeneratedObjectsAsResponse(requestedName, requestedPluginId, t)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "No built in event found")
+	require.Contains(t, err.Error(), "no built in event found")
 }
 
 func executeReadWithTenGeneratedObjectsAsResponse(requestedName string, requestedPluginId string, t *testing.T) (*schema.ResourceData, error) {
