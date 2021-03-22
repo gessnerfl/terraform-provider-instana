@@ -33,18 +33,18 @@ func (m *MockInstanaDataObject) EXPECT() *MockInstanaDataObjectMockRecorder {
 	return m.recorder
 }
 
-// GetID mocks base method
-func (m *MockInstanaDataObject) GetID() string {
+// GetIDForResourcePath mocks base method
+func (m *MockInstanaDataObject) GetIDForResourcePath() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetID")
+	ret := m.ctrl.Call(m, "GetIDForResourcePath")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// GetID indicates an expected call of GetID
-func (mr *MockInstanaDataObjectMockRecorder) GetID() *gomock.Call {
+// GetIDForResourcePath indicates an expected call of GetIDForResourcePath
+func (mr *MockInstanaDataObjectMockRecorder) GetIDForResourcePath() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetID", reflect.TypeOf((*MockInstanaDataObject)(nil).GetID))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForResourcePath", reflect.TypeOf((*MockInstanaDataObject)(nil).GetIDForResourcePath))
 }
 
 // Validate mocks base method

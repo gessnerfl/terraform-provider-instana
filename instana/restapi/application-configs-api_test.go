@@ -37,7 +37,7 @@ func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
 	err := config.Validate()
 
 	assert.Nil(t, err)
-	assert.Equal(t, idFieldValue, config.GetID())
+	assert.Equal(t, idFieldValue, config.GetIDForResourcePath())
 }
 
 func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {

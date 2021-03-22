@@ -28,7 +28,7 @@ func TestReturnIdOfAlertingConfig(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, alertingConfigID, config.GetID())
+	assert.Equal(t, alertingConfigID, config.GetIDForResourcePath())
 }
 
 func TestShouldSuccessFullyValidateAlertingConfigurationWhenRuleIdsAreConfigured(t *testing.T) {

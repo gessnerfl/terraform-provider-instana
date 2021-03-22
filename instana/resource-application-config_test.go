@@ -295,7 +295,7 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.ApplicationConfig{}, result)
-	assert.Equal(t, applicationConfigID, result.GetID())
+	assert.Equal(t, applicationConfigID, result.GetIDForResourcePath())
 	assert.Equal(t, label, result.(*restapi.ApplicationConfig).Label)
 	assert.Equal(t, defaultMatchSpecificationModel, result.(*restapi.ApplicationConfig).MatchSpecification)
 	assert.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)

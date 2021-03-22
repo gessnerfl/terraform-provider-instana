@@ -33,7 +33,7 @@ func TestProviderShouldContainValidResourceDefinitions(t *testing.T) {
 
 	assert.Equal(t, 17, len(config.ResourcesMap))
 
-	assert.NotNil(t, config.ResourcesMap[ResourceInstanaUserRole])
+	assert.NotNil(t, config.ResourcesMap[ResourceInstanaAPIToken])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaApplicationConfig])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaSliConfig])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaWebsiteMonitoringConfig])

@@ -33,7 +33,7 @@ func TestShouldSuccessfullyValidateFullWebsiteMonitotingConfigAsServerResponseFo
 
 	require.NoError(t, err)
 	require.Equal(t, websiteMonitoringConfigID, sut.ID)
-	require.Equal(t, websiteMonitoringConfigID, sut.GetID())
+	require.Equal(t, websiteMonitoringConfigID, sut.GetIDForResourcePath())
 	require.Equal(t, websiteMonitoringConfigName, sut.Name)
 	require.Equal(t, websiteMonitoringConfigAppName, sut.AppName)
 }

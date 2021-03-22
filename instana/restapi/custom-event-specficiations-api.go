@@ -285,8 +285,8 @@ type CustomEventSpecification struct {
 	Rules          []RuleSpecification `json:"rules"`
 }
 
-//GetID implemention of the interface InstanaDataObject
-func (spec *CustomEventSpecification) GetID() string {
+//GetIDForResourcePath implemention of the interface InstanaDataObject
+func (spec *CustomEventSpecification) GetIDForResourcePath() string {
 	return spec.ID
 }
 

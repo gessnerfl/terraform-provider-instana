@@ -52,9 +52,6 @@ const (
 	customEntityVerificationEventRuleMatchingEntityType  = "matching-entity-type"
 	customEntityVerificationEventRuleOfflineDuration     = 60000
 
-	customEntityVerificationEventMessageNotAValidSeverity           = "not a valid severity"
-	customEntityVerificationEventTestMessageExpectedInvalidSeverity = "Expected to get error that the provided severity is not valid"
-
 	constEntityVerificationEventContentType = "Content-Type"
 
 	suffixString = " suffix"
@@ -353,7 +350,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
 	customEventSpec := result.(*restapi.CustomEventSpecification)
-	assert.Equal(t, customEntityVerificationEventID, customEventSpec.GetID())
+	assert.Equal(t, customEntityVerificationEventID, customEventSpec.GetIDForResourcePath())
 	assert.Equal(t, customEntityVerificationEventName, customEventSpec.Name)
 	assert.Equal(t, EntityVerificationRuleEntityType, customEventSpec.EntityType)
 	assert.Equal(t, customEntityVerificationEventQuery, *customEventSpec.Query)

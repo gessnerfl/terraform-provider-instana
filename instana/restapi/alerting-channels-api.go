@@ -94,8 +94,8 @@ type AlertingChannel struct {
 	Headers               []string            `json:"headers"`
 }
 
-//GetID implemention of the interface InstanaDataObject
-func (r *AlertingChannel) GetID() string {
+//GetIDForResourcePath implemention of the interface InstanaDataObject
+func (r *AlertingChannel) GetIDForResourcePath() string {
 	return r.ID
 }
 

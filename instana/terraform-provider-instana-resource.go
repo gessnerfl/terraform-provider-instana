@@ -10,9 +10,10 @@ import (
 
 //ResourceMetaData the meta data of a terraform ResourceHandle
 type ResourceMetaData struct {
-	ResourceName  string
-	Schema        map[string]*schema.Schema
-	SchemaVersion int
+	ResourceName     string
+	Schema           map[string]*schema.Schema
+	SchemaVersion    int
+	SkipIDGeneration bool
 }
 
 //ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
@@ -57,7 +58,9 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
-	d.SetId(RandomID())
+	if !r.resourceHandle.MetaData().SkipIDGeneration {
+		d.SetId(RandomID())
+	}
 	r.resourceHandle.SetComputedFields(d)
 
 	createRequest, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
@@ -76,11 +79,15 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
-	id := d.Id()
-	if len(id) == 0 {
-		return fmt.Errorf("ID of %s is missing", r.resourceHandle.MetaData().ResourceName)
+	obj, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	if err != nil {
+		return err
 	}
-	obj, err := r.resourceHandle.GetRestResource(instanaAPI).GetOne(id)
+	resourceID := obj.GetIDForResourcePath()
+	if len(resourceID) == 0 {
+		return fmt.Errorf("resource ID of %s is missing", r.resourceHandle.MetaData().ResourceName)
+	}
+	obj, err = r.resourceHandle.GetRestResource(instanaAPI).GetOne(resourceID)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
@@ -118,7 +125,7 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	err = r.resourceHandle.GetRestResource(instanaAPI).DeleteByID(object.GetID())
+	err = r.resourceHandle.GetRestResource(instanaAPI).DeleteByID(object.GetIDForResourcePath())
 	if err != nil {
 		return err
 	}

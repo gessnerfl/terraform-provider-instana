@@ -61,18 +61,18 @@ func (mr *MockInstanaAPIMockRecorder) BuiltinEventSpecifications() *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuiltinEventSpecifications", reflect.TypeOf((*MockInstanaAPI)(nil).BuiltinEventSpecifications))
 }
 
-// UserRoles mocks base method
-func (m *MockInstanaAPI) UserRoles() restapi.RestResource {
+// APITokens mocks base method
+func (m *MockInstanaAPI) APITokens() restapi.RestResource {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UserRoles")
+	ret := m.ctrl.Call(m, "APITokens")
 	ret0, _ := ret[0].(restapi.RestResource)
 	return ret0
 }
 
-// UserRoles indicates an expected call of UserRoles
-func (mr *MockInstanaAPIMockRecorder) UserRoles() *gomock.Call {
+// APITokens indicates an expected call of APITokens
+func (mr *MockInstanaAPIMockRecorder) APITokens() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserRoles", reflect.TypeOf((*MockInstanaAPI)(nil).UserRoles))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "APITokens", reflect.TypeOf((*MockInstanaAPI)(nil).APITokens))
 }
 
 // ApplicationConfigs mocks base method

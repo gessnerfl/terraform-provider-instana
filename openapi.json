@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.193.696",
+    "version": "1.194.695",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -603,6 +603,13 @@
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
               ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "useQueryableTags",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -7041,6 +7048,9 @@
           "canCreatePublicCustomDashboards": {
             "type": "boolean"
           },
+          "canEditAllAccessibleCustomDashboards": {
+            "type": "boolean"
+          },
           "canInstallNewAgents": {
             "type": "boolean"
           },
@@ -9605,46 +9615,6 @@
           }
         }
       },
-      "InfrastructureSliEntity": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/SliEntity"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "instanceAggregation": {
-                "type": "string",
-                "enum": [
-                  "SUM",
-                  "MEAN",
-                  "MAX",
-                  "MIN",
-                  "P25",
-                  "P50",
-                  "P75",
-                  "P90",
-                  "P95",
-                  "P98",
-                  "P99",
-                  "P99_9",
-                  "P99_99",
-                  "DISTINCT_COUNT"
-                ]
-              },
-              "query": {
-                "type": "string"
-              }
-            }
-          }
-        ],
-        "required": [
-          "instanceAggregation",
-          "query",
-          "sliType"
-        ]
-      },
       "IngestionOffsetCursor": {
         "type": "object",
         "properties": {
@@ -10982,8 +10952,7 @@
         "discriminator": {
           "mapping": {
             "application": "#/components/schemas/ApplicationSliEntity",
-            "availability": "#/components/schemas/AvailabilitySliEntity",
-            "custom": "#/components/schemas/InfrastructureSliEntity"
+            "availability": "#/components/schemas/AvailabilitySliEntity"
           },
           "propertyName": "sliType"
         },
@@ -12767,9 +12736,6 @@
             "maxItems": 1024,
             "minItems": 0,
             "uniqueItems": true
-          },
-          "baseline": {
-            "$ref": "#/components/schemas/HistoricBaseline"
           },
           "created": {
             "type": "integer",

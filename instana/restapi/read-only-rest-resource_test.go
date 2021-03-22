@@ -196,8 +196,8 @@ type TestInstanaDataObject struct {
 	Name string `json:"name"`
 }
 
-//GetID implemention of the interface InstanaDataObject
-func (o TestInstanaDataObject) GetID() string {
+//GetIDForResourcePath implemention of the interface InstanaDataObject
+func (o TestInstanaDataObject) GetIDForResourcePath() string {
 	return o.ID
 }
 

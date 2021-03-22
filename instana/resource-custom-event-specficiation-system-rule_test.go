@@ -46,9 +46,6 @@ const (
 	customSystemEventDescription      = "description"
 	customSystemEventRuleSystemRuleId = "system-rule-id"
 
-	customSystemEventMessageNotAValidSeverity           = "not a valid severity"
-	customSystemEventTestMessageExpectedInvalidSeverity = "Expected to get error that the provided severity is not valid"
-
 	constSystemEventContentType = "Content-Type"
 )
 
@@ -248,7 +245,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
 	customEventSpec := result.(*restapi.CustomEventSpecification)
-	assert.Equal(t, customSystemEventID, customEventSpec.GetID())
+	assert.Equal(t, customSystemEventID, customEventSpec.GetIDForResourcePath())
 	assert.Equal(t, customSystemEventName, customEventSpec.Name)
 	assert.Equal(t, SystemRuleEntityType, customEventSpec.EntityType)
 	assert.Equal(t, customSystemEventQuery, *customEventSpec.Query)

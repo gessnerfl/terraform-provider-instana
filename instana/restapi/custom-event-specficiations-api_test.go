@@ -59,7 +59,7 @@ func TestShouldValidateMinimalCustemEventSpecificationWithSystemRule(t *testing.
 	err := spec.Validate()
 
 	assert.Nil(t, err)
-	assert.Equal(t, customEventID, spec.GetID())
+	assert.Equal(t, customEventID, spec.GetIDForResourcePath())
 }
 
 func TestShouldValidateFullCustomEventSpecificationWithSystemRule(t *testing.T) {

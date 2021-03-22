@@ -33,7 +33,7 @@ func TestShouldSuccessfullyReadTestObjectFromInstanaAPIWhenBaseDataIsReturned(t 
 	})
 }
 
-func TestShouldFailToReadTestObjectFromInstanaAPIWhenIDIsMissing(t *testing.T) {
+func TestShouldFailToReadTestObjectFromInstanaAPIWhenResourceIDIsMissing(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := createEmptyAlertingChannelEmailResourceData(t)

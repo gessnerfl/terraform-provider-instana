@@ -13,7 +13,7 @@ func TestShouldReturnIdOfBuiltinEventSpecification(t *testing.T) {
 		ID: "1234",
 	}
 
-	require.Equal(t, "1234", sut.GetID())
+	require.Equal(t, "1234", sut.GetIDForResourcePath())
 }
 
 func TestShouldReturnNoErrorForEmptyBuiltInSpecification(t *testing.T) {

@@ -339,7 +339,7 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) 
 
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.AlertingConfiguration{}, model)
-	assert.Equal(t, alertingConfigID, model.GetID())
+	assert.Equal(t, alertingConfigID, model.GetIDForResourcePath())
 	assert.Equal(t, alertingConfigName, model.(*restapi.AlertingConfiguration).AlertName)
 
 	assertIntegrationIdOFAlertingConfigModel(t, model.(*restapi.AlertingConfiguration))
@@ -363,7 +363,7 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.
 
 	assert.Nil(t, err)
 	assert.IsType(t, &restapi.AlertingConfiguration{}, model)
-	assert.Equal(t, alertingConfigID, model.GetID())
+	assert.Equal(t, alertingConfigID, model.GetIDForResourcePath())
 	assert.Equal(t, alertingConfigName, model.(*restapi.AlertingConfiguration).AlertName)
 
 	assertIntegrationIdOFAlertingConfigModel(t, model.(*restapi.AlertingConfiguration))
