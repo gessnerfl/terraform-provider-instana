@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	resty "gopkg.in/resty.v1"
 )
 
@@ -167,7 +167,7 @@ func (client *restClientImpl) handleThrottledAPIRequest(req *apiRequest) {
 }
 
 func (client *restClientImpl) executeRequest(method string, url string, req *resty.Request) ([]byte, error) {
-	log.Infof("Call %s %s", method, url)
+	log.Printf("[DEBUG] Call %s %s\n", method, url)
 	resp, err := req.Execute(method, url)
 	if err != nil {
 		return emptyResponse, fmt.Errorf("failed to send HTTP %s request to Instana API; status code = %d; status message = %s; Headers %s, %s", method, resp.StatusCode(), resp.Status(), resp.Header(), err)

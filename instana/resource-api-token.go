@@ -326,7 +326,6 @@ func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) {
 
 func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
 	apiToken := obj.(*restapi.APIToken)
-	d.SetId(apiToken.ID)
 	d.Set(APITokenFieldAccessGrantingToken, apiToken.AccessGrantingToken)
 	d.Set(APITokenFieldInternalID, apiToken.InternalID)
 	d.Set(APITokenFieldFullName, apiToken.Name)
@@ -357,6 +356,7 @@ func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.Insta
 	d.Set(APITokenFieldCanConfigureGlobalAlertConfigs, apiToken.CanConfigureGlobalAlertConfigs)
 	d.Set(APITokenFieldCanViewAccountAndBillingInformation, apiToken.CanViewAccountAndBillingInformation)
 	d.Set(APITokenFieldCanEditAllAccessibleCustomDashboards, apiToken.CanEditAllAccessibleCustomDashboards)
+	d.SetId(apiToken.ID)
 	return nil
 }
 

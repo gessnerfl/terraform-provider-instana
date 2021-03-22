@@ -79,11 +79,15 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
-	id := d.Id()
-	if len(id) == 0 {
-		return fmt.Errorf("ID of %s is missing", r.resourceHandle.MetaData().ResourceName)
+	obj, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	if err != nil {
+		return err
 	}
-	obj, err := r.resourceHandle.GetRestResource(instanaAPI).GetOne(id)
+	resourceID := obj.GetIDForResourcePath()
+	if len(resourceID) == 0 {
+		return fmt.Errorf("resource ID of %s is missing", r.resourceHandle.MetaData().ResourceName)
+	}
+	obj, err = r.resourceHandle.GetRestResource(instanaAPI).GetOne(resourceID)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
