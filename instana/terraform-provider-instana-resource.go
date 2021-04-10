@@ -1,6 +1,7 @@
 package instana
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -14,6 +15,7 @@ type ResourceMetaData struct {
 	Schema           map[string]*schema.Schema
 	SchemaVersion    int
 	SkipIDGeneration bool
+	ResourceIDField  *string
 }
 
 //ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
@@ -79,15 +81,11 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
-	obj, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
-	if err != nil {
-		return err
-	}
-	resourceID := obj.GetIDForResourcePath()
+	resourceID := r.getResourceID(d)
 	if len(resourceID) == 0 {
 		return fmt.Errorf("resource ID of %s is missing", r.resourceHandle.MetaData().ResourceName)
 	}
-	obj, err = r.resourceHandle.GetRestResource(instanaAPI).GetOne(resourceID)
+	obj, err := r.resourceHandle.GetRestResource(instanaAPI).GetOne(resourceID)
 	if err != nil {
 		if err == restapi.ErrEntityNotFound {
 			d.SetId("")
@@ -97,6 +95,13 @@ func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) e
 	}
 	r.resourceHandle.UpdateState(d, obj)
 	return nil
+}
+
+func (r *terraformResourceImpl) getResourceID(d *schema.ResourceData) string {
+	if r.resourceHandle.MetaData().ResourceIDField != nil {
+		return d.Get(*r.resourceHandle.MetaData().ResourceIDField).(string)
+	}
+	return d.Id()
 }
 
 //Update defines the update operation for the terraform resource
@@ -136,12 +141,22 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 func (r *terraformResourceImpl) ToSchemaResource() *schema.Resource {
 	metaData := r.resourceHandle.MetaData()
 	return &schema.Resource{
-		Create:         r.Create,
-		Read:           r.Read,
+		Create: r.Create,
+		Read:   r.Read,
+		Importer: &schema.ResourceImporter{
+			StateContext: r.importState,
+		},
 		Update:         r.Update,
 		Delete:         r.Delete,
 		Schema:         metaData.Schema,
 		SchemaVersion:  metaData.SchemaVersion,
 		StateUpgraders: r.resourceHandle.StateUpgraders(),
 	}
+}
+
+func (r *terraformResourceImpl) importState(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	if r.resourceHandle.MetaData().ResourceIDField != nil {
+		d.Set(*r.resourceHandle.MetaData().ResourceIDField, d.Id())
+	}
+	return []*schema.ResourceData{d}, nil
 }

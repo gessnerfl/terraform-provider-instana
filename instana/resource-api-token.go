@@ -261,6 +261,7 @@ var (
 
 //NewAPITokenResourceHandle creates a ResourceHandle instance for the terraform resource API token
 func NewAPITokenResourceHandle() ResourceHandle {
+	internalIDFieldName := APITokenFieldInternalID
 	return &apiTokenResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAPIToken,
@@ -299,6 +300,7 @@ func NewAPITokenResourceHandle() ResourceHandle {
 			},
 			SchemaVersion:    0,
 			SkipIDGeneration: true,
+			ResourceIDField:  &internalIDFieldName,
 		},
 	}
 }
