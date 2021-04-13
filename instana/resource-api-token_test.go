@@ -15,7 +15,6 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceAPITokenDefinitionTemplate = `
@@ -164,7 +163,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 
 	resourceAPITokenDefinition := strings.ReplaceAll(resourceAPITokenDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
@@ -203,6 +202,11 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAccountAndBillingInformation, valueTrue),
 					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanEditAllAccessibleCustomDashboards, valueTrue),
 				),
+			},
+			{
+				ResourceName:      testApplicationConfigDefinition,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -279,17 +283,18 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 	apiToken := restapi.APIToken{
 		ID:                  apiTokenID,
 		AccessGrantingToken: apiTokenAccessGrantingToken,
-		Name:                apiTokenNameFieldValue,
+		Name:                apiTokenFullNameFieldValue,
 		InternalID:          apiTokenInternalID,
 	}
 
-	err := sut.UpdateState(resourceData, &apiToken)
+	err := sut.UpdateState(resourceData, &apiToken, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.Equal(t, apiTokenID, resourceData.Id())
 	require.Equal(t, apiTokenAccessGrantingToken, resourceData.Get(APITokenFieldAccessGrantingToken))
 	require.Equal(t, apiTokenInternalID, resourceData.Get(APITokenFieldInternalID))
-	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldFullName))
+	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldName))
+	require.Equal(t, apiTokenFullNameFieldValue, resourceData.Get(APITokenFieldFullName))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureServiceMapping).(bool))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureEumApplications).(bool))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureMobileAppMonitoring).(bool))
@@ -647,7 +652,7 @@ func testSingleAPITokenPermissionSet(t *testing.T, apiToken restapi.APIToken, ex
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &apiToken)
+	err := sut.UpdateState(resourceData, &apiToken, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.True(t, resourceData.Get(expectedPermissionField).(bool))
@@ -696,7 +701,7 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 	resourceData.Set(APITokenFieldCanViewAccountAndBillingInformation, true)
 	resourceData.Set(APITokenFieldCanEditAllAccessibleCustomDashboards, true)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.APIToken{}, model, "Model should be an alerting channel")

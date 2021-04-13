@@ -256,15 +256,15 @@ func TestShouldReturnErrorMessageForDeleteRequestWhenStatusIsNotASuccessStatusAn
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
 }
 
-func setupAndStartHttpServerWithOKResponseCode(httpMethod string, fullPath string) *testutils.TestHTTPServer {
+func setupAndStartHttpServerWithOKResponseCode(httpMethod string, fullPath string) testutils.TestHTTPServer {
 	return setupAndStartHttpServer(httpMethod, fullPath, 200)
 }
 
-func setupAndStartHttpServer(httpMethod string, fullPath string, statusCode int) *testutils.TestHTTPServer {
+func setupAndStartHttpServer(httpMethod string, fullPath string, statusCode int) testutils.TestHTTPServer {
 	return doSetupAndStartHttpServer(httpMethod, fullPath, statusCode, func(r *http.Request) error { return nil })
 }
 
-func setupAndStartHttpServerWithQueryParamerterCheck(httpMethod string, fullPath string, queryParameters map[string]string, statusCode int) *testutils.TestHTTPServer {
+func setupAndStartHttpServerWithQueryParamerterCheck(httpMethod string, fullPath string, queryParameters map[string]string, statusCode int) testutils.TestHTTPServer {
 	return doSetupAndStartHttpServer(httpMethod, fullPath, statusCode, func(r *http.Request) error {
 		for k, v := range queryParameters {
 			val := r.URL.Query().Get(k)
@@ -276,7 +276,7 @@ func setupAndStartHttpServerWithQueryParamerterCheck(httpMethod string, fullPath
 	})
 }
 
-func doSetupAndStartHttpServer(httpMethod string, fullPath string, statusCode int, additionalChecks func(r *http.Request) error) *testutils.TestHTTPServer {
+func doSetupAndStartHttpServer(httpMethod string, fullPath string, statusCode int, additionalChecks func(r *http.Request) error) testutils.TestHTTPServer {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(httpMethod, fullPath, func(w http.ResponseWriter, r *http.Request) {
@@ -295,7 +295,7 @@ func doSetupAndStartHttpServer(httpMethod string, fullPath string, statusCode in
 	return httpServer
 }
 
-func createSut(httpServer *testutils.TestHTTPServer) RestClient {
+func createSut(httpServer testutils.TestHTTPServer) RestClient {
 	return NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
 }
 

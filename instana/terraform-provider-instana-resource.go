@@ -28,7 +28,7 @@ type ResourceHandle interface {
 	//GetRestResource provides the restapi.RestResource used by the ResourceHandle
 	GetRestResource(api restapi.InstanaAPI) restapi.RestResource
 	//UpdateState updates the state of the resource provided as schema.ResourceData with the actual data from the Instana API provided as restapi.InstanaDataObject
-	UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error
+	UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error
 	//MapStateToDataObject maps the current state of the resource provided as schema.ResourceData to the API model of the Instana API represented as an implementation of restapi.InstanaDataObject
 	MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error)
 	//SetComputedFields calculate and set the calculated value of computed fields of the given resource
@@ -73,7 +73,7 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	r.resourceHandle.UpdateState(d, createdObject)
+	r.resourceHandle.UpdateState(d, createdObject, providerMeta.ResourceNameFormatter)
 	return nil
 }
 
@@ -93,7 +93,7 @@ func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) e
 		}
 		return err
 	}
-	r.resourceHandle.UpdateState(d, obj)
+	r.resourceHandle.UpdateState(d, obj, providerMeta.ResourceNameFormatter)
 	return nil
 }
 
@@ -117,7 +117,7 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	r.resourceHandle.UpdateState(d, updatedObject)
+	r.resourceHandle.UpdateState(d, updatedObject, providerMeta.ResourceNameFormatter)
 	return nil
 }
 

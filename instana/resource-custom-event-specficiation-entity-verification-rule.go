@@ -109,9 +109,9 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) SetComputed
 	d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	customEventSpecification := obj.(*restapi.CustomEventSpecification)
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification)
+	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
 
 	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)

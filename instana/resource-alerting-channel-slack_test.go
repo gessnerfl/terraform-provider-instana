@@ -8,12 +8,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceAlertingChannelSlackDefinitionTemplate = `
@@ -35,7 +34,7 @@ resource "instana_alerting_channel_slack" "example" {
 const alertingChannelSlackServerResponseTemplate = `
 {
 	"id"     	   : "{{id}}",
-	"name"   	   : "prefix name suffix",
+	"name"   	   : "prefix name {{ITERATOR}} suffix",
 	"kind"   	   : "SLACK",
 	"webhookUrl" : "webhook url",
 	"iconUrl"    : "icon url",
@@ -56,7 +55,8 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodDelete, alertingChannelSlackApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, alertingChannelSlackApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		json := strings.ReplaceAll(alertingChannelSlackServerResponseTemplate, "{{id}}", vars["id"])
+		path := restapi.AlertingChannelsResourcePath + "/" + vars["id"]
+		json := strings.ReplaceAll(strings.ReplaceAll(alertingChannelSlackServerResponseTemplate, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -68,7 +68,7 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
 	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
@@ -83,6 +83,11 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      testApplicationConfigDefinition,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: resourceDefinitionWithoutName1,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testAlertingChannelSlackDefinition, "id"),
@@ -92,6 +97,11 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldIconURL, testAlertingChannelSlackIconURL),
 					resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldChannel, testAlertingChannelSlackChannel),
 				),
+			},
+			{
+				ResourceName:      testApplicationConfigDefinition,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -119,20 +129,21 @@ func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
 	channel := testAlertingChannelSlackChannel
 	data := restapi.AlertingChannel{
 		ID:         "id",
-		Name:       "name",
+		Name:       "prefix name suffix",
 		WebhookURL: &webhookURL,
 		IconURL:    &iconURL,
 		Channel:    &channel,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
-	assert.Equal(t, webhookURL, resourceData.Get(AlertingChannelSlackFieldWebhookURL), "webhook url should be equal")
-	assert.Equal(t, iconURL, resourceData.Get(AlertingChannelSlackFieldIconURL), "icon url should be equal")
-	assert.Equal(t, channel, resourceData.Get(AlertingChannelSlackFieldChannel), "channel should be equal")
+	require.Nil(t, err)
+	require.Equal(t, "id", resourceData.Id())
+	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
+	require.Equal(t, "prefix name suffix", resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, webhookURL, resourceData.Get(AlertingChannelSlackFieldWebhookURL))
+	require.Equal(t, iconURL, resourceData.Get(AlertingChannelSlackFieldIconURL))
+	require.Equal(t, channel, resourceData.Get(AlertingChannelSlackFieldChannel))
 }
 
 func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
@@ -149,27 +160,27 @@ func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
 	resourceData.Set(AlertingChannelSlackFieldIconURL, iconURL)
 	resourceData.Set(AlertingChannelSlackFieldChannel, channel)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
-	assert.Equal(t, "id", model.GetIDForResourcePath())
-	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Equal(t, webhookURL, *model.(*restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
-	assert.Equal(t, iconURL, *model.(*restapi.AlertingChannel).IconURL, "icon url should be equal")
-	assert.Equal(t, channel, *model.(*restapi.AlertingChannel).Channel, "channel should be equal")
+	require.Nil(t, err)
+	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	require.Equal(t, "id", model.GetIDForResourcePath())
+	require.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, webhookURL, *model.(*restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
+	require.Equal(t, iconURL, *model.(*restapi.AlertingChannel).IconURL, "icon url should be equal")
+	require.Equal(t, channel, *model.(*restapi.AlertingChannel).Channel, "channel should be equal")
 }
 
 func TestAlertingChannelSlackShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelSlackResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 0, NewAlertingChannelSlackResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelSlackShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelSlackResourceHandle().StateUpgraders()))
+	require.Equal(t, 0, len(NewAlertingChannelSlackResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelSlack(t *testing.T) {
 	name := NewAlertingChannelSlackResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_alerting_channel_slack")
+	require.Equal(t, name, "instana_alerting_channel_slack")
 }

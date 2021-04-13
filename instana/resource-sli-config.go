@@ -185,7 +185,7 @@ func (r *sliConfigResource) SetComputedFields(d *schema.ResourceData) {
 	//No computed fields defined
 }
 
-func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	sliConfig := obj.(*restapi.SliConfig)
 
 	metricConfiguration := map[string]string{
@@ -202,6 +202,7 @@ func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.Inst
 		SliConfigFieldBoundaryScope: sliConfig.SliEntity.BoundaryScope,
 	}
 
+	d.Set(SliConfigFieldName, formatter.UndoFormat(sliConfig.Name))
 	d.Set(SliConfigFieldFullName, sliConfig.Name)
 	d.Set(SliConfigFieldInitialEvaluationTimestamp, sliConfig.InitialEvaluationTimestamp)
 	d.Set(SliConfigFieldMetricConfiguration, metricConfiguration)

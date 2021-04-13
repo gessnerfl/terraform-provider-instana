@@ -51,8 +51,9 @@ func (r *alertingChannelPagerDutyResource) SetComputedFields(d *schema.ResourceD
 	//No computed fields defined
 }
 
-func (r *alertingChannelPagerDutyResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *alertingChannelPagerDutyResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
+	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, alertingChannel.ServiceIntegrationKey)
 	d.SetId(alertingChannel.ID)

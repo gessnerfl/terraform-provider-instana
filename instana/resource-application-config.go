@@ -124,13 +124,14 @@ func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {
 	//No computed fields defined
 }
 
-func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	applicationConfig := obj.(*restapi.ApplicationConfig)
 	normalizedExpressionString, err := r.mapAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 	if err != nil {
 		return err
 	}
 
+	d.Set(ApplicationConfigFieldLabel, formatter.UndoFormat(applicationConfig.Label))
 	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
 	d.Set(ApplicationConfigFieldScope, string(applicationConfig.Scope))
 	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))

@@ -9,12 +9,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceApplicationConfigDefinitionTemplate = `
@@ -36,7 +35,7 @@ resource "instana_application_config" "example" {
 const serverResponseTemplate = `
 {
 	"id" : "{{id}}",
-	"label" : "prefix label suffix",
+	"label" : "prefix label {{ITERATOR}} suffix",
 	"scope" : "INCLUDE_ALL_DOWNSTREAM",
 	"boundaryScope" : "ALL",
 	"matchSpecification" : {
@@ -94,7 +93,8 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodDelete, applicationConfigApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, applicationConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		json := strings.ReplaceAll(serverResponseTemplate, "{{id}}", vars["id"])
+		path := restapi.ApplicationConfigsResourcePath + "/" + vars["id"]
+		json := strings.ReplaceAll(strings.ReplaceAll(serverResponseTemplate, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -111,7 +111,7 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 	resourceDefinitionWithLabel0 := strings.ReplaceAll(resourceDefinitionWithoutLabel, iteratorPlaceholder, "0")
 	resourceDefinitionWithLabel1 := strings.ReplaceAll(resourceDefinitionWithoutLabel, iteratorPlaceholder, "1")
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
@@ -127,6 +127,11 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      testApplicationConfigDefinition,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: resourceDefinitionWithLabel1,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
@@ -137,6 +142,11 @@ func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
 					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldNormalizedMatchSpecification, defaultMatchSpecificationNormalized),
 				),
+			},
+			{
+				ResourceName:      testApplicationConfigDefinition,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -155,15 +165,15 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 }
 
 func TestApplicationConfigResourceShouldHaveSchemaVersionTwo(t *testing.T) {
-	assert.Equal(t, 2, NewApplicationConfigResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 2, NewApplicationConfigResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestApplicationConfigResourceShouldHaveTwoStateUpgraderForVersionZeroToOne(t *testing.T) {
 	resourceHandler := NewApplicationConfigResourceHandle()
 
-	assert.Equal(t, 2, len(resourceHandler.StateUpgraders()))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
-	assert.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
+	require.Equal(t, 2, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 }
 
 func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelWhenMigratingFromVersion0To1(t *testing.T) {
@@ -175,8 +185,8 @@ func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelW
 
 	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Equal(t, label, result[ApplicationConfigFieldFullLabel])
+	require.Nil(t, err)
+	require.Equal(t, label, result[ApplicationConfigFieldFullLabel])
 }
 
 func TestShouldMigrateEmptyApplicationConfigStateFromVersion0To1(t *testing.T) {
@@ -186,8 +196,8 @@ func TestShouldMigrateEmptyApplicationConfigStateFromVersion0To1(t *testing.T) {
 
 	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result[ApplicationConfigFieldFullLabel])
+	require.Nil(t, err)
+	require.Nil(t, result[ApplicationConfigFieldFullLabel])
 }
 
 func TestShouldHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To2(t *testing.T) {
@@ -200,9 +210,9 @@ func TestShouldHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To2(t *t
 
 	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Equal(t, input, result[ApplicationConfigFieldMatchSpecification])
-	assert.Equal(t, expectedResult, result[ApplicationConfigFieldNormalizedMatchSpecification])
+	require.Nil(t, err)
+	require.Equal(t, input, result[ApplicationConfigFieldMatchSpecification])
+	require.Equal(t, expectedResult, result[ApplicationConfigFieldNormalizedMatchSpecification])
 }
 
 func TestShouldFailToHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To2(t *testing.T) {
@@ -214,7 +224,7 @@ func TestShouldFailToHarmonizeMatchSpecificationWhenMigratingStateFromVersion1To
 
 	_, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestShouldMigrateEmptyApplicationConfigStateFromVersion1To2(t *testing.T) {
@@ -224,22 +234,23 @@ func TestShouldMigrateEmptyApplicationConfigStateFromVersion1To2(t *testing.T) {
 
 	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result[ApplicationConfigFieldMatchSpecification])
-	assert.Nil(t, result[ApplicationConfigFieldNormalizedMatchSpecification])
+	require.Nil(t, err)
+	require.Nil(t, result[ApplicationConfigFieldMatchSpecification])
+	require.Nil(t, result[ApplicationConfigFieldNormalizedMatchSpecification])
 }
 
 func TestShouldReturnCorrectResourceNameForApplicationConfigResource(t *testing.T) {
 	name := NewApplicationConfigResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_application_config")
+	require.Equal(t, name, "instana_application_config")
 }
 
 func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing.T) {
 	label := "label"
+	fullLabel := "prefix label suffix"
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 applicationConfigID,
-		Label:              label,
+		Label:              fullLabel,
 		MatchSpecification: defaultMatchSpecificationModel,
 		Scope:              restapi.ApplicationConfigScopeIncludeNoDownstream,
 		BoundaryScope:      restapi.BoundaryScopeAll,
@@ -249,14 +260,15 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig)
+	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, applicationConfigID, resourceData.Id())
-	assert.Equal(t, label, resourceData.Get(ApplicationConfigFieldFullLabel))
-	assert.Equal(t, defaultMatchSpecificationNormalized, resourceData.Get(ApplicationConfigFieldNormalizedMatchSpecification))
-	assert.Equal(t, string(restapi.ApplicationConfigScopeIncludeNoDownstream), resourceData.Get(ApplicationConfigFieldScope))
-	assert.Equal(t, string(restapi.BoundaryScopeAll), resourceData.Get(ApplicationConfigFieldBoundaryScope))
+	require.Nil(t, err)
+	require.Equal(t, applicationConfigID, resourceData.Id())
+	require.Equal(t, label, resourceData.Get(ApplicationConfigFieldLabel))
+	require.Equal(t, fullLabel, resourceData.Get(ApplicationConfigFieldFullLabel))
+	require.Equal(t, defaultMatchSpecificationNormalized, resourceData.Get(ApplicationConfigFieldNormalizedMatchSpecification))
+	require.Equal(t, string(restapi.ApplicationConfigScopeIncludeNoDownstream), resourceData.Get(ApplicationConfigFieldScope))
+	require.Equal(t, string(restapi.BoundaryScopeAll), resourceData.Get(ApplicationConfigFieldBoundaryScope))
 }
 
 func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsNotalid(t *testing.T) {
@@ -273,9 +285,9 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenM
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig)
+	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
 
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 }
 
 func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T) {
@@ -291,15 +303,15 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.ApplicationConfig{}, result)
-	assert.Equal(t, applicationConfigID, result.GetIDForResourcePath())
-	assert.Equal(t, label, result.(*restapi.ApplicationConfig).Label)
-	assert.Equal(t, defaultMatchSpecificationModel, result.(*restapi.ApplicationConfig).MatchSpecification)
-	assert.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)
-	assert.Equal(t, restapi.BoundaryScopeAll, result.(*restapi.ApplicationConfig).BoundaryScope)
+	require.Nil(t, err)
+	require.IsType(t, &restapi.ApplicationConfig{}, result)
+	require.Equal(t, applicationConfigID, result.GetIDForResourcePath())
+	require.Equal(t, label, result.(*restapi.ApplicationConfig).Label)
+	require.Equal(t, defaultMatchSpecificationModel, result.(*restapi.ApplicationConfig).MatchSpecification)
+	require.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)
+	require.Equal(t, restapi.BoundaryScopeAll, result.(*restapi.ApplicationConfig).BoundaryScope)
 }
 
 func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsNotValid(t *testing.T) {
@@ -314,7 +326,7 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificat
 	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 }

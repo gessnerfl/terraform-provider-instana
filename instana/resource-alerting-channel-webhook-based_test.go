@@ -9,12 +9,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceAlertingChannelWebhookBasedDefinitionTemplate = `
@@ -34,7 +33,7 @@ resource "instana_alerting_channel_{{CHANNEL_TYPE}}" "example" {
 const alertingChannelWebhookBasedServerResponseTemplate = `
 {
 	"id"     	 : "{{id}}",
-	"name"   	 : "prefix name suffix",
+	"name"   	 : "prefix name {{ITERATOR}} suffix",
 	"kind"   	 : "{{type}}",
 	"webhookUrl" : "webhook url"
 }
@@ -55,7 +54,8 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 			httpServer.AddRoute(http.MethodDelete, alertingChannelWebhookBasedApiPath, testutils.EchoHandlerFunc)
 			httpServer.AddRoute(http.MethodGet, alertingChannelWebhookBasedApiPath, func(w http.ResponseWriter, r *http.Request) {
 				vars := mux.Vars(r)
-				json := strings.ReplaceAll(strings.ReplaceAll(alertingChannelWebhookBasedServerResponseTemplate, "{{id}}", vars["id"]), "{{type}}", string(channelType))
+				path := restapi.AlertingChannelsResourcePath + "/" + vars["id"]
+				json := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(alertingChannelWebhookBasedServerResponseTemplate, "{{id}}", vars["id"]), "{{type}}", string(channelType)), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
 				w.Header().Set(contentType, r.Header.Get(contentType))
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte(json))
@@ -69,7 +69,7 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 			resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 			resourceName := fmt.Sprintf(testAlertingChannelWebhookBasedDefinition, channelTypeString)
 
-			resource.UnitTest(t, resource.TestCase{
+			resource.ParallelTest(t, resource.TestCase{
 				Providers: testProviders,
 				Steps: []resource.TestStep{
 					{
@@ -82,6 +82,11 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 						),
 					},
 					{
+						ResourceName:      testApplicationConfigDefinition,
+						ImportState:       true,
+						ImportStateVerify: true,
+					},
+					{
 						Config: resourceDefinitionWithoutName1,
 						Check: resource.ComposeTestCheckFunc(
 							resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -89,6 +94,11 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldFullName, "prefix name 1 suffix"),
 							resource.TestCheckResourceAttr(resourceName, AlertingChannelWebhookBasedFieldWebhookURL, alertingChannelWebhookBasedWebhookUrl),
 						),
+					},
+					{
+						ResourceName:      testApplicationConfigDefinition,
+						ImportState:       true,
+						ImportStateVerify: true,
 					},
 				},
 			})
@@ -116,7 +126,7 @@ func testResourceAlertingChannelWebhookBasedDefinition(t *testing.T, resourceHan
 func TestShouldReturnCorrectResourceNameForAlertingChannelGoogleChat(t *testing.T) {
 	name := NewAlertingChannelGoogleChatResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, "instana_alerting_channel_google_chat", name)
+	require.Equal(t, "instana_alerting_channel_google_chat", name)
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {
@@ -126,16 +136,17 @@ func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {
 	webhookURL := alertingChannelWebhookBasedWebhookUrl
 	data := restapi.AlertingChannel{
 		ID:         "id",
-		Name:       "name",
+		Name:       "prefix name suffix",
 		WebhookURL: &webhookURL,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
-	assert.Equal(t, webhookURL, resourceData.Get(AlertingChannelWebhookBasedFieldWebhookURL), "webhook url should be equal")
+	require.Nil(t, err)
+	require.Equal(t, "id", resourceData.Id())
+	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
+	require.Equal(t, "prefix name suffix", resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, webhookURL, resourceData.Get(AlertingChannelWebhookBasedFieldWebhookURL))
 }
 
 func TestShouldConvertStateOfAlertingChannelWebhookBasedToDataModel(t *testing.T) {
@@ -148,25 +159,25 @@ func TestShouldConvertStateOfAlertingChannelWebhookBasedToDataModel(t *testing.T
 	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
 	resourceData.Set(AlertingChannelWebhookBasedFieldWebhookURL, webhookURL)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
-	assert.Equal(t, "id", model.GetIDForResourcePath())
-	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Equal(t, webhookURL, *model.(*restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
+	require.Nil(t, err)
+	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	require.Equal(t, "id", model.GetIDForResourcePath())
+	require.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, webhookURL, *model.(*restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
 }
 
 func TestAlertingChannelWebhookBasedShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelOffice356ResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 0, NewAlertingChannelOffice356ResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelWebhookBasedShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelOffice356ResourceHandle().StateUpgraders()))
+	require.Equal(t, 0, len(NewAlertingChannelOffice356ResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelOffice365(t *testing.T) {
 	name := NewAlertingChannelOffice356ResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_alerting_channel_office_365")
+	require.Equal(t, name, "instana_alerting_channel_office_365")
 }

@@ -50,7 +50,7 @@ func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
 	resourceDefinitionWithName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
 	resourceDefinitionWithName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
@@ -58,8 +58,18 @@ func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
 				Check:  resource.ComposeTestCheckFunc(createWebsiteMonitoringConfigTestCheckFunctions(0)...),
 			},
 			{
+				ResourceName:      testApplicationConfigDefinition,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: resourceDefinitionWithName1,
 				Check:  resource.ComposeTestCheckFunc(createWebsiteMonitoringConfigTestCheckFunctions(1)...),
+			},
+			{
+				ResourceName:      testApplicationConfigDefinition,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -80,7 +90,7 @@ func newWebsiteMonitoringConfigTestServer() *websiteMonitoringConfigTestServer {
 }
 
 type websiteMonitoringConfigTestServer struct {
-	httpServer  *testutils.TestHTTPServer
+	httpServer  testutils.TestHTTPServer
 	serverState *restapi.WebsiteMonitoringConfig
 }
 
@@ -98,6 +108,14 @@ func (s *websiteMonitoringConfigTestServer) GetPort() int {
 		return s.httpServer.GetPort()
 	}
 	return -1
+}
+
+//GetCallCount returns the call counter for the given method and path
+func (s *websiteMonitoringConfigTestServer) GetCallCount(method string, path string) int {
+	if s.httpServer != nil {
+		return s.httpServer.GetCallCount(method, path)
+	}
+	return 9
 }
 
 func (s *websiteMonitoringConfigTestServer) onPost(w http.ResponseWriter, r *http.Request) {
@@ -173,7 +191,7 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	fullname := "fullname"
+	fullname := "prefix name suffix"
 	appname := "appname"
 	data := restapi.WebsiteMonitoringConfig{
 		ID:      "id",
@@ -181,10 +199,11 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 		AppName: appname,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id(), "id should be equal")
+	require.Equal(t, "name", resourceData.Get(WebsiteMonitoringConfigFieldName))
 	require.Equal(t, fullname, resourceData.Get(WebsiteMonitoringConfigFieldFullName))
 	require.Equal(t, appname, resourceData.Get(WebsiteMonitoringConfigFieldAppName))
 }
@@ -197,7 +216,7 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	resourceData.Set(WebsiteMonitoringConfigFieldName, "name")
 	resourceData.Set(WebsiteMonitoringConfigFieldFullName, websiteMonitoringConfigFullName)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.WebsiteMonitoringConfig{}, model)

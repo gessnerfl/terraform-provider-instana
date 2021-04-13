@@ -9,12 +9,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate = `
@@ -41,6 +40,7 @@ const (
 
 	customSystemEventID               = "custom-system-event-id"
 	customSystemEventName             = "name"
+	customSystemEventFullName         = "prefix name suffix"
 	customSystemEventQuery            = "query"
 	customSystemEventExpirationTime   = 60000
 	customSystemEventDescription      = "description"
@@ -80,7 +80,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 
 	resourceCustomEventSpecificationWithSystemRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
@@ -97,6 +97,11 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity),
 					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId),
 				),
+			},
+			{
+				ResourceName:      testApplicationConfigDefinition,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -119,15 +124,15 @@ func TestCustomEventSpecificationWithSystemRuleSchemaDefinitionIsValid(t *testin
 }
 
 func TestCustomEventSpecificationWithSystemRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 2, NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 2, NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestCustomEventSpecificationWithSystemRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 
-	assert.Equal(t, 2, len(resourceHandler.StateUpgraders()))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
-	assert.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
+	require.Equal(t, 2, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -139,8 +144,8 @@ func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateAndAddFullNameW
 
 	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Equal(t, name, result[CustomEventSpecificationFieldFullName])
+	require.Nil(t, err)
+	require.Equal(t, name, result[CustomEventSpecificationFieldFullName])
 }
 
 func TestShouldMigrateEmptyCustomEventSpecificationWithSystemRuleStateFromVersion0To1(t *testing.T) {
@@ -150,8 +155,8 @@ func TestShouldMigrateEmptyCustomEventSpecificationWithSystemRuleStateFromVersio
 
 	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
+	require.Nil(t, err)
+	require.Nil(t, result[CustomEventSpecificationFieldFullName])
 }
 
 func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateToVersion2WhenDownstreamConfigurationIsProvided(t *testing.T) {
@@ -163,9 +168,9 @@ func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateToVersion2WhenD
 
 	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result["downstream_integration_ids"])
-	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
+	require.Nil(t, err)
+	require.Nil(t, result["downstream_integration_ids"])
+	require.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
 }
 
 func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateToVersion2WhenNoDownstreamConfigurationIsProvided(t *testing.T) {
@@ -175,15 +180,15 @@ func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateToVersion2WhenN
 
 	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result["downstream_integration_ids"])
-	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
+	require.Nil(t, err)
+	require.Nil(t, result["downstream_integration_ids"])
+	require.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
 }
 
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithSystemRuleResource(t *testing.T) {
 	name := NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_custom_event_spec_system_rule")
+	require.Equal(t, name, "instana_custom_event_spec_system_rule")
 }
 
 func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApiObject(t *testing.T) {
@@ -192,7 +197,7 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 	query := customSystemEventQuery
 	spec := restapi.CustomEventSpecification{
 		ID:             customSystemEventID,
-		Name:           customSystemEventName,
+		Name:           customSystemEventFullName,
 		EntityType:     SystemRuleEntityType,
 		Query:          &query,
 		Description:    &description,
@@ -208,19 +213,20 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 	sut := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &spec)
+	err := sut.UpdateState(resourceData, &spec, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, customSystemEventID, resourceData.Id())
-	assert.Equal(t, customSystemEventName, resourceData.Get(CustomEventSpecificationFieldFullName))
-	assert.Equal(t, SystemRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
-	assert.Equal(t, customSystemEventQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
-	assert.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
-	assert.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
-	assert.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Nil(t, err)
+	require.Equal(t, customSystemEventID, resourceData.Id())
+	require.Equal(t, customSystemEventName, resourceData.Get(CustomEventSpecificationFieldName))
+	require.Equal(t, customSystemEventFullName, resourceData.Get(CustomEventSpecificationFieldFullName))
+	require.Equal(t, SystemRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
+	require.Equal(t, customSystemEventQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
+	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
+	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
+	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
 
-	assert.Equal(t, customSystemEventRuleSystemRuleId, resourceData.Get(SystemRuleSpecificationSystemRuleID))
-	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
+	require.Equal(t, customSystemEventRuleSystemRuleId, resourceData.Get(SystemRuleSpecificationSystemRuleID))
+	require.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToDataModel(t *testing.T) {
@@ -240,23 +246,23 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 	resourceData.Set(CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity)
 	resourceData.Set(SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
+	require.Nil(t, err)
+	require.IsType(t, &restapi.CustomEventSpecification{}, result)
 	customEventSpec := result.(*restapi.CustomEventSpecification)
-	assert.Equal(t, customSystemEventID, customEventSpec.GetIDForResourcePath())
-	assert.Equal(t, customSystemEventName, customEventSpec.Name)
-	assert.Equal(t, SystemRuleEntityType, customEventSpec.EntityType)
-	assert.Equal(t, customSystemEventQuery, *customEventSpec.Query)
-	assert.Equal(t, customSystemEventDescription, *customEventSpec.Description)
-	assert.Equal(t, customSystemEventExpirationTime, *customEventSpec.ExpirationTime)
-	assert.True(t, customEventSpec.Triggering)
-	assert.True(t, customEventSpec.Enabled)
+	require.Equal(t, customSystemEventID, customEventSpec.GetIDForResourcePath())
+	require.Equal(t, customSystemEventName, customEventSpec.Name)
+	require.Equal(t, SystemRuleEntityType, customEventSpec.EntityType)
+	require.Equal(t, customSystemEventQuery, *customEventSpec.Query)
+	require.Equal(t, customSystemEventDescription, *customEventSpec.Description)
+	require.Equal(t, customSystemEventExpirationTime, *customEventSpec.ExpirationTime)
+	require.True(t, customEventSpec.Triggering)
+	require.True(t, customEventSpec.Enabled)
 
-	assert.Equal(t, 1, len(customEventSpec.Rules))
-	assert.Equal(t, customSystemEventRuleSystemRuleId, *customEventSpec.Rules[0].SystemRuleID)
-	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+	require.Equal(t, 1, len(customEventSpec.Rules))
+	require.Equal(t, customSystemEventRuleSystemRuleId, *customEventSpec.Rules[0].SystemRuleID)
+	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithSystemRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {
@@ -266,7 +272,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithSystemRuleStateToDataMod
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.Set(CustomEventSpecificationRuleSeverity, "INVALID")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 }

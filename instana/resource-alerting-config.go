@@ -149,8 +149,9 @@ func (r *alertingConfigResource) SetComputedFields(d *schema.ResourceData) {
 	//No computed fields defined
 }
 
-func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	config := obj.(*restapi.AlertingConfiguration)
+	d.Set(AlertingConfigFieldAlertName, formatter.UndoFormat(config.AlertName))
 	d.Set(AlertingConfigFieldFullAlertName, config.AlertName)
 	d.Set(AlertingConfigFieldIntegrationIds, config.IntegrationIDs)
 	d.Set(AlertingConfigFieldEventFilterQuery, config.EventFilteringConfiguration.Query)

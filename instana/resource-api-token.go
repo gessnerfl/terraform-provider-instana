@@ -326,10 +326,11 @@ func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) {
 	d.Set(APITokenFieldAccessGrantingToken, RandomID())
 }
 
-func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	apiToken := obj.(*restapi.APIToken)
 	d.Set(APITokenFieldAccessGrantingToken, apiToken.AccessGrantingToken)
 	d.Set(APITokenFieldInternalID, apiToken.InternalID)
+	d.Set(APITokenFieldName, formatter.UndoFormat(apiToken.Name))
 	d.Set(APITokenFieldFullName, apiToken.Name)
 	d.Set(APITokenFieldCanConfigureServiceMapping, apiToken.CanConfigureServiceMapping)
 	d.Set(APITokenFieldCanConfigureEumApplications, apiToken.CanConfigureEumApplications)

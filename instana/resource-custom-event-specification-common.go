@@ -161,8 +161,9 @@ func (c *customEventSpecificationCommons) computeFullCustomEventNameString(d *sc
 	return d.Get(CustomEventSpecificationFieldFullName).(string)
 }
 
-func (c *customEventSpecificationCommons) updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec *restapi.CustomEventSpecification) {
+func (c *customEventSpecificationCommons) updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) {
 	d.SetId(spec.ID)
+	d.Set(CustomEventSpecificationFieldName, formatter.UndoFormat(spec.Name))
 	d.Set(CustomEventSpecificationFieldFullName, spec.Name)
 	d.Set(CustomEventSpecificationFieldQuery, spec.Query)
 	d.Set(CustomEventSpecificationFieldEntityType, spec.EntityType)
