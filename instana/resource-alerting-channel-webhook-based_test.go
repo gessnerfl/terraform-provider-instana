@@ -2,12 +2,9 @@ package instana_test
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/require"
 
@@ -19,27 +16,26 @@ import (
 const resourceAlertingChannelWebhookBasedDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
-resource "instana_alerting_channel_{{CHANNEL_TYPE}}" "example" {
-  name = "name {{ITERATOR}}"
+resource "instana_alerting_channel_%s" "example" {
+  name = "name %d"
   webhook_url = "webhook url"
 }
 `
 
 const alertingChannelWebhookBasedServerResponseTemplate = `
 {
-	"id"     	 : "{{id}}",
-	"name"   	 : "prefix name {{ITERATOR}} suffix",
-	"kind"   	 : "{{type}}",
+	"id"     	 : "%s",
+	"name"   	 : "prefix name %d suffix",
+	"kind"   	 : "%s",
 	"webhookUrl" : "webhook url"
 }
 `
 
-const alertingChannelWebhookBasedApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelWebhookBasedDefinition = "instana_alerting_channel_%s.example"
 const alertingChannelWebhookBasedWebhookUrl = "webhook url"
 
@@ -48,61 +44,34 @@ var supportedAlertingChannelWebhookTypes = []restapi.AlertingChannelType{restapi
 func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 	for _, channelType := range supportedAlertingChannelWebhookTypes {
 		t.Run(fmt.Sprintf("TestResourceAlertingChannelWebhookBasedDefinition%s", channelType), func(t *testing.T) {
-			testutils.DeactivateTLSServerCertificateVerification()
-			httpServer := testutils.NewTestHTTPServer()
-			httpServer.AddRoute(http.MethodPut, alertingChannelWebhookBasedApiPath, testutils.EchoHandlerFunc)
-			httpServer.AddRoute(http.MethodDelete, alertingChannelWebhookBasedApiPath, testutils.EchoHandlerFunc)
-			httpServer.AddRoute(http.MethodGet, alertingChannelWebhookBasedApiPath, func(w http.ResponseWriter, r *http.Request) {
-				vars := mux.Vars(r)
-				path := restapi.AlertingChannelsResourcePath + "/" + vars["id"]
-				json := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(alertingChannelWebhookBasedServerResponseTemplate, "{{id}}", vars["id"]), "{{type}}", string(channelType)), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-				w.Header().Set(contentType, r.Header.Get(contentType))
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(json))
-			})
+			httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelWebhookBasedServerResponseTemplate, string(channelType))
 			httpServer.Start()
 			defer httpServer.Close()
 
-			channelTypeString := strings.ToLower(string(channelType))
-			resourceDefinitionWithoutName := strings.ReplaceAll(strings.ReplaceAll(resourceAlertingChannelWebhookBasedDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort())), "{{CHANNEL_TYPE}}", channelTypeString)
-			resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-			resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-			resourceName := fmt.Sprintf(testAlertingChannelWebhookBasedDefinition, channelTypeString)
-
-			resource.ParallelTest(t, resource.TestCase{
+			definition := fmt.Sprintf(testAlertingChannelWebhookBasedDefinition, strings.ToLower(string(channelType)))
+			resource.UnitTest(t, resource.TestCase{
 				Providers: testProviders,
 				Steps: []resource.TestStep{
-					{
-						Config: resourceDefinitionWithoutName0,
-						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttrSet(resourceName, "id"),
-							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldName, "name 0"),
-							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-							resource.TestCheckResourceAttr(resourceName, AlertingChannelWebhookBasedFieldWebhookURL, alertingChannelWebhookBasedWebhookUrl),
-						),
-					},
-					{
-						ResourceName:      testApplicationConfigDefinition,
-						ImportState:       true,
-						ImportStateVerify: true,
-					},
-					{
-						Config: resourceDefinitionWithoutName1,
-						Check: resource.ComposeTestCheckFunc(
-							resource.TestCheckResourceAttrSet(resourceName, "id"),
-							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldName, "name 1"),
-							resource.TestCheckResourceAttr(resourceName, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-							resource.TestCheckResourceAttr(resourceName, AlertingChannelWebhookBasedFieldWebhookURL, alertingChannelWebhookBasedWebhookUrl),
-						),
-					},
-					{
-						ResourceName:      testApplicationConfigDefinition,
-						ImportState:       true,
-						ImportStateVerify: true,
-					},
+					createAlertingChannelWebhookBasedResourceTestStep(definition, httpServer.GetPort(), 0, channelType),
+					testStepImport(definition),
+					createAlertingChannelWebhookBasedResourceTestStep(definition, httpServer.GetPort(), 1, channelType),
+					testStepImport(definition),
 				},
 			})
 		})
+	}
+}
+
+func createAlertingChannelWebhookBasedResourceTestStep(resourceDefinition string, httpPort int, iteration int, channelType restapi.AlertingChannelType) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelWebhookBasedDefinitionTemplate, httpPort, strings.ToLower(string(channelType)), iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(resourceDefinition, "id"),
+			resource.TestCheckResourceAttr(resourceDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(resourceDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(resourceDefinition, AlertingChannelWebhookBasedFieldWebhookURL, alertingChannelWebhookBasedWebhookUrl),
+		),
 	}
 }
 

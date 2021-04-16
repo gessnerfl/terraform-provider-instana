@@ -1,8 +1,13 @@
 package instana_test
 
 import (
+	"fmt"
+	"net/http"
+
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/gorilla/mux"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -12,10 +17,62 @@ var testProviders = map[string]*schema.Provider{
 	"instana": Provider(),
 }
 
+func createMockHttpServerForResource(resourcePath string, responseTemplate string, templateVars ...interface{}) testutils.TestHTTPServer {
+	pathTemplate := resourcePath + "/{id}"
+	testutils.DeactivateTLSServerCertificateVerification()
+	httpServer := testutils.NewTestHTTPServer()
+	httpServer.AddRoute(http.MethodPut, pathTemplate, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodDelete, pathTemplate, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodGet, pathTemplate, func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		path := resourcePath + "/" + vars["id"]
+		callCount := getZeroBasedCallCount(httpServer, http.MethodPut, path)
+		var json string
+		if templateVars != nil {
+			json = formatResponseTemplate(responseTemplate, vars["id"], callCount, templateVars...)
+		} else {
+			json = formatResponseTemplate(responseTemplate, vars["id"], callCount)
+		}
+		w.Header().Set(contentType, r.Header.Get(contentType))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(json))
+	})
+	return httpServer
+}
+
+func formatResponseTemplate(template string, id string, iteration int, vars ...interface{}) string {
+	allVars := make([]interface{}, len(vars)+2)
+	allVars[0] = id
+	allVars[1] = iteration
+	for i, v := range vars {
+		allVars[i+2] = v
+	}
+	return fmt.Sprintf(template, allVars...)
+}
+
 func getZeroBasedCallCount(httpServer testutils.TestHTTPServer, method string, path string) int {
 	count := httpServer.GetCallCount(method, path)
 	if count == 0 {
 		return count
 	}
 	return count - 1
+}
+
+func testStepImport(resourceName string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateVerify: true,
+	}
+}
+
+const resourceName = "name"
+const resourceFullName = "prefix name suffix"
+
+func formatResourceName(iteration int) string {
+	return fmt.Sprintf("name %d", iteration)
+}
+
+func formatResourceFullName(iteration int) string {
+	return fmt.Sprintf("prefix name %d suffix", iteration)
 }

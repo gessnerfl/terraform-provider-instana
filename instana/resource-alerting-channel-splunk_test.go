@@ -1,12 +1,9 @@
 package instana_test
 
 import (
-	"net/http"
-	"strconv"
-	"strings"
+	"fmt"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/require"
 
@@ -18,13 +15,13 @@ import (
 const resourceAlertingChannelSplunkDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_channel_splunk" "example" {
-  name  = "name {{ITERATOR}}"
+  name  = "name %d"
 	url   = "url"
 	token = "token"
 }
@@ -32,72 +29,44 @@ resource "instana_alerting_channel_splunk" "example" {
 
 const alertingChannelSplunkServerResponseTemplate = `
 {
-	"id"    : "{{id}}",
-	"name"  : "prefix name {{ITERATOR}} suffix",
+	"id"    : "%s",
+	"name"  : "prefix name %d suffix",
 	"kind"  : "SPLUNK",
 	"url"   : "url",
 	"token" : "token"
 }
 `
 
-const alertingChannelSplunkApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelSplunkDefinition = "instana_alerting_channel_splunk.example"
 
 func TestCRUDOfAlertingChannelSplunkResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingChannelSplunkApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingChannelSplunkApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingChannelSplunkApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.AlertingChannelsResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(alertingChannelSplunkServerResponseTemplate, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelSplunkServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelSplunkDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelSplunkDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldURL, "url"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldToken, "token"),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelSplunkDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldURL, "url"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldToken, "token"),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createAlertingChannelSplunkResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingChannelSplunkDefinition),
+			createAlertingChannelSplunkResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingChannelSplunkDefinition),
 		},
 	})
+}
+
+func createAlertingChannelSplunkResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelSplunkDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testAlertingChannelSplunkDefinition, "id"),
+			resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldURL, "url"),
+			resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldToken, "token"),
+		),
+	}
 }
 
 func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {

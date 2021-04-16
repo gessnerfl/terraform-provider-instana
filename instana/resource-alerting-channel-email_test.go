@@ -3,12 +3,8 @@ package instana_test
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
@@ -22,86 +18,56 @@ import (
 const resourceAlertingChannelEmailDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_channel_email" "example" {
-  name = "name {{ITERATOR}}"
+  name = "name %d"
   emails = [ "EMAIL1", "EMAIL2" ]
 }
 `
 
 const alertingChannelEmailServerResponseTemplate = `
 {
-	"id"     : "{{id}}",
-	"name"   : "prefix name {{ITERATOR}} suffix",
+	"id"     : "%s",
+	"name"   : "prefix name %d suffix",
 	"kind"   : "EMAIL",
 	"emails" : [ "EMAIL1", "EMAIL2" ]
 }
 `
 
-const alertingChannelEmailApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelEmailDefinition = "instana_alerting_channel_email.example"
 
 func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingChannelEmailApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingChannelEmailApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingChannelEmailApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.AlertingChannelsResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(alertingChannelEmailServerResponseTemplate, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelEmailServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelEmailDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	emailAddress1 := "EMAIL1"
-	emailAddress2 := "EMAIL2"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), emailAddress1),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), emailAddress2),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), emailAddress1),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), emailAddress2),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createAlertingChannelEmailResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingChannelEmailDefinition),
+			createAlertingChannelEmailResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingChannelEmailDefinition),
 		},
 	})
+}
+
+func createAlertingChannelEmailResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelEmailDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
+			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), "EMAIL1"),
+			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), "EMAIL2"),
+		),
+	}
 }
 
 func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
@@ -134,7 +100,7 @@ func TestAlertingChannelEmailShouldHaveOneStateUpgraderForVersionZero(t *testing
 
 func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
 	emails := []interface{}{"email1", "email2"}
-	name := "name"
+	name := resourceName
 	fullname := "fullname"
 	rawData := make(map[string]interface{})
 	rawData[AlertingChannelFieldName] = name

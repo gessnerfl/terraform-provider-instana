@@ -63,8 +63,8 @@ const (
 	valueTrue                   = "true"
 	apiTokenID                  = "api-token-id"
 	viewFilterFieldValue        = "view filter"
-	apiTokenNameFieldValue      = "name"
-	apiTokenFullNameFieldValue  = "prefix name suffix"
+	apiTokenNameFieldValue      = resourceName
+	apiTokenFullNameFieldValue  = resourceFullName
 	apiTokenAccessGrantingToken = "api-token-access-granting-token"
 	apiTokenInternalID          = "api-token-internal-id"
 )
@@ -163,7 +163,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 
 	resourceAPITokenDefinition := strings.ReplaceAll(resourceAPITokenDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
@@ -203,11 +203,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanEditAllAccessibleCustomDashboards, valueTrue),
 				),
 			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			testStepImport(testAPITokenDefinition),
 		},
 	})
 }

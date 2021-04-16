@@ -3,12 +3,8 @@ package instana_test
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/require"
@@ -21,13 +17,13 @@ import (
 const resourceAlertingConfigTerraformTemplateWithRuleIds = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_config" "rule_ids" {
-  alert_name = "name {{ITERATOR}}"
+  alert_name = "name %d"
   integration_ids = [ "integration_id1", "integration_id2" ]
   event_filter_query = "query"
   event_filter_rule_ids = [ "rule-1", "rule-2" ]
@@ -36,8 +32,8 @@ resource "instana_alerting_config" "rule_ids" {
 
 const alertingConfigServerResponseTemplateWithRuleIds = `
 {
-	"id" : "{{id}}",
-	"alertName" : "prefix name {{ITERATOR}} suffix",
+	"id" : "%s",
+	"alertName" : "prefix name %d suffix",
 	"integrationIds" : [ "integration_id2", "integration_id1" ],
 	"eventFilteringConfiguration" : {
 		"query" : "query",
@@ -49,13 +45,13 @@ const alertingConfigServerResponseTemplateWithRuleIds = `
 const resourceAlertingConfigTerraformTemplateWithEventTypes = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_config" "event_types" {
-  alert_name = "name {{ITERATOR}}"
+  alert_name = "name %d"
   integration_ids = [ "integration_id1", "integration_id2" ]
   event_filter_query = "query"
   event_filter_event_types = [ "incident", "critical" ]
@@ -64,8 +60,8 @@ resource "instana_alerting_config" "event_types" {
 
 const alertingConfigServerResponseTemplateWithEventTypes = `
 {
-	"id" : "{{id}}",
-	"alertName" : "prefix name {{ITERATOR}} suffix",
+	"id" : "%s",
+	"alertName" : "prefix name %d suffix",
 	"integrationIds" : [ "integration_id2", "integration_id1" ],
 	"eventFilteringConfiguration" : {
 		"query" : "query",
@@ -74,117 +70,63 @@ const alertingConfigServerResponseTemplateWithEventTypes = `
 }
 `
 
-const iteratorPlaceholder = "{{ITERATOR}}"
-const alertingConfigApiPath = restapi.AlertsResourcePath + "/{id}"
 const testAlertingConfigDefinitionWithRuleIds = "instana_alerting_config.rule_ids"
 const testAlertingConfigDefinitionWithEventTypes = "instana_alerting_config.event_types"
 
 func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.AlertsResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(alertingConfigServerResponseTemplateWithRuleIds, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertsResourcePath, alertingConfigServerResponseTemplateWithRuleIds)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingConfigTerraformTemplateWithRuleIds, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	rule1 := "rule-1"
-	rule2 := "rule-2"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 0),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 0), rule1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 1), rule2),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 0), rule1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 1), rule2),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createAlertingConfigWithRuleIdResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingConfigDefinitionWithRuleIds),
+			createAlertingConfigWithRuleIdResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingConfigDefinitionWithRuleIds),
 		},
 	})
 }
 
+func createAlertingConfigWithRuleIdResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithRuleIds, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, iteration),
+			resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 0), "rule-1"),
+			resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 1), "rule-2"),
+		),
+	}
+}
+
 func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.AlertsResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(alertingConfigServerResponseTemplateWithEventTypes, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertsResourcePath, alertingConfigServerResponseTemplateWithEventTypes)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingConfigTerraformTemplateWithEventTypes, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 0),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 1), string(restapi.IncidentAlertEventType)),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 0), string(restapi.CriticalAlertEventType)),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 1), string(restapi.IncidentAlertEventType)),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 0), string(restapi.CriticalAlertEventType)),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createAlertingConfigWithEventTypesIdResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingConfigDefinitionWithEventTypes),
+			createAlertingConfigWithEventTypesIdResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingConfigDefinitionWithEventTypes),
 		},
 	})
+}
+
+func createAlertingConfigWithEventTypesIdResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithEventTypes, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, iteration),
+			resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 1), string(restapi.IncidentAlertEventType)),
+			resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 0), string(restapi.CriticalAlertEventType)),
+		),
+	}
 }
 
 func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration int) resource.TestCheckFunc {
@@ -233,7 +175,7 @@ func TestAlertingConfigShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 
 func TestShouldReturnStateOfAlertingConfigWithRuleIdsUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
 	rawData := make(map[string]interface{})
-	rawData[AlertingConfigFieldAlertName] = "name"
+	rawData[AlertingConfigFieldAlertName] = resourceName
 	rawData[AlertingConfigFieldFullAlertName] = "fullname"
 	rawData[AlertingConfigFieldIntegrationIds] = []interface{}{"integration-id1", "integration-id2"}
 	rawData[AlertingConfigFieldEventFilterQuery] = "filter"
@@ -249,7 +191,7 @@ func TestShouldReturnStateOfAlertingConfigWithRuleIdsUnchangedWhenMigratingFromV
 
 func TestShouldReturnStateOfAlertingConfigWithEventTypesUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
 	rawData := make(map[string]interface{})
-	rawData[AlertingConfigFieldAlertName] = "name"
+	rawData[AlertingConfigFieldAlertName] = resourceName
 	rawData[AlertingConfigFieldFullAlertName] = "fullname"
 	rawData[AlertingConfigFieldIntegrationIds] = []interface{}{"integration-id1", "integration-id2"}
 	rawData[AlertingConfigFieldEventFilterQuery] = "filter"

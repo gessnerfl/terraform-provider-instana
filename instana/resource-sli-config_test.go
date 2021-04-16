@@ -2,12 +2,8 @@ package instana_test
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/require"
@@ -20,13 +16,13 @@ import (
 const sliConfigTerraformTemplate = `
 provider "instana" {
 	api_token = "test-token"
-	endpoint = "localhost:{{PORT}}"
+	endpoint = "localhost:%d"
 	default_name_prefix = "prefix"
 	default_name_suffix = "suffix"
 }
 
 resource "instana_sli_config" "example_sli_config" {
-	name = "name {{ITERATOR}}"
+	name = "name %d"
 	initial_evaluation_timestamp = 0
 	metric_configuration {
 		metric_name = "metric_name_example"
@@ -45,8 +41,8 @@ resource "instana_sli_config" "example_sli_config" {
 
 const sliConfigServerResponseTemplate = `
 {
-	"id"						: "{{id}}",
-	"sliName"					: "prefix name {{ITERATOR}} suffix",
+	"id"						: "%s",
+	"sliName"					: "prefix name %d suffix",
 	"initialEvaluationTimestamp": 0,
 	"metricConfiguration": {
 		"metricName"		: "metric_name_example",
@@ -64,14 +60,13 @@ const sliConfigServerResponseTemplate = `
 `
 
 const (
-	sliConfigApiPath    = restapi.SliConfigResourcePath + "/{id}"
 	sliConfigDefinition = "instana_sli_config.example_sli_config"
 
 	nestedResourceFieldPattern = "%s.0.%s"
 
 	sliConfigID                         = "id"
-	sliConfigName                       = "name"
-	sliConfigFullName                   = "prefix name suffix"
+	sliConfigName                       = resourceName
+	sliConfigFullName                   = resourceFullName
 	sliConfigInitialEvaluationTimestamp = 0
 	sliConfigMetricName                 = "metric_name_example"
 	sliConfigMetricAggregation          = "SUM"
@@ -84,46 +79,23 @@ const (
 )
 
 func TestCRUDOfSliConfiguration(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, sliConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, sliConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, sliConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.SliConfigResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(sliConfigServerResponseTemplate, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.SliConfigResourcePath, sliConfigServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(sliConfigTerraformTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceDefinitionWithName0,
+				Config: fmt.Sprintf(sliConfigTerraformTemplate, httpServer.GetPort(), 0),
 				Check:  resource.ComposeTestCheckFunc(createSliConfigTestCheckFunctions(0)...),
 			},
+			testStepImport(sliConfigDefinition),
 			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithName1,
+				Config: fmt.Sprintf(sliConfigTerraformTemplate, httpServer.GetPort(), 0),
 				Check:  resource.ComposeTestCheckFunc(createSliConfigTestCheckFunctions(1)...),
 			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			testStepImport(sliConfigDefinition),
 		},
 	})
 }
@@ -131,8 +103,8 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 func createSliConfigTestCheckFunctions(iteration int) []resource.TestCheckFunc {
 	testCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, fmt.Sprintf("name %d", iteration)),
-		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, fmt.Sprintf("prefix name %d suffix", iteration)),
+		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, formatResourceName(iteration)),
+		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, formatResourceFullName(iteration)),
 		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),

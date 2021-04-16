@@ -1,12 +1,9 @@
 package instana_test
 
 import (
-	"net/http"
-	"strconv"
-	"strings"
+	"fmt"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/require"
 
@@ -18,13 +15,13 @@ import (
 const resourceAlertingChannelVictorOpsDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_channel_victor_ops" "example" {
-  name  = "name {{ITERATOR}}"
+  name  = "name %d"
 	api_key   = "api key"
 	routing_key = "routing key"
 }
@@ -32,74 +29,46 @@ resource "instana_alerting_channel_victor_ops" "example" {
 
 const alertingChannelVictorOpsServerResponseTemplate = `
 {
-	"id"         : "{{id}}",
-	"name"       : "prefix name {{ITERATOR}} suffix",
+	"id"         : "%s",
+	"name"       : "prefix name %d suffix",
 	"kind"       : "VICTOR_OPS",
 	"apiKey"     : "api key",
 	"routingKey" : "routing key"
 }
 `
 
-const alertingChannelVictorOpsApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelVictorOpsDefinition = "instana_alerting_channel_victor_ops.example"
 const testAlertingChannelVictorOpsRoutingKey = "routing key"
 const testAlertingChannelVictorOpsApiKey = "api key"
 
 func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingChannelVictorOpsApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingChannelVictorOpsApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingChannelVictorOpsApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.AlertingChannelsResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(alertingChannelVictorOpsServerResponseTemplate, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelVictorOpsServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelVictorOpsDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, testAlertingChannelVictorOpsApiKey),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, testAlertingChannelVictorOpsApiKey),
-					resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createAlertingChannelVictorOpsResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingChannelVictorOpsDefinition),
+			createAlertingChannelVictorOpsResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingChannelVictorOpsDefinition),
 		},
 	})
+}
+
+func createAlertingChannelVictorOpsResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelVictorOpsDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
+			resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, testAlertingChannelVictorOpsApiKey),
+			resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
+		),
+	}
 }
 
 func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {

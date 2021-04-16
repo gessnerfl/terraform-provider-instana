@@ -2,12 +2,10 @@ package instana_test
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/require"
 
@@ -19,11 +17,11 @@ import (
 const resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
 }
 
 resource "instana_custom_event_spec_system_rule" "example" {
-  name = "name"
+  name = "name %d"
   query = "query"
   enabled = true
   triggering = true
@@ -35,12 +33,11 @@ resource "instana_custom_event_spec_system_rule" "example" {
 `
 
 const (
-	customSystemEventApiPath                             = restapi.CustomEventSpecificationResourcePath + "/{id}"
 	testCustomEventSpecificationWithSystemRuleDefinition = "instana_custom_event_spec_system_rule.example"
 
 	customSystemEventID               = "custom-system-event-id"
-	customSystemEventName             = "name"
-	customSystemEventFullName         = "prefix name suffix"
+	customSystemEventName             = resourceName
+	customSystemEventFullName         = resourceFullName
 	customSystemEventQuery            = "query"
 	customSystemEventExpirationTime   = 60000
 	customSystemEventDescription      = "description"
@@ -52,59 +49,52 @@ const (
 var customSystemEventRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
 
 func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, customSystemEventApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, customSystemEventApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, customSystemEventApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(`
-		{
-			"id" : "{{id}}",
-			"name" : "name",
-			"entityType" : "entity_type",
-			"query" : "query",
-			"enabled" : true,
-			"triggering" : true,
-			"description" : "description",
-			"expirationTime" : 60000,
-			"rules" : [ { "ruleType" : "system", "severity" : 5, "systemRuleId" : "system-rule-id" } ]
-		}
-		`, "{{id}}", vars["id"])
-		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	responseTemplate := `
+	{
+		"id" : "{{id}}",
+		"name" : "prefix name %d suffix",
+		"entityType" : "entity_type",
+		"query" : "query",
+		"enabled" : true,
+		"triggering" : true,
+		"description" : "description",
+		"expirationTime" : 60000,
+		"rules" : [ { "ruleType" : "system", "severity" : 5, "systemRuleId" : "system-rule-id" } ]
+	}
+	`
+	httpServer := createMockHttpServerForResource(restapi.CustomEventSpecificationResourcePath, responseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceCustomEventSpecificationWithSystemRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceCustomEventSpecificationWithSystemRuleDefinition,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithSystemRuleDefinition, "id"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldName, customSystemEventName),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldEntityType, SystemRuleEntityType),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldQuery, customSystemEventQuery),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldDescription, customSystemEventDescription),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customSystemEventExpirationTime)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createCustomEventSpecificationWithSystemRuleResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testCustomEventSpecificationWithSystemRuleDefinition),
+			createCustomEventSpecificationWithSystemRuleResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testCustomEventSpecificationWithSystemRuleDefinition),
 		},
 	})
+}
+
+func createCustomEventSpecificationWithSystemRuleResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithSystemRuleDefinition, "id"),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldEntityType, SystemRuleEntityType),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldQuery, customSystemEventQuery),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldDescription, customSystemEventDescription),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customSystemEventExpirationTime)),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId),
+		),
+	}
 }
 
 func TestCustomEventSpecificationWithSystemRuleSchemaDefinitionIsValid(t *testing.T) {

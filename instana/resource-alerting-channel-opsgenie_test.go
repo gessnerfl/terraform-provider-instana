@@ -1,12 +1,9 @@
 package instana_test
 
 import (
-	"net/http"
-	"strconv"
-	"strings"
+	"fmt"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/require"
@@ -19,13 +16,13 @@ import (
 const resourceAlertingChannelOpsGenieDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_channel_ops_genie" "example" {
-  name = "name {{ITERATOR}}"
+  name = "name %d"
   api_key = "api-key"
   tags = [ "tag1", "tag2" ]
   region = "EU"
@@ -34,8 +31,8 @@ resource "instana_alerting_channel_ops_genie" "example" {
 
 const alertingChannelOpsGenieServerResponseTemplate = `
 {
-	"id"     : "{{id}}",
-	"name"   : "prefix name {{ITERATOR}} suffix",
+	"id"     : "%s",
+	"name"   : "prefix name %d suffix",
 	"kind"   : "OPS_GENIE",
 	"apiKey" : "api-key",
 	"region" : "EU",
@@ -43,64 +40,36 @@ const alertingChannelOpsGenieServerResponseTemplate = `
 }
 `
 
-const alertingChannelOpsGenieApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelOpsGenieDefinition = "instana_alerting_channel_ops_genie.example"
 
 func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingChannelOpsGenieApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingChannelOpsGenieApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingChannelOpsGenieApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.AlertingChannelsResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(alertingChannelOpsGenieServerResponseTemplate, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelOpsGenieServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelOpsGenieDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelOpsGenieDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelFieldName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelOpsGenieFieldTags+".0", "tag1"),
-					resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelOpsGenieFieldTags+".1", "tag2"),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelOpsGenieDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelFieldName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelOpsGenieFieldTags+".0", "tag1"),
-					resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelOpsGenieFieldTags+".1", "tag2"),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createAlertingChannelOpsGenielResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingChannelOpsGenieDefinition),
+			createAlertingChannelOpsGenielResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingChannelOpsGenieDefinition),
 		},
 	})
+}
+
+func createAlertingChannelOpsGenielResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelOpsGenieDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testAlertingChannelOpsGenieDefinition, "id"),
+			resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelOpsGenieFieldTags+".0", "tag1"),
+			resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelOpsGenieFieldTags+".1", "tag2"),
+		),
+	}
 }
 
 func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {

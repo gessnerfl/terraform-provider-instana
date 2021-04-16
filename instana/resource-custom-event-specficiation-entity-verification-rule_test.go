@@ -3,12 +3,9 @@ package instana_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/require"
 
@@ -21,11 +18,11 @@ import (
 const resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
 }
 
 resource "instana_custom_event_spec_entity_verification_rule" "example" {
-  name = "name"
+  name = "name %d"
   query = "query"
   enabled = true
   triggering = true
@@ -40,12 +37,11 @@ resource "instana_custom_event_spec_entity_verification_rule" "example" {
 `
 
 const (
-	customEntityVerificationEventApiPath                             = restapi.CustomEventSpecificationResourcePath + "/{id}"
 	testCustomEventSpecificationWithEntityVerificationRuleDefinition = ResourceInstanaCustomEventSpecificationEntityVerificationRule + ".example"
 
 	customEntityVerificationEventID                      = "custom-entity-verification-event-id"
-	customEntityVerificationEventName                    = "name"
-	customEntityVerificationEventFullName                = "prefix name suffix"
+	customEntityVerificationEventName                    = resourceName
+	customEntityVerificationEventFullName                = resourceFullName
 	customEntityVerificationEventQuery                   = "query"
 	customEntityVerificationEventExpirationTime          = 60000
 	customEntityVerificationEventDescription             = "description"
@@ -63,62 +59,55 @@ var customEntityVerificationEventRuleMatchingOperator = restapi.MatchingOperator
 var customEntityVerificationEventRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
 
 func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, customEntityVerificationEventApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, customEntityVerificationEventApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, customEntityVerificationEventApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(`
-		{
-			"id" : "{{id}}",
-			"name" : "name",
-			"query" : "query",
-			"entityType" : "host",
-			"enabled" : true,
-			"triggering" : true,
-			"description" : "description",
-			"expirationTime" : 60000,
-			"rules" : [ { "ruleType" : "entity_verification", "severity" : 5, "matchingEntityLabel" : "matching-entity-label", "matchingEntityType" : "matching-entity-type", "matchingOperator" : "startsWith", "offlineDuration" : 60000 } ]
-		}
-		`, "{{id}}", vars["id"])
-		w.Header().Set(constEntityVerificationEventContentType, r.Header.Get(constEntityVerificationEventContentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	responseTemplate := `
+	{
+		"id" : "%d",
+		"name" : "prefix name %d suffix",
+		"query" : "query",
+		"entityType" : "host",
+		"enabled" : true,
+		"triggering" : true,
+		"description" : "description",
+		"expirationTime" : 60000,
+		"rules" : [ { "ruleType" : "entity_verification", "severity" : 5, "matchingEntityLabel" : "matching-entity-label", "matchingEntityType" : "matching-entity-type", "matchingOperator" : "startsWith", "offlineDuration" : 60000 } ]
+	}
+	`
+	httpServer := createMockHttpServerForResource(restapi.CustomEventSpecificationResourcePath, responseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceCustomEventSpecificationWithEntityVerificationRuleDefinition := strings.ReplaceAll(resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceCustomEventSpecificationWithEntityVerificationRuleDefinition,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithEntityVerificationRuleDefinition, "id"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldName, customEntityVerificationEventName),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldQuery, customEntityVerificationEventQuery),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldDescription, customEntityVerificationEventDescription),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customEntityVerificationEventExpirationTime)),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue())),
-					resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldOfflineDuration, strconv.Itoa(customEntityVerificationEventRuleOfflineDuration)),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createCustomEventSpecificationWithEntityVerificationRuleResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testCustomEventSpecificationWithEntityVerificationRuleDefinition),
+			createCustomEventSpecificationWithEntityVerificationRuleResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testCustomEventSpecificationWithEntityVerificationRuleDefinition),
 		},
 	})
+}
+
+func createCustomEventSpecificationWithEntityVerificationRuleResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithEntityVerificationRuleDefinition, "id"),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldQuery, customEntityVerificationEventQuery),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldDescription, customEntityVerificationEventDescription),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customEntityVerificationEventExpirationTime)),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue())),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldOfflineDuration, strconv.Itoa(customEntityVerificationEventRuleOfflineDuration)),
+		),
+	}
 }
 
 func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsValid(t *testing.T) {

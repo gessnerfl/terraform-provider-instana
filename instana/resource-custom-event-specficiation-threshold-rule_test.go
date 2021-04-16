@@ -3,12 +3,10 @@ package instana_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/require"
@@ -21,13 +19,13 @@ import (
 const resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name {{ITERATION}}"
+  name = "name %d"
   entity_type = "entity_type"
   query = "query"
   enabled = true
@@ -45,13 +43,13 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 const resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name {{ITERATION}}"
+  name = "name %d"
   entity_type = "entity_type"
   query = "query"
   enabled = true
@@ -70,13 +68,13 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 const resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name {{ITERATION}}"
+  name = "name %d"
   entity_type = "entity_type"
   query = "query"
   enabled = true
@@ -96,12 +94,9 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 `
 
 const (
-	customEventSpecificationWithThresholdRuleApiPath        = restapi.CustomEventSpecificationResourcePath + "/{id}"
 	testCustomEventSpecificationWithThresholdRuleDefinition = "instana_custom_event_spec_threshold_rule.example"
 
 	customEventSpecificationWithThresholdRuleID             = "custom-system-event-id"
-	customEventSpecificationWithThresholdRuleName           = "name"
-	customEventSpecificationWithThresholdRuleFullName       = "prefix name suffix"
 	customEventSpecificationWithThresholdRuleEntityType     = "entity_type"
 	customEventSpecificationWithThresholdRuleQuery          = "query"
 	customEventSpecificationWithThresholdRuleExpirationTime = 60000
@@ -175,60 +170,36 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithMetricPatternResourc
 
 const httpServerResponseTemplate = `
 {
-	"id" : "{{id}}",
-	"name" : "prefix name {{ITERATION}} suffix",
+	"id" : "%s",
+	"name" : "prefix name %d suffix",
 	"entityType" : "entity_type",
 	"query" : "query",
 	"enabled" : true,
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
-	"rules" : [ {{rule}} ]
+	"rules" : [ %s ]
 }
 `
 
 func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(t *testing.T, terraformDefinition, ruleAsJson string, ruleTestCheckFunctions ...resource.TestCheckFunc) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, customEventSpecificationWithThresholdRuleApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.CustomEventSpecificationResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(httpServerResponseTemplate, "{{id}}", vars["id"]), "{{rule}}", ruleAsJson), "{{ITERATION}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.CustomEventSpecificationResourcePath, httpServerResponseTemplate, ruleAsJson)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	completeTerraformDefinitionWithoutName := strings.ReplaceAll(terraformDefinition, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-
-	completeTerraformDefinitionWithName1 := strings.ReplaceAll(completeTerraformDefinitionWithoutName, "{{ITERATION}}", "0")
-	completeTerraformDefinitionWithName2 := strings.ReplaceAll(completeTerraformDefinitionWithoutName, "{{ITERATION}}", "1")
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: completeTerraformDefinitionWithName1,
+				Config: fmt.Sprintf(terraformDefinition, httpServer.GetPort(), 0),
 				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 0)...),
 			},
+			testStepImport(testCustomEventSpecificationWithThresholdRuleDefinition),
 			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: completeTerraformDefinitionWithName2,
+				Config: fmt.Sprintf(terraformDefinition, httpServer.GetPort(), 1),
 				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 1)...),
 			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			testStepImport(testCustomEventSpecificationWithThresholdRuleDefinition),
 		},
 	})
 }
@@ -236,8 +207,8 @@ func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServ
 func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc, iteration int) []resource.TestCheckFunc {
 	defaultCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithThresholdRuleDefinition, "id"),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName+fmt.Sprintf(" %d", iteration)),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldFullName, fmt.Sprintf("%s %s %d %s", "prefix", customEventSpecificationWithThresholdRuleName, iteration, "suffix")),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, formatResourceName(iteration)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldFullName, formatResourceFullName(iteration)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
@@ -437,7 +408,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 
 	spec := &restapi.CustomEventSpecification{
 		ID:             customEventSpecificationWithThresholdRuleID,
-		Name:           customEventSpecificationWithThresholdRuleFullName,
+		Name:           resourceFullName,
 		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
 		Query:          &query,
 		Description:    &description,
@@ -467,8 +438,8 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 
 	require.Nil(t, err)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
-	require.Equal(t, customEventSpecificationWithThresholdRuleName, resourceData.Get(CustomEventSpecificationFieldName))
-	require.Equal(t, customEventSpecificationWithThresholdRuleFullName, resourceData.Get(CustomEventSpecificationFieldFullName))
+	require.Equal(t, resourceName, resourceData.Get(CustomEventSpecificationFieldName))
+	require.Equal(t, resourceFullName, resourceData.Get(CustomEventSpecificationFieldFullName))
 	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
 	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
@@ -565,7 +536,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
-	resourceData.Set(CustomEventSpecificationFieldFullName, customEventSpecificationWithThresholdRuleName)
+	resourceData.Set(CustomEventSpecificationFieldFullName, resourceFullName)
 	resourceData.Set(CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType)
 	resourceData.Set(CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery)
 	resourceData.Set(CustomEventSpecificationFieldTriggering, true)
@@ -586,7 +557,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)
 	customEventSpec := result.(*restapi.CustomEventSpecification)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
-	require.Equal(t, customEventSpecificationWithThresholdRuleName, customEventSpec.Name)
+	require.Equal(t, resourceFullName, customEventSpec.Name)
 	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
 	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, *customEventSpec.Query)
 	require.Equal(t, customEventSpecificationWithThresholdRuleDescription, *customEventSpec.Description)

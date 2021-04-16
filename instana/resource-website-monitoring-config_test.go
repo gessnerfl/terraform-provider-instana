@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -21,13 +19,13 @@ import (
 const websiteMonitoringConfigTerraformTemplate = `
 provider "instana" {
 	api_token = "test-token"
-	endpoint = "localhost:{{PORT}}"
+	endpoint = "localhost:%d"
 	default_name_prefix = "prefix"
 	default_name_suffix = "suffix"
 }
 
 resource "instana_website_monitoring_config" "example_website_monitoring_config" {
-	name = "name {{ITERATOR}}"
+	name = "name %d"
 }
 `
 
@@ -35,8 +33,8 @@ const (
 	websiteMonitoringConfigApiPath    = restapi.WebsiteMonitoringConfigResourcePath + "/{id}"
 	websiteMonitoringConfigDefinition = "instana_website_monitoring_config.example_website_monitoring_config"
 	websiteMonitoringConfigID         = "id"
-	websiteMonitoringConfigName       = "name"
-	websiteMonitoringConfigFullName   = "prefix name suffix"
+	websiteMonitoringConfigName       = resourceName
+	websiteMonitoringConfigFullName   = resourceFullName
 )
 
 func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
@@ -46,31 +44,19 @@ func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
 	defer server.Close()
 	server.Start()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(websiteMonitoringConfigTerraformTemplate, "{{PORT}}", strconv.Itoa(server.GetPort()))
-	resourceDefinitionWithName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceDefinitionWithName0,
+				Config: fmt.Sprintf(websiteMonitoringConfigTerraformTemplate, server.GetPort(), 0),
 				Check:  resource.ComposeTestCheckFunc(createWebsiteMonitoringConfigTestCheckFunctions(0)...),
 			},
+			testStepImport(websiteMonitoringConfigDefinition),
 			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithName1,
+				Config: fmt.Sprintf(websiteMonitoringConfigTerraformTemplate, server.GetPort(), 1),
 				Check:  resource.ComposeTestCheckFunc(createWebsiteMonitoringConfigTestCheckFunctions(1)...),
 			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			testStepImport(websiteMonitoringConfigDefinition),
 		},
 	})
 }
@@ -191,7 +177,7 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	fullname := "prefix name suffix"
+	fullname := resourceFullName
 	appname := "appname"
 	data := restapi.WebsiteMonitoringConfig{
 		ID:      "id",

@@ -2,12 +2,9 @@ package instana_test
 
 import (
 	"context"
-	"net/http"
-	"strconv"
-	"strings"
+	"fmt"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/stretchr/testify/require"
 
@@ -19,23 +16,23 @@ import (
 const resourceApplicationConfigDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_application_config" "example" {
-  label = "label {{ITERATOR}}"
+  label = "name %d"
   scope = "INCLUDE_ALL_DOWNSTREAM"
   boundary_scope = "ALL"
-  match_specification = "{{MATCH_SPECIFICATION}}"
+  match_specification = "%s"
 }
 `
 
 const serverResponseTemplate = `
 {
-	"id" : "{{id}}",
-	"label" : "prefix label {{ITERATOR}} suffix",
+	"id" : "%d",
+	"label" : "prefix name %d suffix",
 	"scope" : "INCLUDE_ALL_DOWNSTREAM",
 	"boundaryScope" : "ALL",
 	"matchSpecification" : {
@@ -69,8 +66,6 @@ const serverResponseTemplate = `
 	}
 }
 `
-
-const applicationConfigApiPath = restapi.ApplicationConfigsResourcePath + "/{id}"
 const testApplicationConfigDefinition = "instana_application_config.example"
 const defaultMatchSpecification = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type@src EQUALS 'elasticsearch'"
 const defaultMatchSpecificationNormalized = "entity.name@dest CONTAINS 'foo' AND entity.type@dest EQUALS 'mysql' OR entity.type@src EQUALS 'elasticsearch'"
@@ -87,69 +82,35 @@ var defaultMatchSpecificationModel = restapi.NewBinaryOperator(
 const applicationConfigID = "application-config-id"
 
 func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, applicationConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, applicationConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, applicationConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		path := restapi.ApplicationConfigsResourcePath + "/" + vars["id"]
-		json := strings.ReplaceAll(strings.ReplaceAll(serverResponseTemplate, "{{id}}", vars["id"]), "{{ITERATOR}}", strconv.Itoa(getZeroBasedCallCount(httpServer, http.MethodPut, path)))
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.ApplicationConfigsResourcePath, serverResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutLabel := strings.ReplaceAll(
-		strings.ReplaceAll(resourceApplicationConfigDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort())),
-		"{{MATCH_SPECIFICATION}}",
-		defaultMatchSpecification,
-	)
-
-	resourceDefinitionWithLabel0 := strings.ReplaceAll(resourceDefinitionWithoutLabel, iteratorPlaceholder, "0")
-	resourceDefinitionWithLabel1 := strings.ReplaceAll(resourceDefinitionWithoutLabel, iteratorPlaceholder, "1")
-
-	resource.ParallelTest(t, resource.TestCase{
+	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithLabel0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label 0"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "prefix label 0 suffix"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeAllDownstream)),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldNormalizedMatchSpecification, defaultMatchSpecificationNormalized),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: resourceDefinitionWithLabel1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, "label 1"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, "prefix label 1 suffix"),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeAllDownstream)),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
-					resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldNormalizedMatchSpecification, defaultMatchSpecificationNormalized),
-				),
-			},
-			{
-				ResourceName:      testApplicationConfigDefinition,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			createApplicationConfigResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testApplicationConfigDefinition),
+			createApplicationConfigResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testApplicationConfigDefinition),
 		},
 	})
+}
+
+func createApplicationConfigResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceApplicationConfigDefinitionTemplate, httpPort, iteration, defaultMatchSpecification)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeAllDownstream)),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldNormalizedMatchSpecification, defaultMatchSpecificationNormalized),
+		),
+	}
 }
 
 func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
