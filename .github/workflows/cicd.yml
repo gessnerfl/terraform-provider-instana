@@ -38,9 +38,6 @@ jobs:
         golint -set_exit_status `go list ./...` > output/golint-report.out
 #        gosec -fmt=sonarqube -out output/gosec-report.json ./...  
     
-    - name: Run testing 1
-      run: go test ./... -cover
-    
     - name: Run testing
       run: go test ./... -cover -coverprofile=output/coverage.out -json > output/unit-test-report.json
 
