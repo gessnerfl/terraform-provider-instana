@@ -13,9 +13,23 @@ type ResourceNameFormatter interface {
 //NewResourceNameFormatter creates a new formatter instance for the given prefix and suffix
 func NewResourceNameFormatter(prefix string, suffix string) ResourceNameFormatter {
 	return &terraformManagedResourceNameFormatter{
-		prefix: prefix + " ",
-		suffix: " " + suffix,
+		prefix: normalizePrefix(prefix),
+		suffix: normalizeSuffix(suffix),
 	}
+}
+
+func normalizePrefix(prefix string) string {
+	if IsBlank(prefix) {
+		return ""
+	}
+	return strings.TrimSpace(prefix) + " "
+}
+
+func normalizeSuffix(suffix string) string {
+	if IsBlank(suffix) {
+		return ""
+	}
+	return " " + strings.TrimSpace(suffix)
 }
 
 //terraformManagedResourceNameFormatter implementation of ResourceNameFormatter which is used when terraform managed string should be appended to the name

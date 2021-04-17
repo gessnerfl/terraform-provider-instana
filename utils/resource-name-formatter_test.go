@@ -20,6 +20,24 @@ func TestShouldAppendPrefixAndSuffixToName(t *testing.T) {
 	assert.Equal(t, expectedResult, result)
 }
 
+func TestShouldNotAppendPrefixWhenNoPrefixIsDefined(t *testing.T) {
+	expectedResult := input + " " + suffix
+	inst := NewResourceNameFormatter("", suffix)
+
+	result := inst.Format(input)
+
+	assert.Equal(t, expectedResult, result)
+}
+
+func TestShouldNotAppendSuffixWhenNoSuffixIsDefined(t *testing.T) {
+	expectedResult := prefix + " " + input
+	inst := NewResourceNameFormatter(prefix, "")
+
+	result := inst.Format(input)
+
+	assert.Equal(t, expectedResult, result)
+}
+
 func TestShouldRemoveSuffixFromNameWhenTerraformManagedResourceNameFormatterIsUsed(t *testing.T) {
 	expectedResult := "Test String"
 	input := prefix + " " + input + " " + suffix
