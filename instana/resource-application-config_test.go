@@ -31,7 +31,7 @@ resource "instana_application_config" "example" {
 
 const serverResponseTemplate = `
 {
-	"id" : "%d",
+	"id" : "%s",
 	"label" : "prefix name %d suffix",
 	"scope" : "INCLUDE_ALL_DOWNSTREAM",
 	"boundaryScope" : "ALL",

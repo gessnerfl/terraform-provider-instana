@@ -66,6 +66,15 @@ func testStepImport(resourceName string) resource.TestStep {
 	}
 }
 
+func testStepImportWithCustomID(resourceName string, resourceID string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName:      resourceName,
+		ImportState:       true,
+		ImportStateVerify: true,
+		ImportStateId:     resourceID,
+	}
+}
+
 const resourceName = "name"
 const resourceFullName = "prefix name suffix"
 
