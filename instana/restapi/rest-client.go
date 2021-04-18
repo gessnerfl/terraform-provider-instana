@@ -170,6 +170,9 @@ func (client *restClientImpl) executeRequest(method string, url string, req *res
 	log.Printf("[DEBUG] Call %s %s\n", method, url)
 	resp, err := req.Execute(method, url)
 	if err != nil {
+		if resp == nil {
+			return emptyResponse, fmt.Errorf("failed to send HTTP %s request to Instana API; %s", method, err)
+		}
 		return emptyResponse, fmt.Errorf("failed to send HTTP %s request to Instana API; status code = %d; status message = %s; Headers %s, %s", method, resp.StatusCode(), resp.Status(), resp.Header(), err)
 	}
 	statusCode := resp.StatusCode()

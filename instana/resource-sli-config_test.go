@@ -86,36 +86,32 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(sliConfigTerraformTemplate, httpServer.GetPort(), 0),
-				Check:  resource.ComposeTestCheckFunc(createSliConfigTestCheckFunctions(0)...),
-			},
+			createSliConfigTestCheckFunctions(httpServer.GetPort(), 0),
 			testStepImport(sliConfigDefinition),
-			{
-				Config: fmt.Sprintf(sliConfigTerraformTemplate, httpServer.GetPort(), 0),
-				Check:  resource.ComposeTestCheckFunc(createSliConfigTestCheckFunctions(1)...),
-			},
-			testStepImport(sliConfigDefinition),
+			createSliConfigTestCheckFunctions(httpServer.GetPort(), 1),
+			//testStepImport(sliConfigDefinition),
 		},
 	})
 }
 
-func createSliConfigTestCheckFunctions(iteration int) []resource.TestCheckFunc {
-	testCheckFunctions := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, formatResourceName(iteration)),
-		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, formatResourceFullName(iteration)),
-		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), sliConfigEntityType),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), sliConfigEntityServiceID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+func createSliConfigTestCheckFunctions(httpPort int, iteration int) resource.TestStep {
+	return resource.TestStep{
+		Config: fmt.Sprintf(sliConfigTerraformTemplate, httpPort, iteration),
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
+			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), sliConfigEntityType),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), sliConfigEntityServiceID),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+		),
 	}
-	return testCheckFunctions
 }
 
 func TestResourceSliConfigDefinition(t *testing.T) {
