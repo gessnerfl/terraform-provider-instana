@@ -107,7 +107,7 @@ func createApplicationConfigResourceTestStep(httpPort int, iteration int) resour
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeAllDownstream)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
-			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecificationNormalized),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldNormalizedMatchSpecification, defaultMatchSpecificationNormalized),
 		),
 	}

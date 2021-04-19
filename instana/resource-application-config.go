@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
@@ -65,6 +66,28 @@ var (
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The match specification of the application config",
+		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+			normalized, err := filterexpression.Normalize(new)
+			if err == nil {
+				return normalized == old
+			}
+			return old == new
+		},
+		StateFunc: func(val interface{}) string {
+			normalized, err := filterexpression.Normalize(val.(string))
+			if err == nil {
+				return normalized
+			}
+			return val.(string)
+		},
+		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+			v := val.(string)
+			if _, err := filterexpression.NewParser().Parse(v); err != nil {
+				errs = append(errs, fmt.Errorf("%q is not a valid match expression; %s", key, err))
+			}
+
+			return
+		},
 	}
 	//ApplicationConfigNormalizedMatchSpecification schema for the application config field normalized_match_specification
 	ApplicationConfigNormalizedMatchSpecification = &schema.Schema{
@@ -136,6 +159,7 @@ func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj rest
 	d.Set(ApplicationConfigFieldScope, string(applicationConfig.Scope))
 	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))
 	d.Set(ApplicationConfigFieldNormalizedMatchSpecification, normalizedExpressionString)
+	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 
 	d.SetId(applicationConfig.ID)
 	return nil

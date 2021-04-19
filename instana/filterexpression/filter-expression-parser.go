@@ -218,6 +218,16 @@ var (
 	)
 )
 
+//Normalize parses the input and returns the normalized representation of the input string
+func Normalize(input string) (string, error) {
+	parser := NewParser()
+	expr, err := parser.Parse(input)
+	if err != nil {
+		return input, err
+	}
+	return expr.Render(), nil
+}
+
 //NewParser creates a new instance of a Parser
 func NewParser() Parser {
 	return new(parserImpl)
