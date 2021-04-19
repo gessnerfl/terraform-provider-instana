@@ -19,6 +19,8 @@ const resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTempla
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:%d"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_entity_verification_rule" "example" {
@@ -49,8 +51,6 @@ const (
 	customEntityVerificationEventRuleMatchingEntityType  = "matching-entity-type"
 	customEntityVerificationEventRuleOfflineDuration     = 60000
 
-	constEntityVerificationEventContentType = "Content-Type"
-
 	suffixString = " suffix"
 	prefixString = "prefix "
 )
@@ -61,7 +61,7 @@ var customEntityVerificationEventRuleSeverity = restapi.SeverityWarning.GetTerra
 func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleResourceWithMockServer(t *testing.T) {
 	responseTemplate := `
 	{
-		"id" : "%d",
+		"id" : "%s",
 		"name" : "prefix name %d suffix",
 		"query" : "query",
 		"entityType" : "host",

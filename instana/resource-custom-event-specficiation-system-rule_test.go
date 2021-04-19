@@ -18,6 +18,8 @@ const resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:%d"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_system_rule" "example" {
@@ -42,8 +44,6 @@ const (
 	customSystemEventExpirationTime   = 60000
 	customSystemEventDescription      = "description"
 	customSystemEventRuleSystemRuleId = "system-rule-id"
-
-	constSystemEventContentType = "Content-Type"
 )
 
 var customSystemEventRuleSeverity = restapi.SeverityWarning.GetTerraformRepresentation()
@@ -51,9 +51,9 @@ var customSystemEventRuleSeverity = restapi.SeverityWarning.GetTerraformRepresen
 func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWithMockServer(t *testing.T) {
 	responseTemplate := `
 	{
-		"id" : "{{id}}",
+		"id" : "%s",
 		"name" : "prefix name %d suffix",
-		"entityType" : "entity_type",
+		"entityType" : "any",
 		"query" : "query",
 		"enabled" : true,
 		"triggering" : true,
