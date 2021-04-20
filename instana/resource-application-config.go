@@ -104,14 +104,13 @@ func NewApplicationConfigResourceHandle() ResourceHandle {
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaApplicationConfig,
 			Schema: map[string]*schema.Schema{
-				ApplicationConfigFieldLabel:                        ApplicationConfigLabel,
-				ApplicationConfigFieldFullLabel:                    ApplicationConfigFullLabel,
-				ApplicationConfigFieldScope:                        ApplicationConfigScope,
-				ApplicationConfigFieldBoundaryScope:                ApplicationConfigBoundaryScope,
-				ApplicationConfigFieldMatchSpecification:           ApplicationConfigMatchSpecification,
-				ApplicationConfigFieldNormalizedMatchSpecification: ApplicationConfigNormalizedMatchSpecification,
+				ApplicationConfigFieldLabel:              ApplicationConfigLabel,
+				ApplicationConfigFieldFullLabel:          ApplicationConfigFullLabel,
+				ApplicationConfigFieldScope:              ApplicationConfigScope,
+				ApplicationConfigFieldBoundaryScope:      ApplicationConfigBoundaryScope,
+				ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
 			},
-			SchemaVersion: 2,
+			SchemaVersion: 3,
 		},
 	}
 }
@@ -136,6 +135,11 @@ func (r *applicationConfigResource) StateUpgraders() []schema.StateUpgrader {
 			Upgrade: r.updateToVersion1AndRecalculateNormalizedMatchSpecification,
 			Version: 1,
 		},
+		{
+			Type:    r.applicationConfigSchemaV2().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.updateToVersion2AndRemoveNormalizedMatchSpecification,
+			Version: 2,
+		},
 	}
 }
 
@@ -158,7 +162,6 @@ func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj rest
 	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
 	d.Set(ApplicationConfigFieldScope, string(applicationConfig.Scope))
 	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))
-	d.Set(ApplicationConfigFieldNormalizedMatchSpecification, normalizedExpressionString)
 	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 
 	d.SetId(applicationConfig.ID)
@@ -175,7 +178,7 @@ func (r *applicationConfigResource) mapAPIModelToNormalizedStringRepresentation(
 }
 
 func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	matchSpecification, err := r.mapExpressionStringToAPIModel(r.getMatchExpressionFieldToMapToAPIModel(d))
+	matchSpecification, err := r.mapExpressionStringToAPIModel(d.Get(ApplicationConfigFieldMatchSpecification).(string))
 	if err != nil {
 		return &restapi.ApplicationConfig{}, err
 	}
@@ -199,13 +202,6 @@ func (r *applicationConfigResource) mapExpressionStringToAPIModel(input string) 
 
 	mapper := filterexpression.NewMapper()
 	return mapper.ToAPIModel(expr), nil
-}
-
-func (r *applicationConfigResource) getMatchExpressionFieldToMapToAPIModel(d *schema.ResourceData) string {
-	if d.HasChange(ApplicationConfigFieldMatchSpecification) {
-		return d.Get(ApplicationConfigFieldMatchSpecification).(string)
-	}
-	return d.Get(ApplicationConfigFieldNormalizedMatchSpecification).(string)
 }
 
 func (r *applicationConfigResource) computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
@@ -255,5 +251,23 @@ func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatc
 		rawState[ApplicationConfigFieldNormalizedMatchSpecification] = expr.Render()
 		log.Printf("[DEBUG] Instana Provider: migration of application config match specification to include entity completed successfully")
 	}
+	return rawState, nil
+}
+
+func (r *applicationConfigResource) applicationConfigSchemaV2() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			ApplicationConfigFieldLabel:                        ApplicationConfigLabel,
+			ApplicationConfigFieldFullLabel:                    ApplicationConfigFullLabel,
+			ApplicationConfigFieldScope:                        ApplicationConfigScope,
+			ApplicationConfigFieldBoundaryScope:                ApplicationConfigBoundaryScope,
+			ApplicationConfigFieldMatchSpecification:           ApplicationConfigMatchSpecification,
+			ApplicationConfigFieldNormalizedMatchSpecification: ApplicationConfigNormalizedMatchSpecification,
+		},
+	}
+}
+
+func (r *applicationConfigResource) updateToVersion2AndRemoveNormalizedMatchSpecification(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	delete(rawState, ApplicationConfigFieldNormalizedMatchSpecification)
 	return rawState, nil
 }
