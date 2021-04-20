@@ -125,6 +125,78 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(ApplicationConfigFieldNormalizedMatchSpecification)
 }
 
+func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	old := "entity.type@dest EQUALS 'foo'"
+	new := "entity.type  EQUALS    'foo'"
+
+	require.True(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, old, new, nil))
+}
+
+func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	old := "entity.type@src EQUALS 'foo'"
+	new := "entity.type EQUALS 'foo'"
+
+	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, old, new, nil))
+}
+
+func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreEqual(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	invalidValue := "entity.type bla bla bla"
+
+	require.True(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, invalidValue, invalidValue, nil))
+}
+
+func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreNotEqual(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	old := "entity.type bla bla bla"
+	new := "entity.type foo foo foo"
+
+	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, old, new, nil))
+}
+
+func TestShouldReturnNormalizedValueForMatchSpecificationOfApplicationConfigWhenStateFuncIsCalledAndValueCanBeNormalized(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	expectedValue := "entity.type@dest EQUALS 'foo'"
+	newValue := "entity.type EQUALS 'foo'"
+
+	require.Equal(t, expectedValue, schema[ApplicationConfigFieldMatchSpecification].StateFunc(newValue))
+}
+
+func TestShouldReturnProvidedValueForMatchSpecificationOfApplicationConfigWhenStateFuncIsCalledAndValueCannotBeNormalized(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	value := "entity.type bla bla bla"
+
+	require.Equal(t, value, schema[ApplicationConfigFieldMatchSpecification].StateFunc(value))
+}
+
+func TestShouldReturnNoErrorsAndWarningsWhenValidationOfMatchSpecificationOfApplicationConfiIsCalledAndValueCanBeParsed(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	value := "entity.type EQUALS 'foo'"
+
+	warns, errs := schema[ApplicationConfigFieldMatchSpecification].ValidateFunc(value, ApplicationConfigFieldMatchSpecification)
+	require.Empty(t, warns)
+	require.Empty(t, errs)
+}
+
+func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfMatchSpecificationOfApplicationConfiIsCalledAndValueCannotBeParsed(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	value := "entity.type bla bla bla"
+
+	warns, errs := schema[ApplicationConfigFieldMatchSpecification].ValidateFunc(value, ApplicationConfigFieldMatchSpecification)
+	require.Empty(t, warns)
+	require.Len(t, errs, 1)
+}
+
 func TestApplicationConfigResourceShouldHaveSchemaVersionTwo(t *testing.T) {
 	require.Equal(t, 2, NewApplicationConfigResourceHandle().MetaData().SchemaVersion)
 }
