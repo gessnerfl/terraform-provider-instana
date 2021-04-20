@@ -118,7 +118,7 @@ func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenMultipleTagsAreP
 func requireBasicAlertingChannelEmailsFieldsSet(t *testing.T, resourceData *schema.ResourceData) {
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, "prefix name suffix", resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, "apiKey", resourceData.Get(AlertingChannelOpsGenieFieldAPIKey))
 	require.Equal(t, "EU", resourceData.Get(AlertingChannelOpsGenieFieldRegion))
 }
@@ -128,7 +128,7 @@ func createAlertingChannelEmailModelForResourceUpdateWithoutTags() *restapi.Aler
 	region := restapi.EuOpsGenieRegion
 	return &restapi.AlertingChannel{
 		ID:     "id",
-		Name:   "prefix name suffix",
+		Name:   resourceFullName,
 		APIKey: &apiKey,
 		Region: &region,
 	}
@@ -141,7 +141,7 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelOpsGenieFieldAPIKey, "api key")
 	resourceData.Set(AlertingChannelOpsGenieFieldRegion, "EU")
 	resourceData.Set(AlertingChannelOpsGenieFieldTags, tags)
@@ -151,7 +151,7 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
 	require.Equal(t, "api key", *model.(*restapi.AlertingChannel).APIKey, "api key should be equal")
 	require.Equal(t, restapi.EuOpsGenieRegion, *model.(*restapi.AlertingChannel).Region, "region should be EU")
 	require.Equal(t, "tag1,tag2", *model.(*restapi.AlertingChannel).Tags, "tags should be equal")

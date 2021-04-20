@@ -89,7 +89,7 @@ func TestShouldUpdateResourceStateForAlertingChanneSplunk(t *testing.T) {
 	token := "token"
 	data := restapi.AlertingChannel{
 		ID:    "id",
-		Name:  "prefix name suffix",
+		Name:  resourceFullName,
 		URL:   &url,
 		Token: &token,
 	}
@@ -99,7 +99,7 @@ func TestShouldUpdateResourceStateForAlertingChanneSplunk(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, "prefix name suffix", resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, url, resourceData.Get(AlertingChannelSplunkFieldURL))
 	require.Equal(t, token, resourceData.Get(AlertingChannelSplunkFieldToken))
 }
@@ -112,7 +112,7 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelSplunkFieldURL, url)
 	resourceData.Set(AlertingChannelSplunkFieldToken, token)
 
@@ -121,7 +121,7 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
 	require.Equal(t, url, *model.(*restapi.AlertingChannel).URL, "url should be equal")
 	require.Equal(t, token, *model.(*restapi.AlertingChannel).Token, "token should be equal")
 }

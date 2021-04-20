@@ -151,7 +151,7 @@ func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headers
 	webhookURLs := []string{"url1", "url2"}
 	data := restapi.AlertingChannel{
 		ID:          "id",
-		Name:        "prefix name suffix",
+		Name:        resourceFullName,
 		WebhookURLs: webhookURLs,
 		Headers:     headersFromApi,
 	}
@@ -161,7 +161,7 @@ func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headers
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, "prefix name suffix", resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, headersMapped, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
 	urls := resourceData.Get(AlertingChannelWebhookFieldWebhookURLs).(*schema.Set)
 	require.Equal(t, 2, urls.Len())
@@ -176,7 +176,7 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelWebhookFieldWebhookURLs, webhookURLs)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
@@ -184,7 +184,7 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
 	require.Len(t, model.(*restapi.AlertingChannel).WebhookURLs, 2)
 	require.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url1")
 	require.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url2")

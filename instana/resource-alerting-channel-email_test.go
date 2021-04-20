@@ -121,7 +121,7 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.AlertingChannel{
 		ID:     "id",
-		Name:   "prefix name suffix",
+		Name:   resourceFullName,
 		Emails: []string{"email1", "email2"},
 	}
 
@@ -130,7 +130,7 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, "prefix name suffix", resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 
 	emails := resourceData.Get(AlertingChannelEmailFieldEmails).(*schema.Set)
 	require.Equal(t, 2, emails.Len())
@@ -145,7 +145,7 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelEmailFieldEmails, emails)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
@@ -153,7 +153,7 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
 	require.Len(t, model.(*restapi.AlertingChannel).Emails, 2)
 	require.Contains(t, model.(*restapi.AlertingChannel).Emails, "email1")
 	require.Contains(t, model.(*restapi.AlertingChannel).Emails, "email2")

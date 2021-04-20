@@ -84,7 +84,7 @@ func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
 	integrationKey := "integration key"
 	data := restapi.AlertingChannel{
 		ID:                    "id",
-		Name:                  "prefix name suffix",
+		Name:                  resourceFullName,
 		ServiceIntegrationKey: &integrationKey,
 	}
 
@@ -93,7 +93,7 @@ func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, "prefix name suffix", resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, integrationKey, resourceData.Get(AlertingChannelPagerDutyFieldServiceIntegrationKey))
 }
 
@@ -104,7 +104,7 @@ func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, integrationKey)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
@@ -112,7 +112,7 @@ func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
 	require.Equal(t, integrationKey, *model.(*restapi.AlertingChannel).ServiceIntegrationKey, "service integration key should be equal")
 }
 

@@ -91,7 +91,7 @@ func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
 	routingKey := testAlertingChannelVictorOpsRoutingKey
 	data := restapi.AlertingChannel{
 		ID:         "id",
-		Name:       "prefix name suffix",
+		Name:       resourceFullName,
 		APIKey:     &apiKey,
 		RoutingKey: &routingKey,
 	}
@@ -101,7 +101,7 @@ func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, "prefix name suffix", resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, apiKey, resourceData.Get(AlertingChannelVictorOpsFieldAPIKey))
 	require.Equal(t, routingKey, resourceData.Get(AlertingChannelVictorOpsFieldRoutingKey))
 }
@@ -114,7 +114,7 @@ func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelVictorOpsFieldAPIKey, apiKey)
 	resourceData.Set(AlertingChannelVictorOpsFieldRoutingKey, routingKey)
 
@@ -123,7 +123,7 @@ func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
 	require.Equal(t, apiKey, *model.(*restapi.AlertingChannel).APIKey, "api key should be equal")
 	require.Equal(t, routingKey, *model.(*restapi.AlertingChannel).RoutingKey, "routing key should be equal")
 }

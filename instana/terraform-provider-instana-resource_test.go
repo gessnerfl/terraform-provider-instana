@@ -223,7 +223,7 @@ func verifyTestObjectModelAppliedToResource(model *restapi.AlertingChannel, reso
 func createTestAlertingChannelEmailObject() *restapi.AlertingChannel {
 	return &restapi.AlertingChannel{
 		ID:     "id",
-		Name:   "prefix name suffix",
+		Name:   resourceFullName,
 		Emails: []string{"Email1", "Email2"},
 	}
 }
