@@ -69,6 +69,8 @@ const serverResponseTemplate = `
 const testApplicationConfigDefinition = "instana_application_config.example"
 const defaultMatchSpecification = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type@src EQUALS 'elasticsearch'"
 const defaultMatchSpecificationNormalized = "entity.name@dest CONTAINS 'foo' AND entity.type@dest EQUALS 'mysql' OR entity.type@src EQUALS 'elasticsearch'"
+const validMatchSpecification = "entity.type EQUALS 'foo'"
+const invalidMatchSpecification = "entity.type bla bla bla"
 
 var defaultMatchSpecificationModel = restapi.NewBinaryOperator(
 	restapi.NewBinaryOperator(
@@ -138,7 +140,7 @@ func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecification
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
 	old := "entity.type@src EQUALS 'foo'"
-	new := "entity.type EQUALS 'foo'"
+	new := validMatchSpecification
 
 	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, old, new, nil))
 }
@@ -146,7 +148,7 @@ func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecification
 func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	invalidValue := "entity.type bla bla bla"
+	invalidValue := invalidMatchSpecification
 
 	require.True(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, invalidValue, invalidValue, nil))
 }
@@ -154,7 +156,7 @@ func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationO
 func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreNotEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	old := "entity.type bla bla bla"
+	old := invalidMatchSpecification
 	new := "entity.type foo foo foo"
 
 	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, old, new, nil))
@@ -164,7 +166,7 @@ func TestShouldReturnNormalizedValueForMatchSpecificationOfApplicationConfigWhen
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
 	expectedValue := "entity.type@dest EQUALS 'foo'"
-	newValue := "entity.type EQUALS 'foo'"
+	newValue := validMatchSpecification
 
 	require.Equal(t, expectedValue, schema[ApplicationConfigFieldMatchSpecification].StateFunc(newValue))
 }
@@ -172,7 +174,7 @@ func TestShouldReturnNormalizedValueForMatchSpecificationOfApplicationConfigWhen
 func TestShouldReturnProvidedValueForMatchSpecificationOfApplicationConfigWhenStateFuncIsCalledAndValueCannotBeNormalized(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	value := "entity.type bla bla bla"
+	value := invalidMatchSpecification
 
 	require.Equal(t, value, schema[ApplicationConfigFieldMatchSpecification].StateFunc(value))
 }
@@ -180,7 +182,7 @@ func TestShouldReturnProvidedValueForMatchSpecificationOfApplicationConfigWhenSt
 func TestShouldReturnNoErrorsAndWarningsWhenValidationOfMatchSpecificationOfApplicationConfiIsCalledAndValueCanBeParsed(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	value := "entity.type EQUALS 'foo'"
+	value := validMatchSpecification
 
 	warns, errs := schema[ApplicationConfigFieldMatchSpecification].ValidateFunc(value, ApplicationConfigFieldMatchSpecification)
 	require.Empty(t, warns)
@@ -190,7 +192,7 @@ func TestShouldReturnNoErrorsAndWarningsWhenValidationOfMatchSpecificationOfAppl
 func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfMatchSpecificationOfApplicationConfiIsCalledAndValueCannotBeParsed(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	value := "entity.type bla bla bla"
+	value := invalidMatchSpecification
 
 	warns, errs := schema[ApplicationConfigFieldMatchSpecification].ValidateFunc(value, ApplicationConfigFieldMatchSpecification)
 	require.Empty(t, warns)
