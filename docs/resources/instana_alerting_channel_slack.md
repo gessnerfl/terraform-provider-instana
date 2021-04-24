@@ -24,3 +24,11 @@ resource "instana_alerting_channel_slack" "example" {
 * `webhook_url` - Required - the URL of the Slack webhook to send alerts to
 * `icon_url` - Optional - the URL to the icon which should be rendered in the slack message
 * `channel` - Optional - the target Slack channel where the alert should be posted 
+
+## Import
+
+Slack alerting channels can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_channel_slack.my_channel 60845e4e5e6b9cf8fc2868da
+```

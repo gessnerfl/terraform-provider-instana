@@ -77,3 +77,11 @@ resource "instana_api_token" "example" {
 * `can_configure_global_alert_configs` - Optional - default false - enables permission to configure global alert configs
 * `can_view_account_and_billing_information` - Optional - default false - enables permission to view account and billing information
 * `can_edit_all_accessible_custom_dashboards` - Optional - default false - enables permission to edit all accessible custom dashboards
+
+## Import
+
+API Tokens can be imported using the `internal_id`, e.g.:
+
+```
+$ terraform import instana_api_token.my_token 60845e4e5e6b9cf8fc2868da
+```

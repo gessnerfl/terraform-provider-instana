@@ -20,3 +20,11 @@ resource "instana_alerting_channel_email" "example" {
 
 * `name` - Required - the name of the alerting channel
 * `emails` - Required - the list of target email addresses
+
+## Import
+
+Email alerting channels can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_channel_email.my_channel 60845e4e5e6b9cf8fc2868da
+```

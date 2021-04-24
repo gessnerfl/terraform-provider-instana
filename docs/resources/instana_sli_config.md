@@ -47,3 +47,11 @@ resource "instana_sli_config" "example" {
   * `endpoint_id` - Optional - the endpoint ID of the entity
   * `boundary_scope` - Required - the boundary scope of the entity
   Allowed values: `ALL`, `INBOUND`
+
+## Import
+
+SLI Configs can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_sli_config.my_sli 60845e4e5e6b9cf8fc2868da
+```

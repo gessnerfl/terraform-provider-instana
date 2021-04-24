@@ -22,3 +22,11 @@ resource "instana_alerting_channel_splunk" "example" {
 * `name` - Required - the name of the alerting channel
 * `url` - Required - the target Splunk endpoint URL
 * `token` - Required - the authentication token to login at the Splunk API
+
+## Import
+
+Splunk alerting channels can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_channel_splunk.my_channel 60845e4e5e6b9cf8fc2868da
+```

@@ -20,3 +20,11 @@ resource "instana_alerting_channel_office_365" "example" {
 
 * `name` - Required - the name of the alerting channel
 * `webhook_url` - Required - the URL of the Office 365 Webhook where the alert will be sent to
+
+## Import
+
+Office 365 alerting channels can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_channel_office_365.my_channel 60845e4e5e6b9cf8fc2868da
+```

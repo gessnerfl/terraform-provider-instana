@@ -18,3 +18,11 @@ resource "instana_website_monitoring_config" "example" {
 ## Argument Reference
 
 * `name` - Required - the name of the website monitoring config
+
+## Import
+
+Website Monitoring Configs can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_website_monitoring_config.my_website 60845e4e5e6b9cf8fc2868da
+```

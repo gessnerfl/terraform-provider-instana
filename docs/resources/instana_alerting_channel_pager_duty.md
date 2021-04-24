@@ -20,3 +20,11 @@ resource "instana_alerting_channel_pager_duty" "example" {
 
 * `name` - Required - the name of the alerting channel
 * `service_integration_key` - Required - the key for the service integration in pager duty
+
+## Import
+
+PagerDuty alerting channels can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_channel_pager_duty.my_channel 60845e4e5e6b9cf8fc2868da
+```

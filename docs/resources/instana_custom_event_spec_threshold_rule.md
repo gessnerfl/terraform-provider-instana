@@ -114,3 +114,11 @@ time window and/or rollup. Supported values: `=` (`==` also supported as an alte
 `<`, `>`, `=>`
 * `rule_condition_value` - Required - The numeric condition value used to check against the calculated metric value for the given
 time window and/or rollup.
+
+## Import
+
+Custom event specifications with threshold rule can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_custom_event_spec_threshold_rule.my_event_spec 60845e4e5e6b9cf8fc2868da
+```
