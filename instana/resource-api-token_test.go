@@ -3,9 +3,8 @@ package instana_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -15,19 +14,18 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceAPITokenDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_api_token" "example" {
-  name = "name"
+  name = "name %d"
   can_configure_service_mapping = true
   can_configure_eum_applications = true
   can_configure_mobile_app_monitoring = true
@@ -64,8 +62,8 @@ const (
 	valueTrue                   = "true"
 	apiTokenID                  = "api-token-id"
 	viewFilterFieldValue        = "view filter"
-	apiTokenNameFieldValue      = "name"
-	apiTokenFullNameFieldValue  = "prefix name suffix"
+	apiTokenNameFieldValue      = resourceName
+	apiTokenFullNameFieldValue  = resourceFullName
 	apiTokenAccessGrantingToken = "api-token-access-granting-token"
 	apiTokenInternalID          = "api-token-internal-id"
 )
@@ -101,6 +99,9 @@ var apiTokenPermissionFields = []string{
 }
 
 func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
+	id := RandomID()
+	accessGrantingToken := RandomID()
+	internalID := RandomID()
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPost, restapi.APITokensResourcePath, func(w http.ResponseWriter, r *http.Request) {
@@ -110,7 +111,9 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 			w.WriteHeader(http.StatusInternalServerError)
 			r.Write(bytes.NewBufferString("Failed to get request"))
 		} else {
-			apiToken.ID = RandomID()
+			apiToken.ID = id
+			apiToken.AccessGrantingToken = accessGrantingToken
+			apiToken.InternalID = internalID
 			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(apiToken)
@@ -120,12 +123,13 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodDelete, apiTokenApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, apiTokenApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		json := strings.ReplaceAll(`
+		modCount := httpServer.GetCallCount(http.MethodPut, restapi.APITokensResourcePath+"/"+internalID)
+		json := fmt.Sprintf(`
 		{
-			"id" : "id",
-			"accessGrantingToken": "api-token",
-			"internalId" : "{{internal-id}}",
-			"name" : "name",
+			"id" : "%s",
+			"accessGrantingToken": "%s",
+			"internalId" : "%s",
+			"name" : "name %d",
 			"canConfigureServiceMapping" : true,
 			"canConfigureEumApplications" : true,
 			"canConfigureMobileAppMonitoring" : true,
@@ -154,7 +158,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 			"canViewAccountAndBillingInformation" : true,
 			"canEditAllAccessibleCustomDashboards" : true
 		}
-		`, "{{internal-id}}", vars["internal-id"])
+		`, id, accessGrantingToken, vars["internal-id"], modCount)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -162,50 +166,55 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceAPITokenDefinition := strings.ReplaceAll(resourceAPITokenDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceAPITokenDefinition,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAPITokenDefinition, "id"),
-					resource.TestCheckResourceAttrSet(testAPITokenDefinition, APITokenFieldAccessGrantingToken),
-					resource.TestCheckResourceAttrSet(testAPITokenDefinition, APITokenFieldInternalID),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldName, apiTokenNameFieldValue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldFullName, apiTokenFullNameFieldValue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceMapping, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureEumApplications, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureMobileAppMonitoring, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureUsers, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanInstallNewAgents, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeUsageInformation, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureIntegrations, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeOnPremiseLicenseInformation, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureCustomAlerts, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAPITokens, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgentRunMode, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAuditLog, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgents, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAuthenticationMethods, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureApplications, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureTeams, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureReleases, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureLogManagement, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanCreatePublicCustomDashboards, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewLogs, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewTraceDetails, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureSessionSettings, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceLevelIndicators, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertPayload, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertConfigs, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAccountAndBillingInformation, valueTrue),
-					resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanEditAllAccessibleCustomDashboards, valueTrue),
-				),
-			},
+			createAPITokenConfigResourceTestStep(httpServer.GetPort(), 0, id, accessGrantingToken, internalID),
+			testStepImportWithCustomID(testAPITokenDefinition, internalID),
+			createAPITokenConfigResourceTestStep(httpServer.GetPort(), 1, id, accessGrantingToken, internalID),
+			testStepImportWithCustomID(testAPITokenDefinition, internalID),
 		},
 	})
+}
+
+func createAPITokenConfigResourceTestStep(httpPort int, iteration int, id string, accessGrantingToken string, internalID string) resource.TestStep {
+	return resource.TestStep{
+		Config: fmt.Sprintf(resourceAPITokenDefinitionTemplate, httpPort, iteration),
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr(testAPITokenDefinition, "id", id),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldAccessGrantingToken, accessGrantingToken),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldInternalID, internalID),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceMapping, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureEumApplications, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureMobileAppMonitoring, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureUsers, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanInstallNewAgents, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeUsageInformation, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureIntegrations, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeOnPremiseLicenseInformation, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureCustomAlerts, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAPITokens, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgentRunMode, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAuditLog, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgents, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAuthenticationMethods, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureApplications, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureTeams, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureReleases, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureLogManagement, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanCreatePublicCustomDashboards, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewLogs, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewTraceDetails, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureSessionSettings, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceLevelIndicators, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertPayload, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertConfigs, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAccountAndBillingInformation, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanEditAllAccessibleCustomDashboards, valueTrue),
+		),
+	}
 }
 
 func TestAPITokenSchemaDefinitionIsValid(t *testing.T) {
@@ -279,17 +288,18 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 	apiToken := restapi.APIToken{
 		ID:                  apiTokenID,
 		AccessGrantingToken: apiTokenAccessGrantingToken,
-		Name:                apiTokenNameFieldValue,
+		Name:                apiTokenFullNameFieldValue,
 		InternalID:          apiTokenInternalID,
 	}
 
-	err := sut.UpdateState(resourceData, &apiToken)
+	err := sut.UpdateState(resourceData, &apiToken, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.Equal(t, apiTokenID, resourceData.Id())
 	require.Equal(t, apiTokenAccessGrantingToken, resourceData.Get(APITokenFieldAccessGrantingToken))
 	require.Equal(t, apiTokenInternalID, resourceData.Get(APITokenFieldInternalID))
-	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldFullName))
+	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldName))
+	require.Equal(t, apiTokenFullNameFieldValue, resourceData.Get(APITokenFieldFullName))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureServiceMapping).(bool))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureEumApplications).(bool))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureMobileAppMonitoring).(bool))
@@ -647,7 +657,7 @@ func testSingleAPITokenPermissionSet(t *testing.T, apiToken restapi.APIToken, ex
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &apiToken)
+	err := sut.UpdateState(resourceData, &apiToken, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.True(t, resourceData.Get(expectedPermissionField).(bool))
@@ -696,7 +706,7 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 	resourceData.Set(APITokenFieldCanViewAccountAndBillingInformation, true)
 	resourceData.Set(APITokenFieldCanEditAllAccessibleCustomDashboards, true)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.APIToken{}, model, "Model should be an alerting channel")

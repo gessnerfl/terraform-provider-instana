@@ -467,3 +467,20 @@ func TestShouldGetEntityOriginByInstanaAPIEntity(t *testing.T) {
 func TestShouldReturnEntityOriginDestinationAsFallbackValueWhenMatcherExpressionEntityIsNotValid(t *testing.T) {
 	require.Equal(t, EntityOriginDestination, SupportedEntityOrigins.ForInstanaAPIEntity(restapi.MatcherExpressionEntity("invalid")))
 }
+
+func TestShouldNormalizeExpression(t *testing.T) {
+	input := "entity.name    NOT_EMPTY"
+	expectedResult := "entity.name@dest NOT_EMPTY"
+
+	result, err := Normalize(input)
+	require.NoError(t, err)
+	require.Equal(t, expectedResult, result)
+}
+
+func TestShouldFailToNormalizeExpressionWehnExpressionIsNotValied(t *testing.T) {
+	input := "entity.name    bla bla bla"
+
+	result, err := Normalize(input)
+	require.Error(t, err)
+	require.Equal(t, input, result)
+}

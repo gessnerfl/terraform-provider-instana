@@ -75,8 +75,9 @@ func (r *websiteMonitoringConfigResource) SetComputedFields(d *schema.ResourceDa
 	//No computed fields defined
 }
 
-func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	config := obj.(*restapi.WebsiteMonitoringConfig)
+	d.Set(WebsiteMonitoringConfigFieldName, formatter.UndoFormat(config.Name))
 	d.Set(WebsiteMonitoringConfigFieldFullName, config.Name)
 	d.Set(WebsiteMonitoringConfigFieldAppName, config.AppName)
 	d.SetId(config.ID)

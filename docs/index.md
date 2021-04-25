@@ -27,7 +27,7 @@ resource.
     * Webhook - `instana_alerting_channel_webhook`
   * Alerting Config - `instana_alerting_config`
 * Settings
-  * User Roles - `instana_user_role`
+  * API Tokens - `instana_api_token`
 * SLI Settings
   * SLI Config - `instana_sli_config`
 * Website Monitoring
@@ -62,4 +62,14 @@ then the permission 'Access role configuration' must be activated
 * default_name_suffix - `Optional` - Default value " (TF managed)" - string will be appended to the resource UI name or 
 label by default (not supported by all resources). For existing resources the string will only be appended when the 
 name/label is changed.
+
+## Import support
+
+All resources of the terraform provider instana support resource import. 
+
+*Note:* During import the `default prefix` and `suffix` will be removed from the `name` when
+available. If the `name` as received from the Instana API does not contain the `default
+prefix` and `suffix` the name will be stored as is. The `default prefix` and `suffix` will not
+be appended automatically. In this case `default prefix` and `suffix` will be appended with the
+first change of the name attribute in the resource definition.
 

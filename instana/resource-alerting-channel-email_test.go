@@ -3,95 +3,71 @@ package instana_test
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const resourceAlertingChannelEmailDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_channel_email" "example" {
-  name = "name {{ITERATOR}}"
+  name = "name %d"
   emails = [ "EMAIL1", "EMAIL2" ]
 }
 `
 
 const alertingChannelEmailServerResponseTemplate = `
 {
-	"id"     : "{{id}}",
-	"name"   : "prefix name suffix",
+	"id"     : "%s",
+	"name"   : "prefix name %d suffix",
 	"kind"   : "EMAIL",
 	"emails" : [ "EMAIL1", "EMAIL2" ]
 }
 `
 
-const alertingChannelEmailApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelEmailDefinition = "instana_alerting_channel_email.example"
 
 func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingChannelEmailApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingChannelEmailApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingChannelEmailApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(alertingChannelEmailServerResponseTemplate, "{{id}}", vars["id"])
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelEmailServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelEmailDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	emailAddress1 := "EMAIL1"
-	emailAddress2 := "EMAIL2"
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), emailAddress1),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), emailAddress2),
-				),
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), emailAddress1),
-					resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), emailAddress2),
-				),
-			},
+			createAlertingChannelEmailResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingChannelEmailDefinition),
+			createAlertingChannelEmailResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingChannelEmailDefinition),
 		},
 	})
+}
+
+func createAlertingChannelEmailResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelEmailDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
+			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), "EMAIL1"),
+			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), "EMAIL2"),
+		),
+	}
 }
 
 func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
@@ -108,23 +84,23 @@ func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 func TestShouldReturnCorrectResourceNameForAlertingChannelEmail(t *testing.T) {
 	name := NewAlertingChannelEmailResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, "instana_alerting_channel_email", name, "Expected resource name to be instana_alerting_channel_email")
+	require.Equal(t, "instana_alerting_channel_email", name, "Expected resource name to be instana_alerting_channel_email")
 }
 
 func TestAlertingChannelEmailResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewAlertingChannelEmailResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 1, NewAlertingChannelEmailResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelEmailShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewAlertingChannelEmailResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders()))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 }
 
 func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
 	emails := []interface{}{"email1", "email2"}
-	name := "name"
+	name := resourceName
 	fullname := "fullname"
 	rawData := make(map[string]interface{})
 	rawData[AlertingChannelFieldName] = name
@@ -135,8 +111,8 @@ func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersio
 
 	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Equal(t, rawData, result)
+	require.Nil(t, err)
+	require.Equal(t, rawData, result)
 }
 
 func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
@@ -145,20 +121,21 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.AlertingChannel{
 		ID:     "id",
-		Name:   "name",
+		Name:   resourceFullName,
 		Emails: []string{"email1", "email2"},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
+	require.Nil(t, err)
+	require.Equal(t, "id", resourceData.Id())
+	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 
 	emails := resourceData.Get(AlertingChannelEmailFieldEmails).(*schema.Set)
-	assert.Equal(t, 2, emails.Len())
-	assert.Contains(t, emails.List(), "email1")
-	assert.Contains(t, emails.List(), "email2")
+	require.Equal(t, 2, emails.Len())
+	require.Contains(t, emails.List(), "email1")
+	require.Contains(t, emails.List(), "email2")
 }
 
 func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
@@ -168,16 +145,16 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelEmailFieldEmails, emails)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
-	assert.Equal(t, "id", model.GetIDForResourcePath())
-	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Len(t, model.(*restapi.AlertingChannel).Emails, 2)
-	assert.Contains(t, model.(*restapi.AlertingChannel).Emails, "email1")
-	assert.Contains(t, model.(*restapi.AlertingChannel).Emails, "email2")
+	require.Nil(t, err)
+	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	require.Equal(t, "id", model.GetIDForResourcePath())
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Len(t, model.(*restapi.AlertingChannel).Emails, 2)
+	require.Contains(t, model.(*restapi.AlertingChannel).Emails, "email1")
+	require.Contains(t, model.(*restapi.AlertingChannel).Emails, "email2")
 }

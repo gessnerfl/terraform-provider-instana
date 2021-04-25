@@ -37,12 +37,13 @@ func healthFunc(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewTestHTTPServer create and starts a new TestHTTPServer on random port
-func NewTestHTTPServer() *TestHTTPServer {
+func NewTestHTTPServer() TestHTTPServer {
 	router := mux.NewRouter()
 	router.HandleFunc(healthPath, healthFunc)
-	return &TestHTTPServer{
-		router: router,
-		port:   RandomPort(),
+	return &testHTTPServerImpl{
+		router:      router,
+		port:        RandomPort(),
+		callCounter: make(map[string]int),
 	}
 }
 
@@ -60,24 +61,57 @@ func RandomPort() int {
 }
 
 //TestHTTPServer simple helper to mock an http server for testing.
-type TestHTTPServer struct {
-	router     *mux.Router
-	port       int
-	httpServer *http.Server
+type TestHTTPServer interface {
+	GetPort() int
+	GetCallCount(method string, path string) int
+	AddRoute(method string, path string, handlerFunc http.HandlerFunc)
+	Start()
+	Close()
+	WriteInternalServerError(w http.ResponseWriter, err error)
+	WriteJSONResponse(w http.ResponseWriter, jsonData []byte)
+}
+
+type testHTTPServerImpl struct {
+	router      *mux.Router
+	port        int
+	httpServer  *http.Server
+	callCounter map[string]int
 }
 
 //GetPort returns the dynamic server port
-func (server *TestHTTPServer) GetPort() int {
+func (server *testHTTPServerImpl) GetPort() int {
 	return server.port
 }
 
+//GetCallCount returns the call counter for the given method and path
+func (server *testHTTPServerImpl) GetCallCount(method string, path string) int {
+	key := method + "_" + path
+	val, ok := server.callCounter[key]
+	if !ok {
+		return 0
+	}
+	return val
+}
+
 //AddRoute adds a new route. Routes can only be added before the server was started
-func (server *TestHTTPServer) AddRoute(method string, path string, handlerFunc http.HandlerFunc) {
-	server.router.HandleFunc(path, handlerFunc).Methods(method)
+func (server *testHTTPServerImpl) AddRoute(method string, path string, handlerFunc http.HandlerFunc) {
+	server.router.HandleFunc(path, server.wrapHandlerFunc(handlerFunc)).Methods(method)
+}
+
+func (server *testHTTPServerImpl) wrapHandlerFunc(handlerFunc http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		key := r.Method + "_" + r.URL.Path
+		val, ok := server.callCounter[key]
+		if !ok {
+			val = 0
+		}
+		server.callCounter[key] = val + 1
+		handlerFunc(w, r)
+	}
 }
 
 //Start starts the http service with the configured routes
-func (server *TestHTTPServer) Start() {
+func (server *testHTTPServerImpl) Start() {
 	binding := fmt.Sprintf(":%d", server.port)
 	srv := &http.Server{
 		Addr:    binding,
@@ -101,7 +135,7 @@ func (server *TestHTTPServer) Start() {
 	server.waitForServerAlive()
 }
 
-func (server *TestHTTPServer) waitForServerAlive() {
+func (server *testHTTPServerImpl) waitForServerAlive() {
 	url := fmt.Sprintf("https://localhost:%d/health", server.GetPort())
 
 	for i := 0; i < 5; i++ {
@@ -113,21 +147,21 @@ func (server *TestHTTPServer) waitForServerAlive() {
 }
 
 //Close stops the http listener
-func (server *TestHTTPServer) Close() {
+func (server *testHTTPServerImpl) Close() {
 	if server.httpServer != nil {
 		server.httpServer.Close()
 	}
 }
 
 //WriteInternalServerError Writes the provided error message as a response message and sets status code 501 - Internal Server Error with content type text/plain
-func (server *TestHTTPServer) WriteInternalServerError(w http.ResponseWriter, err error) {
+func (server *testHTTPServerImpl) WriteInternalServerError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Header().Set(contentTypeHeaderName, "text/plain; charset=utf-8")
 	w.Write([]byte(err.Error()))
 }
 
 //WriteJSONResponse Writes the provided data with content type application/json and status code 200 OK to the ResponseWriter
-func (server *TestHTTPServer) WriteJSONResponse(w http.ResponseWriter, jsonData []byte) {
+func (server *testHTTPServerImpl) WriteJSONResponse(w http.ResponseWriter, jsonData []byte) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set(contentTypeHeaderName, "application/json; charset=utf-8")
 	w.Write(jsonData)

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/gorilla/mux"
@@ -21,13 +19,13 @@ import (
 const websiteMonitoringConfigTerraformTemplate = `
 provider "instana" {
 	api_token = "test-token"
-	endpoint = "localhost:{{PORT}}"
+	endpoint = "localhost:%d"
 	default_name_prefix = "prefix"
 	default_name_suffix = "suffix"
 }
 
 resource "instana_website_monitoring_config" "example_website_monitoring_config" {
-	name = "name {{ITERATOR}}"
+	name = "name %d"
 }
 `
 
@@ -35,8 +33,8 @@ const (
 	websiteMonitoringConfigApiPath    = restapi.WebsiteMonitoringConfigResourcePath + "/{id}"
 	websiteMonitoringConfigDefinition = "instana_website_monitoring_config.example_website_monitoring_config"
 	websiteMonitoringConfigID         = "id"
-	websiteMonitoringConfigName       = "name"
-	websiteMonitoringConfigFullName   = "prefix name suffix"
+	websiteMonitoringConfigName       = resourceName
+	websiteMonitoringConfigFullName   = resourceFullName
 )
 
 func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
@@ -46,21 +44,19 @@ func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
 	defer server.Close()
 	server.Start()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(websiteMonitoringConfigTerraformTemplate, "{{PORT}}", strconv.Itoa(server.GetPort()))
-	resourceDefinitionWithName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceDefinitionWithName0,
+				Config: fmt.Sprintf(websiteMonitoringConfigTerraformTemplate, server.GetPort(), 0),
 				Check:  resource.ComposeTestCheckFunc(createWebsiteMonitoringConfigTestCheckFunctions(0)...),
 			},
+			testStepImport(websiteMonitoringConfigDefinition),
 			{
-				Config: resourceDefinitionWithName1,
+				Config: fmt.Sprintf(websiteMonitoringConfigTerraformTemplate, server.GetPort(), 1),
 				Check:  resource.ComposeTestCheckFunc(createWebsiteMonitoringConfigTestCheckFunctions(1)...),
 			},
+			testStepImport(websiteMonitoringConfigDefinition),
 		},
 	})
 }
@@ -80,7 +76,7 @@ func newWebsiteMonitoringConfigTestServer() *websiteMonitoringConfigTestServer {
 }
 
 type websiteMonitoringConfigTestServer struct {
-	httpServer  *testutils.TestHTTPServer
+	httpServer  testutils.TestHTTPServer
 	serverState *restapi.WebsiteMonitoringConfig
 }
 
@@ -98,6 +94,14 @@ func (s *websiteMonitoringConfigTestServer) GetPort() int {
 		return s.httpServer.GetPort()
 	}
 	return -1
+}
+
+//GetCallCount returns the call counter for the given method and path
+func (s *websiteMonitoringConfigTestServer) GetCallCount(method string, path string) int {
+	if s.httpServer != nil {
+		return s.httpServer.GetCallCount(method, path)
+	}
+	return 9
 }
 
 func (s *websiteMonitoringConfigTestServer) onPost(w http.ResponseWriter, r *http.Request) {
@@ -173,7 +177,7 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	fullname := "fullname"
+	fullname := resourceFullName
 	appname := "appname"
 	data := restapi.WebsiteMonitoringConfig{
 		ID:      "id",
@@ -181,10 +185,11 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 		AppName: appname,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id(), "id should be equal")
+	require.Equal(t, "name", resourceData.Get(WebsiteMonitoringConfigFieldName))
 	require.Equal(t, fullname, resourceData.Get(WebsiteMonitoringConfigFieldFullName))
 	require.Equal(t, appname, resourceData.Get(WebsiteMonitoringConfigFieldAppName))
 }
@@ -197,7 +202,7 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	resourceData.Set(WebsiteMonitoringConfigFieldName, "name")
 	resourceData.Set(WebsiteMonitoringConfigFieldFullName, websiteMonitoringConfigFullName)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.WebsiteMonitoringConfig{}, model)

@@ -1,89 +1,69 @@
 package instana_test
 
 import (
-	"net/http"
-	"strconv"
-	"strings"
+	"fmt"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceAlertingChannelPagerDutyDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_channel_pager_duty" "example" {
-  name = "name {{ITERATOR}}"
+  name = "name %d"
   service_integration_key = "service integration key"
 }
 `
 
 const alertingChannelPagerDutyServerResponseTemplate = `
 {
-	"id"     : "{{id}}",
-	"name"   : "prefix name suffix",
+	"id"     : "%s",
+	"name"   : "prefix name %d suffix",
 	"kind"   : "PAGER_DUTY",
 	"serviceIntegrationKey" : "service integration key"
 }
 `
 
-const alertingChannelPagerDutyApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelPagerDutyDefinition = "instana_alerting_channel_pager_duty.example"
 
 func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingChannelPagerDutyApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingChannelPagerDutyApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingChannelPagerDutyApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(alertingChannelPagerDutyServerResponseTemplate, "{{id}}", vars["id"])
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelPagerDutyServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
-
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelPagerDutyDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelPagerDutyDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelFieldName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelPagerDutyFieldServiceIntegrationKey, "service integration key"),
-				),
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelPagerDutyDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelFieldName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelPagerDutyFieldServiceIntegrationKey, "service integration key"),
-				),
-			},
+			createAlertingChannelPagerDutyResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingChannelPagerDutyDefinition),
+			createAlertingChannelPagerDutyResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingChannelPagerDutyDefinition),
 		},
 	})
+}
+
+func createAlertingChannelPagerDutyResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelPagerDutyDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testAlertingChannelPagerDutyDefinition, "id"),
+			resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelPagerDutyDefinition, AlertingChannelPagerDutyFieldServiceIntegrationKey, "service integration key"),
+		),
+	}
 }
 
 func TestResourceAlertingChannelPagerDutyDefinition(t *testing.T) {
@@ -104,16 +84,17 @@ func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
 	integrationKey := "integration key"
 	data := restapi.AlertingChannel{
 		ID:                    "id",
-		Name:                  "name",
+		Name:                  resourceFullName,
 		ServiceIntegrationKey: &integrationKey,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
-	assert.Equal(t, integrationKey, resourceData.Get(AlertingChannelPagerDutyFieldServiceIntegrationKey), "service integration key should be equal")
+	require.Nil(t, err)
+	require.Equal(t, "id", resourceData.Id())
+	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, integrationKey, resourceData.Get(AlertingChannelPagerDutyFieldServiceIntegrationKey))
 }
 
 func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
@@ -123,28 +104,28 @@ func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, integrationKey)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
-	assert.Equal(t, "id", model.GetIDForResourcePath())
-	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Equal(t, integrationKey, *model.(*restapi.AlertingChannel).ServiceIntegrationKey, "service integration key should be equal")
+	require.Nil(t, err)
+	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	require.Equal(t, "id", model.GetIDForResourcePath())
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, integrationKey, *model.(*restapi.AlertingChannel).ServiceIntegrationKey, "service integration key should be equal")
 }
 
 func TestAlertingChannelPagerDutyShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelPagerDutyResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 0, NewAlertingChannelPagerDutyResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelPagerDutyShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelPagerDutyResourceHandle().StateUpgraders()))
+	require.Equal(t, 0, len(NewAlertingChannelPagerDutyResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelPagerDuty(t *testing.T) {
 	name := NewAlertingChannelPagerDutyResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_alerting_channel_pager_duty")
+	require.Equal(t, name, "instana_alerting_channel_pager_duty")
 }

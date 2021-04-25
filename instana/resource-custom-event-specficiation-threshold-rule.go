@@ -160,7 +160,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(d 
 	//No computed fields defined
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	customEventSpecification := obj.(*restapi.CustomEventSpecification)
 	ruleSpec := customEventSpecification.Rules[0]
 
@@ -173,7 +173,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schem
 		return err
 	}
 
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification)
+	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
 	d.Set(CustomEventSpecificationRuleSeverity, severity)
 	d.Set(ThresholdRuleFieldMetricName, ruleSpec.MetricName)
 	d.Set(ThresholdRuleFieldRollup, ruleSpec.Rollup)

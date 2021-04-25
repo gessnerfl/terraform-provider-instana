@@ -75,9 +75,9 @@ func (r *customEventSpecificationWithSystemRuleResource) SetComputedFields(d *sc
 	d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	customEventSpecification := obj.(*restapi.CustomEventSpecification)
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification)
+	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
 
 	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)

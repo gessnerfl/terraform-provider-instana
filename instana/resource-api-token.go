@@ -261,6 +261,7 @@ var (
 
 //NewAPITokenResourceHandle creates a ResourceHandle instance for the terraform resource API token
 func NewAPITokenResourceHandle() ResourceHandle {
+	internalIDFieldName := APITokenFieldInternalID
 	return &apiTokenResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAPIToken,
@@ -299,6 +300,7 @@ func NewAPITokenResourceHandle() ResourceHandle {
 			},
 			SchemaVersion:    0,
 			SkipIDGeneration: true,
+			ResourceIDField:  &internalIDFieldName,
 		},
 	}
 }
@@ -324,10 +326,11 @@ func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) {
 	d.Set(APITokenFieldAccessGrantingToken, RandomID())
 }
 
-func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	apiToken := obj.(*restapi.APIToken)
 	d.Set(APITokenFieldAccessGrantingToken, apiToken.AccessGrantingToken)
 	d.Set(APITokenFieldInternalID, apiToken.InternalID)
+	d.Set(APITokenFieldName, formatter.UndoFormat(apiToken.Name))
 	d.Set(APITokenFieldFullName, apiToken.Name)
 	d.Set(APITokenFieldCanConfigureServiceMapping, apiToken.CanConfigureServiceMapping)
 	d.Set(APITokenFieldCanConfigureEumApplications, apiToken.CanConfigureEumApplications)

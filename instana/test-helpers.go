@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -19,6 +20,7 @@ type TestHelper interface {
 	CreateProviderMetaMock(ctrl *gomock.Controller) (*ProviderMeta, *mocks.MockInstanaAPI, *mocks.MockResourceNameFormatter)
 	CreateEmptyResourceDataForResourceHandle(resourceHandle ResourceHandle) *schema.ResourceData
 	CreateResourceDataForResourceHandle(resourceHandle ResourceHandle, data map[string]interface{}) *schema.ResourceData
+	ResourceFormatter() utils.ResourceNameFormatter
 }
 
 type testHelperImpl struct {
@@ -50,4 +52,8 @@ func (inst *testHelperImpl) CreateEmptyResourceDataForResourceHandle(resourceHan
 
 func (inst *testHelperImpl) CreateResourceDataForResourceHandle(resourceHandle ResourceHandle, data map[string]interface{}) *schema.ResourceData {
 	return schema.TestResourceDataRaw(inst.t, resourceHandle.MetaData().Schema, data)
+}
+
+func (inst *testHelperImpl) ResourceFormatter() utils.ResourceNameFormatter {
+	return utils.NewResourceNameFormatter("prefix", "suffix")
 }

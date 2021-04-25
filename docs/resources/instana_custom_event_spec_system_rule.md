@@ -33,3 +33,11 @@ resource "instana_custom_event_spec_system_rule" "example" {
 * `expiration_time` - Optional - The grace period in milliseconds until the issue is closed
 * `rule_severity` - Required - The severity of the rule - allowed values: `warning`, `critical`
 * `rule_system_rule_id` - Required - The id of the instana system rule of the given even
+
+## Import
+
+Custom event specifications with system rule can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_custom_event_spec_system_rule.my_event_spec 60845e4e5e6b9cf8fc2868da
+```

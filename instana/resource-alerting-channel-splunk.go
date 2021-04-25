@@ -58,8 +58,9 @@ func (r *alertingChannelSplunkResource) SetComputedFields(d *schema.ResourceData
 	//No computed fields defined
 }
 
-func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
+	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelSplunkFieldURL, alertingChannel.URL)
 	d.Set(AlertingChannelSplunkFieldToken, alertingChannel.Token)

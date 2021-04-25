@@ -3,32 +3,27 @@ package instana_test
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceAlertingConfigTerraformTemplateWithRuleIds = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_config" "rule_ids" {
-  alert_name = "name {{ITERATOR}}"
+  alert_name = "name %d"
   integration_ids = [ "integration_id1", "integration_id2" ]
   event_filter_query = "query"
   event_filter_rule_ids = [ "rule-1", "rule-2" ]
@@ -37,8 +32,8 @@ resource "instana_alerting_config" "rule_ids" {
 
 const alertingConfigServerResponseTemplateWithRuleIds = `
 {
-	"id" : "{{id}}",
-	"alertName" : "prefix name suffix",
+	"id" : "%s",
+	"alertName" : "prefix name %d suffix",
 	"integrationIds" : [ "integration_id2", "integration_id1" ],
 	"eventFilteringConfiguration" : {
 		"query" : "query",
@@ -50,13 +45,13 @@ const alertingConfigServerResponseTemplateWithRuleIds = `
 const resourceAlertingConfigTerraformTemplateWithEventTypes = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_config" "event_types" {
-  alert_name = "name {{ITERATOR}}"
+  alert_name = "name %d"
   integration_ids = [ "integration_id1", "integration_id2" ]
   event_filter_query = "query"
   event_filter_event_types = [ "incident", "critical" ]
@@ -65,8 +60,8 @@ resource "instana_alerting_config" "event_types" {
 
 const alertingConfigServerResponseTemplateWithEventTypes = `
 {
-	"id" : "{{id}}",
-	"alertName" : "prefix name suffix",
+	"id" : "%s",
+	"alertName" : "prefix name %d suffix",
 	"integrationIds" : [ "integration_id2", "integration_id1" ],
 	"eventFilteringConfiguration" : {
 		"query" : "query",
@@ -75,95 +70,63 @@ const alertingConfigServerResponseTemplateWithEventTypes = `
 }
 `
 
-const iteratorPlaceholder = "{{ITERATOR}}"
-const alertingConfigApiPath = restapi.AlertsResourcePath + "/{id}"
 const testAlertingConfigDefinitionWithRuleIds = "instana_alerting_config.rule_ids"
 const testAlertingConfigDefinitionWithEventTypes = "instana_alerting_config.event_types"
 
 func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(alertingConfigServerResponseTemplateWithRuleIds, "{{id}}", vars["id"])
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertsResourcePath, alertingConfigServerResponseTemplateWithRuleIds)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingConfigTerraformTemplateWithRuleIds, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	rule1 := "rule-1"
-	rule2 := "rule-2"
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 0),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 0), rule1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 1), rule2),
-				),
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, 1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 0), rule1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 1), rule2),
-				),
-			},
+			createAlertingConfigWithRuleIdResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingConfigDefinitionWithRuleIds),
+			createAlertingConfigWithRuleIdResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingConfigDefinitionWithRuleIds),
 		},
 	})
 }
 
+func createAlertingConfigWithRuleIdResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithRuleIds, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithRuleIds, iteration),
+			resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 0), "rule-1"),
+			resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithRuleIds, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterRuleIDs, 1), "rule-2"),
+		),
+	}
+}
+
 func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(alertingConfigServerResponseTemplateWithEventTypes, "{{id}}", vars["id"])
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertsResourcePath, alertingConfigServerResponseTemplateWithEventTypes)
 	httpServer.Start()
 	defer httpServer.Close()
-
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingConfigTerraformTemplateWithEventTypes, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 0),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 1), string(restapi.IncidentAlertEventType)),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 0), string(restapi.CriticalAlertEventType)),
-				),
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, 1),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 1), string(restapi.IncidentAlertEventType)),
-					resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 0), string(restapi.CriticalAlertEventType)),
-				),
-			},
+			createAlertingConfigWithEventTypesIdResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingConfigDefinitionWithEventTypes),
+			createAlertingConfigWithEventTypesIdResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingConfigDefinitionWithEventTypes),
 		},
 	})
+}
+
+func createAlertingConfigWithEventTypesIdResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithEventTypes, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			CreateTestCheckFunctionForComonResourceAttributes(testAlertingConfigDefinitionWithEventTypes, iteration),
+			resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 1), string(restapi.IncidentAlertEventType)),
+			resource.TestCheckResourceAttr(testAlertingConfigDefinitionWithEventTypes, fmt.Sprintf("%s.%d", AlertingConfigFieldEventFilterEventTypes, 0), string(restapi.CriticalAlertEventType)),
+		),
+	}
 }
 
 func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration int) resource.TestCheckFunc {
@@ -196,23 +159,23 @@ func TestResourceAlertingConfigDefinition(t *testing.T) {
 func TestShouldReturnCorrectResourceNameForAlertingConfig(t *testing.T) {
 	name := NewAlertingConfigResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, "instana_alerting_config", name, "Expected resource name to be instana_alerting_config")
+	require.Equal(t, "instana_alerting_config", name, "Expected resource name to be instana_alerting_config")
 }
 
 func TestAlertingConfigShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewAlertingConfigResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 1, NewAlertingConfigResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingConfigShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewAlertingConfigResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders()))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 }
 
 func TestShouldReturnStateOfAlertingConfigWithRuleIdsUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
 	rawData := make(map[string]interface{})
-	rawData[AlertingConfigFieldAlertName] = "name"
+	rawData[AlertingConfigFieldAlertName] = resourceName
 	rawData[AlertingConfigFieldFullAlertName] = "fullname"
 	rawData[AlertingConfigFieldIntegrationIds] = []interface{}{"integration-id1", "integration-id2"}
 	rawData[AlertingConfigFieldEventFilterQuery] = "filter"
@@ -222,13 +185,13 @@ func TestShouldReturnStateOfAlertingConfigWithRuleIdsUnchangedWhenMigratingFromV
 
 	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Equal(t, rawData, result)
+	require.Nil(t, err)
+	require.Equal(t, rawData, result)
 }
 
 func TestShouldReturnStateOfAlertingConfigWithEventTypesUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
 	rawData := make(map[string]interface{})
-	rawData[AlertingConfigFieldAlertName] = "name"
+	rawData[AlertingConfigFieldAlertName] = resourceName
 	rawData[AlertingConfigFieldFullAlertName] = "fullname"
 	rawData[AlertingConfigFieldIntegrationIds] = []interface{}{"integration-id1", "integration-id2"}
 	rawData[AlertingConfigFieldEventFilterQuery] = "filter"
@@ -238,13 +201,14 @@ func TestShouldReturnStateOfAlertingConfigWithEventTypesUnchangedWhenMigratingFr
 
 	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Equal(t, rawData, result)
+	require.Nil(t, err)
+	require.Equal(t, rawData, result)
 }
 
 const (
 	alertingConfigID             = "alerting-id"
 	alertingConfigName           = "alerting-name"
+	alertingConfigFullName       = "prefix alerting-name suffix"
 	alertingConfigIntegrationId1 = "alerting-integration-id1"
 	alertingConfigIntegrationId2 = "alerting-integration-id2"
 	alertingConfigRuleId1        = "alerting-rule-id1"
@@ -261,7 +225,7 @@ func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
 
 	data := restapi.AlertingConfiguration{
 		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
+		AlertName:      alertingConfigFullName,
 		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:   &query,
@@ -269,16 +233,17 @@ func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
 		},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, alertingConfigID, resourceData.Id())
-	assert.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldFullAlertName))
-	assert.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
-	assertIntegrationIdOFAlertingConfigResourceDataUpdated(t, resourceData)
+	require.Nil(t, err)
+	require.Equal(t, alertingConfigID, resourceData.Id())
+	require.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldAlertName))
+	require.Equal(t, alertingConfigFullName, resourceData.Get(AlertingConfigFieldFullAlertName))
+	require.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
+	requireIntegrationIdOFAlertingConfigResourceDataUpdated(t, resourceData)
 
 	ruleIDs := resourceData.Get(AlertingConfigFieldEventFilterRuleIDs).(*schema.Set)
-	assertSetMatchesToValues(t, ruleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
+	requireSetMatchesToValues(t, ruleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
 }
 
 func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) {
@@ -290,7 +255,7 @@ func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) 
 
 	data := restapi.AlertingConfiguration{
 		ID:             alertingConfigID,
-		AlertName:      alertingConfigName,
+		AlertName:      alertingConfigFullName,
 		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:      &query,
@@ -298,27 +263,28 @@ func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) 
 		},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, alertingConfigID, resourceData.Id())
-	assert.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldFullAlertName))
-	assert.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
-	assertIntegrationIdOFAlertingConfigResourceDataUpdated(t, resourceData)
+	require.Nil(t, err)
+	require.Equal(t, alertingConfigID, resourceData.Id())
+	require.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldAlertName))
+	require.Equal(t, alertingConfigFullName, resourceData.Get(AlertingConfigFieldFullAlertName))
+	require.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
+	requireIntegrationIdOFAlertingConfigResourceDataUpdated(t, resourceData)
 
 	eventTypes := resourceData.Get(AlertingConfigFieldEventFilterEventTypes).(*schema.Set)
-	assertSetMatchesToValues(t, eventTypes, string(restapi.CriticalAlertEventType), string(restapi.IncidentAlertEventType))
+	requireSetMatchesToValues(t, eventTypes, string(restapi.CriticalAlertEventType), string(restapi.IncidentAlertEventType))
 }
 
-func assertIntegrationIdOFAlertingConfigResourceDataUpdated(t *testing.T, resourceData *schema.ResourceData) {
+func requireIntegrationIdOFAlertingConfigResourceDataUpdated(t *testing.T, resourceData *schema.ResourceData) {
 	integrationIDs := resourceData.Get(AlertingConfigFieldIntegrationIds).(*schema.Set)
-	assertSetMatchesToValues(t, integrationIDs, alertingConfigIntegrationId1, alertingConfigIntegrationId2)
+	requireSetMatchesToValues(t, integrationIDs, alertingConfigIntegrationId1, alertingConfigIntegrationId2)
 }
 
-func assertSetMatchesToValues(t *testing.T, set *schema.Set, values ...string) {
-	assert.Equal(t, len(values), set.Len())
+func requireSetMatchesToValues(t *testing.T, set *schema.Set, values ...string) {
+	require.Equal(t, len(values), set.Len())
 	for _, v := range values {
-		assert.Contains(t, set.List(), v)
+		require.Contains(t, set.List(), v)
 	}
 }
 
@@ -335,16 +301,16 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) 
 	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
 	resourceData.Set(AlertingConfigFieldEventFilterRuleIDs, ruleIds)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.AlertingConfiguration{}, model)
-	assert.Equal(t, alertingConfigID, model.GetIDForResourcePath())
-	assert.Equal(t, alertingConfigName, model.(*restapi.AlertingConfiguration).AlertName)
+	require.Nil(t, err)
+	require.IsType(t, &restapi.AlertingConfiguration{}, model)
+	require.Equal(t, alertingConfigID, model.GetIDForResourcePath())
+	require.Equal(t, alertingConfigName, model.(*restapi.AlertingConfiguration).AlertName)
 
-	assertIntegrationIdOFAlertingConfigModel(t, model.(*restapi.AlertingConfiguration))
-	assert.Equal(t, alertingConfigQuery, *model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
-	assertSliceValuesMatchesToValues(t, model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.RuleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
+	requireIntegrationIdOFAlertingConfigModel(t, model.(*restapi.AlertingConfiguration))
+	require.Equal(t, alertingConfigQuery, *model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
+	requireSliceValuesMatchesToValues(t, model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.RuleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
 }
 
 func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.T) {
@@ -359,29 +325,29 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.
 	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
 	resourceData.Set(AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.AlertingConfiguration{}, model)
-	assert.Equal(t, alertingConfigID, model.GetIDForResourcePath())
-	assert.Equal(t, alertingConfigName, model.(*restapi.AlertingConfiguration).AlertName)
+	require.Nil(t, err)
+	require.IsType(t, &restapi.AlertingConfiguration{}, model)
+	require.Equal(t, alertingConfigID, model.GetIDForResourcePath())
+	require.Equal(t, alertingConfigName, model.(*restapi.AlertingConfiguration).AlertName)
 
-	assertIntegrationIdOFAlertingConfigModel(t, model.(*restapi.AlertingConfiguration))
-	assert.Equal(t, alertingConfigQuery, *model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
+	requireIntegrationIdOFAlertingConfigModel(t, model.(*restapi.AlertingConfiguration))
+	require.Equal(t, alertingConfigQuery, *model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
 
 	eventTypes := model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.EventTypes
-	assert.Len(t, eventTypes, 2)
-	assert.Contains(t, eventTypes, restapi.CriticalAlertEventType)
-	assert.Contains(t, eventTypes, restapi.IncidentAlertEventType)
+	require.Len(t, eventTypes, 2)
+	require.Contains(t, eventTypes, restapi.CriticalAlertEventType)
+	require.Contains(t, eventTypes, restapi.IncidentAlertEventType)
 }
 
-func assertIntegrationIdOFAlertingConfigModel(t *testing.T, model *restapi.AlertingConfiguration) {
-	assertSliceValuesMatchesToValues(t, model.IntegrationIDs, alertingConfigIntegrationId1, alertingConfigIntegrationId2)
+func requireIntegrationIdOFAlertingConfigModel(t *testing.T, model *restapi.AlertingConfiguration) {
+	requireSliceValuesMatchesToValues(t, model.IntegrationIDs, alertingConfigIntegrationId1, alertingConfigIntegrationId2)
 }
 
-func assertSliceValuesMatchesToValues(t *testing.T, data []string, values ...string) {
-	assert.Equal(t, len(values), len(data))
+func requireSliceValuesMatchesToValues(t *testing.T, data []string, values ...string) {
+	require.Equal(t, len(values), len(data))
 	for _, v := range values {
-		assert.Contains(t, data, v)
+		require.Contains(t, data, v)
 	}
 }

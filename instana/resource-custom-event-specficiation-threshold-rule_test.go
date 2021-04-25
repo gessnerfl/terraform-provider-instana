@@ -3,32 +3,29 @@ package instana_test
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name {{ITERATION}}"
+  name = "name %d"
   entity_type = "entity_type"
   query = "query"
   enabled = true
@@ -46,13 +43,13 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 const resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name {{ITERATION}}"
+  name = "name %d"
   entity_type = "entity_type"
   query = "query"
   enabled = true
@@ -71,13 +68,13 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 const resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_custom_event_spec_threshold_rule" "example" {
-  name = "name {{ITERATION}}"
+  name = "name %d"
   entity_type = "entity_type"
   query = "query"
   enabled = true
@@ -97,11 +94,9 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 `
 
 const (
-	customEventSpecificationWithThresholdRuleApiPath        = restapi.CustomEventSpecificationResourcePath + "/{id}"
 	testCustomEventSpecificationWithThresholdRuleDefinition = "instana_custom_event_spec_threshold_rule.example"
 
 	customEventSpecificationWithThresholdRuleID             = "custom-system-event-id"
-	customEventSpecificationWithThresholdRuleName           = "name"
 	customEventSpecificationWithThresholdRuleEntityType     = "entity_type"
 	customEventSpecificationWithThresholdRuleQuery          = "query"
 	customEventSpecificationWithThresholdRuleExpirationTime = 60000
@@ -175,49 +170,36 @@ func TestCRUDOfCustomEventSpecificationWithThresholdRuleWithMetricPatternResourc
 
 const httpServerResponseTemplate = `
 {
-	"id" : "{{id}}",
-	"name" : "prefix name suffix",
+	"id" : "%s",
+	"name" : "prefix name %d suffix",
 	"entityType" : "entity_type",
 	"query" : "query",
 	"enabled" : true,
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
-	"rules" : [ {{rule}} ]
+	"rules" : [ %s ]
 }
 `
 
 func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServer(t *testing.T, terraformDefinition, ruleAsJson string, ruleTestCheckFunctions ...resource.TestCheckFunc) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, customEventSpecificationWithThresholdRuleApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, customEventSpecificationWithThresholdRuleApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(strings.ReplaceAll(httpServerResponseTemplate, "{{id}}", vars["id"]), "{{rule}}", ruleAsJson)
-		w.Header().Set(constSystemEventContentType, r.Header.Get(constSystemEventContentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.CustomEventSpecificationResourcePath, httpServerResponseTemplate, ruleAsJson)
 	httpServer.Start()
 	defer httpServer.Close()
-
-	completeTerraformDefinitionWithoutName := strings.ReplaceAll(terraformDefinition, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-
-	completeTerraformDefinitionWithName1 := strings.ReplaceAll(completeTerraformDefinitionWithoutName, "{{ITERATION}}", "0")
-	completeTerraformDefinitionWithName2 := strings.ReplaceAll(completeTerraformDefinitionWithoutName, "{{ITERATION}}", "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: completeTerraformDefinitionWithName1,
+				Config: fmt.Sprintf(terraformDefinition, httpServer.GetPort(), 0),
 				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 0)...),
 			},
+			testStepImport(testCustomEventSpecificationWithThresholdRuleDefinition),
 			{
-				Config: completeTerraformDefinitionWithName2,
+				Config: fmt.Sprintf(terraformDefinition, httpServer.GetPort(), 1),
 				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 1)...),
 			},
+			testStepImport(testCustomEventSpecificationWithThresholdRuleDefinition),
 		},
 	})
 }
@@ -225,8 +207,8 @@ func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServ
 func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc, iteration int) []resource.TestCheckFunc {
 	defaultCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithThresholdRuleDefinition, "id"),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, customEventSpecificationWithThresholdRuleName+fmt.Sprintf(" %d", iteration)),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldFullName, fmt.Sprintf("%s %s %d %s", "prefix", customEventSpecificationWithThresholdRuleName, iteration, "suffix")),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldName, formatResourceName(iteration)),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldFullName, formatResourceFullName(iteration)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
@@ -266,16 +248,16 @@ func TestCustomEventSpecificationWithThresholdRuleSchemaDefinitionIsValid(t *tes
 }
 
 func TestCustomEventSpecificationWithThresholdRuleResourceShouldHaveSchemaVersionThree(t *testing.T) {
-	assert.Equal(t, 3, NewCustomEventSpecificationWithThresholdRuleResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 3, NewCustomEventSpecificationWithThresholdRuleResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestCustomEventSpecificationWithThresholdRuleShouldHaveThreeStateUpgraderForVersionZeroAndOneAndTwo(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 
-	assert.Equal(t, 3, len(resourceHandler.StateUpgraders()))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
-	assert.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
-	assert.Equal(t, 2, resourceHandler.StateUpgraders()[2].Version)
+	require.Equal(t, 3, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
+	require.Equal(t, 2, resourceHandler.StateUpgraders()[2].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -287,8 +269,8 @@ func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateAndAddFullNa
 
 	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Equal(t, name, result[CustomEventSpecificationFieldFullName])
+	require.Nil(t, err)
+	require.Equal(t, name, result[CustomEventSpecificationFieldFullName])
 }
 
 func TestShouldMigrateEmptyCustomEventSpecificationWithThresholdRuleStateFromVersion0To1(t *testing.T) {
@@ -298,8 +280,8 @@ func TestShouldMigrateEmptyCustomEventSpecificationWithThresholdRuleStateFromVer
 
 	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result[CustomEventSpecificationFieldFullName])
+	require.Nil(t, err)
+	require.Nil(t, result[CustomEventSpecificationFieldFullName])
 }
 
 func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2WhenDownstreamConfigurationIsProvided(t *testing.T) {
@@ -311,9 +293,9 @@ func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2Wh
 
 	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[1].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result["downstream_integration_ids"])
-	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
+	require.Nil(t, err)
+	require.Nil(t, result["downstream_integration_ids"])
+	require.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
 }
 
 func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2WhenNoDownstreamConfigurationIsProvided(t *testing.T) {
@@ -323,9 +305,9 @@ func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion2Wh
 
 	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result["downstream_integration_ids"])
-	assert.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
+	require.Nil(t, err)
+	require.Nil(t, result["downstream_integration_ids"])
+	require.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
 }
 
 func TestShouldMigrateCustomEventSpecificationWithThresholdRuleStateToVersion3WhenConditionOperatorIsDefinedAndValid(t *testing.T) {
@@ -345,8 +327,8 @@ func createTestCaseForSuccessfulMigrationOfCustomEventSpecificationWithThreshold
 
 		result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(ctx, rawData, meta)
 
-		assert.Nil(t, err)
-		assert.Equal(t, mo.InstanaAPIValue(), result[ThresholdRuleFieldConditionOperator])
+		require.Nil(t, err)
+		require.Equal(t, mo.InstanaAPIValue(), result[ThresholdRuleFieldConditionOperator])
 	}
 }
 
@@ -357,8 +339,8 @@ func TestShouldDoNothingWhenMigratingCustomEventSpecificationWithThresholdRuleTo
 
 	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Nil(t, result[ThresholdRuleFieldConditionOperator])
+	require.Nil(t, err)
+	require.Nil(t, result[ThresholdRuleFieldConditionOperator])
 }
 
 func TestShouldReturnErrorWhenCustomEventSpecificationWithThresholdRuleCannotBeMigratedToVersion3BecuaseOfUnsupportedConditionOperatorInState(t *testing.T) {
@@ -369,20 +351,20 @@ func TestShouldReturnErrorWhenCustomEventSpecificationWithThresholdRuleCannotBeM
 
 	result, err := NewCustomEventSpecificationWithThresholdRuleResourceHandle().StateUpgraders()[2].Upgrade(ctx, rawData, meta)
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "not a supported condition operator")
-	assert.Equal(t, rawData, result)
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "not a supported condition operator")
+	require.Equal(t, rawData, result)
 }
 
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithThresholdRuleResource(t *testing.T) {
 	name := NewCustomEventSpecificationWithThresholdRuleResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_custom_event_spec_threshold_rule")
+	require.Equal(t, name, "instana_custom_event_spec_threshold_rule")
 }
 
 func TestShouldUpdateCustomEventSpecificationWithThresholdRuleTerraformStateFromApiObject(t *testing.T) {
 	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, func(spec *restapi.CustomEventSpecification) { /* Default testcase without additional fields =< no additional mappings */
-	}, func(resourceData *schema.ResourceData) { /* Default testcase without additional fields => no additional asserts */
+	}, func(resourceData *schema.ResourceData) { /* Default testcase without additional fields => no additional requires */
 	})
 }
 
@@ -403,10 +385,10 @@ func TestShouldUpdateCustomEventSpecificationWithThresholdRuleAndMetricPatternTe
 	}
 
 	additionalAsserts := func(resourceData *schema.ResourceData) {
-		assert.Equal(t, prefix, resourceData.Get(ThresholdRuleFieldMetricPatternPrefix))
-		assert.Equal(t, postfix, resourceData.Get(ThresholdRuleFieldMetricPatternPostfix))
-		assert.Equal(t, placeholder, resourceData.Get(ThresholdRuleFieldMetricPatternPlaceholder))
-		assert.Equal(t, string(operator), resourceData.Get(ThresholdRuleFieldMetricPatternOperator))
+		require.Equal(t, prefix, resourceData.Get(ThresholdRuleFieldMetricPatternPrefix))
+		require.Equal(t, postfix, resourceData.Get(ThresholdRuleFieldMetricPatternPostfix))
+		require.Equal(t, placeholder, resourceData.Get(ThresholdRuleFieldMetricPatternPlaceholder))
+		require.Equal(t, string(operator), resourceData.Get(ThresholdRuleFieldMetricPatternOperator))
 	}
 
 	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToState(t, additionalMappings, additionalAsserts)
@@ -426,7 +408,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 
 	spec := &restapi.CustomEventSpecification{
 		ID:             customEventSpecificationWithThresholdRuleID,
-		Name:           customEventSpecificationWithThresholdRuleName,
+		Name:           resourceFullName,
 		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
 		Query:          &query,
 		Description:    &description,
@@ -452,24 +434,25 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec)
+	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
-	assert.Equal(t, customEventSpecificationWithThresholdRuleName, resourceData.Get(CustomEventSpecificationFieldFullName))
-	assert.Equal(t, customEventSpecificationWithThresholdRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
-	assert.Equal(t, customEventSpecificationWithThresholdRuleQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
-	assert.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
-	assert.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
-	assert.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Nil(t, err)
+	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
+	require.Equal(t, resourceName, resourceData.Get(CustomEventSpecificationFieldName))
+	require.Equal(t, resourceFullName, resourceData.Get(CustomEventSpecificationFieldFullName))
+	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
+	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
+	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
+	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
+	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
 
-	assert.Equal(t, metricName, resourceData.Get(ThresholdRuleFieldMetricName))
-	assert.Equal(t, window, resourceData.Get(ThresholdRuleFieldWindow))
-	assert.Equal(t, rollup, resourceData.Get(ThresholdRuleFieldRollup))
-	assert.Equal(t, string(aggregation), resourceData.Get(ThresholdRuleFieldAggregation))
-	assert.Equal(t, string(conditionOperator), resourceData.Get(ThresholdRuleFieldConditionOperator))
-	assert.Equal(t, conditionValue, resourceData.Get(ThresholdRuleFieldConditionValue))
-	assert.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
+	require.Equal(t, metricName, resourceData.Get(ThresholdRuleFieldMetricName))
+	require.Equal(t, window, resourceData.Get(ThresholdRuleFieldWindow))
+	require.Equal(t, rollup, resourceData.Get(ThresholdRuleFieldRollup))
+	require.Equal(t, string(aggregation), resourceData.Get(ThresholdRuleFieldAggregation))
+	require.Equal(t, string(conditionOperator), resourceData.Get(ThresholdRuleFieldConditionOperator))
+	require.Equal(t, conditionValue, resourceData.Get(ThresholdRuleFieldConditionValue))
+	require.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
 	additionalAsserts(resourceData)
 }
 
@@ -487,10 +470,10 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThreshol
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec)
+	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "is not a valid severity")
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "is not a valid severity")
 }
 
 func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThresholdRuleWhenConditionOperatorTypeIsNotSupported(t *testing.T) {
@@ -510,15 +493,15 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThreshol
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec)
+	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "invalid is not a supported condition operator")
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "invalid is not a supported condition operator")
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleStateToDataModel(t *testing.T) {
 	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t, func(resourceData *schema.ResourceData) { /* Default testcase without additional fields =< no additional mappings */
-	}, func(spec restapi.CustomEventSpecification) { /* Default testcase without additional fields => no additional asserts */
+	}, func(spec restapi.CustomEventSpecification) { /* Default testcase without additional fields => no additional requires */
 	})
 }
 
@@ -536,11 +519,11 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleAndMe
 	}
 
 	additionalAsserts := func(spec restapi.CustomEventSpecification) {
-		assert.NotNil(t, spec.Rules[0].MetricPattern)
-		assert.Equal(t, prefix, spec.Rules[0].MetricPattern.Prefix)
-		assert.Equal(t, postfix, spec.Rules[0].MetricPattern.Postfix)
-		assert.Equal(t, placeholder, spec.Rules[0].MetricPattern.Placeholder)
-		assert.Equal(t, operator, spec.Rules[0].MetricPattern.Operator)
+		require.NotNil(t, spec.Rules[0].MetricPattern)
+		require.Equal(t, prefix, spec.Rules[0].MetricPattern.Prefix)
+		require.Equal(t, postfix, spec.Rules[0].MetricPattern.Postfix)
+		require.Equal(t, placeholder, spec.Rules[0].MetricPattern.Placeholder)
+		require.Equal(t, operator, spec.Rules[0].MetricPattern.Operator)
 	}
 
 	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t, additionalMappings, additionalAsserts)
@@ -553,7 +536,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
-	resourceData.Set(CustomEventSpecificationFieldFullName, customEventSpecificationWithThresholdRuleName)
+	resourceData.Set(CustomEventSpecificationFieldFullName, resourceFullName)
 	resourceData.Set(CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType)
 	resourceData.Set(CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery)
 	resourceData.Set(CustomEventSpecificationFieldTriggering, true)
@@ -568,28 +551,28 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	resourceData.Set(ThresholdRuleFieldConditionOperator, restapi.ConditionOperatorEquals.InstanaAPIValue())
 	resourceData.Set(ThresholdRuleFieldConditionValue, customEventSpecificationWithThresholdRuleConditionValue)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.CustomEventSpecification{}, result)
+	require.Nil(t, err)
+	require.IsType(t, &restapi.CustomEventSpecification{}, result)
 	customEventSpec := result.(*restapi.CustomEventSpecification)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
-	assert.Equal(t, customEventSpecificationWithThresholdRuleName, customEventSpec.Name)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleQuery, *customEventSpec.Query)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleDescription, *customEventSpec.Description)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
-	assert.True(t, customEventSpec.Triggering)
-	assert.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
+	require.Equal(t, resourceFullName, customEventSpec.Name)
+	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
+	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, *customEventSpec.Query)
+	require.Equal(t, customEventSpecificationWithThresholdRuleDescription, *customEventSpec.Description)
+	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
+	require.True(t, customEventSpec.Triggering)
+	require.True(t, customEventSpec.Enabled)
 
-	assert.Equal(t, 1, len(customEventSpec.Rules))
-	assert.Equal(t, customEventSpecificationWithThresholdRuleMetricName, *customEventSpec.Rules[0].MetricName)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleWindow, *customEventSpec.Rules[0].Window)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleRollup, *customEventSpec.Rules[0].Rollup)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *customEventSpec.Rules[0].Aggregation)
-	assert.Equal(t, restapi.ConditionOperatorEquals.InstanaAPIValue(), *customEventSpec.Rules[0].ConditionOperator)
-	assert.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
-	assert.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+	require.Equal(t, 1, len(customEventSpec.Rules))
+	require.Equal(t, customEventSpecificationWithThresholdRuleMetricName, *customEventSpec.Rules[0].MetricName)
+	require.Equal(t, customEventSpecificationWithThresholdRuleWindow, *customEventSpec.Rules[0].Window)
+	require.Equal(t, customEventSpecificationWithThresholdRuleRollup, *customEventSpec.Rules[0].Rollup)
+	require.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *customEventSpec.Rules[0].Aggregation)
+	require.Equal(t, restapi.ConditionOperatorEquals.InstanaAPIValue(), *customEventSpec.Rules[0].ConditionOperator)
+	require.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
+	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {
@@ -599,9 +582,9 @@ func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToData
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.Set(CustomEventSpecificationRuleSeverity, "INVALID")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToDataModelWhenConditionOperationIsNotSupported(t *testing.T) {
@@ -612,8 +595,8 @@ func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToData
 	resourceData.Set(CustomEventSpecificationRuleSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
 	resourceData.Set(ThresholdRuleFieldConditionOperator, "invalid")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "is not a supported condition operator of the Instana Terraform provider")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "is not a supported condition operator of the Instana Terraform provider")
 }

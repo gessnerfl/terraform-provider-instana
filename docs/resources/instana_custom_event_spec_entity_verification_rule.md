@@ -43,3 +43,11 @@ Supported entity types (plugins) can be retrieved from the Instana REST API usin
 Allowed values: `is`, `contains`, `startsWith`, `starts_with`, `endsWith`, `ends_with`
 * `rule_matching_entity_label` - Required - The label/string to check for matching entities on the selected hosts
 * `rule_offline_duration` - Required - The duration in milliseconds to wait until the entity is considered as offline
+
+## Import
+
+Custom event specifications with entity verification rule can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_custom_event_spec_entity_verification_rule.my_event_spec 60845e4e5e6b9cf8fc2868da
+```

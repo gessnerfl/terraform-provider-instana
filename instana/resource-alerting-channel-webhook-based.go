@@ -66,8 +66,9 @@ func (r *alertingChannelWebhookBasedResource) SetComputedFields(d *schema.Resour
 	//No computed fields defined
 }
 
-func (r *alertingChannelWebhookBasedResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *alertingChannelWebhookBasedResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
+	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelWebhookBasedFieldWebhookURL, alertingChannel.WebhookURL)
 	d.SetId(alertingChannel.ID)

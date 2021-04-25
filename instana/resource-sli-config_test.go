@@ -2,32 +2,27 @@ package instana_test
 
 import (
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const sliConfigTerraformTemplate = `
 provider "instana" {
 	api_token = "test-token"
-	endpoint = "localhost:{{PORT}}"
+	endpoint = "localhost:%d"
 	default_name_prefix = "prefix"
 	default_name_suffix = "suffix"
 }
 
 resource "instana_sli_config" "example_sli_config" {
-	name = "name {{ITERATOR}}"
+	name = "name %d"
 	initial_evaluation_timestamp = 0
 	metric_configuration {
 		metric_name = "metric_name_example"
@@ -46,8 +41,8 @@ resource "instana_sli_config" "example_sli_config" {
 
 const sliConfigServerResponseTemplate = `
 {
-	"id"						: "{{id}}",
-	"sliName"					: "prefix name suffix",
+	"id"						: "%s",
+	"sliName"					: "prefix name %d suffix",
 	"initialEvaluationTimestamp": 0,
 	"metricConfiguration": {
 		"metricName"		: "metric_name_example",
@@ -65,14 +60,13 @@ const sliConfigServerResponseTemplate = `
 `
 
 const (
-	sliConfigApiPath    = restapi.SliConfigResourcePath + "/{id}"
 	sliConfigDefinition = "instana_sli_config.example_sli_config"
 
 	nestedResourceFieldPattern = "%s.0.%s"
 
 	sliConfigID                         = "id"
-	sliConfigName                       = "name"
-	sliConfigFullName                   = "prefix name suffix"
+	sliConfigName                       = resourceName
+	sliConfigFullName                   = resourceFullName
 	sliConfigInitialEvaluationTimestamp = 0
 	sliConfigMetricName                 = "metric_name_example"
 	sliConfigMetricAggregation          = "SUM"
@@ -85,55 +79,39 @@ const (
 )
 
 func TestCRUDOfSliConfiguration(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, sliConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, sliConfigApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, sliConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(sliConfigServerResponseTemplate, "{{id}}", vars["id"])
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.SliConfigResourcePath, sliConfigServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
-
-	resourceDefinitionWithoutName := strings.ReplaceAll(sliConfigTerraformTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithName0,
-				Check:  resource.ComposeTestCheckFunc(createSliConfigTestCheckFunctions(0)...),
-			},
-			{
-				Config: resourceDefinitionWithName1,
-				Check:  resource.ComposeTestCheckFunc(createSliConfigTestCheckFunctions(1)...),
-			},
+			createSliConfigTestCheckFunctions(httpServer.GetPort(), 0),
+			testStepImport(sliConfigDefinition),
+			createSliConfigTestCheckFunctions(httpServer.GetPort(), 1),
+			//testStepImport(sliConfigDefinition),
 		},
 	})
 }
 
-func createSliConfigTestCheckFunctions(iteration int) []resource.TestCheckFunc {
-	testCheckFunctions := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, fmt.Sprintf("name %d", iteration)),
-		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, fmt.Sprintf("prefix name %d suffix", iteration)),
-		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), sliConfigEntityType),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), sliConfigEntityServiceID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+func createSliConfigTestCheckFunctions(httpPort int, iteration int) resource.TestStep {
+	return resource.TestStep{
+		Config: fmt.Sprintf(sliConfigTerraformTemplate, httpPort, iteration),
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
+			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliType), sliConfigEntityType),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldServiceID), sliConfigEntityServiceID),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
+			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+		),
 	}
-	return testCheckFunctions
 }
 
 func TestResourceSliConfigDefinition(t *testing.T) {
@@ -166,11 +144,11 @@ func TestResourceSliConfigDefinition(t *testing.T) {
 func TestShouldReturnCorrectResourceNameForSliConfigs(t *testing.T) {
 	name := NewSliConfigResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, "instana_sli_config", name, "Expected resource name to be instana_sli_config")
+	require.Equal(t, "instana_sli_config", name, "Expected resource name to be instana_sli_config")
 }
 
 func TestSliConfigResourceShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewSliConfigResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 0, NewSliConfigResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
@@ -179,16 +157,17 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.SliConfig{
 		ID:   sliConfigID,
-		Name: sliConfigName,
+		Name: sliConfigFullName,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	assert.Nil(t, err)
-	assert.Equal(t, sliConfigID, resourceData.Id(), "id should be equal")
-	assert.Equal(t, sliConfigName, resourceData.Get(SliConfigFieldFullName), "name should be equal to full name")
+	require.Nil(t, err)
+	require.Equal(t, sliConfigID, resourceData.Id())
+	require.Equal(t, sliConfigName, resourceData.Get(SliConfigFieldName))
+	require.Equal(t, sliConfigFullName, resourceData.Get(SliConfigFieldFullName))
 }
 
 func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
@@ -220,21 +199,21 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	}
 	resourceData.Set(SliConfigFieldSliEntity, sliEntityStateObject)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.SliConfig{}, model, "Model should be an sli config")
-	assert.Equal(t, sliConfigID, model.GetIDForResourcePath())
-	assert.Equal(t, sliConfigFullName, model.(*restapi.SliConfig).Name, "name should be equal to full name")
-	assert.Equal(t, sliConfigInitialEvaluationTimestamp, model.(*restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
-	assert.Equal(t, sliConfigMetricName, model.(*restapi.SliConfig).MetricConfiguration.Name)
-	assert.Equal(t, sliConfigMetricAggregation, model.(*restapi.SliConfig).MetricConfiguration.Aggregation)
-	assert.Equal(t, sliConfigMetricThreshold, model.(*restapi.SliConfig).MetricConfiguration.Threshold)
-	assert.Equal(t, sliConfigEntityType, model.(*restapi.SliConfig).SliEntity.Type)
-	assert.Equal(t, sliConfigEntityApplicationID, model.(*restapi.SliConfig).SliEntity.ApplicationID)
-	assert.Equal(t, sliConfigEntityServiceID, model.(*restapi.SliConfig).SliEntity.ServiceID)
-	assert.Equal(t, sliConfigEntityEndpointID, model.(*restapi.SliConfig).SliEntity.EndpointID)
-	assert.Equal(t, sliConfigEntityBoundaryScope, model.(*restapi.SliConfig).SliEntity.BoundaryScope)
+	require.Nil(t, err)
+	require.IsType(t, &restapi.SliConfig{}, model, "Model should be an sli config")
+	require.Equal(t, sliConfigID, model.GetIDForResourcePath())
+	require.Equal(t, sliConfigFullName, model.(*restapi.SliConfig).Name, "name should be equal to full name")
+	require.Equal(t, sliConfigInitialEvaluationTimestamp, model.(*restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
+	require.Equal(t, sliConfigMetricName, model.(*restapi.SliConfig).MetricConfiguration.Name)
+	require.Equal(t, sliConfigMetricAggregation, model.(*restapi.SliConfig).MetricConfiguration.Aggregation)
+	require.Equal(t, sliConfigMetricThreshold, model.(*restapi.SliConfig).MetricConfiguration.Threshold)
+	require.Equal(t, sliConfigEntityType, model.(*restapi.SliConfig).SliEntity.Type)
+	require.Equal(t, sliConfigEntityApplicationID, model.(*restapi.SliConfig).SliEntity.ApplicationID)
+	require.Equal(t, sliConfigEntityServiceID, model.(*restapi.SliConfig).SliEntity.ServiceID)
+	require.Equal(t, sliConfigEntityEndpointID, model.(*restapi.SliConfig).SliEntity.EndpointID)
+	require.Equal(t, sliConfigEntityBoundaryScope, model.(*restapi.SliConfig).SliEntity.BoundaryScope)
 }
 
 func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.T) {
@@ -256,5 +235,5 @@ func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.
 	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
 
 	_, metricThresholdIsOK := resourceData.GetOk("metric_configuration.0.threshold")
-	assert.False(t, metricThresholdIsOK)
+	require.False(t, metricThresholdIsOK)
 }

@@ -52,3 +52,11 @@ resource "instana_alerting_config" "example" {
 * `event_filter_rule_ids` - Optional - list of rule IDs which are included by the alerting config.
 * `event_filter_event_types` - Optional - list of event types which are included by the alerting config.
 Allowed values: `incident`, `critical`, `warning`, `change`, `online`, `offline`, `agent_monitoring_issue`, `none`
+
+## Import
+
+Alerting configs can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_config.my_alerting_config 60845e4e5e6b9cf8fc2868da
+```

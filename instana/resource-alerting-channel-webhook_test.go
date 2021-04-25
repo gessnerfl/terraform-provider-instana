@@ -3,32 +3,27 @@ package instana_test
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceAlertingChannelWebhookDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_channel_webhook" "example" {
-  name = "name {{ITERATOR}}"
+  name = "name %d"
   webhook_urls = [ "url1", "url2" ]
   http_headers = {
 	  key1 = "value1"
@@ -39,67 +34,46 @@ resource "instana_alerting_channel_webhook" "example" {
 
 const alertingChannelWebhookServerResponseTemplate = `
 {
-	"id"     : "{{id}}",
-	"name"   : "prefix name suffix",
+	"id"     : "%s",
+	"name"   : "prefix name %d suffix",
 	"kind"   : "WEB_HOOK",
 	"webhookUrls" : [ "url1", "url2" ],
 	"headers" : [ "key1: value1", "key2: value2" ]
 }
 `
 
-const alertingChannelWebhookApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelWebhookDefinition = "instana_alerting_channel_webhook.example"
 
 func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingChannelWebhookApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingChannelWebhookApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingChannelWebhookApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(alertingChannelWebhookServerResponseTemplate, "{{id}}", vars["id"])
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelWebhookServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelWebhookDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
-
-	url1 := "url1"
-	url2 := "url2"
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelWebhookDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 0), url1),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 1), url2),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key1", "value1"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key2", "value2"),
-				),
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelWebhookDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 0), "url1"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 1), "url2"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key1", "value1"),
-					resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key2", "value2"),
-				),
-			},
+			createAlertingChannelWebhookResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingChannelWebhookDefinition),
+			createAlertingChannelWebhookResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingChannelWebhookDefinition),
 		},
 	})
+}
+
+func createAlertingChannelWebhookResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelWebhookDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testAlertingChannelWebhookDefinition, "id"),
+			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 0), "url1"),
+			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 1), "url2"),
+			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key1", "value1"),
+			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key2", "value2"),
+		),
+	}
 }
 
 func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
@@ -116,23 +90,23 @@ func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 func TestShouldReturnCorrectResourceNameForAlertingChannelWebhook(t *testing.T) {
 	name := NewAlertingChannelWebhookResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_alerting_channel_webhook")
+	require.Equal(t, name, "instana_alerting_channel_webhook")
 }
 
 func TestAlertingChannelWebhookShouldHaveSchemaVersionOne(t *testing.T) {
-	assert.Equal(t, 1, NewAlertingChannelWebhookResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 1, NewAlertingChannelWebhookResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelWebhookShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
 	resourceHandler := NewAlertingChannelWebhookResourceHandle()
 
-	assert.Equal(t, 1, len(resourceHandler.StateUpgraders()))
-	assert.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 }
 
 func TestShouldReturnStateOfAlertingChannelWebhookUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
 	rawData := make(map[string]interface{})
-	rawData[AlertingChannelFieldName] = "name"
+	rawData[AlertingChannelFieldName] = resourceName
 	rawData[AlertingChannelFieldFullName] = "fullname"
 	rawData[AlertingChannelWebhookFieldWebhookURLs] = []interface{}{"url1", "url2"}
 	rawData[AlertingChannelWebhookFieldHTTPHeaders] = map[string]interface{}{
@@ -144,8 +118,8 @@ func TestShouldReturnStateOfAlertingChannelWebhookUnchangedWhenMigratingFromVers
 
 	result, err := NewAlertingChannelWebhookResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
 
-	assert.Nil(t, err)
-	assert.Equal(t, rawData, result)
+	require.Nil(t, err)
+	require.Equal(t, rawData, result)
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenNoHeaderIsProvided(t *testing.T) {
@@ -177,21 +151,22 @@ func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headers
 	webhookURLs := []string{"url1", "url2"}
 	data := restapi.AlertingChannel{
 		ID:          "id",
-		Name:        "name",
+		Name:        resourceFullName,
 		WebhookURLs: webhookURLs,
 		Headers:     headersFromApi,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
-	assert.Equal(t, headersMapped, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
+	require.Nil(t, err)
+	require.Equal(t, "id", resourceData.Id())
+	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, headersMapped, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
 	urls := resourceData.Get(AlertingChannelWebhookFieldWebhookURLs).(*schema.Set)
-	assert.Equal(t, 2, urls.Len())
-	assert.Contains(t, urls.List(), "url1")
-	assert.Contains(t, urls.List(), "url2")
+	require.Equal(t, 2, urls.Len())
+	require.Contains(t, urls.List(), "url1")
+	require.Contains(t, urls.List(), "url2")
 }
 
 func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvailable(t *testing.T) {
@@ -201,17 +176,17 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelWebhookFieldWebhookURLs, webhookURLs)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
-	assert.Equal(t, "id", model.GetIDForResourcePath())
-	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Len(t, model.(*restapi.AlertingChannel).WebhookURLs, 2)
-	assert.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url1")
-	assert.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url2")
-	assert.Equal(t, []string{}, model.(*restapi.AlertingChannel).Headers, "There should be no headers")
+	require.Nil(t, err)
+	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	require.Equal(t, "id", model.GetIDForResourcePath())
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Len(t, model.(*restapi.AlertingChannel).WebhookURLs, 2)
+	require.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url1")
+	require.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url2")
+	require.Equal(t, []string{}, model.(*restapi.AlertingChannel).Headers, "There should be no headers")
 }

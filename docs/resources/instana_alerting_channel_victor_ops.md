@@ -22,3 +22,11 @@ resource "instana_alerting_channel_victor_ops" "example" {
 * `name` - Required - the name of the alerting channel
 * `api_key` - Required - the api key to authenticate at the VictorOps API
 * `routing_key` - Required - the routing key used by VictoryOps to route the alert to the desired targe
+
+## Import
+
+VictorOps alerting channels can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_channel_victor_ops.my_channel 60845e4e5e6b9cf8fc2868da
+```

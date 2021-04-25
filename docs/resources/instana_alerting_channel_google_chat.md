@@ -20,3 +20,11 @@ resource "instana_alerting_channel_google_chat" "example" {
 
 * `name` - Required - the name of the alerting channel
 * `webhook_url` - Required - the URL of the Google Chat Webhook where the alert will be sent to
+
+## Import
+
+Google Chat alerting channels can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_channel_google_chat.my_channel 60845e4e5e6b9cf8fc2868da
+```

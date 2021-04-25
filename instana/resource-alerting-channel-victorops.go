@@ -58,8 +58,9 @@ func (r *alertingChannelVictorOpsResource) SetComputedFields(d *schema.ResourceD
 	//No computed fields defined
 }
 
-func (r *alertingChannelVictorOpsResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *alertingChannelVictorOpsResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
+	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelVictorOpsFieldAPIKey, alertingChannel.APIKey)
 	d.Set(AlertingChannelVictorOpsFieldRoutingKey, alertingChannel.RoutingKey)

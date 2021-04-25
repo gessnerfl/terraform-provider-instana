@@ -1,31 +1,27 @@
 package instana_test
 
 import (
-	"net/http"
-	"strconv"
-	"strings"
+	"fmt"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceAlertingChannelSplunkDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
+  endpoint = "localhost:%d"
   default_name_prefix = "prefix"
   default_name_suffix = "suffix"
 }
 
 resource "instana_alerting_channel_splunk" "example" {
-  name  = "name {{ITERATOR}}"
+  name  = "name %d"
 	url   = "url"
 	token = "token"
 }
@@ -33,61 +29,44 @@ resource "instana_alerting_channel_splunk" "example" {
 
 const alertingChannelSplunkServerResponseTemplate = `
 {
-	"id"    : "{{id}}",
-	"name"  : "prefix name suffix",
+	"id"    : "%s",
+	"name"  : "prefix name %d suffix",
 	"kind"  : "SPLUNK",
 	"url"   : "url",
 	"token" : "token"
 }
 `
 
-const alertingChannelSplunkApiPath = restapi.AlertingChannelsResourcePath + "/{id}"
 const testAlertingChannelSplunkDefinition = "instana_alerting_channel_splunk.example"
 
 func TestCRUDOfAlertingChannelSplunkResourceWithMockServer(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, alertingChannelSplunkApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, alertingChannelSplunkApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, alertingChannelSplunkApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		json := strings.ReplaceAll(alertingChannelSplunkServerResponseTemplate, "{{id}}", vars["id"])
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
+	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelSplunkServerResponseTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
-
-	resourceDefinitionWithoutName := strings.ReplaceAll(resourceAlertingChannelSplunkDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
-	resourceDefinitionWithoutName0 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "0")
-	resourceDefinitionWithoutName1 := strings.ReplaceAll(resourceDefinitionWithoutName, iteratorPlaceholder, "1")
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: resourceDefinitionWithoutName0,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelSplunkDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldName, "name 0"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldFullName, "prefix name 0 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldURL, "url"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldToken, "token"),
-				),
-			},
-			{
-				Config: resourceDefinitionWithoutName1,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(testAlertingChannelSplunkDefinition, "id"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldName, "name 1"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldFullName, "prefix name 1 suffix"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldURL, "url"),
-					resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldToken, "token"),
-				),
-			},
+			createAlertingChannelSplunkResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testAlertingChannelSplunkDefinition),
+			createAlertingChannelSplunkResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testAlertingChannelSplunkDefinition),
 		},
 	})
+}
+
+func createAlertingChannelSplunkResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceAlertingChannelSplunkDefinitionTemplate, httpPort, iteration)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testAlertingChannelSplunkDefinition, "id"),
+			resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldURL, "url"),
+			resource.TestCheckResourceAttr(testAlertingChannelSplunkDefinition, AlertingChannelSplunkFieldToken, "token"),
+		),
+	}
 }
 
 func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {
@@ -110,18 +89,19 @@ func TestShouldUpdateResourceStateForAlertingChanneSplunk(t *testing.T) {
 	token := "token"
 	data := restapi.AlertingChannel{
 		ID:    "id",
-		Name:  "name",
+		Name:  resourceFullName,
 		URL:   &url,
 		Token: &token,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data)
+	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.Equal(t, "id", resourceData.Id(), "id should be equal")
-	assert.Equal(t, "name", resourceData.Get(AlertingChannelFieldFullName), "name should be equal to full name")
-	assert.Equal(t, url, resourceData.Get(AlertingChannelSplunkFieldURL), "url should be equal")
-	assert.Equal(t, token, resourceData.Get(AlertingChannelSplunkFieldToken), "token should be equal")
+	require.Nil(t, err)
+	require.Equal(t, "id", resourceData.Id())
+	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
+	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, url, resourceData.Get(AlertingChannelSplunkFieldURL))
+	require.Equal(t, token, resourceData.Get(AlertingChannelSplunkFieldToken))
 }
 
 func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
@@ -132,30 +112,30 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, "prefix name suffix")
+	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
 	resourceData.Set(AlertingChannelSplunkFieldURL, url)
 	resourceData.Set(AlertingChannelSplunkFieldToken, token)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("prefix ", " suffix"))
+	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
-	assert.Nil(t, err)
-	assert.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
-	assert.Equal(t, "id", model.GetIDForResourcePath())
-	assert.Equal(t, "prefix name suffix", model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	assert.Equal(t, url, *model.(*restapi.AlertingChannel).URL, "url should be equal")
-	assert.Equal(t, token, *model.(*restapi.AlertingChannel).Token, "token should be equal")
+	require.Nil(t, err)
+	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
+	require.Equal(t, "id", model.GetIDForResourcePath())
+	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
+	require.Equal(t, url, *model.(*restapi.AlertingChannel).URL, "url should be equal")
+	require.Equal(t, token, *model.(*restapi.AlertingChannel).Token, "token should be equal")
 }
 
 func TestAlertingChannelSplunkkShouldHaveSchemaVersionZero(t *testing.T) {
-	assert.Equal(t, 0, NewAlertingChannelSplunkResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 0, NewAlertingChannelSplunkResourceHandle().MetaData().SchemaVersion)
 }
 
 func TestAlertingChannelSplunkShouldHaveNoStateUpgrader(t *testing.T) {
-	assert.Equal(t, 0, len(NewAlertingChannelSplunkResourceHandle().StateUpgraders()))
+	require.Equal(t, 0, len(NewAlertingChannelSplunkResourceHandle().StateUpgraders()))
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelSplunk(t *testing.T) {
 	name := NewAlertingChannelSplunkResourceHandle().MetaData().ResourceName
 
-	assert.Equal(t, name, "instana_alerting_channel_splunk")
+	require.Equal(t, name, "instana_alerting_channel_splunk")
 }

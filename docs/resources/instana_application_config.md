@@ -63,3 +63,11 @@ entity.service.name EQUALS 'my-service' AND entity.tag:stage EQUALS 'PROD'
 ```plain
 entity.service.name@src EQUALS 'my-service' AND entity.tag:stage@src EQUALS 'PROD'
 ```
+
+## Import
+
+Application Configs can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_application_config.my_app_config 60845e4e5e6b9cf8fc2868da
+```

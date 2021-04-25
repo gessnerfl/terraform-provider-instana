@@ -69,9 +69,10 @@ func (r *alertingChannelEmailResource) SetComputedFields(d *schema.ResourceData)
 	//No computed fields defined
 }
 
-func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	alertingChannel := obj.(*restapi.AlertingChannel)
 	emails := alertingChannel.Emails
+	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelEmailFieldEmails, emails)
 	d.SetId(alertingChannel.ID)

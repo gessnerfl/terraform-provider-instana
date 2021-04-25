@@ -185,16 +185,16 @@ func (r *sliConfigResource) SetComputedFields(d *schema.ResourceData) {
 	//No computed fields defined
 }
 
-func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject) error {
+func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	sliConfig := obj.(*restapi.SliConfig)
 
-	metricConfiguration := map[string]string{
+	metricConfiguration := map[string]interface{}{
 		SliConfigFieldMetricName:        sliConfig.MetricConfiguration.Name,
 		SliConfigFieldMetricAggregation: sliConfig.MetricConfiguration.Aggregation,
-		SliConfigFieldMetricThreshold:   fmt.Sprintf("%f", sliConfig.MetricConfiguration.Threshold),
+		SliConfigFieldMetricThreshold:   sliConfig.MetricConfiguration.Threshold,
 	}
 
-	sliEntity := map[string]string{
+	sliEntity := map[string]interface{}{
 		SliConfigFieldSliType:       sliConfig.SliEntity.Type,
 		SliConfigFieldApplicationID: sliConfig.SliEntity.ApplicationID,
 		SliConfigFieldServiceID:     sliConfig.SliEntity.ServiceID,
@@ -202,10 +202,11 @@ func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.Inst
 		SliConfigFieldBoundaryScope: sliConfig.SliEntity.BoundaryScope,
 	}
 
+	d.Set(SliConfigFieldName, formatter.UndoFormat(sliConfig.Name))
 	d.Set(SliConfigFieldFullName, sliConfig.Name)
 	d.Set(SliConfigFieldInitialEvaluationTimestamp, sliConfig.InitialEvaluationTimestamp)
-	d.Set(SliConfigFieldMetricConfiguration, metricConfiguration)
-	d.Set(SliConfigFieldSliEntity, sliEntity)
+	d.Set(SliConfigFieldMetricConfiguration, []map[string]interface{}{metricConfiguration})
+	d.Set(SliConfigFieldSliEntity, []map[string]interface{}{sliEntity})
 
 	d.SetId(sliConfig.ID)
 	return nil

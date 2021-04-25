@@ -24,3 +24,11 @@ resource "instana_alerting_channel_ops_genie" "example" {
 * `api_key` - Required - the API Key for authentication at the Ops Genie API
 * `tags` - Required - a list of tags (strings) for the alert in Ops Genie
 * `region` - Required - the target Ops Genie region
+
+## Import
+
+OpsGenie alerting channels can be imported using the `id`, e.g.:
+
+```
+$ terraform import instana_alerting_channel_ops_genie.my_channel 60845e4e5e6b9cf8fc2868da
+```
