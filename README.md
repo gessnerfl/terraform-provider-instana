@@ -11,7 +11,7 @@ Changes Log: **[CHANGELOG.md](https://github.com/gessnerfl/terraform-provider-in
 
 ## Documentation
 
-The documentation of the provider can be found on the Github Page <https://gessnerfl.github.io/terraform-provider-instana>.
+The documentation of the provider can be found on the Terraform Registry Page <https://registry.terraform.io/providers/gessnerfl/instana/latest>.
 
 ## Implementation Details
 
