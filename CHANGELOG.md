@@ -1,5 +1,25 @@
 # Changelog
 
+## [v1.0.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.0.0) (2021-04-25)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.11.0...v1.0.0)
+
+**Breaking changes:**
+
+- Resource instana\_user\_role not working anymore [\#92](https://github.com/gessnerfl/terraform-provider-instana/issues/92)
+
+**Implemented enhancements:**
+
+- Support Import for resources [\#95](https://github.com/gessnerfl/terraform-provider-instana/issues/95)
+- Support API Tokens [\#94](https://github.com/gessnerfl/terraform-provider-instana/issues/94)
+- Migrate to Terraform Plugin SDK v2 [\#87](https://github.com/gessnerfl/terraform-provider-instana/issues/87)
+
+**Merged pull requests:**
+
+- Feature/95 import support [\#98](https://github.com/gessnerfl/terraform-provider-instana/pull/98) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/94 api tokens [\#97](https://github.com/gessnerfl/terraform-provider-instana/pull/97) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/87 sdkv2 [\#96](https://github.com/gessnerfl/terraform-provider-instana/pull/96) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v0.11.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.11.0) (2021-02-09)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.10.1...v0.11.0)
@@ -121,7 +141,6 @@
 **Merged pull requests:**
 
 - Bugfix/43 order of event types [\#46](https://github.com/gessnerfl/terraform-provider-instana/pull/46) ([gessnerfl](https://github.com/gessnerfl))
-- \#44: Remove downstream integration IDs from custom event specs [\#45](https://github.com/gessnerfl/terraform-provider-instana/pull/45) ([gessnerfl](https://github.com/gessnerfl))
 - \#41: use testify instead of plain go if checks in tests [\#42](https://github.com/gessnerfl/terraform-provider-instana/pull/42) ([gessnerfl](https://github.com/gessnerfl))
 
 ## [v0.8.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.8.1) (2020-02-21)
@@ -130,6 +149,7 @@
 
 **Merged pull requests:**
 
+- \#44: Remove downstream integration IDs from custom event specs [\#45](https://github.com/gessnerfl/terraform-provider-instana/pull/45) ([gessnerfl](https://github.com/gessnerfl))
 - \#39 Allow 1024 rule-ids per instana\_alerting\_config [\#40](https://github.com/gessnerfl/terraform-provider-instana/pull/40) ([ppuschmann](https://github.com/ppuschmann))
 
 ## [v0.8.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.8.0) (2020-02-14)
