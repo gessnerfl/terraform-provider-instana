@@ -3,12 +3,12 @@
   "info": {
     "contact": {
       "email": "support@instana.com",
-      "name": "© Instana",
+      "name": "?? Instana",
       "url": "http://instana.com"
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.194.695",
+    "version": "1.199.1128",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -84,7 +84,11 @@
     },
     {
       "name": "Application Alert Configuration",
-      "description": "The endpoints of this group can be used to manage Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature \"Application Smart Alerts\".\nIn order to use this feature or to have more information, please contact <support@instana.com>.\n\n"
+      "description": "The API endpoints of this group can be used to manage Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature \"Application Smart Alerts\".\nIn order to use this feature or to have more information, please contact <support@instana.com>.\n\n## Parameters:\n\n- **id:** ID of the application alert config which needs to be updated.\n\n- **name:** Name for the application alert configuration.\n\n- **description:** Description for the application alert configuration.\n\n- **severity:** The severity of the alert when triggered, which is either `5` (Warning), or `10` (Critical).\n\n- **triggering:** Optional flag to indicate whether also an Incident is triggered or not.\n\n- **applications:** Selection of application, services and endpoints in scope.\n\n  The selection defines a tree of included or excluded sub entities. The defined `inclusive` flag defines whether this node and his child nodes are included (`inclusive: true`) or excluded (`inclusive: false`) by default. Empty selections or unnecessary selections are not allowed. \n\n  #### Example 1: Select an entire Application Perspective\n\n  To select the entire application with ID `<appId>` including all its services and endpoints, simply provide the following selection object:\n\n  ```json\n  \"applications\": {\n      \"<appId>\": {\n          \"applicationId\": \"<appId>\"\n      }\n  }\n  ```\n\n  Leaf nodes of the selection tree default to `true` if no `inclusive` value is defined.\n\n  #### Example 2: Specific selection of services and endpoints\n\n  To select not the entire application with ID `<appId>`, but only the entire serivces Service1 with ID `<service1>` and Service2 with ID `<service2>`, with the exception of endpoint `<endpoint2>` of Service2. And in addition, only Endpoint `<endpoint3>` of Service3 with id `<service3>`, then use the following selection:\n\n  ```json\n  \"applications\": {\n      \"<appId>\": {\n          \"applicationId\": \"<appId>\",\n          \"inclusive\": false,\n          \"services\": {\n              \"<service1>\": {\n                  \"serviceId\": \"<service1>\"\n              },\n              \"<service2>\": {\n                  \"serviceId\": \"<service2>\",\n                  \"inclusive\": true,\n                  \"endpoints\": {\n                      \"<endpoint2>\": {\n                          \"endpointId\": \"<endpoint2>\",\n                          \"inclusive\": false\n                      }\n                  }\n              },\n              \"<service3>\": {\n                  \"serviceId\": \"<service3>\",\n                  \"inclusive\": false,\n                  \"endpoints\": {\n                      \"<endpoint3>\": {\n                          \"endpointId\": \"<endpoint3>\",\n                          \"inclusive\": true\n                      }\n                  }\n              }\n          }\n      }\n  }\n  ``` \n\n- **boundaryScope:** Boundary scope of the Application Perspective\n\n- **tagFilterExpression:** Boolean expression of tag filters to define the scope of relevant calls.\n\n- **includeInternal:** Optional flag to indicate whether also internal calls are included in the scope or not. The default is `false`.\n\n- **includeSynthetic:** Optional flag to indicate whether also synthetic calls are included in the scope or not. The default is `false`.\n\n- **evaluationType:** The alert evaluation type of the alert configuration. For example, this allows to configure whether calls of the configured scope is aggregated to a single metric that is then considered for alerting (`\"PER_AP\"`), or whether each service of an Appliction Perspective is is evaluated individually (`\"PER_AP_SERVICE\"`).\n\n- **granularity:** The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used.\n\n- **rule:** Indicates the type of rule this alert configuration is about.\n\n- **threshold:** Indicates the type of threshold this alert rule is evaluated on .\n\n- **timeThreshold:** Indicates the type of violation of the defined threshold.\n\n- **alertChannelIds:** List of IDs of alert channels defined in Instana.\n\n## Deprecated Parameters\n\n- **tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**.\n\n- **applicationId:** Unique ID of the Application Perspective. It is replaced by **applications**."
+    },
+    {
+      "name": "Global Application Alert Configuration",
+      "description": "The API endpoints of this group can be used to manage Global Application alert configurations. These endpoints are only available for customers who have opted-in for the BETA feature \"Application Smart Alerts\".\nIn order to use this feature or to have more information, please contact <support@instana.com>.\n\n## Parameters:\n\nAll parameters and deprecated parameters are similar to Application Alert Configuration except **applications**\n\n- **applications:** Selection of applications, services and endpoints in scope. It allows more than one application to define a global rule across different Application Perspectives.\n\n  #### Example: Select multiple Application Perspectives\n\n  To select multiple applications with IDs `<appId1>`, `<appId2>` including all its services and endpoints, simply provide the following selection object:\n\n  ```json\n  \"applications\": {\n      \"<appId1>\": {\n          \"applicationId\": \"<appId1>\"\n      },\n      \"<appId2>\": {\n           \"applicationId\": \"<appId2>\"\n      }\n  }\n  ```\n"
     },
     {
       "name": "Host Agent",
@@ -115,7 +119,8 @@
       "name": "Releases"
     },
     {
-      "name": "SLI Settings"
+      "name": "SLI Settings",
+      "description": "## Deprecated Parameters\n**tagFilters** The list of tag filters. It is replaced by **tagFilterExpression**"
     },
     {
       "name": "SLI Report"
@@ -132,6 +137,48 @@
     }
   ],
   "paths": {
+    "/api/application-monitoring/analyze/backend-correlation": {
+      "get": {
+        "operationId": "getCorrelatedTraces",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "correlationId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128,
+              "minLength": 0
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BackendTraceReference"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Resolve backend trace IDs using correlation IDs from website and mobile app monitoring beacons.",
+        "tags": [
+          "Application Analyze"
+        ]
+      }
+    },
     "/api/application-monitoring/analyze/call-groups": {
       "post": {
         "operationId": "getCallGroup",
@@ -175,7 +222,7 @@
         "tags": [
           "Application Analyze"
         ],
-        "description": "This endpoint retrieves the metrics for calls.\r\n\r\n**Manditory Paramters:**\r\n\r\n**Optional Paramters:**\r\n\r\n**Defaults:**\r\n\r\n**Limits:**\r\n\r\n**Tips:**\r\n"
+        "description": "This endpoint retrieves the metrics for calls.\r\n\r\n## Deprecated Parameters\r\n**tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**"
       }
     },
     "/api/application-monitoring/analyze/trace-groups": {
@@ -604,13 +651,6 @@
                 "APPLICATION_CONFIG_BLUEPRINT"
               ]
             }
-          },
-          {
-            "in": "query",
-            "name": "useQueryableTags",
-            "schema": {
-              "type": "boolean"
-            }
           }
         ],
         "responses": {
@@ -1001,7 +1041,8 @@
         "summary": "Add application configuration",
         "tags": [
           "Application Settings"
-        ]
+        ],
+        "description": "Create a new Application Perspective.\n\n## Deprecated Parameters\n**matchSpecification:** A binary tree sturcture of match expression connected with binary operator AND or OR. It is replaced by **tagFilterExpression** which is also used in Application Analyze API endpoints."
       }
     },
     "/api/application-monitoring/settings/application/{id}": {
@@ -1115,7 +1156,8 @@
         "summary": "Update application configuration",
         "tags": [
           "Application Settings"
-        ]
+        ],
+        "description": "Update an existing Application Perspective.\n\n## Deprecated Parameters\n**matchSpecification:** A binary tree sturcture of match expression connected with binary operator AND or OR. It is replaced by **tagFilterExpression** which is also used in Application Analyze API endpoints."
       }
     },
     "/api/application-monitoring/settings/http-endpoint": {
@@ -1295,6 +1337,196 @@
         "tags": [
           "Application Settings"
         ]
+      }
+    },
+    "/api/application-monitoring/settings/manual-service": {
+      "get": {
+        "operationId": "getAllManualServiceConfigs",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ManualServiceConfig"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ],
+        "summary": "All manual service configurations",
+        "tags": [
+          "Application Settings"
+        ],
+        "description": "Get all manual service configurations.\n\n**This is an experimental endpoint to workaround service mapping issues.**"
+      },
+      "post": {
+        "operationId": "addManualServiceConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualServiceConfigWithoutId"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualServiceConfig"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ],
+        "summary": "Add manual service configuration",
+        "tags": [
+          "Application Settings"
+        ],
+        "description": "Add a manual service configuration.\n\n**This is an experimental endpoint to workaround service mapping issues.**\n\n### Mandatory Parameters:\n\n**tagFilterExpression** A tag filter expression to match calls on which the manual service configuration will be applied. Only call tags are allowed in the expression.\n\n### Optional Parameters:\n**unmonitoredServiceName** Specify a service name if you want to map calls to an unmonitored service.\n\n**existingServiceId** Specify a service id if you want to map calls to an existing service.\n\n**description** A description of the configuration.\n\n**enabled** Enable or disable the configuration.\n\nNote: Either unmonitoredServiceName or existingServiceId should be specified in a configuration.\n\n### Defaults\n**enabled** `true`"
+      },
+      "put": {
+        "operationId": "replaceAllManualServiceConfigs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ManualServiceConfigWithoutId"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ManualServiceConfig"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ],
+        "summary": "Replace all manual service configurations",
+        "tags": [
+          "Application Settings"
+        ],
+        "description": "Replace all manual service configurations.\n\n**This is an experimental endpoint to workaround service mapping issues.**\n\n### Mandatory Parameters:\n\n**tagFilterExpression** A tag filter expression to match calls on which the manual service configuration will be applied. Only call tags are allowed in the expression.\n\n### Optional Parameters:\n**unmonitoredServiceName** Specify a service name if you want to map calls to an unmonitored service.\n\n**existingServiceId** Specify a service id if you want to map calls to an existing service.\n\n**description** A description of the configuration.\n\n**enabled** Enable or disable the configuration.\n\nNote: Either unmonitoredServiceName or existingServiceId should be specified in a configuration.\n\n### Defaults\n**enabled** `true`"
+      }
+    },
+    "/api/application-monitoring/settings/manual-service/{id}": {
+      "delete": {
+        "operationId": "deleteManualServiceConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ],
+        "summary": "Delete manual service configuration",
+        "tags": [
+          "Application Settings"
+        ],
+        "description": "Delete a manual service configuration.\n\n**This is an experimental endpoint to workaround service mapping issues.**"
+      },
+      "put": {
+        "operationId": "updateManualServiceConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualServiceConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualServiceConfig"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureServiceMapping"
+            ]
+          }
+        ],
+        "summary": "Update manual service configuration",
+        "tags": [
+          "Application Settings"
+        ],
+        "description": "Update a manual service configuration.\n\n**This is an experimental endpoint to workaround service mapping issues.**\n\n### Mandatory Parameters:\n\n**tagFilterExpression** A tag filter expression to match calls on which the manual service configuration will be applied. Only call tags are allowed in the expression.\n\n### Optional Parameters:\n**unmonitoredServiceName** Specify a service name if you want to map calls to an unmonitored service.\n\n**existingServiceId** Specify a service id if you want to map calls to an existing service.\n\n**description** A description of the configuration.\n\n**enabled** Enable or disable the configuration.\n\nNote: Either unmonitoredServiceName or existingServiceId should be specified in a configuration.\n\n### Defaults\n**enabled** `true`"
       }
     },
     "/api/application-monitoring/settings/service": {
@@ -1564,7 +1796,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CustomDashboard"
+                    "$ref": "#/components/schemas/CustomDashboardPreview"
                   }
                 }
               }
@@ -2312,7 +2544,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
+              "Default"
             ]
           }
         ],
@@ -2357,7 +2589,8 @@
         "summary": "Create Application Alert Config",
         "tags": [
           "Application Alert Configuration"
-        ]
+        ],
+        "description": "This API endpoint creates the Application Alert Configuration.\n"
       }
     },
     "/api/events/settings/application-alert-configs/{id}": {
@@ -2431,7 +2664,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
+              "Default"
             ]
           }
         ],
@@ -2486,7 +2719,8 @@
         "summary": "Update Application Alert Config",
         "tags": [
           "Application Alert Configuration"
-        ]
+        ],
+        "description": "This API endpoint updates the Application Alert Configuration.\n"
       }
     },
     "/api/events/settings/application-alert-configs/{id}/disable": {
@@ -2620,7 +2854,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "CanConfigureCustomAlerts"
+              "Default"
             ]
           }
         ],
@@ -3291,6 +3525,333 @@
         ]
       }
     },
+    "/api/events/settings/global-alert-configs/applications": {
+      "get": {
+        "description": "Configs are sorted descending by their created date.",
+        "operationId": "findActiveGlobalApplicationAlertConfigs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "applicationId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GlobalApplicationAlertConfigWithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "All Global Application Alert Configs",
+        "tags": [
+          "Global Application Alert Configuration"
+        ]
+      },
+      "post": {
+        "operationId": "createGlobalApplicationAlertConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalApplicationsAlertConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalApplicationAlertConfigWithMetadata"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Create Global Application Alert Config",
+        "tags": [
+          "Global Application Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/global-alert-configs/applications/{id}": {
+      "delete": {
+        "operationId": "deleteGlobalApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Delete Global Application Alert Config",
+        "tags": [
+          "Global Application Alert Configuration"
+        ]
+      },
+      "get": {
+        "description": "Find a Global Application Alert Config by ID. This will deliver deleted configs too.",
+        "operationId": "findGlobalApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "validOn",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalApplicationAlertConfigWithMetadata"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get Global Application Alert Config",
+        "tags": [
+          "Global Application Alert Configuration"
+        ]
+      },
+      "post": {
+        "operationId": "updateGlobalApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalApplicationsAlertConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalApplicationAlertConfigWithMetadata"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Update Global Application Alert Config",
+        "tags": [
+          "Global Application Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/global-alert-configs/applications/{id}/disable": {
+      "put": {
+        "operationId": "disableGlobalApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Disable Global Application Alert Config",
+        "tags": [
+          "Global Application Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/global-alert-configs/applications/{id}/enable": {
+      "put": {
+        "operationId": "enableGlobalApplicationAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Enable Global Application Alert Config",
+        "tags": [
+          "Global Application Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/global-alert-configs/applications/{id}/versions": {
+      "get": {
+        "description": "Find all versions of a Global Application Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.",
+        "operationId": "findGlobalApplicationAlertConfigVersions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConfigVersion"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get versions of Global Application Alert Config",
+        "tags": [
+          "Global Application Alert Configuration"
+        ]
+      }
+    },
     "/api/events/settings/website-alert-configs": {
       "get": {
         "description": "Configs are sorted descending by their created date.",
@@ -3366,7 +3927,8 @@
         "summary": "Create Website Alert Config",
         "tags": [
           "Event Settings"
-        ]
+        ],
+        "description": "This API endpoint creates the Website Alert Configuration.\n\n## Mandatory Parameters:\n\n- **name:** Name for the website alert configuration.\n\n- **description:** Description for the website alert configuration.\n\n- **severity:** The severity of the alert when triggered, which is either `5` (Warning), or `10` (Critical).\n\n- **triggering:** Optional flag to indicate whether also an Incident is triggered or not.\n\n- **websiteId:** Unique ID of the website.\n\n- **tagFilterExpression:** Boolean expression of tag filters to define the scope of relevant website beacons.\n\n- **granularity:** The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used.\n\n- **rule:** Indicates the type of rule this alert configuration is about.\n\n- **threshold:** Indicates the type of threshold this alert rule is evaluated on.\n\n- **timeThreshold:** Indicates the type of violation of the defined threshold.\n\n- **alertChannelIds:** List of IDs of alert channels defined in Instana.\n\n## Deprecated Parameters\n\n**tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**.\n"
       }
     },
     "/api/events/settings/website-alert-configs/{id}": {
@@ -3495,7 +4057,8 @@
         "summary": "Update Website Alert Config",
         "tags": [
           "Event Settings"
-        ]
+        ],
+        "description": "This API endpoint updates the Website Alert Configuration.\n\n## Mandatory Parameters:\n\n- **id:** ID of the website alert config which needs to be updated.\n\n- **name:** Name for the website alert configuration.\n\n- **description:** Description for the website alert configuration.\n\n- **severity:** The severity of the alert when triggered, which is either `5` (Warning), or `10` (Critical).\n\n- **triggering:** Optional flag to indicate whether also an Incident is triggered or not.\n\n- **websiteId:** Unique ID of the website.\n\n- **tagFilterExpression:** Boolean expression of tag filters to define the scope of relevant website beacons.\n\n- **granularity:** The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used.\n\n- **rule:** Indicates the type of rule this alert configuration is about.\n\n- **threshold:** Indicates the type of threshold this alert rule is evaluated on.\n\n- **timeThreshold:** Indicates the type of violation of the defined threshold.\n\n- **alertChannelIds:** List of IDs of alert channels defined in Instana.\n\n## Deprecated Parameters\n\n**tagFilters:** The list of tag filters. It is replaced by **tagFilterExpression**.\n"
       }
     },
     "/api/events/settings/website-alert-configs/{id}/disable": {
@@ -5091,7 +5654,7 @@
         "responses": {
           "default": {
             "content": {
-              "*/*": {}
+              "application/json": {}
             },
             "description": "default response"
           }
@@ -5241,225 +5804,6 @@
         "summary": "Audit log",
         "tags": [
           "Audit Log"
-        ]
-      }
-    },
-    "/api/settings/groups": {
-      "get": {
-        "operationId": "getGroups",
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ApiGroup"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureGroups"
-            ]
-          }
-        ],
-        "summary": "Get groups",
-        "tags": [
-          "Groups"
-        ]
-      },
-      "post": {
-        "operationId": "createGroup",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApiGroup"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiGroup"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureGroups"
-            ]
-          }
-        ],
-        "summary": "Create group",
-        "tags": [
-          "Groups"
-        ]
-      }
-    },
-    "/api/settings/groups/user/{email}": {
-      "get": {
-        "operationId": "getGroupsByUser",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "email",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ApiGroup"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureGroups"
-            ]
-          }
-        ],
-        "summary": "Get groups of a single user",
-        "tags": [
-          "Groups"
-        ]
-      }
-    },
-    "/api/settings/groups/{id}": {
-      "delete": {
-        "operationId": "deleteGroup",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {}
-            },
-            "description": "default response"
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureGroups"
-            ]
-          }
-        ],
-        "summary": "Delete group",
-        "tags": [
-          "Groups"
-        ]
-      },
-      "get": {
-        "operationId": "getGroup",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiGroup"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureGroups"
-            ]
-          }
-        ],
-        "summary": "Get group",
-        "tags": [
-          "Groups"
-        ]
-      },
-      "put": {
-        "operationId": "updateGroup",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApiGroup"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "default": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiGroup"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "ApiKeyAuth": [
-              "ConfigureGroups"
-            ]
-          }
-        ],
-        "summary": "Update group",
-        "tags": [
-          "Groups"
         ]
       }
     },
@@ -5616,6 +5960,319 @@
         ]
       }
     },
+    "/api/settings/rbac/groups": {
+      "get": {
+        "operationId": "getGroups",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiGroup"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureGroups"
+            ]
+          }
+        ],
+        "summary": "Get groups",
+        "tags": [
+          "Groups"
+        ]
+      },
+      "post": {
+        "operationId": "createGroup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiGroup"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiGroup"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureGroups"
+            ]
+          }
+        ],
+        "summary": "Create group",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/api/settings/rbac/groups/user/{email}": {
+      "get": {
+        "operationId": "getGroupsByUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiGroup"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureGroups"
+            ]
+          }
+        ],
+        "summary": "Get groups of a single user",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/api/settings/rbac/groups/{groupId}/permissions": {
+      "put": {
+        "operationId": "addPermissionsOnGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "groupId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiGroup"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureGroups"
+            ]
+          }
+        ],
+        "summary": "Add permissions to group",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/api/settings/rbac/groups/{groupId}/users": {
+      "put": {
+        "operationId": "addUsersToGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "groupId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiGroup"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureGroups"
+            ]
+          }
+        ],
+        "summary": "Add users to group",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
+    "/api/settings/rbac/groups/{id}": {
+      "delete": {
+        "operationId": "deleteGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureGroups"
+            ]
+          }
+        ],
+        "summary": "Delete group",
+        "tags": [
+          "Groups"
+        ]
+      },
+      "get": {
+        "operationId": "getGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiGroup"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureGroups"
+            ]
+          }
+        ],
+        "summary": "Get group",
+        "tags": [
+          "Groups"
+        ]
+      },
+      "put": {
+        "operationId": "updateGroup",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiGroup"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiGroup"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureGroups"
+            ]
+          }
+        ],
+        "summary": "Update group",
+        "tags": [
+          "Groups"
+        ]
+      }
+    },
     "/api/settings/session": {
       "delete": {
         "operationId": "deleteSessionSettings",
@@ -5764,7 +6421,8 @@
         "summary": "Create SLI Config",
         "tags": [
           "SLI Settings"
-        ]
+        ],
+        "description": "This endpoint creates the Service Level Indicator Configuration\n\n## Mandatory Parameters:\n\n- **id** A unique identifier for each SLI configuration\n\n- **sliName:** Name for the SLI configuration\n\n- **sliEntity:** Entity of the SLI configuration\n\n### SLI Entity specific parameters\n\nDepending on the chosen `sliType` in the `sliEntity`, there are further required parameters:\n\n#### Application SLI entity\n\nThis option can be used to create a Time-Based SLI\n\n- **sliEntity.applicationId:** The Id of the Application Perspective\n\n- **sliEntity.boundaryScope:** Boundary scope of the Application Perspective\n\n- **metricConfiguration.metricName:** The metric name on which to compute the SLI\n\n- **metricConfiguration.metricAggregation:** The aggregation of the metric\n\n- **metricConfiguration.threshold:** Threshold for the metric\n\n#### Availability SLI entity\n\nThis opetion can be used to create an Event-Based SLI\n\n- **sliEntity.applicationId:** The Id of the Application Perspective\n\n- **sliEntity.boundaryScope:** Boundary scope of the Application Perspective\n\n## Deprecated Parameters for Availability SLI entity:\n\n- **sliEntity.serviceId:** The ID if the Service in he context of an Application Perspective\n\n- **sliEntity.endpointId:** The ID of an Endpoint belonging to a Service\n\n- **sliEntity.goodEventFilters:** The list of TagFilters to match good events / calls\n\n- **sliEntity.badEventFilters:** The list of TagFilters to match bad events / calls\n\nAll of these filters can be included using the list of TagFilterExpressions via **sliEntity.goodEventFilterExpression** and **sliEntity.badEventFilterExpression**.\nThese parameters will be removed in the upcoming releases.\n"
       }
     },
     "/api/settings/sli/{id}": {
@@ -5851,7 +6509,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
+                "$ref": "#/components/schemas/SliConfiguration"
               }
             }
           },
@@ -6127,6 +6785,49 @@
         ]
       }
     },
+    "/api/settings/users/{email}": {
+      "put": {
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureUsers"
+            ]
+          }
+        ],
+        "summary": "Change user name of single user",
+        "tags": [
+          "User"
+        ]
+      }
+    },
     "/api/settings/users/{userId}": {
       "delete": {
         "operationId": "removeUserFromTenant",
@@ -6156,6 +6857,44 @@
           }
         ],
         "summary": "Remove user from tenant",
+        "tags": [
+          "User"
+        ]
+      },
+      "get": {
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureUsers"
+            ]
+          }
+        ],
+        "summary": "Get single user",
         "tags": [
           "User"
         ]
@@ -6699,6 +7438,7 @@
             "SLACK": "#/components/schemas/SlackIntegration",
             "SPLUNK": "#/components/schemas/SplunkIntegration",
             "VICTOR_OPS": "#/components/schemas/VictorOpsIntegration",
+            "WATSON_AIOPS_WEBHOOK": "#/components/schemas/WatsonAIOpsWebhookIntegration",
             "WEBEX_TEAMS_WEBHOOK": "#/components/schemas/WebexTeamsWebhookIntegration",
             "WEB_HOOK": "#/components/schemas/WebhookIntegration"
           },
@@ -6896,12 +7636,13 @@
             "type": "string"
           },
           "permissionSet": {
-            "$ref": "#/components/schemas/ApiPermissionSet"
+            "$ref": "#/components/schemas/ApiPermissionSetWithRoles"
           }
         },
         "required": [
           "members",
-          "name"
+          "name",
+          "permissionSet"
         ]
       },
       "ApiMember": {
@@ -6918,25 +7659,25 @@
           "userId"
         ]
       },
-      "ApiPermissionSet": {
+      "ApiPermissionSetWithRoles": {
         "type": "object",
         "properties": {
           "applicationIds": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ScopeBinding"
             },
             "maxItems": 1024,
             "minItems": 0,
             "uniqueItems": true
           },
           "infraDfqFilter": {
-            "type": "string"
+            "$ref": "#/components/schemas/ScopeBinding"
           },
           "kubernetesClusterUUIDs": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ScopeBinding"
             },
             "maxItems": 1024,
             "minItems": 0,
@@ -6945,7 +7686,7 @@
           "kubernetesNamespaceUIDs": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ScopeBinding"
             },
             "maxItems": 1024,
             "minItems": 0,
@@ -6954,7 +7695,7 @@
           "mobileAppIds": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ScopeBinding"
             },
             "maxItems": 1024,
             "minItems": 0,
@@ -6972,7 +7713,7 @@
           "websiteIds": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ScopeBinding"
             },
             "maxItems": 1024,
             "minItems": 0,
@@ -7013,6 +7754,9 @@
             "type": "boolean"
           },
           "canConfigureEumApplications": {
+            "type": "boolean"
+          },
+          "canConfigureGlobalAlertConfigs": {
             "type": "boolean"
           },
           "canConfigureGlobalAlertPayload": {
@@ -7107,7 +7851,8 @@
               "P99",
               "P99_9",
               "P99_99",
-              "DISTINCT_COUNT"
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE"
             ]
           },
           "granularity": {
@@ -7164,8 +7909,13 @@
           },
           "applicationId": {
             "type": "string",
-            "maxLength": 64,
-            "minLength": 0
+            "writeOnly": true
+          },
+          "applications": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ApplicationNode"
+            }
           },
           "boundaryScope": {
             "type": "string",
@@ -7179,6 +7929,13 @@
             "maxLength": 65536,
             "minLength": 0
           },
+          "evaluationType": {
+            "type": "string",
+            "enum": [
+              "PER_AP",
+              "PER_AP_SERVICE"
+            ]
+          },
           "granularity": {
             "type": "integer",
             "format": "int32",
@@ -7191,6 +7948,12 @@
               1200000,
               1800000
             ]
+          },
+          "includeInternal": {
+            "type": "boolean"
+          },
+          "includeSynthetic": {
+            "type": "boolean"
           },
           "name": {
             "type": "string",
@@ -7228,12 +7991,12 @@
         },
         "required": [
           "alertChannelIds",
-          "applicationId",
+          "applications",
           "boundaryScope",
           "description",
+          "evaluationType",
           "name",
           "rule",
-          "tagFilters",
           "threshold",
           "timeThreshold"
         ]
@@ -7255,6 +8018,12 @@
             "maxLength": 64,
             "minLength": 0
           },
+          "applications": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ApplicationNode"
+            }
+          },
           "boundaryScope": {
             "type": "string",
             "enum": [
@@ -7275,6 +8044,13 @@
           "enabled": {
             "type": "boolean"
           },
+          "evaluationType": {
+            "type": "string",
+            "enum": [
+              "PER_AP",
+              "PER_AP_SERVICE"
+            ]
+          },
           "granularity": {
             "type": "integer",
             "format": "int32",
@@ -7292,6 +8068,12 @@
             "type": "string",
             "maxLength": 64,
             "minLength": 0
+          },
+          "includeInternal": {
+            "type": "boolean"
+          },
+          "includeSynthetic": {
+            "type": "boolean"
           },
           "name": {
             "type": "string",
@@ -7332,13 +8114,13 @@
         },
         "required": [
           "alertChannelIds",
-          "applicationId",
+          "applications",
           "boundaryScope",
           "description",
+          "evaluationType",
           "id",
           "name",
           "rule",
-          "tagFilters",
           "threshold",
           "timeThreshold"
         ]
@@ -7372,7 +8154,8 @@
               "P99",
               "P99_9",
               "P99_99",
-              "DISTINCT_COUNT"
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE"
             ]
           },
           "alertType": {
@@ -7418,6 +8201,9 @@
               "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING",
               "INCLUDE_ALL_DOWNSTREAM"
             ]
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           }
         },
         "required": [
@@ -7429,72 +8215,19 @@
       },
       "ApplicationEventResult": {
         "type": "object",
-        "properties": {
-          "applicationId": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventResult"
           },
-          "detail": {
-            "type": "string"
-          },
-          "end": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "entityLabel": {
-            "type": "string"
-          },
-          "entityName": {
-            "type": "string"
-          },
-          "eventId": {
-            "type": "string"
-          },
-          "fixSuggestion": {
-            "type": "string"
-          },
-          "metrics": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
+          {
+            "type": "object",
+            "properties": {
+              "applicationId": {
+                "type": "string"
               }
             }
-          },
-          "problem": {
-            "type": "string"
-          },
-          "recentEvents": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
-              }
-            }
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "snapshotId": {
-            "type": "string"
-          },
-          "start": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "state": {
-            "type": "string"
-          },
-          "triggeringTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "type": {
-            "type": "string"
           }
-        }
+        ]
       },
       "ApplicationItem": {
         "type": "object",
@@ -7547,6 +8280,29 @@
         },
         "required": [
           "items"
+        ]
+      },
+      "ApplicationNode": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "inclusive": {
+            "type": "boolean"
+          },
+          "services": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ServiceNode"
+            }
+          }
+        },
+        "required": [
+          "applicationId",
+          "services"
         ]
       },
       "ApplicationResult": {
@@ -7716,6 +8472,9 @@
               "applicationId": {
                 "type": "string"
               },
+              "badEventFilterExpression": {
+                "$ref": "#/components/schemas/TagFilterExpressionElement"
+              },
               "badEventFilters": {
                 "type": "array",
                 "items": {
@@ -7734,6 +8493,9 @@
               "endpointId": {
                 "type": "string"
               },
+              "goodEventFilterExpression": {
+                "$ref": "#/components/schemas/TagFilterExpressionElement"
+              },
               "goodEventFilters": {
                 "type": "array",
                 "items": {
@@ -7741,6 +8503,12 @@
                 },
                 "maxItems": 32,
                 "minItems": 1
+              },
+              "includeInternal": {
+                "type": "boolean"
+              },
+              "includeSynthetic": {
+                "type": "boolean"
               },
               "serviceId": {
                 "type": "string"
@@ -7751,6 +8519,17 @@
         "required": [
           "boundaryScope",
           "sliType"
+        ]
+      },
+      "BackendTraceReference": {
+        "type": "object",
+        "properties": {
+          "traceId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "traceId"
         ]
       },
       "BeaconGroupsResult": {
@@ -8110,6 +8889,23 @@
           "widgets"
         ]
       },
+      "CustomDashboardPreview": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ]
+      },
       "CustomEventSpecification": {
         "type": "object",
         "properties": {
@@ -8286,6 +9082,51 @@
           "fields"
         ]
       },
+      "DeprecatedTagFilter": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string",
+            "enum": [
+              "NOT_APPLICABLE",
+              "DESTINATION",
+              "SOURCE"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "EQUALS",
+              "CONTAINS",
+              "LESS_THAN",
+              "LESS_OR_EQUAL_THAN",
+              "GREATER_THAN",
+              "GREATER_OR_EQUAL_THAN",
+              "NOT_EMPTY",
+              "NOT_EQUAL",
+              "NOT_CONTAIN",
+              "IS_EMPTY",
+              "NOT_BLANK",
+              "IS_BLANK",
+              "STARTS_WITH",
+              "ENDS_WITH",
+              "NOT_STARTS_WITH",
+              "NOT_ENDS_WITH"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "operator",
+          "value"
+        ]
+      },
       "DynamicField": {
         "type": "object",
         "allOf": [
@@ -8319,6 +9160,17 @@
         },
         "required": [
           "tagName"
+        ]
+      },
+      "EditUser": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fullName"
         ]
       },
       "EmailIntegration": {
@@ -8417,75 +9269,22 @@
       },
       "EndpointEventResult": {
         "type": "object",
-        "properties": {
-          "detail": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventResult"
           },
-          "end": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "endpointId": {
-            "type": "string"
-          },
-          "endpointServiceId": {
-            "type": "string"
-          },
-          "entityLabel": {
-            "type": "string"
-          },
-          "entityName": {
-            "type": "string"
-          },
-          "eventId": {
-            "type": "string"
-          },
-          "fixSuggestion": {
-            "type": "string"
-          },
-          "metrics": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
+          {
+            "type": "object",
+            "properties": {
+              "endpointId": {
+                "type": "string"
+              },
+              "endpointServiceId": {
+                "type": "string"
               }
             }
-          },
-          "problem": {
-            "type": "string"
-          },
-          "recentEvents": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
-              }
-            }
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "snapshotId": {
-            "type": "string"
-          },
-          "start": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "state": {
-            "type": "string"
-          },
-          "triggeringTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "type": {
-            "type": "string"
           }
-        }
+        ]
       },
       "EndpointItem": {
         "type": "object",
@@ -8538,6 +9337,22 @@
         },
         "required": [
           "items"
+        ]
+      },
+      "EndpointNode": {
+        "type": "object",
+        "properties": {
+          "endpointId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "inclusive": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "endpointId"
         ]
       },
       "EndpointResult": {
@@ -8679,6 +9494,9 @@
             "type": "string"
           },
           "entityName": {
+            "type": "string"
+          },
+          "entityType": {
             "type": "string"
           },
           "eventId": {
@@ -8921,10 +9739,13 @@
           "pagination": {
             "$ref": "#/components/schemas/CursorPagination"
           },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
           "tagFilters": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TagFilter"
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
             },
             "maxItems": 10,
             "minItems": 0
@@ -9144,7 +9965,7 @@
           "tagFilters": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TagFilter"
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
             },
             "maxItems": 32,
             "minItems": 0
@@ -9167,7 +9988,7 @@
           "tagFilters": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TagFilter"
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
             },
             "maxItems": 32,
             "minItems": 0
@@ -9200,7 +10021,7 @@
           "tagFilters": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TagFilter"
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
             },
             "maxItems": 32,
             "minItems": 0
@@ -9235,7 +10056,7 @@
           "tagFilters": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TagFilter"
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
             },
             "maxItems": 32,
             "minItems": 0
@@ -9273,7 +10094,7 @@
           "tagFilters": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TagFilter"
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
             },
             "maxItems": 32,
             "minItems": 0
@@ -9296,6 +10117,234 @@
         "required": [
           "metrics",
           "type"
+        ]
+      },
+      "GlobalApplicationAlertConfigWithMetadata": {
+        "type": "object",
+        "properties": {
+          "alertChannelIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "applicationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "applications": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ApplicationNode"
+            }
+          },
+          "boundaryScope": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "INBOUND"
+            ]
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "evaluationType": {
+            "type": "string",
+            "enum": [
+              "PER_AP",
+              "PER_AP_SERVICE"
+            ]
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "default": 600000,
+            "enum": [
+              60000,
+              300000,
+              600000,
+              900000,
+              1200000,
+              1800000
+            ]
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "includeInternal": {
+            "type": "boolean"
+          },
+          "includeSynthetic": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "readOnly": {
+            "type": "boolean"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/Threshold"
+          },
+          "timeThreshold": {
+            "$ref": "#/components/schemas/ApplicationTimeThreshold"
+          },
+          "triggering": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "alertChannelIds",
+          "applications",
+          "boundaryScope",
+          "description",
+          "evaluationType",
+          "id",
+          "name",
+          "rule",
+          "threshold",
+          "timeThreshold"
+        ]
+      },
+      "GlobalApplicationsAlertConfig": {
+        "type": "object",
+        "properties": {
+          "alertChannelIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "applications": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ApplicationNode"
+            }
+          },
+          "boundaryScope": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "INBOUND"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "evaluationType": {
+            "type": "string",
+            "enum": [
+              "PER_AP",
+              "PER_AP_SERVICE"
+            ]
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "default": 600000,
+            "enum": [
+              60000,
+              300000,
+              600000,
+              900000,
+              1200000,
+              1800000
+            ]
+          },
+          "includeInternal": {
+            "type": "boolean"
+          },
+          "includeSynthetic": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "rule": {
+            "$ref": "#/components/schemas/ApplicationAlertRule"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagFilter"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/Threshold"
+          },
+          "timeThreshold": {
+            "$ref": "#/components/schemas/ApplicationTimeThreshold"
+          },
+          "triggering": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "alertChannelIds",
+          "applications",
+          "boundaryScope",
+          "description",
+          "evaluationType",
+          "name",
+          "rule",
+          "threshold",
+          "timeThreshold"
         ]
       },
       "GoogleChatIntegration": {
@@ -9523,6 +10572,7 @@
               "NUMBER",
               "BYTES",
               "PERCENTAGE",
+              "LATENCY",
               "MILLIS",
               "SECONDS",
               "MICROS",
@@ -9540,69 +10590,11 @@
       },
       "InfraEventResult": {
         "type": "object",
-        "properties": {
-          "detail": {
-            "type": "string"
-          },
-          "end": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "entityLabel": {
-            "type": "string"
-          },
-          "entityName": {
-            "type": "string"
-          },
-          "eventId": {
-            "type": "string"
-          },
-          "fixSuggestion": {
-            "type": "string"
-          },
-          "metrics": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
-              }
-            }
-          },
-          "problem": {
-            "type": "string"
-          },
-          "recentEvents": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
-              }
-            }
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "snapshotId": {
-            "type": "string"
-          },
-          "start": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "state": {
-            "type": "string"
-          },
-          "triggeringTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "type": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventResult"
           }
-        }
+        ]
       },
       "InfrastructureMetricResult": {
         "type": "object",
@@ -9868,6 +10860,57 @@
           "id"
         ]
       },
+      "ManualServiceConfig": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "existingServiceId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "unmonitoredServiceName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tagFilterExpression"
+        ]
+      },
+      "ManualServiceConfigWithoutId": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "enabled": {
+            "type": "boolean",
+            "writeOnly": true
+          },
+          "existingServiceId": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "unmonitoredServiceName": {
+            "type": "string",
+            "writeOnly": true
+          }
+        }
+      },
       "MatchAllHttpPathSegmentMatchingRule": {
         "type": "object",
         "allOf": [
@@ -9913,7 +10956,8 @@
               "P99",
               "P99_9",
               "P99_99",
-              "DISTINCT_COUNT"
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE"
             ]
           },
           "granularity": {
@@ -9948,7 +10992,8 @@
               "P99",
               "P99_9",
               "P99_99",
-              "DISTINCT_COUNT"
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE"
             ]
           },
           "metricName": {
@@ -10004,6 +11049,7 @@
               "NUMBER",
               "BYTES",
               "PERCENTAGE",
+              "LATENCY",
               "MILLIS",
               "SECONDS",
               "MICROS",
@@ -10144,6 +11190,9 @@
               "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING",
               "INCLUDE_ALL_DOWNSTREAM"
             ]
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           }
         },
         "required": [
@@ -10494,6 +11543,21 @@
           "inputName"
         ]
       },
+      "ScopeBinding": {
+        "type": "object",
+        "properties": {
+          "scopeId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "scopeRoleId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          }
+        }
+      },
       "SearchFieldResult": {
         "type": "object",
         "properties": {
@@ -10612,72 +11676,19 @@
       },
       "ServiceEventResult": {
         "type": "object",
-        "properties": {
-          "detail": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventResult"
           },
-          "end": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "entityLabel": {
-            "type": "string"
-          },
-          "entityName": {
-            "type": "string"
-          },
-          "eventId": {
-            "type": "string"
-          },
-          "fixSuggestion": {
-            "type": "string"
-          },
-          "metrics": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
+          {
+            "type": "object",
+            "properties": {
+              "serviceId": {
+                "type": "string"
               }
             }
-          },
-          "problem": {
-            "type": "string"
-          },
-          "recentEvents": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
-              }
-            }
-          },
-          "serviceId": {
-            "type": "string"
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "snapshotId": {
-            "type": "string"
-          },
-          "start": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "state": {
-            "type": "string"
-          },
-          "triggeringTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "type": {
-            "type": "string"
           }
-        }
+        ]
       },
       "ServiceItem": {
         "type": "object",
@@ -10745,6 +11756,29 @@
         },
         "required": [
           "items"
+        ]
+      },
+      "ServiceNode": {
+        "type": "object",
+        "properties": {
+          "endpoints": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/EndpointNode"
+            }
+          },
+          "inclusive": {
+            "type": "boolean"
+          },
+          "serviceId": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "endpoints",
+          "serviceId"
         ]
       },
       "ServiceResult": {
@@ -11186,6 +12220,9 @@
             "type": "integer",
             "format": "int32",
             "minimum": 0
+          },
+          "foreignParentId": {
+            "type": "string"
           },
           "id": {
             "type": "string"
@@ -11696,47 +12733,68 @@
       },
       "TagFilter": {
         "type": "object",
-        "properties": {
-          "entity": {
-            "type": "string",
-            "enum": [
-              "NOT_APPLICABLE",
-              "DESTINATION",
-              "SOURCE"
-            ]
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
-          "name": {
-            "type": "string"
-          },
-          "operator": {
-            "type": "string",
-            "enum": [
-              "EQUALS",
-              "CONTAINS",
-              "LESS_THAN",
-              "LESS_OR_EQUAL_THAN",
-              "GREATER_THAN",
-              "GREATER_OR_EQUAL_THAN",
-              "NOT_EMPTY",
-              "NOT_EQUAL",
-              "NOT_CONTAIN",
-              "IS_EMPTY",
-              "NOT_BLANK",
-              "IS_BLANK",
-              "STARTS_WITH",
-              "ENDS_WITH",
-              "NOT_STARTS_WITH",
-              "NOT_ENDS_WITH"
-            ]
-          },
-          "value": {
-            "type": "string"
+          {
+            "type": "object",
+            "properties": {
+              "booleanValue": {
+                "type": "boolean"
+              },
+              "entity": {
+                "type": "string",
+                "enum": [
+                  "NOT_APPLICABLE",
+                  "DESTINATION",
+                  "SOURCE"
+                ]
+              },
+              "key": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "numberValue": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "EQUALS",
+                  "CONTAINS",
+                  "LESS_THAN",
+                  "LESS_OR_EQUAL_THAN",
+                  "GREATER_THAN",
+                  "GREATER_OR_EQUAL_THAN",
+                  "NOT_EMPTY",
+                  "NOT_EQUAL",
+                  "NOT_CONTAIN",
+                  "IS_EMPTY",
+                  "NOT_BLANK",
+                  "IS_BLANK",
+                  "STARTS_WITH",
+                  "ENDS_WITH",
+                  "NOT_STARTS_WITH",
+                  "NOT_ENDS_WITH"
+                ]
+              },
+              "stringValue": {
+                "type": "string"
+              },
+              "value": {
+                "type": "object"
+              }
+            }
           }
-        },
+        ],
         "required": [
+          "entity",
           "name",
-          "operator",
-          "value"
+          "operator"
         ]
       },
       "TagFilterExpression": {
@@ -11855,7 +12913,7 @@
           "label": {
             "type": "string"
           },
-          "searchable": {
+          "queryable": {
             "type": "boolean"
           },
           "type": {
@@ -11864,8 +12922,7 @@
         },
         "required": [
           "children",
-          "label",
-          "searchable"
+          "label"
         ]
       },
       "TagTreeNode": {
@@ -11900,6 +12957,9 @@
             "properties": {
               "description": {
                 "type": "string"
+              },
+              "queryable": {
+                "type": "boolean"
               },
               "tagName": {
                 "type": "string"
@@ -12364,7 +13424,8 @@
             "enum": [
               "Alert",
               "WebsiteSmartAlert",
-              "ApplicationSmartAlert"
+              "ApplicationSmartAlert",
+              "GlobalApplicationSmartAlert"
             ]
           }
         },
@@ -12577,6 +13638,28 @@
           "type"
         ]
       },
+      "WatsonAIOpsWebhookIntegration": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractIntegration"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "webhookUrl": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "webhookUrl"
+        ]
+      },
       "WebexTeamsWebhookIntegration": {
         "type": "object",
         "allOf": [
@@ -12719,7 +13802,6 @@
           "description",
           "name",
           "rule",
-          "tagFilters",
           "threshold",
           "timeThreshold",
           "websiteId"
@@ -12813,7 +13895,6 @@
           "id",
           "name",
           "rule",
-          "tagFilters",
           "threshold",
           "timeThreshold",
           "websiteId"
@@ -12847,7 +13928,8 @@
               "P99",
               "P99_9",
               "P99_99",
-              "DISTINCT_COUNT"
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE"
             ]
           },
           "alertType": {
@@ -12939,72 +14021,19 @@
       },
       "WebsiteEventResult": {
         "type": "object",
-        "properties": {
-          "detail": {
-            "type": "string"
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventResult"
           },
-          "end": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "entityLabel": {
-            "type": "string"
-          },
-          "entityName": {
-            "type": "string"
-          },
-          "eventId": {
-            "type": "string"
-          },
-          "fixSuggestion": {
-            "type": "string"
-          },
-          "metrics": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
+          {
+            "type": "object",
+            "properties": {
+              "websiteId": {
+                "type": "string"
               }
             }
-          },
-          "problem": {
-            "type": "string"
-          },
-          "recentEvents": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "object"
-              }
-            }
-          },
-          "severity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "snapshotId": {
-            "type": "string"
-          },
-          "start": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "state": {
-            "type": "string"
-          },
-          "triggeringTime": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "type": {
-            "type": "string"
-          },
-          "websiteId": {
-            "type": "string"
           }
-        }
+        ]
       },
       "WebsiteMetricResult": {
         "type": "object",
@@ -13433,8 +14462,22 @@
           },
           "metricId": {
             "type": "string"
+          },
+          "pathToValueInBeacon": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2147483647,
+            "minItems": 1
+          },
+          "tagName": {
+            "type": "string"
           }
-        }
+        },
+        "required": [
+          "beaconTypes"
+        ]
       },
       "WebsiteMonitoringMetricsConfiguration": {
         "type": "object",
@@ -13455,7 +14498,8 @@
               "P99",
               "P99_9",
               "P99_99",
-              "DISTINCT_COUNT"
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE"
             ]
           },
           "granularity": {
@@ -13621,7 +14665,8 @@
     {
       "name": "BETA Features",
       "tags": [
-        "Application Alert Configuration"
+        "Application Alert Configuration",
+        "Global Application Alert Configuration"
       ]
     },
     {

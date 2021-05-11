@@ -11,6 +11,8 @@ const (
 	EventSettingsBasePath = EventsBasePath + settingsPathElement
 	//SettingsBasePath path to Event Settings resource of Instana RESTful API
 	SettingsBasePath = InstanaAPIBasePath + settingsPathElement
+	//RBACSettingsBasePath path to Role Based Access Control Settings resources of Instana RESTful API
+	RBACSettingsBasePath = SettingsBasePath + "/rbac"
 	//WebsiteMonitoringResourcePath path to website monitoring
 	WebsiteMonitoringResourcePath = InstanaAPIBasePath + "/website-monitoring"
 )

@@ -123,7 +123,7 @@ type AlertingConfiguration struct {
 	EventFilteringConfiguration EventFilteringConfiguration `json:"eventFilteringConfiguration"`
 }
 
-//GetIDForResourcePath implemention of the interface InstanaDataObject
+//GetIDForResourcePath implementation of the interface InstanaDataObject
 func (c *AlertingConfiguration) GetIDForResourcePath() string {
 	return c.ID
 }
