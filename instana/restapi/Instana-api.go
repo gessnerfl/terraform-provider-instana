@@ -27,6 +27,7 @@ type InstanaAPI interface {
 	AlertingConfigurations() RestResource
 	SliConfigs() RestResource
 	WebsiteMonitoringConfig() RestResource
+	Groups() RestResource
 }
 
 //NewInstanaAPI creates a new instance of the instana API
@@ -75,4 +76,8 @@ func (api *baseInstanaAPI) SliConfigs() RestResource {
 
 func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource {
 	return NewWebsiteMonitoringConfigRestResource(NewDefaultJSONUnmarshaller(&WebsiteMonitoringConfig{}), api.client)
+}
+
+func (api *baseInstanaAPI) Groups() RestResource {
+	return NewCreatePOSTUpdatePUTRestResource(GroupsResourcePath, NewDefaultJSONUnmarshaller(&Group{}), api.client)
 }

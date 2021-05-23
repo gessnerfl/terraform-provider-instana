@@ -144,3 +144,17 @@ func (mr *MockInstanaAPIMockRecorder) WebsiteMonitoringConfig() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WebsiteMonitoringConfig", reflect.TypeOf((*MockInstanaAPI)(nil).WebsiteMonitoringConfig))
 }
+
+// Groups mocks base method
+func (m *MockInstanaAPI) Groups() restapi.RestResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Groups")
+	ret0, _ := ret[0].(restapi.RestResource)
+	return ret0
+}
+
+// Groups indicates an expected call of Groups
+func (mr *MockInstanaAPIMockRecorder) Groups() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Groups", reflect.TypeOf((*MockInstanaAPI)(nil).Groups))
+}

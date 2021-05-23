@@ -1,10 +1,10 @@
 package testutils
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -73,10 +73,10 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeFloat(sche
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndType(schemaField string, dataType schema.ValueType) {
 	s := inst.schemaMap[schemaField]
-	assert.NotNil(inst.t, s)
+	require.NotNil(inst.t, s)
 
 	inst.assertSchemaIsOfType(s, dataType)
-	assert.True(inst.t, s.Required)
+	require.True(inst.t, s.Required)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeString(schemaField string) {
@@ -87,7 +87,7 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeStringWith
 	inst.assertSchemaIsOptionalAndOfType(schemaField, schema.TypeString)
 	s := inst.schemaMap[schemaField]
 
-	assert.Equal(inst.t, defaultValue, s.Default)
+	require.Equal(inst.t, defaultValue, s.Default)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeInt(schemaField string) {
@@ -100,95 +100,95 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeFloat(sche
 
 func (inst *terraformSchemaAssertImpl) assertSchemaIsOptionalAndOfType(schemaField string, dataType schema.ValueType) {
 	s := inst.schemaMap[schemaField]
-	assert.NotNil(inst.t, s)
+	require.NotNil(inst.t, s)
 
 	inst.assertSchemaIsOfType(s, dataType)
-	assert.True(inst.t, s.Optional)
+	require.True(inst.t, s.Optional)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOfTypeBooleanWithDefault(schemaField string, defaultValue bool) {
 	s := inst.schemaMap[schemaField]
-	assert.NotNil(inst.t, s)
+	require.NotNil(inst.t, s)
 
 	inst.assertSchemaIsOfType(s, schema.TypeBool)
 
-	assert.False(inst.t, s.Required)
-	assert.Equal(inst.t, defaultValue, s.Default)
+	require.False(inst.t, s.Required)
+	require.Equal(inst.t, defaultValue, s.Default)
 }
 
 func (inst *terraformSchemaAssertImpl) assertSchemaIsOfType(s *schema.Schema, dataType schema.ValueType) {
-	assert.Equal(inst.t, dataType, s.Type)
-	assert.Greater(inst.t, len(s.Description), 0)
+	require.Equal(inst.t, dataType, s.Type)
+	require.Greater(inst.t, len(s.Description), 0)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeListOfStrings(schemaField string) {
 	s := inst.schemaMap[schemaField]
 
-	assert.NotNil(inst.t, s)
-	assert.False(inst.t, s.Required)
-	assert.True(inst.t, s.Optional)
+	require.NotNil(inst.t, s)
+	require.False(inst.t, s.Required)
+	require.True(inst.t, s.Optional)
 	inst.assertSchemaIsOfTypeListOfStrings(s)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeListOfStrings(schemaField string) {
 	s := inst.schemaMap[schemaField]
 
-	assert.NotNil(inst.t, s)
-	assert.True(inst.t, s.Required)
+	require.NotNil(inst.t, s)
+	require.True(inst.t, s.Required)
 	inst.assertSchemaIsOfTypeListOfStrings(s)
 }
 
 func (inst *terraformSchemaAssertImpl) assertSchemaIsOfTypeListOfStrings(s *schema.Schema) {
-	assert.Equal(inst.t, schema.TypeList, s.Type)
-	assert.NotNil(inst.t, s.Elem)
-	assert.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
-	assert.Greater(inst.t, len(s.Description), 0)
+	require.Equal(inst.t, schema.TypeList, s.Type)
+	require.NotNil(inst.t, s.Elem)
+	require.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
+	require.Greater(inst.t, len(s.Description), 0)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeSetOfStrings(schemaField string) {
 	s := inst.schemaMap[schemaField]
 
-	assert.NotNil(inst.t, s)
-	assert.False(inst.t, s.Required)
-	assert.True(inst.t, s.Optional)
+	require.NotNil(inst.t, s)
+	require.False(inst.t, s.Required)
+	require.True(inst.t, s.Optional)
 	inst.assertSchemaIsOfTypeSetOfStrings(s)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeSetOfStrings(schemaField string) {
 	s := inst.schemaMap[schemaField]
 
-	assert.NotNil(inst.t, s)
-	assert.True(inst.t, s.Required)
+	require.NotNil(inst.t, s)
+	require.True(inst.t, s.Required)
 	inst.assertSchemaIsOfTypeSetOfStrings(s)
 }
 
 func (inst *terraformSchemaAssertImpl) assertSchemaIsOfTypeSetOfStrings(s *schema.Schema) {
-	assert.Equal(inst.t, schema.TypeSet, s.Type)
-	assert.NotNil(inst.t, s.Elem)
-	assert.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
-	assert.Greater(inst.t, len(s.Description), 0)
+	require.Equal(inst.t, schema.TypeSet, s.Type)
+	require.NotNil(inst.t, s.Elem)
+	require.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
+	require.Greater(inst.t, len(s.Description), 0)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsComputedAndOfTypeString(schemaField string) {
 	s := inst.schemaMap[schemaField]
 
-	assert.NotNil(inst.t, s)
+	require.NotNil(inst.t, s)
 	inst.assertSchemaIsOfType(s, schema.TypeString)
-	assert.True(inst.t, s.Computed)
+	require.True(inst.t, s.Computed)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsComputedAndOfTypeInt(schemaField string) {
 	s := inst.schemaMap[schemaField]
 
-	assert.NotNil(inst.t, s)
+	require.NotNil(inst.t, s)
 	inst.assertSchemaIsOfType(s, schema.TypeInt)
-	assert.True(inst.t, s.Computed)
+	require.True(inst.t, s.Computed)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsComputedAndOfTypeBool(schemaField string) {
 	s := inst.schemaMap[schemaField]
 
-	assert.NotNil(inst.t, s)
+	require.NotNil(inst.t, s)
 	inst.assertSchemaIsOfType(s, schema.TypeBool)
-	assert.True(inst.t, s.Computed)
+	require.True(inst.t, s.Computed)
 }
