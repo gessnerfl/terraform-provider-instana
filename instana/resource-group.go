@@ -17,7 +17,7 @@ const (
 	//GroupFieldFullName constant value for the schema field full_name
 	GroupFieldFullName = "full_name"
 	//GroupFieldMembers constant value for the schema field members
-	GroupFieldMembers = "members"
+	GroupFieldMembers = "member"
 	//GroupFieldMemberEmail constant value for the schema field email
 	GroupFieldMemberEmail = "email"
 	//GroupFieldMemberUserID constant value for the schema field user_id

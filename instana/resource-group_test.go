@@ -1,7 +1,12 @@
 package instana_test
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"net/http"
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -11,7 +16,40 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const resourceRBACGroupDefinitionTemplate = `
+provider "instana" {
+  api_token = "test-token"
+  endpoint = "localhost:%d"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
+}
+
+resource "instana_rbac_group" "example" {
+  name = "name %d"
+  member { 
+	user_id = "user_1_id"
+	email = "user_1_email"
+  }
+  member { 
+	user_id = "user_2_id"
+	email = "user_2_email"
+  }
+
+  permission_set {
+	application_ids = [ "app_id1", "app_id2" ]
+	kubernetes_cluster_uuids = [ "k8s_cluster_id1", "k8s_cluster_id2" ]
+	kubernetes_namespaces_uuids = [ "k8s_namespace_id1", "k8s_namespace_id2" ]
+	mobile_app_ids = [ "mobile_app_id1", "mobile_app_id2" ]
+	website_ids = [ "website_id1", "website_id2" ]
+    infra_dfq_filter = "infra_dfq"
+	permissions = [ "CAN_CONFIGURE_APPLICATIONS", "CAN_CONFIGURE_AGENTS" ]
+  }
+}
+`
+
 const (
+	groupApiPath              = restapi.GroupsResourcePath + "/{internal-id}"
+	testGroupDefinition       = "instana_rbac_group.example"
 	defaultGroupID            = "group_id"
 	defaultGroupName          = "group_name"
 	defaultGroupFullName      = "prefix group_name suffix"
@@ -22,6 +60,96 @@ const (
 	defaultScope1ID           = "scope_1_id"
 	defaultScope2ID           = "scope_2_id"
 )
+
+func TestCRUDOfRBACGroupResourceWithMockServer(t *testing.T) {
+	id := RandomID()
+	testutils.DeactivateTLSServerCertificateVerification()
+	httpServer := testutils.NewTestHTTPServer()
+	httpServer.AddRoute(http.MethodPost, restapi.GroupsResourcePath, func(w http.ResponseWriter, r *http.Request) {
+		group := &restapi.Group{}
+		err := json.NewDecoder(r.Body).Decode(group)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			r.Write(bytes.NewBufferString("Failed to get request"))
+		} else {
+			group.ID = id
+			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(group)
+		}
+	})
+	httpServer.AddRoute(http.MethodPut, groupApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodDelete, groupApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodGet, groupApiPath, func(w http.ResponseWriter, r *http.Request) {
+		modCount := httpServer.GetCallCount(http.MethodPut, restapi.GroupsResourcePath+"/"+id)
+		json := fmt.Sprintf(`
+		{
+			"id" : "%s",
+			"name" : "prefix name %d suffix",
+			"members" : [ 
+				{ "userId" : "user_1_id", "email" : "user_1_email" }, 
+				{ "userId" : "user_2_id", "email" : "user_2_email" } 
+			],
+			"permissionSet" : {
+				"applicationIds" : [ { "scopeId" : "app_id1" },  { "scopeId" : "app_id2" } ],
+				"kubernetesClusterUUIDs" : [ { "scopeId" : "k8s_cluster_id1" },  { "scopeId" : "k8s_cluster_id2" } ],
+				"kubernetesNamespaceUIDs" : [ { "scopeId" : "k8s_namespace_id1" },  { "scopeId" : "k8s_namespace_id2" } ],
+				"mobileAppIds" : [ { "scopeId" : "mobile_app_id1" },  { "scopeId" : "mobile_app_id2" } ],
+				"websiteIds" : [ { "scopeId" : "website_id1" },  { "scopeId" : "website_id2" } ],
+   			 	"infraDfqFilter" : { "scopeId" : "infra_dfq" },
+				"permissions" : [ "CAN_CONFIGURE_APPLICATIONS", "CAN_CONFIGURE_AGENTS" ]
+			}
+		}
+		`, id, modCount)
+		w.Header().Set(contentType, r.Header.Get(contentType))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(json))
+	})
+	httpServer.Start()
+	defer httpServer.Close()
+
+	resource.UnitTest(t, resource.TestCase{
+		Providers: testProviders,
+		Steps: []resource.TestStep{
+			createRbacGroupResourceTestStep(httpServer.GetPort(), 0, id),
+			testStepImportWithCustomID(testGroupDefinition, id),
+			createRbacGroupResourceTestStep(httpServer.GetPort(), 1, id),
+			testStepImportWithCustomID(testGroupDefinition, id),
+		},
+	})
+}
+
+func createRbacGroupResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
+	return resource.TestStep{
+		Config: fmt.Sprintf(resourceRBACGroupDefinitionTemplate, httpPort, iteration),
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
+			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.%d.%s", GroupFieldMembers, 0, GroupFieldMemberUserID), defaultGroupMember1UserID),
+			resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.%d.%s", GroupFieldMembers, 0, GroupFieldMemberEmail), defaultGroupMember1Email),
+			resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.%d.%s", GroupFieldMembers, 1, GroupFieldMemberUserID), defaultGroupMember2UserID),
+			resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.%d.%s", GroupFieldMembers, 1, GroupFieldMemberEmail), defaultGroupMember2Email),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetApplicationIDs, 0, "app_id1"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetApplicationIDs, 1, "app_id2"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetKubernetesClusterUUIDs, 0, "k8s_cluster_id1"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetKubernetesClusterUUIDs, 1, "k8s_cluster_id2"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetKubernetesNamespaceUIDs, 0, "k8s_namespace_id1"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetKubernetesNamespaceUIDs, 1, "k8s_namespace_id2"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetMobileAppIDs, 0, "mobile_app_id1"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetMobileAppIDs, 1, "mobile_app_id2"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetWebsiteIDs, 0, "website_id1"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetWebsiteIDs, 1, "website_id2"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetPermissions, 0, string(restapi.PermissionCanConfigureAgents)),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetPermissions, 1, string(restapi.PermissionCanConfigureApplications)),
+			resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.0.%s", GroupFieldPermissionSet, GroupFieldPermissionSetInfraDFQFilter), "infra_dfq"),
+		),
+	}
+}
+
+func testCheckPermissionSetStringSetField(attribute string, idx int, value string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.0.%s.%d", GroupFieldPermissionSet, attribute, idx), value)
+}
 
 func TestResourceGroupDefinition(t *testing.T) {
 	resource := NewGroupResourceHandle()
