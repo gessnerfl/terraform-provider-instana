@@ -274,6 +274,36 @@ func TestUpdateStateOfGroupResource(t *testing.T) {
 	require.Equal(t, []interface{}{string(restapi.PermissionCanConfigureAPITokens), string(restapi.PermissionCanConfigureAgentRunMode)}, permissionSet[GroupFieldPermissionSetPermissions].(*schema.Set).List())
 }
 
+func TestShouldUpdateStateWhenNoGroupMembersAndAnEmptyPermissionSetIsProvided(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewGroupResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	group := restapi.Group{
+		ID:   defaultGroupID,
+		Name: defaultGroupName,
+	}
+
+	err := resourceHandle.UpdateState(resourceData, &group, testHelper.ResourceFormatter())
+
+	require.NoError(t, err)
+	require.Equal(t, defaultGroupID, resourceData.Id())
+	require.Equal(t, defaultGroupName, resourceData.Get(GroupFieldName))
+	emptySlice := []interface{}{}
+	require.Equal(t, emptySlice, resourceData.Get(GroupFieldMembers).(*schema.Set).List())
+	permissionSetSlice := resourceData.Get(GroupFieldPermissionSet).([]interface{})
+	require.Len(t, permissionSetSlice, 1)
+	require.IsType(t, map[string]interface{}{}, permissionSetSlice[0])
+	permissionSet := permissionSetSlice[0].(map[string]interface{})
+	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetApplicationIDs].(*schema.Set).List())
+	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetKubernetesNamespaceUIDs].(*schema.Set).List())
+	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetKubernetesClusterUUIDs].(*schema.Set).List())
+	require.Equal(t, "", permissionSet[GroupFieldPermissionSetInfraDFQFilter])
+	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetWebsiteIDs].(*schema.Set).List())
+	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetMobileAppIDs].(*schema.Set).List())
+	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetPermissions].(*schema.Set).List())
+}
+
 func TestGroupResourceShouldReadModelFromState(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewGroupResourceHandle()

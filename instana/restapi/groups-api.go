@@ -120,7 +120,7 @@ var SupportedInstanaPermissions = InstanaPermissions{
 }
 
 //GroupsResourcePath path to Group resource of Instana RESTful API
-const GroupsResourcePath = RBACSettingsBasePath + "/alerts"
+const GroupsResourcePath = RBACSettingsBasePath + "/groups"
 
 //ScopeBinding data structure for the Instana API model for scope bindings
 type ScopeBinding struct {
