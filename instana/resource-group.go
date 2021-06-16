@@ -45,7 +45,6 @@ const (
 var groupPermissionSet = map[string]*schema.Schema{
 	GroupFieldPermissionSetApplicationIDs: {
 		Type:        schema.TypeSet,
-		Required:    false,
 		Optional:    true,
 		Description: "The scope bindings to restrict access to applications",
 		MaxItems:    groupMaxNumberOfSetElements,
@@ -55,13 +54,11 @@ var groupPermissionSet = map[string]*schema.Schema{
 	},
 	GroupFieldPermissionSetInfraDFQFilter: {
 		Type:        schema.TypeString,
-		Required:    false,
 		Optional:    true,
 		Description: "The scope binding for the dynamic filter query to restrict access to infrastructure assets",
 	},
 	GroupFieldPermissionSetKubernetesClusterUUIDs: {
 		Type:        schema.TypeSet,
-		Required:    false,
 		Optional:    true,
 		Description: "The scope bindings to restrict access to Kubernetes Clusters",
 		MaxItems:    groupMaxNumberOfSetElements,
@@ -71,7 +68,6 @@ var groupPermissionSet = map[string]*schema.Schema{
 	},
 	GroupFieldPermissionSetKubernetesNamespaceUIDs: {
 		Type:        schema.TypeSet,
-		Required:    false,
 		Optional:    true,
 		Description: "The scope bindings to restrict access to Kubernetes namespaces",
 		MaxItems:    groupMaxNumberOfSetElements,
@@ -81,7 +77,6 @@ var groupPermissionSet = map[string]*schema.Schema{
 	},
 	GroupFieldPermissionSetMobileAppIDs: {
 		Type:        schema.TypeSet,
-		Required:    false,
 		Optional:    true,
 		Description: "The scope bindings to restrict access to mobile apps",
 		MaxItems:    groupMaxNumberOfSetElements,
@@ -91,7 +86,6 @@ var groupPermissionSet = map[string]*schema.Schema{
 	},
 	GroupFieldPermissionSetWebsiteIDs: {
 		Type:        schema.TypeSet,
-		Required:    false,
 		Optional:    true,
 		Description: "The scope bindings to restrict access to websites",
 		MaxItems:    groupMaxNumberOfSetElements,
@@ -101,7 +95,6 @@ var groupPermissionSet = map[string]*schema.Schema{
 	},
 	GroupFieldPermissionSetPermissions: {
 		Type:        schema.TypeSet,
-		Required:    false,
 		Optional:    true,
 		Description: "The permissions assigned which should be assigned to the users of the group",
 		MaxItems:    groupMaxNumberOfSetElements,
@@ -120,7 +113,6 @@ var groupMemberSchema = map[string]*schema.Schema{
 	},
 	GroupFieldMemberEmail: {
 		Type:        schema.TypeString,
-		Required:    false,
 		Optional:    true,
 		Description: "The email address of the group member",
 	},
@@ -139,7 +131,6 @@ var groupSchema = map[string]*schema.Schema{
 	},
 	GroupFieldMembers: {
 		Type:        schema.TypeSet,
-		Required:    false,
 		Optional:    true,
 		Description: "The members of the group",
 		MaxItems:    1024,
@@ -149,7 +140,6 @@ var groupSchema = map[string]*schema.Schema{
 	},
 	GroupFieldPermissionSet: {
 		Type:        schema.TypeList,
-		Required:    false,
 		Optional:    true,
 		MaxItems:    1,
 		Description: "The permission set of the group",
@@ -193,59 +183,69 @@ func (r *groupResource) SetComputedFields(d *schema.ResourceData) {
 func (r *groupResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	group := obj.(*restapi.Group)
 
-	members := r.convertGroupMembersToState(group)
-	permissions := r.convertPermissionSetToState(group)
-
 	d.Set(GroupFieldName, formatter.UndoFormat(group.Name))
 	d.Set(GroupFieldFullName, group.Name)
-	d.Set(GroupFieldMembers, members)
-	d.Set(GroupFieldPermissionSet, []interface{}{permissions})
+
+	members := r.convertGroupMembersToState(group)
+	if members != nil {
+		d.Set(GroupFieldMembers, members)
+	}
+	if !group.PermissionSet.IsEmpty() {
+		permissions := r.convertPermissionSetToState(group)
+		d.Set(GroupFieldPermissionSet, permissions)
+	}
 
 	d.SetId(group.ID)
 	return nil
 }
 
-func (r *groupResource) convertGroupMembersToState(obj *restapi.Group) []map[string]interface{} {
-	result := make([]map[string]interface{}, len(obj.Members))
+func (r *groupResource) convertGroupMembersToState(obj *restapi.Group) *schema.Set {
+	result := make([]interface{}, len(obj.Members))
 	for i, v := range obj.Members {
+		var email string
+		if v.Email != nil {
+			email = *v.Email
+		}
 		groupMap := map[string]interface{}{
 			GroupFieldMemberUserID: v.UserID,
-			GroupFieldMemberEmail:  v.Email,
+			GroupFieldMemberEmail:  email,
 		}
 		result[i] = groupMap
 	}
-	return result
+	if len(result) > 0 {
+		return schema.NewSet(schema.HashResource(groupSchema[GroupFieldMembers].Elem.(*schema.Resource)), result)
+	}
+	return nil
 }
 
-func (r *groupResource) convertPermissionSetToState(obj *restapi.Group) map[string]interface{} {
+func (r *groupResource) convertPermissionSetToState(obj *restapi.Group) []interface{} {
 	permissionSet := obj.PermissionSet
-	var infraDfQ string
-	if obj.PermissionSet.InfraDFQFilter != nil {
-		infraDfQ = permissionSet.InfraDFQFilter.ScopeID
+
+	m := make(map[string]interface{})
+	if obj.PermissionSet.InfraDFQFilter != nil && len(obj.PermissionSet.InfraDFQFilter.ScopeID) > 0 {
+		m[GroupFieldPermissionSetInfraDFQFilter] = permissionSet.InfraDFQFilter.ScopeID
 	}
-	return map[string]interface{}{
-		GroupFieldPermissionSetApplicationIDs:          r.convertScopeBindingSliceToState(permissionSet.ApplicationIDs),
-		GroupFieldPermissionSetInfraDFQFilter:          infraDfQ,
-		GroupFieldPermissionSetKubernetesClusterUUIDs:  r.convertScopeBindingSliceToState(permissionSet.KubernetesClusterUUIDs),
-		GroupFieldPermissionSetKubernetesNamespaceUIDs: r.convertScopeBindingSliceToState(permissionSet.KubernetesNamespaceUIDs),
-		GroupFieldPermissionSetMobileAppIDs:            r.convertScopeBindingSliceToState(permissionSet.MobileAppIDs),
-		GroupFieldPermissionSetWebsiteIDs:              r.convertScopeBindingSliceToState(permissionSet.WebsiteIDs),
-		GroupFieldPermissionSetPermissions:             permissionSet.Permissions,
-	}
+	m[GroupFieldPermissionSetApplicationIDs] = r.convertScopeBindingSliceToState(permissionSet.ApplicationIDs)
+	m[GroupFieldPermissionSetKubernetesClusterUUIDs] = r.convertScopeBindingSliceToState(permissionSet.KubernetesClusterUUIDs)
+	m[GroupFieldPermissionSetKubernetesNamespaceUIDs] = r.convertScopeBindingSliceToState(permissionSet.KubernetesNamespaceUIDs)
+	m[GroupFieldPermissionSetMobileAppIDs] = r.convertScopeBindingSliceToState(permissionSet.MobileAppIDs)
+	m[GroupFieldPermissionSetWebsiteIDs] = r.convertScopeBindingSliceToState(permissionSet.WebsiteIDs)
+	m[GroupFieldPermissionSetPermissions] = permissionSet.Permissions
+	return []interface{}{m}
 }
 
-func (r *groupResource) convertScopeBindingSliceToState(value []restapi.ScopeBinding) []interface{} {
+func (r *groupResource) convertScopeBindingSliceToState(value []restapi.ScopeBinding) *schema.Set {
 	result := make([]interface{}, len(value))
 	for i, v := range value {
 		result[i] = v.ScopeID
 	}
-	return result
+	return schema.NewSet(schema.HashString, result)
 }
 
 func (r *groupResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	name := r.computeFullNameString(d, formatter)
 	members := r.convertStateToGroupMembers(d)
-	permissionSet := r.convertStateToPermissionSet(d)
+	permissionSet := convertStateToPermissionSet(d)
 	return &restapi.Group{
 		ID:            d.Id(),
 		Name:          name,
@@ -284,27 +284,35 @@ func (r *groupResource) convertStateToGroupMembers(d *schema.ResourceData) []res
 	return []restapi.APIMember{}
 }
 
-func (r *groupResource) convertStateToPermissionSet(d *schema.ResourceData) *restapi.APIPermissionSetWithRoles {
+func convertStateToPermissionSet(d *schema.ResourceData) *restapi.APIPermissionSetWithRoles {
 	if val, ok := d.GetOk(GroupFieldPermissionSet); ok {
 		if permissionSetSlice, ok := val.([]interface{}); ok && len(permissionSetSlice) == 1 {
 			if permissionSet, ok := permissionSetSlice[0].(map[string]interface{}); ok {
 				return &restapi.APIPermissionSetWithRoles{
-					ApplicationIDs:          r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetApplicationIDs, permissionSet[GroupFieldPermissionSetApplicationIDs]),
-					InfraDFQFilter:          r.convertStateToScopeBindingPointer(GroupFieldPermissionSetInfraDFQFilter, permissionSet[GroupFieldPermissionSetInfraDFQFilter]),
-					KubernetesClusterUUIDs:  r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetKubernetesClusterUUIDs, permissionSet[GroupFieldPermissionSetKubernetesClusterUUIDs]),
-					KubernetesNamespaceUIDs: r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetKubernetesNamespaceUIDs, permissionSet[GroupFieldPermissionSetKubernetesNamespaceUIDs]),
-					MobileAppIDs:            r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetMobileAppIDs, permissionSet[GroupFieldPermissionSetMobileAppIDs]),
-					WebsiteIDs:              r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetWebsiteIDs, permissionSet[GroupFieldPermissionSetWebsiteIDs]),
-					Permissions:             r.convertStateToPermissions(GroupFieldPermissionSetPermissions, permissionSet[GroupFieldPermissionSetPermissions]),
+					ApplicationIDs:          convertStateToSliceOfScopeBinding(GroupFieldPermissionSetApplicationIDs, permissionSet[GroupFieldPermissionSetApplicationIDs]),
+					InfraDFQFilter:          convertStateToScopeBindingPointer(GroupFieldPermissionSetInfraDFQFilter, permissionSet[GroupFieldPermissionSetInfraDFQFilter]),
+					KubernetesClusterUUIDs:  convertStateToSliceOfScopeBinding(GroupFieldPermissionSetKubernetesClusterUUIDs, permissionSet[GroupFieldPermissionSetKubernetesClusterUUIDs]),
+					KubernetesNamespaceUIDs: convertStateToSliceOfScopeBinding(GroupFieldPermissionSetKubernetesNamespaceUIDs, permissionSet[GroupFieldPermissionSetKubernetesNamespaceUIDs]),
+					MobileAppIDs:            convertStateToSliceOfScopeBinding(GroupFieldPermissionSetMobileAppIDs, permissionSet[GroupFieldPermissionSetMobileAppIDs]),
+					WebsiteIDs:              convertStateToSliceOfScopeBinding(GroupFieldPermissionSetWebsiteIDs, permissionSet[GroupFieldPermissionSetWebsiteIDs]),
+					Permissions:             convertStateToPermissions(GroupFieldPermissionSetPermissions, permissionSet[GroupFieldPermissionSetPermissions]),
 				}
 			}
 		}
 		log.Println("WARN: permission_set state cannot be read")
 	}
-	return &restapi.APIPermissionSetWithRoles{}
+	emptyScopeBinding := make([]restapi.ScopeBinding, 0)
+	return &restapi.APIPermissionSetWithRoles{
+		ApplicationIDs:          emptyScopeBinding,
+		KubernetesNamespaceUIDs: emptyScopeBinding,
+		KubernetesClusterUUIDs:  emptyScopeBinding,
+		WebsiteIDs:              emptyScopeBinding,
+		MobileAppIDs:            emptyScopeBinding,
+		Permissions:             make([]restapi.InstanaPermission, 0),
+	}
 }
 
-func (r *groupResource) convertStateToSliceOfScopeBinding(attribute string, val interface{}) []restapi.ScopeBinding {
+func convertStateToSliceOfScopeBinding(attribute string, val interface{}) []restapi.ScopeBinding {
 	if set, ok := val.(*schema.Set); ok {
 		slice := set.List()
 		result := make([]restapi.ScopeBinding, len(slice))
@@ -314,10 +322,10 @@ func (r *groupResource) convertStateToSliceOfScopeBinding(attribute string, val 
 		return result
 	}
 	log.Printf("WARN: %s state cannot be read\n", attribute)
-	return []restapi.ScopeBinding{}
+	return make([]restapi.ScopeBinding, 0)
 }
 
-func (r *groupResource) convertStateToScopeBindingPointer(attribute string, val interface{}) *restapi.ScopeBinding {
+func convertStateToScopeBindingPointer(attribute string, val interface{}) *restapi.ScopeBinding {
 	if v, ok := val.(string); ok {
 		return &restapi.ScopeBinding{ScopeID: v}
 	}
@@ -325,7 +333,7 @@ func (r *groupResource) convertStateToScopeBindingPointer(attribute string, val 
 	return nil
 }
 
-func (r *groupResource) convertStateToPermissions(attribute string, val interface{}) []restapi.InstanaPermission {
+func convertStateToPermissions(attribute string, val interface{}) []restapi.InstanaPermission {
 	if set, ok := val.(*schema.Set); ok {
 		slice := set.List()
 		result := make([]restapi.InstanaPermission, len(slice))
@@ -335,5 +343,5 @@ func (r *groupResource) convertStateToPermissions(attribute string, val interfac
 		return result
 	}
 	log.Printf("WARN: %s state cannot be read\n", attribute)
-	return []restapi.InstanaPermission{}
+	return make([]restapi.InstanaPermission, 0)
 }

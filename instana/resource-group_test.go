@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const resourceRBACGroupDefinitionTemplate = `
+const fullRBACGroupDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:%d"
@@ -47,6 +47,37 @@ resource "instana_rbac_group" "example" {
 }
 `
 
+const minimalRBACGroupDefinitionTemplate = `
+provider "instana" {
+  api_token = "test-token"
+  endpoint = "localhost:%d"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
+}
+
+resource "instana_rbac_group" "example" {
+  name = "name %d"
+}
+`
+
+const rbacGroupDefinitionWithPermissionsAndApplicationIDsAssignedTemplate = `
+provider "instana" {
+  api_token = "test-token"
+  endpoint = "localhost:%d"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
+}
+
+resource "instana_rbac_group" "example" {
+  name = "name %d"
+
+  permission_set {
+	application_ids = [ "app_id1", "app_id2" ]
+	permissions = [ "CAN_CONFIGURE_APPLICATIONS", "CAN_CONFIGURE_AGENTS" ]
+  }
+}
+`
+
 const (
 	groupApiPath              = restapi.GroupsResourcePath + "/{internal-id}"
 	testGroupDefinition       = "instana_rbac_group.example"
@@ -61,28 +92,92 @@ const (
 	defaultScope2ID           = "scope_2_id"
 )
 
-func TestCRUDOfRBACGroupResourceWithMockServer(t *testing.T) {
-	id := RandomID()
-	testutils.DeactivateTLSServerCertificateVerification()
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPost, restapi.GroupsResourcePath, func(w http.ResponseWriter, r *http.Request) {
-		group := &restapi.Group{}
-		err := json.NewDecoder(r.Body).Decode(group)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			r.Write(bytes.NewBufferString("Failed to get request"))
-		} else {
-			group.ID = id
-			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(group)
+func TestCRUDOfMinimalRBACGroupResourceWithMockServer(t *testing.T) {
+	serverResponseTemplate := `
+		{
+			"id" : "%s",
+			"name" : "prefix name %d suffix",
+			"members": [],
+		    "permissionSet": {
+				"permissions": [],
+				"applicationIds": [],
+				"kubernetesClusterUUIDs": [],
+				"kubernetesNamespaceUIDs": [],
+				"websiteIds": [],
+				"mobileAppIds": [],
+				"infraDfqFilter": {
+				  "scopeId": "",
+				  "scopeRoleId": "-600"
+				}
+			}
 		}
-	})
-	httpServer.AddRoute(http.MethodPut, groupApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, groupApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, groupApiPath, func(w http.ResponseWriter, r *http.Request) {
-		modCount := httpServer.GetCallCount(http.MethodPut, restapi.GroupsResourcePath+"/"+id)
-		json := fmt.Sprintf(`
+		`
+
+	testStepsFactory := func(httpServerPort int, resourceID string) []resource.TestStep {
+		return []resource.TestStep{
+			createMinimalRbacGroupResourceTestStep(httpServerPort, 0, resourceID),
+			testStepImportWithCustomID(testGroupDefinition, resourceID),
+			createMinimalRbacGroupResourceTestStep(httpServerPort, 1, resourceID),
+			testStepImportWithCustomID(testGroupDefinition, resourceID),
+		}
+	}
+
+	executeRBACGroupIntegrationTest(t, serverResponseTemplate, testStepsFactory)
+}
+
+func createMinimalRbacGroupResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
+	return resource.TestStep{
+		Config: fmt.Sprintf(minimalRBACGroupDefinitionTemplate, httpPort, iteration),
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
+			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldFullName, formatResourceFullName(iteration)),
+		),
+	}
+}
+
+func TestCRUDOfRBACGroupResourceWithPermissionsAndApplicationIdsAssignedUsingMockServer(t *testing.T) {
+	serverResponseTemplate := `
+		{
+			"id" : "%s",
+			"name" : "prefix name %d suffix",
+			"members": [],
+		    "permissionSet": {
+				"permissions": [ "CAN_CONFIGURE_APPLICATIONS", "CAN_CONFIGURE_AGENTS" ],
+				"applicationIds": [ { "scopeId" : "app_id1" },  { "scopeId" : "app_id2" } ]
+			}
+		}
+		`
+
+	testStepsFactory := func(httpServerPort int, resourceID string) []resource.TestStep {
+		return []resource.TestStep{
+			createRbacGroupResourceWithPermissionsAndApplicationIdsAssignedTestStep(httpServerPort, 0, resourceID),
+			testStepImportWithCustomID(testGroupDefinition, resourceID),
+			createRbacGroupResourceWithPermissionsAndApplicationIdsAssignedTestStep(httpServerPort, 1, resourceID),
+			testStepImportWithCustomID(testGroupDefinition, resourceID),
+		}
+	}
+
+	executeRBACGroupIntegrationTest(t, serverResponseTemplate, testStepsFactory)
+}
+
+func createRbacGroupResourceWithPermissionsAndApplicationIdsAssignedTestStep(httpPort int, iteration int, id string) resource.TestStep {
+	return resource.TestStep{
+		Config: fmt.Sprintf(rbacGroupDefinitionWithPermissionsAndApplicationIDsAssignedTemplate, httpPort, iteration),
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
+			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldFullName, formatResourceFullName(iteration)),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetApplicationIDs, 0, "app_id1"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetApplicationIDs, 1, "app_id2"),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetPermissions, 0, string(restapi.PermissionCanConfigureAgents)),
+			testCheckPermissionSetStringSetField(GroupFieldPermissionSetPermissions, 1, string(restapi.PermissionCanConfigureApplications)),
+		),
+	}
+}
+
+func TestCRUDOfFullRBACGroupResourceWithMockServer(t *testing.T) {
+	serverResponseTemplate := `
 		{
 			"id" : "%s",
 			"name" : "prefix name %d suffix",
@@ -100,28 +195,23 @@ func TestCRUDOfRBACGroupResourceWithMockServer(t *testing.T) {
 				"permissions" : [ "CAN_CONFIGURE_APPLICATIONS", "CAN_CONFIGURE_AGENTS" ]
 			}
 		}
-		`, id, modCount)
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
-	})
-	httpServer.Start()
-	defer httpServer.Close()
+		`
 
-	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
-		Steps: []resource.TestStep{
-			createRbacGroupResourceTestStep(httpServer.GetPort(), 0, id),
-			testStepImportWithCustomID(testGroupDefinition, id),
-			createRbacGroupResourceTestStep(httpServer.GetPort(), 1, id),
-			testStepImportWithCustomID(testGroupDefinition, id),
-		},
-	})
+	testStepsFactory := func(httpServerPort int, resourceID string) []resource.TestStep {
+		return []resource.TestStep{
+			createFullRbacGroupResourceTestStep(httpServerPort, 0, resourceID),
+			testStepImportWithCustomID(testGroupDefinition, resourceID),
+			createFullRbacGroupResourceTestStep(httpServerPort, 1, resourceID),
+			testStepImportWithCustomID(testGroupDefinition, resourceID),
+		}
+	}
+
+	executeRBACGroupIntegrationTest(t, serverResponseTemplate, testStepsFactory)
 }
 
-func createRbacGroupResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
+func createFullRbacGroupResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	return resource.TestStep{
-		Config: fmt.Sprintf(resourceRBACGroupDefinitionTemplate, httpPort, iteration),
+		Config: fmt.Sprintf(fullRBACGroupDefinitionTemplate, httpPort, iteration),
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
 			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
@@ -149,6 +239,43 @@ func createRbacGroupResourceTestStep(httpPort int, iteration int, id string) res
 
 func testCheckPermissionSetStringSetField(attribute string, idx int, value string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.0.%s.%d", GroupFieldPermissionSet, attribute, idx), value)
+}
+
+type rbacGroupTestStepsFactory func(httpServerPort int, resourceID string) []resource.TestStep
+
+func executeRBACGroupIntegrationTest(t *testing.T, serverResponseTemplate string, testStepsFactory rbacGroupTestStepsFactory) {
+	id := RandomID()
+	testutils.DeactivateTLSServerCertificateVerification()
+	httpServer := testutils.NewTestHTTPServer()
+	httpServer.AddRoute(http.MethodPost, restapi.GroupsResourcePath, func(w http.ResponseWriter, r *http.Request) {
+		group := &restapi.Group{}
+		err := json.NewDecoder(r.Body).Decode(group)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			r.Write(bytes.NewBufferString("Failed to get request"))
+		} else {
+			group.ID = id
+			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(group)
+		}
+	})
+	httpServer.AddRoute(http.MethodPut, groupApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodDelete, groupApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodGet, groupApiPath, func(w http.ResponseWriter, r *http.Request) {
+		modCount := httpServer.GetCallCount(http.MethodPut, restapi.GroupsResourcePath+"/"+id)
+		json := fmt.Sprintf(serverResponseTemplate, id, modCount)
+		w.Header().Set(contentType, r.Header.Get(contentType))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(json))
+	})
+	httpServer.Start()
+	defer httpServer.Close()
+
+	resource.UnitTest(t, resource.TestCase{
+		Providers: testProviders,
+		Steps:     testStepsFactory(httpServer.GetPort(), id),
+	})
 }
 
 func TestResourceGroupDefinition(t *testing.T) {
@@ -289,19 +416,10 @@ func TestShouldUpdateStateWhenNoGroupMembersAndAnEmptyPermissionSetIsProvided(t 
 	require.NoError(t, err)
 	require.Equal(t, defaultGroupID, resourceData.Id())
 	require.Equal(t, defaultGroupName, resourceData.Get(GroupFieldName))
-	emptySlice := []interface{}{}
+	emptySlice := make([]interface{}, 0)
 	require.Equal(t, emptySlice, resourceData.Get(GroupFieldMembers).(*schema.Set).List())
 	permissionSetSlice := resourceData.Get(GroupFieldPermissionSet).([]interface{})
-	require.Len(t, permissionSetSlice, 1)
-	require.IsType(t, map[string]interface{}{}, permissionSetSlice[0])
-	permissionSet := permissionSetSlice[0].(map[string]interface{})
-	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetApplicationIDs].(*schema.Set).List())
-	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetKubernetesNamespaceUIDs].(*schema.Set).List())
-	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetKubernetesClusterUUIDs].(*schema.Set).List())
-	require.Equal(t, "", permissionSet[GroupFieldPermissionSetInfraDFQFilter])
-	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetWebsiteIDs].(*schema.Set).List())
-	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetMobileAppIDs].(*schema.Set).List())
-	require.Equal(t, emptySlice, permissionSet[GroupFieldPermissionSetPermissions].(*schema.Set).List())
+	require.Len(t, permissionSetSlice, 0)
 }
 
 func TestGroupResourceShouldReadModelFromState(t *testing.T) {

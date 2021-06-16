@@ -141,7 +141,7 @@ func TestShouldSuccessfullyValidateFullScopeBindingOfInfrastructureDFQ(t *testin
 	require.NoError(t, err)
 }
 
-func TestShouldFailToValidateScopeBindingOfInfrastructureDFQWhenScopeIDIsMissing(t *testing.T) {
+func TestShouldSuccessfullyValidateScopeBindingOfInfrastructureDFQWhenScopeIDIsMissing(t *testing.T) {
 	roleID := groupPermissionScopeRoleID
 	scopeBinding := ScopeBinding{ScopeRoleID: &roleID}
 	group := Group{
@@ -154,11 +154,10 @@ func TestShouldFailToValidateScopeBindingOfInfrastructureDFQWhenScopeIDIsMissing
 
 	err := group.Validate()
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "scopeId of scope binding")
+	require.NoError(t, err)
 }
 
-func TestShouldFailToValidateScopeBindingOfInfrastructureDFQWhenScopeIDIsBlank(t *testing.T) {
+func TestShouldSuccessfullyValidateScopeBindingOfInfrastructureDFQWhenScopeIDIsBlank(t *testing.T) {
 	roleID := groupPermissionScopeRoleID
 	scopeBinding := ScopeBinding{ScopeID: " ", ScopeRoleID: &roleID}
 	group := Group{
@@ -171,8 +170,7 @@ func TestShouldFailToValidateScopeBindingOfInfrastructureDFQWhenScopeIDIsBlank(t
 
 	err := group.Validate()
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "scopeId of scope binding")
+	require.NoError(t, err)
 }
 
 func TestSliceOfScopeBindings(t *testing.T) {
@@ -185,7 +183,7 @@ func TestSliceOfScopeBindings(t *testing.T) {
 	}
 
 	testShouldSuccessfulValidateScopeBindings(t, testSet)
-	testShouldFailToValidateScopeBindingsWhenScopeIDIsNotValid(t, testSet)
+	testShouldSuccessfullyValidateScopeBindingsWhenScopeIDIsMissingOfBlank(t, testSet)
 }
 
 func testShouldSuccessfulValidateScopeBindings(t *testing.T, testSet map[string]func(ps *APIPermissionSetWithRoles, bindings *[]ScopeBinding)) {
@@ -208,7 +206,7 @@ func testShouldSuccessfulValidateScopeBindings(t *testing.T, testSet map[string]
 	}
 }
 
-func testShouldFailToValidateScopeBindingsWhenScopeIDIsNotValid(t *testing.T, testSet map[string]func(ps *APIPermissionSetWithRoles, bindings *[]ScopeBinding)) {
+func testShouldSuccessfullyValidateScopeBindingsWhenScopeIDIsMissingOfBlank(t *testing.T, testSet map[string]func(ps *APIPermissionSetWithRoles, bindings *[]ScopeBinding)) {
 	for attribute, mapping := range testSet {
 		for testCase, scopeID := range map[string]string{"Missing": "", "Blank": ""} {
 			t.Run(fmt.Sprintf("TestShouldFailToValidateScopeBindingsOf%sOfPermissionSetOfGroupWhenIDIs%s", attribute, testCase), func(t *testing.T) {
@@ -224,8 +222,7 @@ func testShouldFailToValidateScopeBindingsWhenScopeIDIsNotValid(t *testing.T, te
 
 				err := group.Validate()
 
-				require.Error(t, err)
-				require.Contains(t, err.Error(), "scopeId of scope binding")
+				require.NoError(t, err)
 			})
 		}
 	}
@@ -312,4 +309,78 @@ func TestShouldReturnIDOfGroupAsIDForAPIPaths(t *testing.T) {
 	}
 
 	assert.Equal(t, groupId, group.GetIDForResourcePath())
+}
+
+func TestShouldReturnTrueWhenPermissionSetIsEmpty(t *testing.T) {
+	p := APIPermissionSetWithRoles{}
+
+	require.True(t, p.IsEmpty())
+
+	emptyScopeBinding := ScopeBinding{}
+	p = APIPermissionSetWithRoles{
+		InfraDFQFilter: &emptyScopeBinding,
+	}
+
+	require.True(t, p.IsEmpty())
+
+	emptyScopeBindingSlice := make([]ScopeBinding, 0)
+	p = APIPermissionSetWithRoles{
+		ApplicationIDs:          emptyScopeBindingSlice,
+		KubernetesNamespaceUIDs: emptyScopeBindingSlice,
+		KubernetesClusterUUIDs:  emptyScopeBindingSlice,
+		InfraDFQFilter:          &emptyScopeBinding,
+		MobileAppIDs:            emptyScopeBindingSlice,
+		WebsiteIDs:              emptyScopeBindingSlice,
+		Permissions:             make([]InstanaPermission, 0),
+	}
+}
+
+func TestShouldReturnFalseWhenPermissionSetIsNotEmptyWhenApplicationIDsAreSet(t *testing.T) {
+	p := APIPermissionSetWithRoles{
+		ApplicationIDs: []ScopeBinding{{ScopeID: groupPermissionScopeID}},
+	}
+	require.False(t, p.IsEmpty())
+}
+
+func TestShouldReturnFalseWhenPermissionSetIsNotEmptyWhenKubernetesClusterUUIDsAreSet(t *testing.T) {
+	p := APIPermissionSetWithRoles{
+		KubernetesClusterUUIDs: []ScopeBinding{{ScopeID: groupPermissionScopeID}},
+	}
+	require.False(t, p.IsEmpty())
+}
+
+func TestShouldReturnFalseWhenPermissionSetIsNotEmptyWhenKubernetesNamespaceUIDsAreSet(t *testing.T) {
+	p := APIPermissionSetWithRoles{
+		KubernetesNamespaceUIDs: []ScopeBinding{{ScopeID: groupPermissionScopeID}},
+	}
+	require.False(t, p.IsEmpty())
+}
+
+func TestShouldReturnFalseWhenPermissionSetIsNotEmptyWhenMobileAppIDsAreSet(t *testing.T) {
+	p := APIPermissionSetWithRoles{
+		MobileAppIDs: []ScopeBinding{{ScopeID: groupPermissionScopeID}},
+	}
+	require.False(t, p.IsEmpty())
+}
+
+func TestShouldReturnFalseWhenPermissionSetIsNotEmptyWhenWebsiteIDsAreSet(t *testing.T) {
+	p := APIPermissionSetWithRoles{
+		WebsiteIDs: []ScopeBinding{{ScopeID: groupPermissionScopeID}},
+	}
+	require.False(t, p.IsEmpty())
+}
+
+func TestShouldReturnFalseWhenPermissionSetIsNotEmptyWhenPermissionsAreSet(t *testing.T) {
+	p := APIPermissionSetWithRoles{
+		Permissions: []InstanaPermission{PermissionCanConfigureApplications},
+	}
+	require.False(t, p.IsEmpty())
+}
+
+func TestShouldReturnFalseWhenPermissionSetIsNotEmptyWhenInfrastructureDFQIsSet(t *testing.T) {
+	scopeBinding := ScopeBinding{ScopeID: groupPermissionScopeID}
+	p := APIPermissionSetWithRoles{
+		InfraDFQFilter: &scopeBinding,
+	}
+	require.False(t, p.IsEmpty())
 }

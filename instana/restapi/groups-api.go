@@ -128,13 +128,6 @@ type ScopeBinding struct {
 	ScopeRoleID *string `json:"scopeRoleId"`
 }
 
-func (b *ScopeBinding) validate() error {
-	if utils.IsBlank(b.ScopeID) {
-		return errors.New("scopeId of scope binding is missing")
-	}
-	return nil
-}
-
 //APIPermissionSetWithRoles data structure for the Instana API model for permissions with roles
 type APIPermissionSetWithRoles struct {
 	ApplicationIDs          []ScopeBinding      `json:"applicationIds"`
@@ -147,42 +140,38 @@ type APIPermissionSetWithRoles struct {
 }
 
 func (m *APIPermissionSetWithRoles) validate() error {
-	for _, a := range m.ApplicationIDs {
-		if err := a.validate(); err != nil {
-			return err
-		}
-	}
-	if m.InfraDFQFilter != nil {
-		if err := m.InfraDFQFilter.validate(); err != nil {
-			return err
-		}
-	}
-	for _, u := range m.KubernetesClusterUUIDs {
-		if err := u.validate(); err != nil {
-			return err
-		}
-	}
-	for _, u := range m.KubernetesNamespaceUIDs {
-		if err := u.validate(); err != nil {
-			return err
-		}
-	}
-	for _, m := range m.MobileAppIDs {
-		if err := m.validate(); err != nil {
-			return err
-		}
-	}
-	for _, w := range m.WebsiteIDs {
-		if err := w.validate(); err != nil {
-			return err
-		}
-	}
 	for _, p := range m.Permissions {
 		if !SupportedInstanaPermissions.IsSupported(p) {
 			return fmt.Errorf("%s is not a supported Instana permission", p)
 		}
 	}
 	return nil
+}
+
+//IsEmpty returns true when no permission or scope is assigned
+func (m *APIPermissionSetWithRoles) IsEmpty() bool {
+	if len(m.ApplicationIDs) > 0 {
+		return false
+	}
+	if len(m.KubernetesClusterUUIDs) > 0 {
+		return false
+	}
+	if len(m.KubernetesNamespaceUIDs) > 0 {
+		return false
+	}
+	if len(m.MobileAppIDs) > 0 {
+		return false
+	}
+	if len(m.WebsiteIDs) > 0 {
+		return false
+	}
+	if len(m.Permissions) > 0 {
+		return false
+	}
+	if m.InfraDFQFilter != nil && len(m.InfraDFQFilter.ScopeID) > 0 {
+		return false
+	}
+	return true
 }
 
 //APIMember data structure for the Instana API model for group members
