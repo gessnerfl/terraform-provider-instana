@@ -52,29 +52,6 @@ func TestShouldSuccessfullyValidateMinimalGroup(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestShouldFailToValidateGroupWhenIDIsMissing(t *testing.T) {
-	group := Group{
-		Name: groupName,
-	}
-
-	err := group.Validate()
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "id is missing")
-}
-
-func TestShouldFailToValidateGroupWhenIDIsBlank(t *testing.T) {
-	group := Group{
-		ID:   " ",
-		Name: groupName,
-	}
-
-	err := group.Validate()
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "id is missing")
-}
-
 func TestShouldFailToValidateGroupWhenNameIsMissing(t *testing.T) {
 	group := Group{
 		ID: groupId,

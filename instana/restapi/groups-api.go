@@ -202,9 +202,6 @@ func (c *Group) GetIDForResourcePath() string {
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (c *Group) Validate() error {
-	if utils.IsBlank(c.ID) {
-		return errors.New("id is missing")
-	}
 	if utils.IsBlank(c.Name) {
 		return errors.New("name is missing")
 	}

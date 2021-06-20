@@ -153,9 +153,10 @@ var groupSchema = map[string]*schema.Schema{
 func NewGroupResourceHandle() ResourceHandle {
 	return &groupResource{
 		metaData: ResourceMetaData{
-			ResourceName:  ResourceInstanaGroup,
-			Schema:        groupSchema,
-			SchemaVersion: 0,
+			ResourceName:     ResourceInstanaGroup,
+			Schema:           groupSchema,
+			SchemaVersion:    0,
+			SkipIDGeneration: true,
 		},
 	}
 }
