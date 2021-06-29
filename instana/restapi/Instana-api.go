@@ -11,6 +11,8 @@ const (
 	EventSettingsBasePath = EventsBasePath + settingsPathElement
 	//SettingsBasePath path to Event Settings resource of Instana RESTful API
 	SettingsBasePath = InstanaAPIBasePath + settingsPathElement
+	//RBACSettingsBasePath path to Role Based Access Control Settings resources of Instana RESTful API
+	RBACSettingsBasePath = SettingsBasePath + "/rbac"
 	//WebsiteMonitoringResourcePath path to website monitoring
 	WebsiteMonitoringResourcePath = InstanaAPIBasePath + "/website-monitoring"
 )
@@ -25,6 +27,7 @@ type InstanaAPI interface {
 	AlertingConfigurations() RestResource
 	SliConfigs() RestResource
 	WebsiteMonitoringConfig() RestResource
+	Groups() RestResource
 }
 
 //NewInstanaAPI creates a new instance of the instana API
@@ -73,4 +76,8 @@ func (api *baseInstanaAPI) SliConfigs() RestResource {
 
 func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource {
 	return NewWebsiteMonitoringConfigRestResource(NewDefaultJSONUnmarshaller(&WebsiteMonitoringConfig{}), api.client)
+}
+
+func (api *baseInstanaAPI) Groups() RestResource {
+	return NewCreatePOSTUpdatePUTRestResource(GroupsResourcePath, NewDefaultJSONUnmarshaller(&Group{}), api.client)
 }

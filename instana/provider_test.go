@@ -31,12 +31,13 @@ func TestProviderShouldContainValidSchemaDefinition(t *testing.T) {
 func TestProviderShouldContainValidResourceDefinitions(t *testing.T) {
 	config := Provider()
 
-	assert.Equal(t, 17, len(config.ResourcesMap))
+	assert.Equal(t, 18, len(config.ResourcesMap))
 
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaAPIToken])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaApplicationConfig])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaSliConfig])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaWebsiteMonitoringConfig])
+	assert.NotNil(t, config.ResourcesMap[ResourceInstanaGroup])
 
 	validateResourcesMapForCustomEvents(config.ResourcesMap, t)
 	validateResourcesMapForAlerting(config.ResourcesMap, t)
