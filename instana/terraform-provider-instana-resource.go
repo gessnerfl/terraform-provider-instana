@@ -93,8 +93,7 @@ func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) e
 		}
 		return err
 	}
-	r.resourceHandle.UpdateState(d, obj, providerMeta.ResourceNameFormatter)
-	return nil
+	return r.resourceHandle.UpdateState(d, obj, providerMeta.ResourceNameFormatter)
 }
 
 func (r *terraformResourceImpl) getResourceID(d *schema.ResourceData) string {
@@ -117,8 +116,7 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	r.resourceHandle.UpdateState(d, updatedObject, providerMeta.ResourceNameFormatter)
-	return nil
+	return r.resourceHandle.UpdateState(d, updatedObject, providerMeta.ResourceNameFormatter)
 }
 
 //Delete defines the delete operation for the terraform resource
