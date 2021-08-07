@@ -119,7 +119,7 @@ func TestShouldMapLogicalOrExpression(t *testing.T) {
 }
 
 func runTestCaseForMappingToAPI(input *FilterExpression, expectedResult restapi.MatchExpression, t *testing.T) {
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	result := mapper.ToAPIModel(input)
 
 	require.Equal(t, expectedResult, result)

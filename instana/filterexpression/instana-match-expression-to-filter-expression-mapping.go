@@ -7,7 +7,7 @@ import (
 )
 
 //FromAPIModel Implementation of the mapping from the Instana API model to the filter expression model
-func (m *mapperImpl) FromAPIModel(input restapi.MatchExpression) (*FilterExpression, error) {
+func (m *matchExpressionMapperImpl) FromAPIModel(input restapi.MatchExpression) (*FilterExpression, error) {
 	expr, err := m.mapExpressionFromAPIModel(input)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (m *mapperImpl) FromAPIModel(input restapi.MatchExpression) (*FilterExpress
 	}, nil
 }
 
-func (m *mapperImpl) mapExpressionFromAPIModel(input restapi.MatchExpression) (*expressionHandle, error) {
+func (m *matchExpressionMapperImpl) mapExpressionFromAPIModel(input restapi.MatchExpression) (*expressionHandle, error) {
 	if input.GetType() == restapi.BinaryOperatorExpressionType {
 		binaryOp := input.(restapi.BinaryOperator)
 		return m.mapBinaryOperatorFromAPIModel(&binaryOp)
@@ -44,7 +44,7 @@ func (m *mapperImpl) mapExpressionFromAPIModel(input restapi.MatchExpression) (*
 	return nil, fmt.Errorf("unsupported match expression of type %s", input.GetType())
 }
 
-func (m *mapperImpl) mapBinaryOperatorFromAPIModel(operator *restapi.BinaryOperator) (*expressionHandle, error) {
+func (m *matchExpressionMapperImpl) mapBinaryOperatorFromAPIModel(operator *restapi.BinaryOperator) (*expressionHandle, error) {
 	left, err := m.mapExpressionFromAPIModel(operator.Left.(restapi.MatchExpression))
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (m *mapperImpl) mapBinaryOperatorFromAPIModel(operator *restapi.BinaryOpera
 
 }
 
-func (m *mapperImpl) mapLogicalOrFromAPIModel(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
+func (m *matchExpressionMapperImpl) mapLogicalOrFromAPIModel(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
 	if left.or != nil {
 		return nil, fmt.Errorf("invalid logical or expression: logical or is not allowed for left side")
 	}
@@ -79,7 +79,7 @@ func (m *mapperImpl) mapLogicalOrFromAPIModel(left *expressionHandle, right *exp
 	}, nil
 }
 
-func (m *mapperImpl) mapLeftOfLogicalOrFromAPIModel(left *expressionHandle) *LogicalAndExpression {
+func (m *matchExpressionMapperImpl) mapLeftOfLogicalOrFromAPIModel(left *expressionHandle) *LogicalAndExpression {
 	if left.and != nil {
 		return left.and
 	}
@@ -88,7 +88,7 @@ func (m *mapperImpl) mapLeftOfLogicalOrFromAPIModel(left *expressionHandle) *Log
 	}
 }
 
-func (m *mapperImpl) mapRightOfLogicalOrFromAPIModel(right *expressionHandle) *LogicalOrExpression {
+func (m *matchExpressionMapperImpl) mapRightOfLogicalOrFromAPIModel(right *expressionHandle) *LogicalOrExpression {
 	if right.or != nil {
 		return right.or
 	} else if right.and != nil {
@@ -98,7 +98,7 @@ func (m *mapperImpl) mapRightOfLogicalOrFromAPIModel(right *expressionHandle) *L
 	}
 }
 
-func (m *mapperImpl) mapLogicalAndFromAPIModel(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
+func (m *matchExpressionMapperImpl) mapLogicalAndFromAPIModel(left *expressionHandle, right *expressionHandle) (*expressionHandle, error) {
 	if left.or != nil {
 		return nil, fmt.Errorf("invalid logical and expression: logical or is not allowed for left side")
 	}
@@ -131,7 +131,7 @@ func (m *mapperImpl) mapLogicalAndFromAPIModel(left *expressionHandle, right *ex
 	}, nil
 }
 
-func (m *mapperImpl) mapPrimaryExpressionFromAPIModel(matcher *restapi.TagMatcherExpression) (*PrimaryExpression, error) {
+func (m *matchExpressionMapperImpl) mapPrimaryExpressionFromAPIModel(matcher *restapi.TagMatcherExpression) (*PrimaryExpression, error) {
 	origin := SupportedEntityOrigins.ForInstanaAPIEntity(matcher.Entity)
 	if matcher.Value != nil {
 		if !restapi.IsSupportedComparision(matcher.Operator) {

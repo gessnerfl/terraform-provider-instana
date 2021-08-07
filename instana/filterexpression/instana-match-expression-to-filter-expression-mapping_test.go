@@ -56,7 +56,7 @@ func TestShouldFailToMapComparisionWhenOperatorOfTagExpressionIsNotValid(t *test
 	value := "value"
 	input := restapi.NewComparisionExpression(key, restapi.MatcherExpressionEntityDestination, "FOO", value)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -96,7 +96,7 @@ func TestShouldFailToMapUnaryOperationWhenOperatorOfTagExpressionIsNotValid(t *t
 	key := "key"
 	input := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, "FOO")
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -111,7 +111,7 @@ func TestShouldFailMapToMapExpressionWhenTypeIsMissing(t *testing.T) {
 		Operator: "FOO",
 	}
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -198,7 +198,7 @@ func TestShouldFailToMapLogicalAndWhenLeftIsOrExpression(t *testing.T) {
 	nestedOr := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalOr, primaryExpression)
 	input := restapi.NewBinaryOperator(nestedOr, restapi.LogicalAnd, primaryExpression)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -211,7 +211,7 @@ func TestShouldFailToMapLogicalAndWhenRightIsOrExpression(t *testing.T) {
 	nestedOr := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalOr, primaryExpression)
 	input := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalAnd, nestedOr)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -224,7 +224,7 @@ func TestShouldFailToMapLogicalAndWhenLeftIsAndExpression(t *testing.T) {
 	nestedAnd := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalAnd, primaryExpression)
 	input := restapi.NewBinaryOperator(nestedAnd, restapi.LogicalAnd, primaryExpression)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -407,7 +407,7 @@ func TestShouldFailToMapLogicalOrWhenLeftIsOrExpression(t *testing.T) {
 	nestedOr := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalOr, primaryExpression)
 	input := restapi.NewBinaryOperator(nestedOr, restapi.LogicalOr, primaryExpression)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -419,7 +419,7 @@ func TestShouldFailToMapBinaryExpressionWhenConjunctionTypeIsNotValid(t *testing
 	primaryExpression := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, restapi.IsEmptyOperator)
 	input := restapi.NewBinaryOperator(primaryExpression, "FOO", primaryExpression)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -432,7 +432,7 @@ func TestShouldReturnMappingErrorIfLeftSideOfConjunctionIsNotValid(t *testing.T)
 	primaryExpressionRight := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, restapi.IsEmptyOperator)
 	input := restapi.NewBinaryOperator(primaryExpressionLeft, restapi.LogicalOr, primaryExpressionRight)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -446,7 +446,7 @@ func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T
 	primaryExpressionRight := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, "INVALID")
 	input := restapi.NewBinaryOperator(primaryExpressionLeft, restapi.LogicalOr, primaryExpressionRight)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -455,7 +455,7 @@ func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T
 }
 
 func runTestCaseForMappingFromAPI(input restapi.MatchExpression, expectedResult *FilterExpression, t *testing.T) {
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	result, err := mapper.FromAPIModel(input)
 
 	require.Nil(t, err)

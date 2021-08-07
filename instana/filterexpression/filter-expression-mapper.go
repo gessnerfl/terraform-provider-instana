@@ -4,16 +4,16 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//NewMapper creates a new instance of the Mapper
-func NewMapper() Mapper {
-	return new(mapperImpl)
+//NewMatchExpressionMapper creates a new instance of the MatchExpressionMapper
+func NewMatchExpressionMapper() MatchExpressionMapper {
+	return new(matchExpressionMapperImpl)
 }
 
-//Mapper interface of the filter expression mapper
-type Mapper interface {
+//MatchExpressionMapper interface of the filter expression mapper
+type MatchExpressionMapper interface {
 	FromAPIModel(input restapi.MatchExpression) (*FilterExpression, error)
 	ToAPIModel(input *FilterExpression) restapi.MatchExpression
 }
 
-//struct for the filter expression mapper implementation
-type mapperImpl struct{}
+//struct for the filter expression mapper implementation for match expressions
+type matchExpressionMapperImpl struct{}

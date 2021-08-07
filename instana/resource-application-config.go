@@ -169,7 +169,7 @@ func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj rest
 }
 
 func (r *applicationConfigResource) mapAPIModelToNormalizedStringRepresentation(input restapi.MatchExpression) (string, error) {
-	mapper := filterexpression.NewMapper()
+	mapper := filterexpression.NewMatchExpressionMapper()
 	expr, err := mapper.FromAPIModel(input)
 	if err != nil {
 		return "", err
@@ -200,7 +200,7 @@ func (r *applicationConfigResource) mapExpressionStringToAPIModel(input string) 
 		return nil, err
 	}
 
-	mapper := filterexpression.NewMapper()
+	mapper := filterexpression.NewMatchExpressionMapper()
 	return mapper.ToAPIModel(expr), nil
 }
 
