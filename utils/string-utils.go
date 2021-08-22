@@ -23,3 +23,7 @@ func RandomString(length int) string {
 	}
 	return string(b)
 }
+
+func StringPtr(input string) *string {
+	return &input
+}
