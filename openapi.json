@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.205.1340",
+    "version": "1.207.850",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -5570,6 +5570,58 @@
         ]
       }
     },
+    "/api/settings/accesslog": {
+      "get": {
+        "operationId": "getAuditLogs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "in": "query",
+            "name": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessLogResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ViewAuditLog"
+            ]
+          }
+        ],
+        "summary": "Access log",
+        "tags": [
+          "Access Log"
+        ]
+      }
+    },
     "/api/settings/api-tokens": {
       "get": {
         "operationId": "getApiTokens",
@@ -5757,7 +5809,7 @@
     },
     "/api/settings/auditlog": {
       "get": {
-        "operationId": "getAuditLogs",
+        "operationId": "getAuditLogs_1",
         "parameters": [
           {
             "in": "query",
@@ -6402,10 +6454,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
-                  }
+                  "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
                 }
               }
             }
@@ -6520,10 +6569,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
-                  }
+                  "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
                 }
               }
             }
@@ -7486,6 +7532,58 @@
           "ruleType"
         ]
       },
+      "AccessLogEntry": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "GRANT_TEMP_ACCESS",
+              "FIRST_LOGIN",
+              "LOGIN",
+              "LOGOUT"
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "tenantUnitId": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "action",
+          "email",
+          "fullName",
+          "tenantId",
+          "timestamp"
+        ]
+      },
+      "AccessLogResponse": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessLogEntry"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "AccessRule": {
         "type": "object",
         "properties": {
@@ -8239,6 +8337,15 @@
               "DEFAULT"
             ]
           },
+          "builtInAlertIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 0,
+            "uniqueItems": true
+          },
           "id": {
             "type": "string",
             "maxLength": 128,
@@ -8267,6 +8374,7 @@
         "required": [
           "accessRules",
           "boundaryScope",
+          "builtInAlertIds",
           "id",
           "label",
           "scope"
@@ -9498,6 +9606,15 @@
       "EventFilteringConfiguration": {
         "type": "object",
         "properties": {
+          "applicationAlertConfigIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
           "eventTypes": {
             "type": "array",
             "items": {
@@ -11286,6 +11403,15 @@
               "DEFAULT"
             ]
           },
+          "builtInAlertIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 0,
+            "uniqueItems": true
+          },
           "label": {
             "type": "string",
             "maxLength": 128,
@@ -11309,6 +11435,7 @@
         "required": [
           "accessRules",
           "boundaryScope",
+          "builtInAlertIds",
           "label",
           "scope"
         ]
@@ -12895,7 +13022,8 @@
         "required": [
           "entity",
           "name",
-          "operator"
+          "operator",
+          "type"
         ]
       },
       "TagFilterExpression": {
@@ -12925,7 +13053,8 @@
         ],
         "required": [
           "elements",
-          "logicalOperator"
+          "logicalOperator",
+          "type"
         ]
       },
       "TagFilterExpressionElement": {
@@ -12941,7 +13070,10 @@
           "type": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "type"
+        ]
       },
       "TagMatcherDTO": {
         "type": "object",
@@ -13455,7 +13587,12 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "email",
+          "fullName",
+          "id"
+        ]
       },
       "UsersResult": {
         "type": "object",
@@ -13467,7 +13604,10 @@
             },
             "uniqueItems": true
           }
-        }
+        },
+        "required": [
+          "users"
+        ]
       },
       "ValidatedAlertingChannelInputInfo": {
         "type": "object",
