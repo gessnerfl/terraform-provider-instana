@@ -135,11 +135,11 @@ func (m *matchExpressionMapperImpl) mapPrimaryExpressionFromAPIModel(matcher *re
 	origin := SupportedEntityOrigins.ForInstanaAPIEntity(matcher.Entity)
 	if matcher.Value != nil {
 		if !restapi.IsSupportedComparision(matcher.Operator) {
-			return nil, fmt.Errorf("invalid operator: %s is not a supported comparision operator", matcher.Operator)
+			return nil, fmt.Errorf("invalid operator: %s is not a supported comparison operator", matcher.Operator)
 		}
 		return &PrimaryExpression{
-			Comparision: &ComparisionExpression{
-				Entity:   &EntitySpec{Key: matcher.Key, Origin: origin},
+			Comparison: &ComparisonExpression{
+				Entity:   &EntitySpec{Identifier: matcher.Key, Origin: origin},
 				Operator: Operator(matcher.Operator),
 				Value:    *matcher.Value,
 			},
@@ -150,7 +150,7 @@ func (m *matchExpressionMapperImpl) mapPrimaryExpressionFromAPIModel(matcher *re
 	}
 	return &PrimaryExpression{
 		UnaryOperation: &UnaryOperationExpression{
-			Entity:   &EntitySpec{Key: matcher.Key, Origin: origin},
+			Entity:   &EntitySpec{Identifier: matcher.Key, Origin: origin},
 			Operator: Operator(matcher.Operator),
 		},
 	}, nil

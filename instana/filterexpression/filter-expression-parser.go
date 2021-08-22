@@ -23,13 +23,13 @@ type EntityOrigin interface {
 	MatcherExpressionEntity() restapi.MatcherExpressionEntity
 }
 
-func newEntityOrigin(key string, entity restapi.MatcherExpressionEntity) EntityOrigin {
-	return &baseEntityOrigin{key: key, instanaAPIEntity: entity}
+func newEntityOrigin(key string, matcherExpressionEntity restapi.MatcherExpressionEntity) EntityOrigin {
+	return &baseEntityOrigin{key: key, matcherExpressionEntity: matcherExpressionEntity}
 }
 
 type baseEntityOrigin struct {
-	key              string
-	instanaAPIEntity restapi.MatcherExpressionEntity
+	key                     string
+	matcherExpressionEntity restapi.MatcherExpressionEntity
 }
 
 //Key interface implementation of EntityOrigin
@@ -39,7 +39,7 @@ func (o *baseEntityOrigin) Key() string {
 
 //MatcherExpressionEntity interface implementation of EntityOrigin
 func (o *baseEntityOrigin) MatcherExpressionEntity() restapi.MatcherExpressionEntity {
-	return o.instanaAPIEntity
+	return o.matcherExpressionEntity
 }
 
 var (
@@ -81,7 +81,7 @@ var SupportedEntityOrigins = EntityOrigins{EntityOriginSource, EntityOriginDesti
 
 //EntitySpec custom type for any kind of entity path specification
 type EntitySpec struct {
-	Key           string
+	Identifier    string
 	Origin        EntityOrigin
 	OriginDefined bool
 }
@@ -95,8 +95,8 @@ func (o *EntitySpec) Capture(values []string) error {
 		o.Origin = SupportedEntityOrigins.ForKey(val)
 	} else {
 		*o = EntitySpec{
-			Key:    values[0],
-			Origin: EntityOriginDestination,
+			Identifier: values[0],
+			Origin:     EntityOriginDestination,
 		}
 	}
 	return nil
@@ -104,7 +104,7 @@ func (o *EntitySpec) Capture(values []string) error {
 
 //Render implementation of the ExpressionRenderer interface of EntitySpec
 func (o *EntitySpec) Render() string {
-	return o.Key + "@" + string(o.Origin.Key())
+	return o.Identifier + "@" + string(o.Origin.Key())
 }
 
 //Operator custom type for any kind of operator
@@ -116,7 +116,7 @@ func (o *Operator) Capture(values []string) error {
 	return nil
 }
 
-//FilterExpression repressentation of a dynamic focus filter expression
+//FilterExpression representation of a dynamic focus filter expression
 type FilterExpression struct {
 	Expression *LogicalOrExpression `parser:"@@"`
 }
@@ -163,29 +163,29 @@ func (e *LogicalAndExpression) Render() string {
 	return e.Left.Render()
 }
 
-//PrimaryExpression wrapper for either a comparision or a unary expression
+//PrimaryExpression wrapper for either a comparison or a unary expression
 type PrimaryExpression struct {
-	Comparision    *ComparisionExpression    `parser:"  @@"`
+	Comparison     *ComparisonExpression     `parser:"  @@"`
 	UnaryOperation *UnaryOperationExpression `parser:"| @@"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *PrimaryExpression) Render() string {
-	if e.Comparision != nil {
-		return e.Comparision.Render()
+	if e.Comparison != nil {
+		return e.Comparison.Render()
 	}
 	return e.UnaryOperation.Render()
 }
 
-//ComparisionExpression representation of a comparision expression.
-type ComparisionExpression struct {
+//ComparisonExpression representation of a comparison expression.
+type ComparisonExpression struct {
 	Entity   *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
 	Operator Operator    `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
 	Value    string      `parser:"@String"`
 }
 
 //Render implementation of ExpressionRenderer.Render
-func (e *ComparisionExpression) Render() string {
+func (e *ComparisonExpression) Render() string {
 	return fmt.Sprintf("%s %s '%s'", e.Entity.Render(), e.Operator, e.Value)
 }
 

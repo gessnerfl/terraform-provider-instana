@@ -29,13 +29,13 @@ func (m *matchExpressionMapperImpl) mapPrimaryExpressionToAPIModel(input *Primar
 	if input.UnaryOperation != nil {
 		return m.mapUnaryOperatorExpressionToAPIModel(input.UnaryOperation)
 	}
-	return m.mapComparisionExpressionToAPIModel(input.Comparision)
+	return m.mapComparisonExpressionToAPIModel(input.Comparison)
 }
 
 func (m *matchExpressionMapperImpl) mapUnaryOperatorExpressionToAPIModel(input *UnaryOperationExpression) restapi.MatchExpression {
-	return restapi.NewUnaryOperationExpression(input.Entity.Key, input.Entity.Origin.MatcherExpressionEntity(), restapi.MatcherOperator(input.Operator))
+	return restapi.NewUnaryOperationExpression(input.Entity.Identifier, input.Entity.Origin.MatcherExpressionEntity(), restapi.TagFilterOperator(input.Operator))
 }
 
-func (m *matchExpressionMapperImpl) mapComparisionExpressionToAPIModel(input *ComparisionExpression) restapi.MatchExpression {
-	return restapi.NewComparisionExpression(input.Entity.Key, input.Entity.Origin.MatcherExpressionEntity(), restapi.MatcherOperator(input.Operator), input.Value)
+func (m *matchExpressionMapperImpl) mapComparisonExpressionToAPIModel(input *ComparisonExpression) restapi.MatchExpression {
+	return restapi.NewComparisionExpression(input.Entity.Identifier, input.Entity.Origin.MatcherExpressionEntity(), restapi.TagFilterOperator(input.Operator), input.Value)
 }

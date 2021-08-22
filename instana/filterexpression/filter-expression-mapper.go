@@ -9,7 +9,7 @@ func NewMatchExpressionMapper() MatchExpressionMapper {
 	return new(matchExpressionMapperImpl)
 }
 
-//MatchExpressionMapper interface of the filter expression mapper
+//MatchExpressionMapper interface of the match expression mapper
 type MatchExpressionMapper interface {
 	FromAPIModel(input restapi.MatchExpression) (*FilterExpression, error)
 	ToAPIModel(input *FilterExpression) restapi.MatchExpression

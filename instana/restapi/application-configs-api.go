@@ -26,81 +26,8 @@ const (
 	LeafExpressionType MatchExpressionType = "LEAF"
 )
 
-//ConjunctionType custom type for conjunctions
-type ConjunctionType string
-
-const (
-	//LogicalAnd constant for logical AND conjunction
-	LogicalAnd = ConjunctionType("AND")
-	//LogicalOr constant for logical OR conjunction
-	LogicalOr = ConjunctionType("OR")
-)
-
-//MatcherOperator custom type for tag matcher operators
-type MatcherOperator string
-
-const (
-	//EqualsOperator constant for the EQUALS operator
-	EqualsOperator = MatcherOperator("EQUALS")
-	//NotEqualOperator constant for the NOT_EQUAL operator
-	NotEqualOperator = MatcherOperator("NOT_EQUAL")
-	//ContainsOperator constant for the CONTAINS operator
-	ContainsOperator = MatcherOperator("CONTAINS")
-	//NotContainOperator constant for the NOT_CONTAIN operator
-	NotContainOperator = MatcherOperator("NOT_CONTAIN")
-	//IsEmptyOperator constant for the IS_EMPTY operator
-	IsEmptyOperator = MatcherOperator("IS_EMPTY")
-	//NotEmptyOperator constant for the NOT_EMPTY operator
-	NotEmptyOperator = MatcherOperator("NOT_EMPTY")
-	//IsBlankOperator constant for the IS_BLANK operator
-	IsBlankOperator = MatcherOperator("IS_BLANK")
-	//NotBlankOperator constant for the NOT_BLANK operator
-	NotBlankOperator = MatcherOperator("NOT_BLANK")
-
-	//StartsWithOperator constant for the STARTS_WITH operator
-	StartsWithOperator = MatcherOperator("STARTS_WITH")
-	//EndsWithOperator constant for the ENDS_WITH operator
-	EndsWithOperator = MatcherOperator("ENDS_WITH")
-	//NotStartsWithOperator constant for the NOT_STARTS_WITH operator
-	NotStartsWithOperator = MatcherOperator("NOT_STARTS_WITH")
-	//NotEndsWithOperator constant for the NOT_ENDS_WITH operator
-	NotEndsWithOperator = MatcherOperator("NOT_ENDS_WITH")
-	//GreaterOrEqualThanOperator constant for the GREATER_OR_EQUAL_THAN operator
-	GreaterOrEqualThanOperator = MatcherOperator("GREATER_OR_EQUAL_THAN")
-	//LessOrEqualThanOperator constant for the LESS_OR_EQUAL_THAN operator
-	LessOrEqualThanOperator = MatcherOperator("LESS_OR_EQUAL_THAN")
-	//GreaterThanOperator constant for the GREATER_THAN operator
-	GreaterThanOperator = MatcherOperator("GREATER_THAN")
-	//LessThanOperator constant for the LESS_THAN operator
-	LessThanOperator = MatcherOperator("LESS_THAN")
-)
-
-//SupportedComparisionOperators list of supported comparision operators of Instana API
-var SupportedComparisionOperators = []MatcherOperator{
-	EqualsOperator,
-	NotEqualOperator,
-	ContainsOperator,
-	NotContainOperator,
-	StartsWithOperator,
-	EndsWithOperator,
-	NotStartsWithOperator,
-	NotEndsWithOperator,
-	GreaterOrEqualThanOperator,
-	LessOrEqualThanOperator,
-	GreaterThanOperator,
-	LessThanOperator,
-}
-
-//SupportedUnaryExpressionOperators list of supported unary expression operators of Instana API
-var SupportedUnaryExpressionOperators = []MatcherOperator{
-	IsEmptyOperator,
-	NotEmptyOperator,
-	IsBlankOperator,
-	NotBlankOperator,
-}
-
 //SupportedConjunctionTypes list of supported binary expression operators of Instana API
-var SupportedConjunctionTypes = []ConjunctionType{LogicalAnd, LogicalOr}
+var SupportedConjunctionTypes = []LogicalOperatorType{LogicalAnd, LogicalOr}
 
 //ApplicationConfigScope type definition of the application config scope of the Instana Web REST API
 type ApplicationConfigScope string
@@ -195,7 +122,7 @@ type MatchExpression interface {
 }
 
 //NewBinaryOperator creates and new binary operator MatchExpression
-func NewBinaryOperator(left MatchExpression, conjunction ConjunctionType, right MatchExpression) MatchExpression {
+func NewBinaryOperator(left MatchExpression, conjunction LogicalOperatorType, right MatchExpression) MatchExpression {
 	return BinaryOperator{
 		Dtype:       BinaryOperatorExpressionType,
 		Left:        left,
@@ -209,11 +136,11 @@ type BinaryOperator struct {
 	Dtype       MatchExpressionType `json:"type"`
 	Left        interface{}         `json:"left"`
 	Right       interface{}         `json:"right"`
-	Conjunction ConjunctionType     `json:"conjunction"`
+	Conjunction LogicalOperatorType `json:"conjunction"`
 }
 
 //NewComparisionExpression creates and new tag matcher expression for a comparision
-func NewComparisionExpression(key string, entity MatcherExpressionEntity, operator MatcherOperator, value string) MatchExpression {
+func NewComparisionExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator, value string) MatchExpression {
 	return TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
@@ -224,7 +151,7 @@ func NewComparisionExpression(key string, entity MatcherExpressionEntity, operat
 }
 
 //NewUnaryOperationExpression creates and new tag matcher expression for a unary operation
-func NewUnaryOperationExpression(key string, entity MatcherExpressionEntity, operator MatcherOperator) MatchExpression {
+func NewUnaryOperationExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator) MatchExpression {
 	return TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
@@ -275,7 +202,7 @@ type TagMatcherExpression struct {
 	Dtype    MatchExpressionType     `json:"type"`
 	Key      string                  `json:"key"`
 	Entity   MatcherExpressionEntity `json:"entity"`
-	Operator MatcherOperator         `json:"operator"`
+	Operator TagFilterOperator       `json:"operator"`
 	Value    *string                 `json:"value"`
 }
 
@@ -293,7 +220,7 @@ func (a *ApplicationConfig) GetIDForResourcePath() string {
 	return a.ID
 }
 
-//Validate implemention of the interface InstanaDataObject for ApplicationConfig
+//Validate implementation of the interface InstanaDataObject for ApplicationConfig
 func (a *ApplicationConfig) Validate() error {
 	if utils.IsBlank(a.ID) {
 		return errors.New("id is missing")
@@ -388,16 +315,16 @@ func (t TagMatcherExpression) Validate() error {
 }
 
 //IsSupportedComparision returns true if the provided operator is a valid comparision type
-func IsSupportedComparision(operator MatcherOperator) bool {
-	return isInMatcherOperatorSlice(SupportedComparisionOperators, operator)
+func IsSupportedComparision(operator TagFilterOperator) bool {
+	return isInMatcherOperatorSlice(SupportedComparisonOperators, operator)
 }
 
 //IsSupportedUnaryOperatorExpression returns true if the provided operator is a valid unary operator type
-func IsSupportedUnaryOperatorExpression(operator MatcherOperator) bool {
+func IsSupportedUnaryOperatorExpression(operator TagFilterOperator) bool {
 	return isInMatcherOperatorSlice(SupportedUnaryExpressionOperators, operator)
 }
 
-func isInMatcherOperatorSlice(allOperators []MatcherOperator, operator MatcherOperator) bool {
+func isInMatcherOperatorSlice(allOperators []TagFilterOperator, operator TagFilterOperator) bool {
 	for _, v := range allOperators {
 		if v == operator {
 			return true
@@ -407,11 +334,11 @@ func isInMatcherOperatorSlice(allOperators []MatcherOperator, operator MatcherOp
 }
 
 //IsSupportedConjunctionType returns true if the provided operator is a valid conjunction type
-func IsSupportedConjunctionType(operator ConjunctionType) bool {
+func IsSupportedConjunctionType(operator LogicalOperatorType) bool {
 	return isInConjunctionTypeSlice(SupportedConjunctionTypes, operator)
 }
 
-func isInConjunctionTypeSlice(allOperators []ConjunctionType, operator ConjunctionType) bool {
+func isInConjunctionTypeSlice(allOperators []LogicalOperatorType, operator LogicalOperatorType) bool {
 	for _, v := range allOperators {
 		if v == operator {
 			return true

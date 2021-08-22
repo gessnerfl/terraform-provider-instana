@@ -232,7 +232,7 @@ func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
 	}
 }
 
-func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator ConjunctionType) func(t *testing.T) {
+func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator LogicalOperatorType) func(t *testing.T) {
 	return func(t *testing.T) {
 		left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
 		right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
@@ -317,12 +317,12 @@ func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsMissing(t *testing
 }
 
 func TestShouldCreateValidComparisionExpression(t *testing.T) {
-	for _, operator := range SupportedComparisionOperators {
+	for _, operator := range SupportedComparisonOperators {
 		t.Run(fmt.Sprintf("TestShouldCreateValidComparisionExpressionOfType%s", operator), createTestShouldCreateValidComparisionExpression(operator))
 	}
 }
 
-func createTestShouldCreateValidComparisionExpression(operator MatcherOperator) func(*testing.T) {
+func createTestShouldCreateValidComparisionExpression(operator TagFilterOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, operator, valueFieldValue)
 
@@ -384,7 +384,7 @@ func TestShouldCreateValidUnaryOperatorExpression(t *testing.T) {
 	}
 }
 
-func createTestShouldCreateValidUnaryOperatorExpression(operator MatcherOperator) func(*testing.T) {
+func createTestShouldCreateValidUnaryOperatorExpression(operator TagFilterOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		exp := NewUnaryOperationExpression(keyFieldValue, MatcherExpressionEntityDestination, operator)
 
