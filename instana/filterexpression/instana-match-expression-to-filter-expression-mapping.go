@@ -134,7 +134,7 @@ func (m *matchExpressionMapperImpl) mapLogicalAndFromAPIModel(left *expressionHa
 func (m *matchExpressionMapperImpl) mapPrimaryExpressionFromAPIModel(matcher *restapi.TagMatcherExpression) (*PrimaryExpression, error) {
 	origin := SupportedEntityOrigins.ForInstanaAPIEntity(matcher.Entity)
 	if matcher.Value != nil {
-		if !restapi.IsSupportedComparision(matcher.Operator) {
+		if !restapi.IsSupportedComparison(matcher.Operator) {
 			return nil, fmt.Errorf("invalid operator: %s is not a supported comparison operator", matcher.Operator)
 		}
 		return &PrimaryExpression{

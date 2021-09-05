@@ -299,7 +299,7 @@ func (t TagMatcherExpression) Validate() error {
 		return errors.New("operator of tag expression is missing")
 	}
 
-	if IsSupportedComparision(t.Operator) {
+	if IsSupportedComparison(t.Operator) {
 		if t.Value == nil || len(*t.Value) == 0 {
 			return errors.New("value missing for comparision expression")
 		}
@@ -314,8 +314,8 @@ func (t TagMatcherExpression) Validate() error {
 	return nil
 }
 
-//IsSupportedComparision returns true if the provided operator is a valid comparision type
-func IsSupportedComparision(operator TagFilterOperator) bool {
+//IsSupportedComparison returns true if the provided operator is a valid comparison type
+func IsSupportedComparison(operator TagFilterOperator) bool {
 	return isInMatcherOperatorSlice(SupportedComparisonOperators, operator)
 }
 
