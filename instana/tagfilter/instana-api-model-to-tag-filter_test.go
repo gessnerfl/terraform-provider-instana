@@ -83,13 +83,13 @@ func testMappingOfTagFilterFromInstanaApi(tagFilter *restapi.TagFilter, comparis
 	runTestCaseForMappingFromAPI(tagFilter, expectedResult, t)
 }
 
-func TestShouldMapValidOperatorsOfTagFilter(t *testing.T) {
+func TestShouldMapAllSupportedComparisonOperatorsFromInstanaAPI(t *testing.T) {
 	for _, v := range restapi.SupportedComparisonOperators {
-		t.Run(fmt.Sprintf("test mapping of %s", v), testMappingOfOperatorsOfTagFilter(v))
+		t.Run(fmt.Sprintf("test mapping of %s", v), testMappingOfSupportedComparisonOperatorsFromInstanaAPI(v))
 	}
 }
 
-func testMappingOfOperatorsOfTagFilter(operator restapi.TagFilterOperator) func(t *testing.T) {
+func testMappingOfSupportedComparisonOperatorsFromInstanaAPI(operator restapi.TagFilterOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		value := "value"
 		input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, operator, &value)
@@ -112,7 +112,7 @@ func testMappingOfOperatorsOfTagFilter(operator restapi.TagFilterOperator) func(
 	}
 }
 
-func TestShouldFailToMapComparisonWhenOperatorOfTagFilterIsNotValid(t *testing.T) {
+func TestShouldFailToMapTagFilterFromInstanaAPIWhenOperatorIsNotSupported(t *testing.T) {
 	value := "value"
 	input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, "FOO", &value)
 
@@ -124,13 +124,13 @@ func TestShouldFailToMapComparisonWhenOperatorOfTagFilterIsNotValid(t *testing.T
 	require.Contains(t, err.Error(), tagFilterOperator)
 }
 
-func TestShouldMapValidUnaryOperationsOfTagFilter(t *testing.T) {
+func TestShouldMapAllSupportedUnaryOperationsFromInstanaAPI(t *testing.T) {
 	for _, v := range restapi.SupportedUnaryExpressionOperators {
-		t.Run(fmt.Sprintf("test mapping of %s ", v), testMappingOfUnaryOperationOfTagFilter(v))
+		t.Run(fmt.Sprintf("test mapping of %s ", v), testMappingOfSupportedUnaryOperationFromInstanaAPI(v))
 	}
 }
 
-func testMappingOfUnaryOperationOfTagFilter(operator restapi.TagFilterOperator) func(t *testing.T) {
+func testMappingOfSupportedUnaryOperationFromInstanaAPI(operator restapi.TagFilterOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		input := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, operator)
 
@@ -151,7 +151,7 @@ func testMappingOfUnaryOperationOfTagFilter(operator restapi.TagFilterOperator) 
 	}
 }
 
-func TestShouldFailToMapUnaryOperationWhenOperatorOfTagFilterIsNotValid(t *testing.T) {
+func TestShouldFailToMapTagFilterFromInstanaAPIWhenUnaryOperationIsNotSupported(t *testing.T) {
 	input := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, "FOO")
 
 	mapper := NewTagFilterMapper()
@@ -162,7 +162,7 @@ func TestShouldFailToMapUnaryOperationWhenOperatorOfTagFilterIsNotValid(t *testi
 	require.Contains(t, err.Error(), tagFilterOperator)
 }
 
-func TestShouldFailMapExpressionWhenTypeIsMissing(t *testing.T) {
+func TestShouldFailToMapTagFilterExpressionElementFromInstanaAPIWhenTypeIsMissing(t *testing.T) {
 	input := &restapi.TagFilter{
 		Name:     tagFilterName,
 		Operator: "FOO",
@@ -175,18 +175,19 @@ func TestShouldFailMapExpressionWhenTypeIsMissing(t *testing.T) {
 	require.Contains(t, err.Error(), "unsupported tag filter expression")
 }
 
-func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
+func TestShouldMapLogicalAndWithTwoPrimaryExpressionsFromInstanaAPI(t *testing.T) {
 	operator := Operator(restapi.IsEmptyOperator)
 	and := Operator(restapi.LogicalAnd)
-	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
-	input := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{primaryExpression, primaryExpression})
+	primaryExpression1 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name1", restapi.IsEmptyOperator)
+	primaryExpression2 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name2", restapi.IsEmptyOperator)
+	input := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{primaryExpression1, primaryExpression2})
 
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
+						Entity:   &EntitySpec{Identifier: "name1", Origin: EntityOriginDestination},
 						Operator: operator,
 					},
 				},
@@ -194,7 +195,7 @@ func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
 				Right: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: "name2", Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -206,7 +207,49 @@ func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
 	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
-func TestShouldMapLogicalAndWhenLeftIsAPrimaryExpressionAndRightIsAnotherAndExpression(t *testing.T) {
+func TestShouldMapLogicalAndWithThreePrimaryExpressionsFromInstanaAPI(t *testing.T) {
+	operator := Operator(restapi.IsEmptyOperator)
+	and := Operator(restapi.LogicalAnd)
+	primaryExpression1 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name1", restapi.IsEmptyOperator)
+	primaryExpression2 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name2", restapi.IsEmptyOperator)
+	primaryExpression3 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name3", restapi.IsEmptyOperator)
+	input := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{primaryExpression1, primaryExpression2, primaryExpression3})
+
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					UnaryOperation: &UnaryOperationExpression{
+						Entity:   &EntitySpec{Identifier: "name1", Origin: EntityOriginDestination},
+						Operator: operator,
+					},
+				},
+				Operator: &and,
+				Right: &LogicalAndExpression{
+					Left: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: "name2", Origin: EntityOriginDestination},
+							Operator: operator,
+						},
+					},
+					Operator: &and,
+					Right: &LogicalAndExpression{
+						Left: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: "name3", Origin: EntityOriginDestination},
+								Operator: operator,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
+}
+
+func TestShouldMapLogicalAndWithTwoElementsFromInstanaAPIWhereTheFirstElementIsAPrimaryExpressionAndTheSecondElementIsAnotherLogicalAnd(t *testing.T) {
 	operator := Operator(restapi.IsEmptyOperator)
 	and := Operator(restapi.LogicalAnd)
 	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
@@ -247,31 +290,31 @@ func TestShouldMapLogicalAndWhenLeftIsAPrimaryExpressionAndRightIsAnotherAndExpr
 	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
-func TestShouldFailToMapLogicalAndWhenLeftIsOrExpression(t *testing.T) {
-	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
-	nestedOr := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpression, primaryExpression})
-	input := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{nestedOr, primaryExpression})
+func TestShouldFailToMapLogicalAndFromInstanaAPIWhenAnyElementIsALogicalOr(t *testing.T) {
+	for i := 0; i < 5; i++ {
+		t.Run(fmt.Sprintf("TestShouldFailToMapLogicalAndWhenElementAtPosition%dIsALogicalOr", i), func(t *testing.T) {
+			primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
+			nestedOr := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpression, primaryExpression})
+			elements := make([]restapi.TagFilterExpressionElement, 5)
+			for j := 0; j < 5; j++ {
+				if j == i {
+					elements[j] = nestedOr
+				} else {
+					elements[j] = primaryExpression
+				}
+			}
+			input := restapi.NewLogicalAndTagFilter(elements)
 
-	mapper := NewTagFilterMapper()
-	_, err := mapper.FromAPIModel(input)
+			mapper := NewTagFilterMapper()
+			_, err := mapper.FromAPIModel(input)
 
-	require.NotNil(t, err)
-	require.Contains(t, err.Error(), "logical or is not allowed")
+			require.NotNil(t, err)
+			require.Contains(t, err.Error(), "logical or is not allowed")
+		})
+	}
 }
 
-func TestShouldFailToMapLogicalAndWhenRightIsOrExpression(t *testing.T) {
-	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
-	nestedOr := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpression, primaryExpression})
-	input := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{primaryExpression, nestedOr})
-
-	mapper := NewTagFilterMapper()
-	_, err := mapper.FromAPIModel(input)
-
-	require.NotNil(t, err)
-	require.Contains(t, err.Error(), "logical or is not allowed")
-}
-
-func TestShouldFailToMapLogicalAndWhenLeftIsAndExpression(t *testing.T) {
+func TestShouldFailToMapLogicalAndFromInstanaAPIWhenFirstElementIsAnAndExpression(t *testing.T) {
 	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
 	nestedAnd := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{primaryExpression, primaryExpression})
 	input := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{nestedAnd, primaryExpression})
@@ -283,18 +326,30 @@ func TestShouldFailToMapLogicalAndWhenLeftIsAndExpression(t *testing.T) {
 	require.Contains(t, err.Error(), "logical and is not allowed for first element")
 }
 
-func TestShouldMapLogicalOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T) {
+func TestShouldFailToMapLogicalAndFromInstanaAPIWhenOnlyOneElementIsProvided(t *testing.T) {
+	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
+	input := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{primaryExpression})
+
+	mapper := NewTagFilterMapper()
+	_, err := mapper.FromAPIModel(input)
+
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "at least two elements are expected for logical and")
+}
+
+func TestShouldMapLogicalOrWithTwoPrimaryExpressionsFromInstanaAPI(t *testing.T) {
 	operator := Operator(restapi.IsEmptyOperator)
 	or := Operator(restapi.LogicalOr)
-	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
-	input := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpression, primaryExpression})
+	primaryExpression1 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name1", restapi.IsEmptyOperator)
+	primaryExpression2 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name2", restapi.IsEmptyOperator)
+	input := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpression1, primaryExpression2})
 
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
+						Entity:   &EntitySpec{Identifier: "name1", Origin: EntityOriginDestination},
 						Operator: operator,
 					},
 				},
@@ -304,7 +359,7 @@ func TestShouldMapLogicalOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T)
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: "name2", Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -316,7 +371,53 @@ func TestShouldMapLogicalOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T)
 	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
-func TestShouldMapLogicalOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpression(t *testing.T) {
+func TestShouldMapLogicalOrWithThreePrimaryExpressionsFromInstanaAPI(t *testing.T) {
+	operator := Operator(restapi.IsEmptyOperator)
+	or := Operator(restapi.LogicalOr)
+	primaryExpression1 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name1", restapi.IsEmptyOperator)
+	primaryExpression2 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name2", restapi.IsEmptyOperator)
+	primaryExpression3 := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, "name3", restapi.IsEmptyOperator)
+	input := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpression1, primaryExpression2, primaryExpression3})
+
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					UnaryOperation: &UnaryOperationExpression{
+						Entity:   &EntitySpec{Identifier: "name1", Origin: EntityOriginDestination},
+						Operator: operator,
+					},
+				},
+			},
+			Operator: &or,
+			Right: &LogicalOrExpression{
+				Left: &LogicalAndExpression{
+					Left: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: "name2", Origin: EntityOriginDestination},
+							Operator: operator,
+						},
+					},
+				},
+				Operator: &or,
+				Right: &LogicalOrExpression{
+					Left: &LogicalAndExpression{
+						Left: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: "name3", Origin: EntityOriginDestination},
+								Operator: operator,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
+}
+
+func TestShouldMapLogicalOrWithTwoElementsFromInstanaAPIWhereFirstElementIsALogicalAndAndTheOtherElementIsPrimaryExpression(t *testing.T) {
 	operator := Operator(restapi.IsEmptyOperator)
 	or := Operator(restapi.LogicalOr)
 	and := Operator(restapi.LogicalAnd)
@@ -360,7 +461,7 @@ func TestShouldMapLogicalOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpress
 	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
-func TestShouldMapLogicalOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogicalOr(t *testing.T) {
+func TestShouldMapLogicalOrWithTwoElementsFromInstanaAPIWhereFirstElementIsAPrimaryExpressionAndTheOtherElementIsALogicalOr(t *testing.T) {
 	operator := Operator(restapi.IsEmptyOperator)
 	or := Operator(restapi.LogicalOr)
 	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
@@ -405,7 +506,7 @@ func TestShouldMapLogicalOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogica
 	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
-func TestShouldMapLogicalOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogicalAnd(t *testing.T) {
+func TestShouldMapLogicalOrWithTwoElementsWhereFirstElementIsAPrimaryExpressionAndTheOtherElementIsALogicalAnd(t *testing.T) {
 	operator := Operator(restapi.IsEmptyOperator)
 	or := Operator(restapi.LogicalOr)
 	and := Operator(restapi.LogicalAnd)
@@ -449,7 +550,7 @@ func TestShouldMapLogicalOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogica
 	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
-func TestShouldFailToMapLogicalOrWhenLeftIsOrExpression(t *testing.T) {
+func TestShouldFailToMapLogicalOrWhenFirstElementIsALogicalOrExpression(t *testing.T) {
 	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
 	nestedOr := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpression, primaryExpression})
 	input := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{nestedOr, primaryExpression})
@@ -461,7 +562,18 @@ func TestShouldFailToMapLogicalOrWhenLeftIsOrExpression(t *testing.T) {
 	require.Contains(t, err.Error(), "logical or is not allowed for first element")
 }
 
-func TestShouldFailToMapBinaryExpressionWhenConjunctionTypeIsNotValid(t *testing.T) {
+func TestShouldFailToMapLogicalOrWhenOnlyOneElementIsProvided(t *testing.T) {
+	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
+	input := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpression})
+
+	mapper := NewTagFilterMapper()
+	_, err := mapper.FromAPIModel(input)
+
+	require.NotNil(t, err)
+	require.Contains(t, err.Error(), "at least two elements are expected for logical or")
+}
+
+func TestShouldFailToMapTagFilterExpressionFromInstanaAPIWhenLogicalOperatorIsNotValid(t *testing.T) {
 	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
 	input := &restapi.TagFilterExpression{
 		Type:            restapi.TagFilterExpressionType,
@@ -473,33 +585,32 @@ func TestShouldFailToMapBinaryExpressionWhenConjunctionTypeIsNotValid(t *testing
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
-	require.Contains(t, err.Error(), "invalid conjunction operator")
+	require.Contains(t, err.Error(), "invalid logical operator")
 }
 
-func TestShouldReturnMappingErrorIfLeftSideOfConjunctionIsNotValid(t *testing.T) {
-	primaryExpressionLeft := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, "INVALID")
-	primaryExpressionRight := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
-	input := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpressionLeft, primaryExpressionRight})
+func TestShouldReturnMappingErrorWhenAnyElementOfTagFilterExpressionIsNotValid(t *testing.T) {
+	for i := 0; i < 5; i++ {
+		t.Run(fmt.Sprintf("TestShouldReturnMappingErrorWhenElement%dOfTagFilterExpressionIsNotValid", i), func(t *testing.T) {
+			invalidElement := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, "INVALID")
+			validElement := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
+			elements := make([]restapi.TagFilterExpressionElement, 5)
+			for j := 0; j < 5; j++ {
+				if j == i {
+					elements[j] = invalidElement
+				} else {
+					elements[j] = validElement
+				}
+			}
+			input := restapi.NewLogicalOrTagFilter(elements)
 
-	mapper := NewTagFilterMapper()
-	_, err := mapper.FromAPIModel(input)
+			mapper := NewTagFilterMapper()
+			_, err := mapper.FromAPIModel(input)
 
-	require.NotNil(t, err)
-	require.Contains(t, err.Error(), invalidOperator)
-	require.Contains(t, err.Error(), tagFilterOperator)
-}
-
-func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T) {
-	primaryExpressionLeft := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
-	primaryExpressionRight := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, "INVALID")
-	input := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{primaryExpressionLeft, primaryExpressionRight})
-
-	mapper := NewTagFilterMapper()
-	_, err := mapper.FromAPIModel(input)
-
-	require.NotNil(t, err)
-	require.Contains(t, err.Error(), invalidOperator)
-	require.Contains(t, err.Error(), tagFilterOperator)
+			require.NotNil(t, err)
+			require.Contains(t, err.Error(), invalidOperator)
+			require.Contains(t, err.Error(), tagFilterOperator)
+		})
+	}
 }
 
 func runTestCaseForMappingFromAPI(input restapi.TagFilterExpressionElement, expectedResult *FilterExpression, t *testing.T) {

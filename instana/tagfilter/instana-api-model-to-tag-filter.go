@@ -60,7 +60,7 @@ func (m *tagFilterMapperImpl) mapExpression(operator *restapi.TagFilterExpressio
 	if operator.LogicalOperator == restapi.LogicalOr {
 		return m.mapLogicalOr(elements)
 	}
-	return nil, fmt.Errorf("invalid conjunction operator %s", operator.LogicalOperator)
+	return nil, fmt.Errorf("invalid logical operator %s", operator.LogicalOperator)
 
 }
 
