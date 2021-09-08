@@ -165,6 +165,35 @@ func TestShouldMapLogicalAndExpression(t *testing.T) {
 	runTestCaseForMappingToAPI(expr, expectedResult, t)
 }
 
+func TestShouldMapLogicalAndExpressionWithNestedAnd(t *testing.T) {
+	logicalAnd := Operator(restapi.LogicalAnd)
+	primaryExpression := PrimaryExpression{
+		UnaryOperation: &UnaryOperationExpression{
+			Entity:   &EntitySpec{Identifier: entitySpecKey, Origin: EntityOriginDestination},
+			Operator: Operator(restapi.IsEmptyOperator),
+		},
+	}
+	expr := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left:     &primaryExpression,
+				Operator: &logicalAnd,
+				Right: &LogicalAndExpression{
+					Left:     &primaryExpression,
+					Operator: &logicalAnd,
+					Right: &LogicalAndExpression{
+						Left: &primaryExpression,
+					},
+				},
+			},
+		},
+	}
+
+	expectedPrimaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, restapi.IsEmptyOperator)
+	expectedResult := restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{expectedPrimaryExpression, expectedPrimaryExpression, expectedPrimaryExpression})
+	runTestCaseForMappingToAPI(expr, expectedResult, t)
+}
+
 func TestShouldMapLogicalOrExpression(t *testing.T) {
 	logicalOr := Operator(restapi.LogicalOr)
 	primaryExpression := PrimaryExpression{
@@ -189,6 +218,39 @@ func TestShouldMapLogicalOrExpression(t *testing.T) {
 
 	expectedPrimaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, restapi.IsEmptyOperator)
 	expectedResult := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{expectedPrimaryExpression, expectedPrimaryExpression})
+	runTestCaseForMappingToAPI(expr, expectedResult, t)
+}
+
+func TestShouldMapLogicalOrExpressionWithNestedOr(t *testing.T) {
+	logicalOr := Operator(restapi.LogicalOr)
+	primaryExpression := PrimaryExpression{
+		UnaryOperation: &UnaryOperationExpression{
+			Entity:   &EntitySpec{Identifier: entitySpecKey, Origin: EntityOriginDestination},
+			Operator: Operator(restapi.IsEmptyOperator),
+		},
+	}
+	expr := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &primaryExpression,
+			},
+			Operator: &logicalOr,
+			Right: &LogicalOrExpression{
+				Left: &LogicalAndExpression{
+					Left: &primaryExpression,
+				},
+				Operator: &logicalOr,
+				Right: &LogicalOrExpression{
+					Left: &LogicalAndExpression{
+						Left: &primaryExpression,
+					},
+				},
+			},
+		},
+	}
+
+	expectedPrimaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, restapi.IsEmptyOperator)
+	expectedResult := restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{expectedPrimaryExpression, expectedPrimaryExpression, expectedPrimaryExpression})
 	runTestCaseForMappingToAPI(expr, expectedResult, t)
 }
 
