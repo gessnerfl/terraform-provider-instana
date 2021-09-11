@@ -21,8 +21,84 @@ const (
 	entityNameEqualsValueExpression = "entity.name@dest EQUALS 'my value'"
 )
 
+func TestShouldParseStringComparisonExpression(t *testing.T) {
+	expression := "entity.name EQUALS 'foo'"
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:      &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
+						Operator:    Operator(restapi.EqualsOperator),
+						StringValue: utils.StringPtr("foo"),
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
+func TestShouldParseNumberComparisonExpression(t *testing.T) {
+	expression := "entity.name EQUALS 123"
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:      &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
+						Operator:    Operator(restapi.EqualsOperator),
+						NumberValue: utils.Int64Ptr(int64(123)),
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
+func TestShouldParseBoolComparisonExpression(t *testing.T) {
+	expression := "entity.name EQUALS TRUE"
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:       &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
+						Operator:     Operator(restapi.EqualsOperator),
+						BooleanValue: utils.BoolPtr(true),
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
+func TestShouldParseTagComparisonExpression(t *testing.T) {
+	expression := "entity.name EQUALS key=value"
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:   &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
+						Operator: Operator(restapi.EqualsOperator),
+						TagValue: &TagValue{Key: "key", Value: "value"},
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
 func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
-	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS '2.34' AND entity.type EQUALS 'true' AND span.name NOT_EMPTY OR span.id NOT_EQUAL  '1234'"
+	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS 234 AND entity.type EQUALS true AND span.name NOT_EMPTY OR span.id NOT_EQUAL  '1234'"
 
 	logicalAnd := Operator(restapi.LogicalAnd)
 	logicalOr := Operator(restapi.LogicalOr)
@@ -44,16 +120,16 @@ func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
 						Comparison: &ComparisonExpression{
 							Entity:      &EntitySpec{Identifier: keyEntityKind, Origin: EntityOriginDestination},
 							Operator:    Operator(restapi.EqualsOperator),
-							StringValue: utils.StringPtr("2.34"),
+							NumberValue: utils.Int64Ptr(int64(234)),
 						},
 					},
 					Operator: &logicalAnd,
 					Right: &LogicalAndExpression{
 						Left: &PrimaryExpression{
 							Comparison: &ComparisonExpression{
-								Entity:      &EntitySpec{Identifier: keyEntityType, Origin: EntityOriginDestination},
-								Operator:    Operator(restapi.EqualsOperator),
-								StringValue: utils.StringPtr("true"),
+								Entity:       &EntitySpec{Identifier: keyEntityType, Origin: EntityOriginDestination},
+								Operator:     Operator(restapi.EqualsOperator),
+								BooleanValue: utils.BoolPtr(true),
 							},
 						},
 						Operator: &logicalAnd,
@@ -117,13 +193,13 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 	shouldSuccessfullyParseExpression(expression, expectedResult, t)
 }
 
-func TestShouldParseAllSupportedComparisionOperators(t *testing.T) {
+func TestShouldParseAllSupportedComparisonOperators(t *testing.T) {
 	for _, o := range restapi.SupportedComparisonOperators {
-		t.Run(fmt.Sprintf("TestShouldParseComparisionOperator%s", string(o)), createTestCaseForParsingSupportedComparisionOperators(o))
+		t.Run(fmt.Sprintf("TestShouldParseComparisionOperator%s", string(o)), createTestCaseForParsingSupportedComparisonOperators(o))
 	}
 }
 
-func createTestCaseForParsingSupportedComparisionOperators(operator restapi.TagFilterOperator) func(*testing.T) {
+func createTestCaseForParsingSupportedComparisonOperators(operator restapi.TagFilterOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expression := fmt.Sprintf("entity.name %s 'foo'", string(operator))
 
@@ -172,7 +248,7 @@ func createTestCaseForParsingSupportedUnaryOperators(operator restapi.TagFilterO
 	}
 }
 
-func TestShouldParseComparisionOperationsCaseInsensitive(t *testing.T) {
+func TestShouldParseComparisonOperationsCaseInsensitive(t *testing.T) {
 	expression := "entity.name Equals 'foo'"
 
 	expectedResult := &FilterExpression{
@@ -251,7 +327,7 @@ func TestShouldParseIdentifierWithSlashes(t *testing.T) {
 	shouldSuccessfullyParseExpression(expression, expectedResult, t)
 }
 
-func TestShouldParseEntityOriginFromComparisionExpression(t *testing.T) {
+func TestShouldParseEntityOriginFromComparisonExpression(t *testing.T) {
 	expression := "entity.name@src EQUALS 'test'"
 
 	expectedResult := &FilterExpression{

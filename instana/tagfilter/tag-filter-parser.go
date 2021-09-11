@@ -19,14 +19,12 @@ type ExpressionRenderer interface {
 type EntityOrigin interface {
 	//Key returns the key of the entity origin
 	Key() string
-	//MatcherExpressionEntity returns the Instana API Matcher Expression Entity
-	MatcherExpressionEntity() restapi.MatcherExpressionEntity
 	//TagFilterEntity returns the Instana API Ta Filter Entity
 	TagFilterEntity() restapi.TagFilterEntity
 }
 
-func newEntityOrigin(key string, matcherExpressionEntity restapi.MatcherExpressionEntity, tagFilterEntity restapi.TagFilterEntity) EntityOrigin {
-	return &baseEntityOrigin{key: key, matcherExpressionEntity: matcherExpressionEntity, tagFilterEntity: tagFilterEntity}
+func newEntityOrigin(key string, tagFilterEntity restapi.TagFilterEntity) EntityOrigin {
+	return &baseEntityOrigin{key: key, tagFilterEntity: tagFilterEntity}
 }
 
 type baseEntityOrigin struct {
@@ -40,11 +38,6 @@ func (o *baseEntityOrigin) Key() string {
 	return o.key
 }
 
-//MatcherExpressionEntity interface implementation of EntityOrigin
-func (o *baseEntityOrigin) MatcherExpressionEntity() restapi.MatcherExpressionEntity {
-	return o.matcherExpressionEntity
-}
-
 //TagFilterEntity interface implementation of EntityOrigin
 func (o *baseEntityOrigin) TagFilterEntity() restapi.TagFilterEntity {
 	return o.tagFilterEntity
@@ -52,11 +45,11 @@ func (o *baseEntityOrigin) TagFilterEntity() restapi.TagFilterEntity {
 
 var (
 	//EntityOriginSource constant value for the source EntityOrigin
-	EntityOriginSource = newEntityOrigin("src", restapi.MatcherExpressionEntitySource, restapi.TagFilterEntitySource)
+	EntityOriginSource = newEntityOrigin("src", restapi.TagFilterEntitySource)
 	//EntityOriginDestination constant value for the destination EntityOrigin
-	EntityOriginDestination = newEntityOrigin("dest", restapi.MatcherExpressionEntityDestination, restapi.TagFilterEntityDestination)
+	EntityOriginDestination = newEntityOrigin("dest", restapi.TagFilterEntityDestination)
 	//EntityOriginNotApplicable constant value for the not applicable EntityOrigin
-	EntityOriginNotApplicable = newEntityOrigin("na", restapi.MatcherExpressionEntityNotApplicable, restapi.TagFilterEntityNotApplicable)
+	EntityOriginNotApplicable = newEntityOrigin("na", restapi.TagFilterEntityNotApplicable)
 )
 
 //EntityOrigins custom type for a slice of entity origins
@@ -189,10 +182,10 @@ func (e *PrimaryExpression) Render() string {
 type ComparisonExpression struct {
 	Entity       *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
 	Operator     Operator    `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
-	StringValue  *string     `parser:"( @String"`
+	TagValue     *TagValue   `parser:"( @@"`
 	NumberValue  *int64      `parser:"| @Number"`
-	BooleanValue *bool       `parser:"| @Boolean"`
-	TagValue     *TagValue   `parser:"| @@ )"`
+	BooleanValue *bool       `parser:"| @( \"FALSE\" | \"TRUE\" )""`
+	StringValue  *string     `parser:"| @String )"`
 }
 
 //Render implementation of ExpressionRenderer.Render
@@ -233,10 +226,10 @@ var (
 	filterLexer = lexer.Must(lexer.Regexp(`(\s+)` +
 		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|STARTS_WITH|ENDS_WITH|NOT_STARTS_WITH|NOT_ENDS_WITH|GREATER_OR_EQUAL_THAN|LESS_OR_EQUAL_THAN|LESS_THAN|GREATER_THAN)` +
 		`|(?P<EntityOrigin>(?i)src|dest|na)` +
-		`|(?P<Boolean>(?i)true|false)` +
 		`|(?P<EntityOriginOperator>(?i)@)` +
+		`|(?P<TagSeparator>(?i)=)` +
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_\-/]*)` +
-		`|(?P<Number>[-+]?\d+(\.\d+)?)` +
+		`|(?P<Number>[-+]?\d+)` +
 		`|(?P<String>'[^']*'|"[^"]*")`,
 	))
 	filterParser = participle.MustBuild(
