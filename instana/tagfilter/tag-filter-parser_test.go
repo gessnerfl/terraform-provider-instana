@@ -383,7 +383,7 @@ func TestShouldFailToParseInvalidExpression(t *testing.T) {
 	require.NotNil(t, err)
 }
 
-func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
+func TestShouldRenderComplexExpressionInNormalizedForm(t *testing.T) {
 	expression := "entity.name CONTAINS 'foo' OR entity.kind EQUALS '2.34'    and  entity.type EQUALS 'true'  AND span.name  NOT_EMPTY   OR span.id  NOT_EQUAL  '1234'"
 	normalizedExpression := "entity.name@dest CONTAINS 'foo' OR entity.kind@dest EQUALS '2.34' AND entity.type@dest EQUALS 'true' AND span.name@dest NOT_EMPTY OR span.id@dest NOT_EQUAL '1234'"
 
@@ -395,28 +395,30 @@ func TestShouldRenderComplexExpressionNormalizedForm(t *testing.T) {
 	require.Equal(t, normalizedExpression, rendered)
 }
 
-func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
+func TestShouldRenderLogicalOrExpression(t *testing.T) {
 	expectedResult := "foo@dest EQUALS 'bar' OR foo@dest CONTAINS 'bar'"
 
 	logicalOr := Operator(restapi.LogicalOr)
-	sut := LogicalOrExpression{
-		Left: &LogicalAndExpression{
-			Left: &PrimaryExpression{
-				Comparison: &ComparisonExpression{
-					Entity:      &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
-					Operator:    Operator(restapi.EqualsOperator),
-					StringValue: utils.StringPtr("bar"),
-				},
-			},
-		},
-		Operator: &logicalOr,
-		Right: &LogicalOrExpression{
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparison: &ComparisonExpression{
 						Entity:      &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
-						Operator:    Operator(restapi.ContainsOperator),
+						Operator:    Operator(restapi.EqualsOperator),
 						StringValue: utils.StringPtr("bar"),
+					},
+				},
+			},
+			Operator: &logicalOr,
+			Right: &LogicalOrExpression{
+				Left: &LogicalAndExpression{
+					Left: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
+							Operator:    Operator(restapi.ContainsOperator),
+							StringValue: utils.StringPtr("bar"),
+						},
 					},
 				},
 			},
@@ -428,43 +430,29 @@ func TestShouldRenderLogicalOrExpressionWhenOrIsSet(t *testing.T) {
 	require.Equal(t, expectedResult, rendered)
 }
 
-func TestShouldRenderPrimaryExpressionOnLogicalOrExpressionWhenNeitherOrNorAndIsSet(t *testing.T) {
-	sut := LogicalOrExpression{
-		Left: &LogicalAndExpression{
-			Left: &PrimaryExpression{
-				Comparison: &ComparisonExpression{
-					Entity:      &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
-					Operator:    Operator(restapi.EqualsOperator),
-					StringValue: utils.StringPtr(valueMyValue),
-				},
-			},
-		},
-	}
-
-	rendered := sut.Render()
-
-	require.Equal(t, entityNameEqualsValueExpression, rendered)
-}
-
-func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
+func TestShouldRenderLogicalAndExpression(t *testing.T) {
 	expectedResult := "foo@dest EQUALS 'bar' AND foo@dest CONTAINS 'bar'"
 
 	logicalAnd := Operator(restapi.LogicalAnd)
-	sut := LogicalAndExpression{
-		Left: &PrimaryExpression{
-			Comparison: &ComparisonExpression{
-				Entity:      &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
-				Operator:    Operator(restapi.EqualsOperator),
-				StringValue: utils.StringPtr("bar"),
-			},
-		},
-		Operator: &logicalAnd,
-		Right: &LogicalAndExpression{
-			Left: &PrimaryExpression{
-				Comparison: &ComparisonExpression{
-					Entity:      &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
-					Operator:    Operator(restapi.ContainsOperator),
-					StringValue: utils.StringPtr("bar"),
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:      &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
+						Operator:    Operator(restapi.EqualsOperator),
+						StringValue: utils.StringPtr("bar"),
+					},
+				},
+				Operator: &logicalAnd,
+				Right: &LogicalAndExpression{
+					Left: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
+							Operator:    Operator(restapi.ContainsOperator),
+							StringValue: utils.StringPtr("bar"),
+						},
+					},
 				},
 			},
 		},
@@ -474,13 +462,17 @@ func TestShouldRenderLogicalAndExpressionWhenAndIsSet(t *testing.T) {
 	require.Equal(t, expectedResult, rendered)
 }
 
-func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *testing.T) {
-	sut := LogicalAndExpression{
-		Left: &PrimaryExpression{
-			Comparison: &ComparisonExpression{
-				Entity:      &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
-				Operator:    Operator(restapi.EqualsOperator),
-				StringValue: utils.StringPtr(valueMyValue),
+func TestShouldRenderPrimaryStringComparisonExpression(t *testing.T) {
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:      &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
+						Operator:    Operator(restapi.EqualsOperator),
+						StringValue: utils.StringPtr(valueMyValue),
+					},
+				},
 			},
 		},
 	}
@@ -490,27 +482,79 @@ func TestShouldRenderPrimaryExpressionOnLogicalAndExpressionWhenAndIsNotSet(t *t
 	require.Equal(t, entityNameEqualsValueExpression, rendered)
 }
 
-func TestShouldRenderComparisionOnPrimaryExpressionWhenComparsionIsSet(t *testing.T) {
-	sut := PrimaryExpression{
-		Comparison: &ComparisonExpression{
-			Entity:      &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
-			Operator:    Operator(restapi.EqualsOperator),
-			StringValue: utils.StringPtr(valueMyValue),
+func TestShouldRenderPrimaryNumberComparisonExpression(t *testing.T) {
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:      &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
+						Operator:    Operator(restapi.EqualsOperator),
+						NumberValue: utils.Int64Ptr(int64(1234)),
+					},
+				},
+			},
 		},
 	}
 
 	rendered := sut.Render()
 
-	require.Equal(t, entityNameEqualsValueExpression, rendered)
+	require.Equal(t, "entity.name@dest EQUALS 1234", rendered)
 }
 
-func TestShouldRenderUnaryOperationExpressionOnPrimaryExpressionWhenUnaryOperationIsSet(t *testing.T) {
+func TestShouldRenderPrimaryBooleanComparisonExpression(t *testing.T) {
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:       &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
+						Operator:     Operator(restapi.EqualsOperator),
+						BooleanValue: utils.BoolPtr(true),
+					},
+				},
+			},
+		},
+	}
+
+	rendered := sut.Render()
+
+	require.Equal(t, "entity.name@dest EQUALS true", rendered)
+}
+
+func TestShouldRenderPrimaryTagComparisonExpression(t *testing.T) {
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:   &EntitySpec{Identifier: keyEntityName, Origin: EntityOriginDestination},
+						Operator: Operator(restapi.EqualsOperator),
+						TagValue: &TagValue{Key: "key", Value: "value"},
+					},
+				},
+			},
+		},
+	}
+
+	rendered := sut.Render()
+
+	require.Equal(t, "entity.name@dest EQUALS key=value", rendered)
+}
+
+func TestShouldRenderUnaryOperationExpression(t *testing.T) {
 	expectedResult := "foo@dest IS_EMPTY"
 
-	sut := PrimaryExpression{
-		UnaryOperation: &UnaryOperationExpression{
-			Entity:   &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
-			Operator: Operator(restapi.IsEmptyOperator),
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					UnaryOperation: &UnaryOperationExpression{
+						Entity:   &EntitySpec{Identifier: "foo", Origin: EntityOriginDestination},
+						Operator: Operator(restapi.IsEmptyOperator),
+					},
+				},
+			},
 		},
 	}
 
@@ -540,7 +584,7 @@ func TestShouldGetEntityOriginByInstanaAPIEntity(t *testing.T) {
 }
 
 func TestShouldReturnEntityOriginDestinationAsFallbackValueWhenMatcherExpressionEntityIsNotValid(t *testing.T) {
-	require.Equal(t, EntityOriginDestination, SupportedEntityOrigins.ForInstanaAPIEntity(restapi.TagFilterEntity("invalid")))
+	require.Equal(t, EntityOriginDestination, SupportedEntityOrigins.ForInstanaAPIEntity("invalid"))
 }
 
 func TestShouldNormalizeExpression(t *testing.T) {

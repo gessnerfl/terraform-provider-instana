@@ -126,13 +126,6 @@ func (e *FilterExpression) Render() string {
 	return e.Expression.Render()
 }
 
-//Conjunction represents a logical and or a logical or conjunction
-type Conjunction interface {
-	GetLeft() Conjunction
-	GetOperator() Operator
-	GetRight() Conjunction
-}
-
 //LogicalOrExpression representation of a logical OR or as a wrapper for a, LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalOrExpression struct {
 	Left     *LogicalAndExpression `parser:"  @@"`
