@@ -10,7 +10,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//ExpressionRenderer interface definition for all types of the Filter expression to render the corresponding value
+//ExpressionRenderer interface definition to render an expression in its normalized form
 type ExpressionRenderer interface {
 	Render() string
 }
@@ -28,9 +28,8 @@ func newEntityOrigin(key string, tagFilterEntity restapi.TagFilterEntity) Entity
 }
 
 type baseEntityOrigin struct {
-	key                     string
-	matcherExpressionEntity restapi.MatcherExpressionEntity
-	tagFilterEntity         restapi.TagFilterEntity
+	key             string
+	tagFilterEntity restapi.TagFilterEntity
 }
 
 //Key interface implementation of EntityOrigin
@@ -44,18 +43,18 @@ func (o *baseEntityOrigin) TagFilterEntity() restapi.TagFilterEntity {
 }
 
 var (
-	//EntityOriginSource constant value for the source EntityOrigin
+	//EntityOriginSource constant value for the EntityOrigin source
 	EntityOriginSource = newEntityOrigin("src", restapi.TagFilterEntitySource)
-	//EntityOriginDestination constant value for the destination EntityOrigin
+	//EntityOriginDestination constant value for the EntityOrigin destination
 	EntityOriginDestination = newEntityOrigin("dest", restapi.TagFilterEntityDestination)
-	//EntityOriginNotApplicable constant value for the not applicable EntityOrigin
+	//EntityOriginNotApplicable constant value when no EntityOrigin is applicable
 	EntityOriginNotApplicable = newEntityOrigin("na", restapi.TagFilterEntityNotApplicable)
 )
 
 //EntityOrigins custom type for a slice of entity origins
 type EntityOrigins []EntityOrigin
 
-//ForInstanaAPIEntity returns the EntityOrigin for its corresponding MatchExpressionEntity from the Instana API
+//ForInstanaAPIEntity returns the EntityOrigin for its corresponding TagFilterEntity from the Instana API
 func (origins EntityOrigins) ForInstanaAPIEntity(input restapi.TagFilterEntity) EntityOrigin {
 	for _, o := range origins {
 		if o.TagFilterEntity() == input {
@@ -73,14 +72,14 @@ func (origins EntityOrigins) ForKey(input string) EntityOrigin {
 			return o
 		}
 	}
-	log.Printf("entity origin %s is not supported; fall back to default origin %s", input, EntityOriginDestination.Key())
+	log.Printf("entity origin with key %s is not supported; fall back to default origin %s", input, EntityOriginDestination.Key())
 	return EntityOriginDestination
 }
 
 //SupportedEntityOrigins slice of supported EntityOrigins
 var SupportedEntityOrigins = EntityOrigins{EntityOriginSource, EntityOriginDestination, EntityOriginNotApplicable}
 
-//EntitySpec custom type for any kind of entity path specification
+//EntitySpec custom type for an entity path specification
 type EntitySpec struct {
 	Identifier    string
 	Origin        EntityOrigin
@@ -103,21 +102,21 @@ func (o *EntitySpec) Capture(values []string) error {
 	return nil
 }
 
-//Render implementation of the ExpressionRenderer interface of EntitySpec
+//Render implementation of the ExpressionRenderer interface
 func (o *EntitySpec) Render() string {
-	return o.Identifier + "@" + string(o.Origin.Key())
+	return o.Identifier + "@" + o.Origin.Key()
 }
 
-//Operator custom type for any kind of operator
+//Operator custom type for an operator
 type Operator string
 
-//Capture captures the string representation of an operator from the given string. Interface of participle
+//Capture captures the string representation of an operator from the given string and converts it to upper case. Interface of participle
 func (o *Operator) Capture(values []string) error {
 	*o = Operator(strings.ToUpper(values[0]))
 	return nil
 }
 
-//FilterExpression representation of a dynamic focus filter expression
+//FilterExpression representation of a tag filter expression
 type FilterExpression struct {
 	Expression *LogicalOrExpression `parser:"@@"`
 }
@@ -127,7 +126,7 @@ func (e *FilterExpression) Render() string {
 	return e.Expression.Render()
 }
 
-//LogicalOrExpression representation of a logical OR or as a wrapper for a, LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
+//LogicalOrExpression representation of a logical OR, or as a wrapper for a LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalOrExpression struct {
 	Left     *LogicalAndExpression `parser:"  @@"`
 	Operator *Operator             `parser:"( @\"OR\""`
@@ -142,7 +141,7 @@ func (e *LogicalOrExpression) Render() string {
 	return e.Left.Render()
 }
 
-//LogicalAndExpression representation of a logical AND or as a wrapper for a PrimaryExpression only. The wrapping is required to handle precedence.
+//LogicalAndExpression representation of a logical AND, or as a wrapper for a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalAndExpression struct {
 	Left     *PrimaryExpression    `parser:"  @@"`
 	Operator *Operator             `parser:"( @\"AND\""`
@@ -193,7 +192,7 @@ func (e *ComparisonExpression) Render() string {
 	return fmt.Sprintf("%s %s '%s'", e.Entity.Render(), e.Operator, *e.StringValue)
 }
 
-//TagValue represents a tag value
+//TagValue representation of a tag value
 type TagValue struct {
 	Key   string `parser:"@Ident \"=\""`
 	Value string `parser:"@Ident"`
@@ -204,7 +203,7 @@ func (v *TagValue) Render() string {
 	return fmt.Sprintf("%s=%s", v.Key, v.Value)
 }
 
-//UnaryOperationExpression representation of a unary expression representing a unary operator
+//UnaryOperationExpression representation of a unary expression
 type UnaryOperationExpression struct {
 	Entity   *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
 	Operator Operator    `parser:"@( \"IS_EMPTY\" | \"IS_BLANK\"  | \"NOT_EMPTY\" | \"NOT_BLANK\" )"`
@@ -249,7 +248,7 @@ func NewParser() Parser {
 	return new(parserImpl)
 }
 
-//Parser interface for working with Dynamic Focus filters of instana
+//Parser interface for working with tag filter expressions of instana
 type Parser interface {
 	Parse(expression string) (*FilterExpression, error)
 }
