@@ -1,5 +1,11 @@
 package restapi
 
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
+
 //TagFilterExpressionElementType type for TagFilterExpressionElement discriminator type
 type TagFilterExpressionElementType string
 
@@ -58,7 +64,21 @@ func (e *TagFilterExpression) GetType() TagFilterExpressionElementType {
 
 //Validate Implementation of the TagFilterExpressionElement type
 func (e *TagFilterExpression) Validate() error {
-	//TODO add implementation
+	if len(e.Elements) < 2 {
+		return errors.New("at least two elements are expected for a tag filter expression")
+	}
+	if !IsSupportedConjunctionType(e.LogicalOperator) {
+		return fmt.Errorf("tag filter operator %s is not supported", e.LogicalOperator)
+	}
+	if strings.ToUpper(string(e.Type)) != string(TagFilterExpressionType) {
+		return fmt.Errorf("tag filter expression must be of type EXPRESSION but %s is provided", e.Type)
+	}
+	for _, element := range e.Elements {
+		err := element.Validate()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -72,6 +92,16 @@ type TagFilterEntity string
 
 //TagFilterEntities custom type representing a slice of TagFilterEntity
 type TagFilterEntities []TagFilterEntity
+
+//IsSupported check if the provided tag filter entity is supported
+func (entities TagFilterEntities) IsSupported(entity TagFilterEntity) bool {
+	for _, v := range entities {
+		if v == entity {
+			return true
+		}
+	}
+	return false
+}
 
 //ToStringSlice Returns the string representations fo the aggregations
 func (entities TagFilterEntities) ToStringSlice() []string {
@@ -94,18 +124,21 @@ const (
 //SupportedTagFilterEntities slice of supported matcher expression entity types
 var SupportedTagFilterEntities = TagFilterEntities{TagFilterEntitySource, TagFilterEntityDestination, TagFilterEntityNotApplicable}
 
-//IsSupported check if the provided matcher expression entity is supported
-func (entities TagFilterEntities) IsSupported(entity TagFilterEntity) bool {
-	for _, v := range entities {
-		if v == entity {
+//TagFilterOperator custom type for tag matcher operators
+type TagFilterOperator string
+
+//TagFilterOperators custom type representing a slice of TagFilterOperator
+type TagFilterOperators []TagFilterOperator
+
+//IsSupported check if the provided tag filter operator is supported
+func (operators TagFilterOperators) IsSupported(o TagFilterOperator) bool {
+	for _, v := range operators {
+		if v == o {
 			return true
 		}
 	}
 	return false
 }
-
-//TagFilterOperator custom type for tag matcher operators
-type TagFilterOperator string
 
 const (
 	//EqualsOperator constant for the EQUALS operator
@@ -145,7 +178,7 @@ const (
 )
 
 //SupportedComparisonOperators list of supported comparison operators of Instana API
-var SupportedComparisonOperators = []TagFilterOperator{
+var SupportedComparisonOperators = TagFilterOperators{
 	EqualsOperator,
 	NotEqualOperator,
 	ContainsOperator,
@@ -161,7 +194,7 @@ var SupportedComparisonOperators = []TagFilterOperator{
 }
 
 //SupportedUnaryExpressionOperators list of supported unary expression operators of Instana API
-var SupportedUnaryExpressionOperators = []TagFilterOperator{
+var SupportedUnaryExpressionOperators = TagFilterOperators{
 	IsEmptyOperator,
 	NotEmptyOperator,
 	IsBlankOperator,
@@ -243,6 +276,23 @@ func (f *TagFilter) GetType() TagFilterExpressionElementType {
 
 //Validate Implementation of the TagFilterExpressionElement type
 func (f *TagFilter) Validate() error {
-	//TODO add implementation
+	if !SupportedTagFilterEntities.IsSupported(f.Entity) {
+		return fmt.Errorf("tag filter entity type %s is not supported", f.Entity)
+	}
+	if len(f.Name) == 0 {
+		return errors.New("tag filter name is missing")
+	}
+	isSupportedComparisonOperation := SupportedComparisonOperators.IsSupported(f.Operator)
+	isSupportedUnaryOperation := SupportedUnaryExpressionOperators.IsSupported(f.Operator)
+	if !isSupportedUnaryOperation && !isSupportedComparisonOperation {
+		return fmt.Errorf("tag filter operator %s is not supported", f.Operator)
+	}
+	if isSupportedComparisonOperation && !f.isValueAssigned() {
+		return errors.New("no value assigned for comparison operation")
+	}
 	return nil
+}
+
+func (f *TagFilter) isValueAssigned() bool {
+	return f.TagKey != nil || f.NumberValue != nil || f.BooleanValue != nil || f.StringValue != nil
 }

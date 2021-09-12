@@ -158,7 +158,7 @@ func (m *tagFilterMapperImpl) mapRightOfLogicalAnd(right *expressionHandle) *Log
 
 func (m *tagFilterMapperImpl) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryExpression, error) {
 	origin := SupportedEntityOrigins.ForInstanaAPIEntity(tagFilter.Entity)
-	if restapi.IsSupportedUnaryOperatorExpression(tagFilter.Operator) {
+	if restapi.SupportedUnaryExpressionOperators.IsSupported(tagFilter.Operator) {
 		return &PrimaryExpression{
 			UnaryOperation: &UnaryOperationExpression{
 				Entity:   &EntitySpec{Identifier: tagFilter.Name, Origin: origin},
@@ -166,7 +166,7 @@ func (m *tagFilterMapperImpl) mapTagFilter(tagFilter *restapi.TagFilter) (*Prima
 			},
 		}, nil
 	}
-	if !restapi.IsSupportedComparison(tagFilter.Operator) {
+	if !restapi.SupportedComparisonOperators.IsSupported(tagFilter.Operator) {
 		return nil, fmt.Errorf("invalid operator: %s is not a supported tag filter operator", tagFilter.Operator)
 	}
 	return &PrimaryExpression{

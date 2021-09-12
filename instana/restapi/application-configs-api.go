@@ -299,11 +299,11 @@ func (t TagMatcherExpression) Validate() error {
 		return errors.New("operator of tag expression is missing")
 	}
 
-	if IsSupportedComparison(t.Operator) {
+	if SupportedComparisonOperators.IsSupported(t.Operator) {
 		if t.Value == nil || len(*t.Value) == 0 {
 			return errors.New("value missing for comparision expression")
 		}
-	} else if IsSupportedUnaryOperatorExpression(t.Operator) {
+	} else if SupportedUnaryExpressionOperators.IsSupported(t.Operator) {
 		if t.Value != nil {
 			return errors.New("value not allowed for unary operator expression")
 		}
@@ -312,25 +312,6 @@ func (t TagMatcherExpression) Validate() error {
 	}
 
 	return nil
-}
-
-//IsSupportedComparison returns true if the provided operator is a valid comparison type
-func IsSupportedComparison(operator TagFilterOperator) bool {
-	return isInMatcherOperatorSlice(SupportedComparisonOperators, operator)
-}
-
-//IsSupportedUnaryOperatorExpression returns true if the provided operator is a valid unary operator type
-func IsSupportedUnaryOperatorExpression(operator TagFilterOperator) bool {
-	return isInMatcherOperatorSlice(SupportedUnaryExpressionOperators, operator)
-}
-
-func isInMatcherOperatorSlice(allOperators []TagFilterOperator, operator TagFilterOperator) bool {
-	for _, v := range allOperators {
-		if v == operator {
-			return true
-		}
-	}
-	return false
 }
 
 //IsSupportedConjunctionType returns true if the provided operator is a valid conjunction type
