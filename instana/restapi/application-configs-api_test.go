@@ -227,7 +227,7 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsNotSupported(t 
 }
 
 func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
-	for _, operator := range SupportedConjunctionTypes {
+	for _, operator := range SupportedLogicalOperatorTypes {
 		t.Run(fmt.Sprintf("TestShouldSuccessfullyValidateConsistentBinaryExpressionOfType%s", operator), createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator))
 	}
 }

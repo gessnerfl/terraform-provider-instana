@@ -26,9 +26,6 @@ const (
 	LeafExpressionType MatchExpressionType = "LEAF"
 )
 
-//SupportedConjunctionTypes list of supported binary expression operators of Instana API
-var SupportedConjunctionTypes = []LogicalOperatorType{LogicalAnd, LogicalOr}
-
 //ApplicationConfigScope type definition of the application config scope of the Instana Web REST API
 type ApplicationConfigScope string
 
@@ -215,7 +212,7 @@ type ApplicationConfig struct {
 	BoundaryScope      BoundaryScope          `json:"boundaryScope"`
 }
 
-//GetIDForResourcePath implemention of the interface InstanaDataObject
+//GetIDForResourcePath implementation of the interface InstanaDataObject
 func (a *ApplicationConfig) GetIDForResourcePath() string {
 	return a.ID
 }
@@ -251,7 +248,7 @@ func (a *ApplicationConfig) Validate() error {
 	return nil
 }
 
-//GetType implemention of the interface MatchExpression for BinaryOperator
+//GetType implementation of the interface MatchExpression for BinaryOperator
 func (b BinaryOperator) GetType() MatchExpressionType {
 	return b.Dtype
 }
@@ -269,7 +266,7 @@ func (b BinaryOperator) Validate() error {
 		return errors.New("conjunction of expressions is missing")
 	}
 
-	if !IsSupportedConjunctionType(b.Conjunction) {
+	if !SupportedLogicalOperatorTypes.IsSupported(b.Conjunction) {
 		return fmt.Errorf("conjunction of type '%s' is not supported", b.Conjunction)
 	}
 
@@ -282,12 +279,12 @@ func (b BinaryOperator) Validate() error {
 	return nil
 }
 
-//GetType implemention of the interface MatchExpression for TagMatcherExpression
+//GetType implementation of the interface MatchExpression for TagMatcherExpression
 func (t TagMatcherExpression) GetType() MatchExpressionType {
 	return t.Dtype
 }
 
-//Validate implemention of the interface MatchExpression for TagMatcherExpression
+//Validate implementation of the interface MatchExpression for TagMatcherExpression
 func (t TagMatcherExpression) Validate() error {
 	if len(t.Key) == 0 {
 		return errors.New("key of tag expression is missing")
@@ -312,18 +309,4 @@ func (t TagMatcherExpression) Validate() error {
 	}
 
 	return nil
-}
-
-//IsSupportedConjunctionType returns true if the provided operator is a valid conjunction type
-func IsSupportedConjunctionType(operator LogicalOperatorType) bool {
-	return isInConjunctionTypeSlice(SupportedConjunctionTypes, operator)
-}
-
-func isInConjunctionTypeSlice(allOperators []LogicalOperatorType, operator LogicalOperatorType) bool {
-	for _, v := range allOperators {
-		if v == operator {
-			return true
-		}
-	}
-	return false
 }

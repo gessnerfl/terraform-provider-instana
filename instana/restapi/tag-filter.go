@@ -19,12 +19,28 @@ const (
 //LogicalOperatorType custom type for logical operators
 type LogicalOperatorType string
 
+//LogicalOperatorTypes custom type for slice of logical operators
+type LogicalOperatorTypes []LogicalOperatorType
+
+//IsSupported check if the provided logical operator is supported
+func (operators LogicalOperatorTypes) IsSupported(o LogicalOperatorType) bool {
+	for _, v := range operators {
+		if v == o {
+			return true
+		}
+	}
+	return false
+}
+
 const (
 	//LogicalAnd constant for logical AND conjunction
 	LogicalAnd = LogicalOperatorType("AND")
 	//LogicalOr constant for logical OR conjunction
 	LogicalOr = LogicalOperatorType("OR")
 )
+
+//SupportedLogicalOperatorTypes list of supported logical operators of Instana API
+var SupportedLogicalOperatorTypes = LogicalOperatorTypes{LogicalAnd, LogicalOr}
 
 //TagFilterExpressionElement interface for the Instana API type TagFilterExpressionElement
 type TagFilterExpressionElement interface {
@@ -67,7 +83,7 @@ func (e *TagFilterExpression) Validate() error {
 	if len(e.Elements) < 2 {
 		return errors.New("at least two elements are expected for a tag filter expression")
 	}
-	if !IsSupportedConjunctionType(e.LogicalOperator) {
+	if !SupportedLogicalOperatorTypes.IsSupported(e.LogicalOperator) {
 		return fmt.Errorf("tag filter operator %s is not supported", e.LogicalOperator)
 	}
 	if strings.ToUpper(string(e.Type)) != string(TagFilterExpressionType) {
