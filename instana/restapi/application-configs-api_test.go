@@ -1,7 +1,10 @@
 package restapi_test
 
 import (
+	"errors"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/golang/mock/gomock"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,13 +28,29 @@ const (
 	messageLabelBoundaryScope = "boundary scope"
 )
 
-func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
+func TestShouldSuccessfullyValidateConsistentApplicationConfigWithMatchSpecification(t *testing.T) {
 	config := ApplicationConfig{
 		ID:                 idFieldValue,
 		Label:              labelFieldValue,
 		MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 		Scope:              ApplicationConfigScopeIncludeAllDownstream,
 		BoundaryScope:      BoundaryScopeInbound,
+	}
+
+	err := config.Validate()
+
+	assert.Nil(t, err)
+	assert.Equal(t, idFieldValue, config.GetIDForResourcePath())
+}
+
+func TestShouldSuccessfullyValidateConsistentApplicationConfigWithTagFilter(t *testing.T) {
+	value := valueFieldValue
+	config := ApplicationConfig{
+		ID:                  idFieldValue,
+		Label:               labelFieldValue,
+		TagFilterExpression: NewStringTagFilter(TagFilterEntityDestination, keyFieldValue, EqualsOperator, &value),
+		Scope:               ApplicationConfigScopeIncludeAllDownstream,
+		BoundaryScope:       BoundaryScopeInbound,
 	}
 
 	err := config.Validate()
@@ -102,7 +121,7 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsBlank(t *testing.T) {
 	assert.Contains(t, err.Error(), "label")
 }
 
-func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t *testing.T) {
+func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationAndTagFilterIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
 			ID:            idFieldValue,
@@ -114,7 +133,25 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t 
 	err := config.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "match specification")
+	assert.Contains(t, err.Error(), "either match specification or tag filter")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationAndTagFilterAreProvided(t *testing.T) {
+	value := valueFieldValue
+	config :=
+		ApplicationConfig{
+			ID:                  idFieldValue,
+			Label:               labelFieldValue,
+			Scope:               ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope:       BoundaryScopeInbound,
+			MatchSpecification:  NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			TagFilterExpression: NewStringTagFilter(TagFilterEntityDestination, keyFieldValue, EqualsOperator, &value),
+		}
+
+	err := config.Validate()
+
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "either match specification or tag filter")
 }
 
 func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t *testing.T) {
@@ -130,6 +167,28 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t
 
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "key")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenTagFilterExpressionIsNotValid(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	expectedError := errors.New("test")
+	tagFilter := mocks.NewMockTagFilterExpressionElement(ctrl)
+	tagFilter.EXPECT().Validate().Times(1).Return(expectedError)
+
+	config := ApplicationConfig{
+		ID:                  idFieldValue,
+		Label:               labelFieldValue,
+		TagFilterExpression: tagFilter,
+		Scope:               ApplicationConfigScopeIncludeAllDownstream,
+		BoundaryScope:       BoundaryScopeInbound,
+	}
+
+	err := config.Validate()
+
+	assert.Error(t, err)
+	assert.Equal(t, expectedError, err)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {

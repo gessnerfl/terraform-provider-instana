@@ -205,11 +205,12 @@ type TagMatcherExpression struct {
 
 //ApplicationConfig is the representation of a application perspective configuration in Instana
 type ApplicationConfig struct {
-	ID                 string                 `json:"id"`
-	Label              string                 `json:"label"`
-	MatchSpecification interface{}            `json:"matchSpecification"`
-	Scope              ApplicationConfigScope `json:"scope"`
-	BoundaryScope      BoundaryScope          `json:"boundaryScope"`
+	ID                  string                 `json:"id"`
+	Label               string                 `json:"label"`
+	MatchSpecification  interface{}            `json:"matchSpecification"`
+	TagFilterExpression interface{}            `json:"tagFilterExpression"`
+	Scope               ApplicationConfigScope `json:"scope"`
+	BoundaryScope       BoundaryScope          `json:"boundaryScope"`
 }
 
 //GetIDForResourcePath implementation of the interface InstanaDataObject
@@ -225,12 +226,20 @@ func (a *ApplicationConfig) Validate() error {
 	if utils.IsBlank(a.Label) {
 		return errors.New("label is missing")
 	}
-	if a.MatchSpecification == nil {
-		return errors.New("match specification is missing")
+	if (a.MatchSpecification == nil && a.TagFilterExpression == nil) || (a.MatchSpecification != nil && a.TagFilterExpression != nil) {
+		return errors.New("either match specification or tag filter expression is required")
 	}
 
-	if err := a.MatchSpecification.(MatchExpression).Validate(); err != nil {
-		return err
+	if a.MatchSpecification != nil {
+		if err := a.MatchSpecification.(MatchExpression).Validate(); err != nil {
+			return err
+		}
+	}
+
+	if a.TagFilterExpression != nil {
+		if err := a.TagFilterExpression.(TagFilterExpressionElement).Validate(); err != nil {
+			return err
+		}
 	}
 
 	if utils.IsBlank(string(a.Scope)) {
