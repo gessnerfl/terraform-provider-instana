@@ -226,6 +226,23 @@ func (a *ApplicationConfig) Validate() error {
 	if utils.IsBlank(a.Label) {
 		return errors.New("label is missing")
 	}
+
+	if utils.IsBlank(string(a.Scope)) {
+		return errors.New("scope is missing")
+	}
+	if !SupportedApplicationConfigScopes.IsSupported(a.Scope) {
+		return errors.New("scope is not supported")
+	}
+	if utils.IsBlank(string(a.BoundaryScope)) {
+		return errors.New("boundary scope is missing")
+	}
+	if !SupportedBoundaryScopes.IsSupported(a.BoundaryScope) {
+		return errors.New("boundary scope is not supported")
+	}
+	return a.validateExpression()
+}
+
+func (a *ApplicationConfig) validateExpression() error {
 	if (a.MatchSpecification == nil && a.TagFilterExpression == nil) || (a.MatchSpecification != nil && a.TagFilterExpression != nil) {
 		return errors.New("either match specification or tag filter expression is required")
 	}
@@ -240,19 +257,6 @@ func (a *ApplicationConfig) Validate() error {
 		if err := a.TagFilterExpression.(TagFilterExpressionElement).Validate(); err != nil {
 			return err
 		}
-	}
-
-	if utils.IsBlank(string(a.Scope)) {
-		return errors.New("scope is missing")
-	}
-	if !SupportedApplicationConfigScopes.IsSupported(a.Scope) {
-		return errors.New("scope is not supported")
-	}
-	if utils.IsBlank(string(a.BoundaryScope)) {
-		return errors.New("boundary scope is missing")
-	}
-	if !SupportedBoundaryScopes.IsSupported(a.BoundaryScope) {
-		return errors.New("boundary scope is not supported")
 	}
 	return nil
 }

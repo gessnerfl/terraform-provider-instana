@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	tagFilterEntity = "entity.name"
+	tagFilterEntity               = "entity.name"
+	errorTagFilterOperatorInvalid = "tag filter operator INVALID"
 )
 
 func TestShouldCreateValidLogicalOrTagFilterExpression(t *testing.T) {
@@ -90,7 +91,7 @@ func TestShouldReturnErrorWhenValidatingTagFilterExpressionAndLogicalOperatorIsN
 	err := sut.Validate()
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "tag filter operator INVALID")
+	require.Contains(t, err.Error(), errorTagFilterOperatorInvalid)
 }
 
 func TestShouldReturnErrorWhenValidatingTagFilterExpressionAndTagFilterTypeIsNotExpression(t *testing.T) {
@@ -267,7 +268,7 @@ func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithAnInvalidOperator(t *t
 	err := sut.Validate()
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "tag filter operator INVALID")
+	require.Contains(t, err.Error(), errorTagFilterOperatorInvalid)
 }
 
 func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithAStringValueAssigned(t *testing.T) {
@@ -321,7 +322,7 @@ func TestShouldReturnErrorWhenValidatingComparisonTagFilterWithAnInvalidOperator
 	err := sut.Validate()
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "tag filter operator INVALID")
+	require.Contains(t, err.Error(), errorTagFilterOperatorInvalid)
 }
 
 func TestShouldReturnErrorWhenValidatingComparisonTagFilterWithoutValue(t *testing.T) {
