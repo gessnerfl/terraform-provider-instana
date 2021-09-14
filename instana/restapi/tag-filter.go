@@ -3,6 +3,7 @@ package restapi
 import (
 	"errors"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"strings"
 )
 
@@ -295,7 +296,7 @@ func (f *TagFilter) Validate() error {
 	if !SupportedTagFilterEntities.IsSupported(f.Entity) {
 		return fmt.Errorf("tag filter entity type %s is not supported", f.Entity)
 	}
-	if len(f.Name) == 0 {
+	if utils.IsBlank(f.Name) {
 		return errors.New("tag filter name is missing")
 	}
 	isSupportedComparisonOperation := SupportedComparisonOperators.IsSupported(f.Operator)
@@ -304,11 +305,14 @@ func (f *TagFilter) Validate() error {
 		return fmt.Errorf("tag filter operator %s is not supported", f.Operator)
 	}
 	if isSupportedComparisonOperation && !f.isValueAssigned() {
-		return errors.New("no value assigned for comparison operation")
+		return errors.New("value missing for comparison operation")
+	}
+	if isSupportedUnaryOperation && f.isValueAssigned() {
+		return errors.New("no value must be assigned for unary operation")
 	}
 	return nil
 }
 
 func (f *TagFilter) isValueAssigned() bool {
-	return f.TagKey != nil || f.NumberValue != nil || f.BooleanValue != nil || f.StringValue != nil
+	return f.TagKey != nil || f.TagValue != nil || f.NumberValue != nil || f.BooleanValue != nil || f.StringValue != nil
 }

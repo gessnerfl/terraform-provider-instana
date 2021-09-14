@@ -10,6 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	tagFilterEntity = "entity.name"
+)
+
 func TestShouldCreateValidLogicalOrTagFilterExpression(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -134,6 +138,199 @@ func TestShouldReturnFalseForAllNonSupportedLogicalOperatorTypes(t *testing.T) {
 	for _, v := range []string{"FOO", "BAR", "INVALID"} {
 		require.False(t, SupportedLogicalOperatorTypes.IsSupported(LogicalOperatorType(v)))
 	}
+}
+
+func TestShouldCreateValidStringTagFilter(t *testing.T) {
+	value := "test"
+
+	sut := NewStringTagFilter(TagFilterEntityDestination, tagFilterEntity, EqualsOperator, &value)
+
+	require.Equal(t, TagFilterType, sut.Type)
+	require.Equal(t, TagFilterType, sut.GetType())
+	require.Equal(t, tagFilterEntity, sut.Name)
+	require.Equal(t, TagFilterEntityDestination, sut.Entity)
+	require.Equal(t, EqualsOperator, sut.Operator)
+	require.Equal(t, &value, sut.StringValue)
+	require.Nil(t, sut.NumberValue)
+	require.Nil(t, sut.BooleanValue)
+	require.Nil(t, sut.TagKey)
+	require.Nil(t, sut.TagValue)
+	require.NoError(t, sut.Validate())
+}
+
+func TestShouldCreateValidNumberTagFilter(t *testing.T) {
+	value := int64(1234)
+
+	sut := NewNumberTagFilter(TagFilterEntityDestination, tagFilterEntity, EqualsOperator, &value)
+
+	require.Equal(t, TagFilterType, sut.Type)
+	require.Equal(t, TagFilterType, sut.GetType())
+	require.Equal(t, tagFilterEntity, sut.Name)
+	require.Equal(t, TagFilterEntityDestination, sut.Entity)
+	require.Equal(t, EqualsOperator, sut.Operator)
+	require.Equal(t, &value, sut.NumberValue)
+	require.Nil(t, sut.StringValue)
+	require.Nil(t, sut.BooleanValue)
+	require.Nil(t, sut.TagKey)
+	require.Nil(t, sut.TagValue)
+	require.NoError(t, sut.Validate())
+}
+
+func TestShouldCreateValidBooleanTagFilter(t *testing.T) {
+	value := true
+
+	sut := NewBooleanTagFilter(TagFilterEntityDestination, tagFilterEntity, EqualsOperator, &value)
+
+	require.Equal(t, TagFilterType, sut.Type)
+	require.Equal(t, TagFilterType, sut.GetType())
+	require.Equal(t, tagFilterEntity, sut.Name)
+	require.Equal(t, TagFilterEntityDestination, sut.Entity)
+	require.Equal(t, EqualsOperator, sut.Operator)
+	require.Equal(t, &value, sut.BooleanValue)
+	require.Nil(t, sut.StringValue)
+	require.Nil(t, sut.NumberValue)
+	require.Nil(t, sut.TagKey)
+	require.Nil(t, sut.TagValue)
+	require.NoError(t, sut.Validate())
+}
+
+func TestShouldCreateValidTagTagFilter(t *testing.T) {
+	key := "key"
+	value := "value"
+
+	sut := NewTagTagFilter(TagFilterEntityDestination, tagFilterEntity, EqualsOperator, &key, &value)
+
+	require.Equal(t, TagFilterType, sut.Type)
+	require.Equal(t, TagFilterType, sut.GetType())
+	require.Equal(t, tagFilterEntity, sut.Name)
+	require.Equal(t, TagFilterEntityDestination, sut.Entity)
+	require.Equal(t, EqualsOperator, sut.Operator)
+	require.Equal(t, &key, sut.TagKey)
+	require.Equal(t, &value, sut.TagValue)
+	require.Nil(t, sut.StringValue)
+	require.Nil(t, sut.NumberValue)
+	require.Nil(t, sut.BooleanValue)
+	require.NoError(t, sut.Validate())
+}
+
+func TestShouldCreateValidUnaryTagFilter(t *testing.T) {
+	sut := NewUnaryTagFilter(TagFilterEntityDestination, tagFilterEntity, IsEmptyOperator)
+
+	require.Equal(t, TagFilterType, sut.Type)
+	require.Equal(t, TagFilterType, sut.GetType())
+	require.Equal(t, tagFilterEntity, sut.Name)
+	require.Equal(t, TagFilterEntityDestination, sut.Entity)
+	require.Equal(t, IsEmptyOperator, sut.Operator)
+	require.Nil(t, sut.StringValue)
+	require.Nil(t, sut.NumberValue)
+	require.Nil(t, sut.BooleanValue)
+	require.Nil(t, sut.TagKey)
+	require.Nil(t, sut.TagValue)
+	require.NoError(t, sut.Validate())
+}
+
+func TestShouldReturnNoErrorWhenValidatingTagFilterWithASupportedEntityType(t *testing.T) {
+	for _, entity := range SupportedTagFilterEntities {
+		sut := NewUnaryTagFilter(entity, tagFilterEntity, IsEmptyOperator)
+		require.NoError(t, sut.Validate())
+	}
+}
+
+func TestShouldReturnErrorWhenValidatingTagFilterWithAnUnsupportedEntityType(t *testing.T) {
+	sut := NewUnaryTagFilter("INVALID", tagFilterEntity, IsEmptyOperator)
+
+	err := sut.Validate()
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "tag filter entity type INVALID")
+}
+
+func TestShouldReturnErrorWhenValidatingTagFilterWithoutName(t *testing.T) {
+	sut := NewUnaryTagFilter(TagFilterEntityDestination, "", IsEmptyOperator)
+
+	err := sut.Validate()
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "tag filter name")
+}
+
+func TestShouldReturnNoErrorWhenValidatingUnaryTagFilterWithASupportedOperator(t *testing.T) {
+	for _, op := range SupportedUnaryExpressionOperators {
+		sut := NewUnaryTagFilter(TagFilterEntityDestination, tagFilterEntity, op)
+		require.NoError(t, sut.Validate())
+	}
+}
+
+func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithAnInvalidOperator(t *testing.T) {
+	sut := NewUnaryTagFilter(TagFilterEntityDestination, tagFilterEntity, "INVALID")
+
+	err := sut.Validate()
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "tag filter operator INVALID")
+}
+
+func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithAStringValueAssigned(t *testing.T) {
+	value := "value"
+	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.StringValue = &value })
+}
+
+func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithANumberValueAssigned(t *testing.T) {
+	value := int64(1234)
+	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.NumberValue = &value })
+}
+
+func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithABooleanValueAssigned(t *testing.T) {
+	value := true
+	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.BooleanValue = &value })
+}
+
+func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithATagKeyAssigned(t *testing.T) {
+	key := "key"
+	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.TagKey = &key })
+}
+
+func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithATagValueAssigned(t *testing.T) {
+	value := "value"
+	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.TagValue = &value })
+}
+
+func testUnaryOperatorHasNoValueAssigned(t *testing.T, valueSetter func(sut *TagFilter)) {
+	sut := NewUnaryTagFilter(TagFilterEntityDestination, tagFilterEntity, IsEmptyOperator)
+	valueSetter(sut)
+
+	err := sut.Validate()
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no value must be assigned")
+}
+
+func TestShouldReturnNoErrorWhenValidatingComparisonTagFilterWithASupportedOperator(t *testing.T) {
+	value := "value"
+	for _, op := range SupportedComparisonOperators {
+		sut := NewStringTagFilter(TagFilterEntityDestination, tagFilterEntity, op, &value)
+		require.NoError(t, sut.Validate())
+	}
+}
+
+func TestShouldReturnErrorWhenValidatingComparisonTagFilterWithAnInvalidOperator(t *testing.T) {
+	value := "value"
+
+	sut := NewStringTagFilter(TagFilterEntityDestination, tagFilterEntity, "INVALID", &value)
+
+	err := sut.Validate()
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "tag filter operator INVALID")
+}
+
+func TestShouldReturnErrorWhenValidatingComparisonTagFilterWithoutValue(t *testing.T) {
+	sut := NewStringTagFilter(TagFilterEntityDestination, tagFilterEntity, EqualsOperator, nil)
+
+	err := sut.Validate()
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "value missing for comparison")
 }
 
 func TestShouldReturnTrueForAllSupportedTagFilterEntityTypes(t *testing.T) {
