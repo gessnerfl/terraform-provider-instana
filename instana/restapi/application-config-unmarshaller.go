@@ -110,7 +110,7 @@ func (u *applicationConfigUnmarshaller) unmarshalTagFilterExpressionElement(raw 
 	if temp.Type == TagFilterExpressionType {
 		return u.unmarshalTagFilterExpression(raw)
 	} else if temp.Type == TagFilterType {
-		return u.unmarshalTagFilter(raw)
+		return u.unmarshalTagFilter(raw), nil
 	} else {
 		return nil, fmt.Errorf("invalid tag filter element type %s", temp.Type)
 	}
@@ -135,10 +135,10 @@ func (u *applicationConfigUnmarshaller) unmarshalTagFilterExpression(raw json.Ra
 	}, nil
 }
 
-func (u *applicationConfigUnmarshaller) unmarshalTagFilter(raw json.RawMessage) (TagFilterExpressionElement, error) {
+func (u *applicationConfigUnmarshaller) unmarshalTagFilter(raw json.RawMessage) TagFilterExpressionElement {
 	data := TagFilter{}
 	json.Unmarshal(raw, &data) //cannot fail as already successfully unmarshalled in unmarshalTagFilterExpressionElement
-	return &data, nil
+	return &data
 }
 
 type tempTagFilterExpression struct {
