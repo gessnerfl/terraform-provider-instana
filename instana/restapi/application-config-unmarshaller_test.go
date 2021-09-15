@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
@@ -24,8 +24,8 @@ func TestShouldSuccessfullyUnmarshalApplicationConfig(t *testing.T) {
 
 	result, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
 
-	assert.Nil(t, err)
-	assert.Equal(t, &applicationConfig, result)
+	require.NoError(t, err)
+	require.Equal(t, &applicationConfig, result)
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsAJsonArray(t *testing.T) {
@@ -33,25 +33,26 @@ func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsAJsonArray(t *test
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(response))
 
-	assert.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestShouldReturnEmptyApplicationConfigWhenNoFieldOfResponseMatchesToModel(t *testing.T) {
 	response := `{"foo" : "bar"}`
-	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(response))
+	config, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(response))
 
-	assert.NotNil(t, err)
+	require.NoError(t, err)
+	require.Equal(t, &ApplicationConfig{}, config)
 }
 
-func TestShouldFailToUnmarashalApplicationConfigWhenResponseIsNotAValidJson(t *testing.T) {
+func TestShouldFailToUnmarshalApplicationConfigWhenResponseIsNotAValidJson(t *testing.T) {
 	response := `Invalid Data`
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(response))
 
-	assert.NotNil(t, err)
+	require.Error(t, err)
 }
 
-func TestShouldFailToUnmarashalApplicationConfigWhenExpressionTypeIsNotSupported(t *testing.T) {
+func TestShouldFailToUnmarshalApplicationConfigWhenExpressionTypeIsNotSupported(t *testing.T) {
 	//config is invalid because there is no DType for the match specification.
 	applicationConfig := ApplicationConfig{
 		ID:    "id",
@@ -68,7 +69,7 @@ func TestShouldFailToUnmarashalApplicationConfigWhenExpressionTypeIsNotSupported
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
 
-	assert.NotNil(t, err)
+	require.Error(t, err)
 }
 
 func TestShouldFailToUnmarashalApplicationConfigWhenLeftSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
@@ -102,5 +103,5 @@ func testShouldFailToUnmarashalApplicationConfigWhenOneSideOfBinaryExpressionIsN
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
 
-	assert.NotNil(t, err)
+	require.Error(t, err)
 }
