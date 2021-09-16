@@ -173,3 +173,11 @@ func TestShouldFailToUnmarshalApplicationConfigWhenElementOfTagFilterExpressionI
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "invalid tag filter element type INVALID")
 }
+
+func TestShouldFailToUnmarshalApplicationConfigWhenTagFilterIsNotAValidJsonObject(t *testing.T) {
+	json := "{\"id\":\"test-application-config-id\",\"label\":\"Test Application Config Label\",\"matchSpecification\":null,\"tagFilterExpression\":[\"foo\", \"bar\"],\"scope\":\"scope\",\"boundaryScope\":\"boundaryScope\"}"
+
+	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(json))
+
+	require.Error(t, err)
+}
