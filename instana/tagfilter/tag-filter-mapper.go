@@ -1,4 +1,4 @@
-package filterexpression
+package tagfilter
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"

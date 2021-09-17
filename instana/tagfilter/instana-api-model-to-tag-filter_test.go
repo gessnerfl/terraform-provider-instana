@@ -1,4 +1,4 @@
-package filterexpression_test
+package tagfilter_test
 
 import (
 	"fmt"
