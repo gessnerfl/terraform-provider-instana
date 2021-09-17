@@ -255,7 +255,7 @@ func TestShouldMapLogicalOrExpressionWithNestedOr(t *testing.T) {
 }
 
 func runTestCaseForMappingToAPI(input *FilterExpression, expectedResult restapi.TagFilterExpressionElement, t *testing.T) {
-	mapper := NewTagFilterMapper()
+	mapper := NewMapper()
 	result := mapper.ToAPIModel(input)
 
 	require.Equal(t, expectedResult, result)

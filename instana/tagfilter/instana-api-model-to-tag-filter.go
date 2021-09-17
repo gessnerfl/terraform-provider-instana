@@ -7,7 +7,7 @@ import (
 )
 
 //FromAPIModel Implementation of the mapping from the Instana API model to the filter expression model
-func (m *tagFilterMapperImpl) FromAPIModel(input restapi.TagFilterExpressionElement) (*FilterExpression, error) {
+func (m *tagFilterMapper) FromAPIModel(input restapi.TagFilterExpressionElement) (*FilterExpression, error) {
 	expr, err := m.mapExpressionElement(input)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (m *tagFilterMapperImpl) FromAPIModel(input restapi.TagFilterExpressionElem
 	}, nil
 }
 
-func (m *tagFilterMapperImpl) mapExpressionElement(input restapi.TagFilterExpressionElement) (*expressionHandle, error) {
+func (m *tagFilterMapper) mapExpressionElement(input restapi.TagFilterExpressionElement) (*expressionHandle, error) {
 	if input.GetType() == restapi.TagFilterExpressionType {
 		expression := input.(*restapi.TagFilterExpression)
 		return m.mapExpression(expression)
@@ -44,7 +44,7 @@ func (m *tagFilterMapperImpl) mapExpressionElement(input restapi.TagFilterExpres
 	return nil, fmt.Errorf("unsupported tag filter expression of type %s", input.GetType())
 }
 
-func (m *tagFilterMapperImpl) mapExpression(operator *restapi.TagFilterExpression) (*expressionHandle, error) {
+func (m *tagFilterMapper) mapExpression(operator *restapi.TagFilterExpression) (*expressionHandle, error) {
 	elements := make([]*expressionHandle, len(operator.Elements))
 	var err error
 	for i := 0; i < len(operator.Elements); i++ {
@@ -64,7 +64,7 @@ func (m *tagFilterMapperImpl) mapExpression(operator *restapi.TagFilterExpressio
 
 }
 
-func (m *tagFilterMapperImpl) mapLogicalOr(elements []*expressionHandle) (*expressionHandle, error) {
+func (m *tagFilterMapper) mapLogicalOr(elements []*expressionHandle) (*expressionHandle, error) {
 	total := len(elements)
 	if total < 2 {
 		return nil, fmt.Errorf("at least two elements are expected for logical or")
@@ -95,7 +95,7 @@ func (m *tagFilterMapperImpl) mapLogicalOr(elements []*expressionHandle) (*expre
 	return &expressionHandle{or: expression}, nil
 }
 
-func (m *tagFilterMapperImpl) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAndExpression {
+func (m *tagFilterMapper) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAndExpression {
 	if left.and != nil {
 		return left.and
 	}
@@ -104,7 +104,7 @@ func (m *tagFilterMapperImpl) mapLeftOfLogicalOr(left *expressionHandle) *Logica
 	}
 }
 
-func (m *tagFilterMapperImpl) mapRightOfLogicalOr(right *expressionHandle) *LogicalOrExpression {
+func (m *tagFilterMapper) mapRightOfLogicalOr(right *expressionHandle) *LogicalOrExpression {
 	if right.or != nil {
 		return right.or
 	} else if right.and != nil {
@@ -114,7 +114,7 @@ func (m *tagFilterMapperImpl) mapRightOfLogicalOr(right *expressionHandle) *Logi
 	}
 }
 
-func (m *tagFilterMapperImpl) mapLogicalAndFromAPIModel(elements []*expressionHandle) (*expressionHandle, error) {
+func (m *tagFilterMapper) mapLogicalAndFromAPIModel(elements []*expressionHandle) (*expressionHandle, error) {
 	total := len(elements)
 	if total < 2 {
 		return nil, fmt.Errorf("at least two elements are expected for logical and")
@@ -149,14 +149,14 @@ func (m *tagFilterMapperImpl) mapLogicalAndFromAPIModel(elements []*expressionHa
 	return &expressionHandle{and: expression}, nil
 }
 
-func (m *tagFilterMapperImpl) mapRightOfLogicalAnd(right *expressionHandle) *LogicalAndExpression {
+func (m *tagFilterMapper) mapRightOfLogicalAnd(right *expressionHandle) *LogicalAndExpression {
 	if right.and != nil {
 		return right.and
 	}
 	return &LogicalAndExpression{Left: right.primary}
 }
 
-func (m *tagFilterMapperImpl) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryExpression, error) {
+func (m *tagFilterMapper) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryExpression, error) {
 	origin := SupportedEntityOrigins.ForInstanaAPIEntity(tagFilter.Entity)
 	if restapi.SupportedUnaryExpressionOperators.IsSupported(tagFilter.Operator) {
 		return &PrimaryExpression{
@@ -181,7 +181,7 @@ func (m *tagFilterMapperImpl) mapTagFilter(tagFilter *restapi.TagFilter) (*Prima
 	}, nil
 }
 
-func (m *tagFilterMapperImpl) mapTagValue(tagFilter *restapi.TagFilter) *TagValue {
+func (m *tagFilterMapper) mapTagValue(tagFilter *restapi.TagFilter) *TagValue {
 	if tagFilter.TagKey != nil {
 		return &TagValue{Key: *tagFilter.TagKey, Value: *tagFilter.TagValue}
 	}
