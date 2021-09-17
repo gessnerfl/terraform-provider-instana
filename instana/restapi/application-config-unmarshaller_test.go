@@ -20,7 +20,7 @@ func TestShouldSuccessfullyUnmarshalApplicationConfigWithMatchSpecification(t *t
 	applicationConfig := ApplicationConfig{
 		ID:                 id,
 		Label:              label,
-		MatchSpecification: NewBinaryOperator(NewComparisionExpression("key", MatcherExpressionEntityDestination, EqualsOperator, "value"), LogicalAnd, NewUnaryOperationExpression("key", MatcherExpressionEntityDestination, NotBlankOperator)),
+		MatchSpecification: NewBinaryOperator(NewComparisonExpression("key", MatcherExpressionEntityDestination, EqualsOperator, "value"), LogicalAnd, NewUnaryOperationExpression("key", MatcherExpressionEntityDestination, NotBlankOperator)),
 		Scope:              "scope",
 		BoundaryScope:      "boundaryScope",
 	}
@@ -123,7 +123,7 @@ func TestShouldFailToUnmarshalApplicationConfigWhenExpressionTypeOfMatchSpecific
 }
 
 func TestShouldFailToUnmarshalApplicationConfigWhenLeftSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
-	left := TagMatcherExpression{
+	left := &TagMatcherExpression{
 		Key:      "foo",
 		Operator: NotEmptyOperator,
 	}
@@ -133,7 +133,7 @@ func TestShouldFailToUnmarshalApplicationConfigWhenLeftSideOfBinaryExpressionTyp
 
 func TestShouldFailToUnmarshalApplicationConfigWhenRightSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
 	left := NewUnaryOperationExpression("foo", MatcherExpressionEntityDestination, IsEmptyOperator)
-	right := TagMatcherExpression{
+	right := &TagMatcherExpression{
 		Key:      "foo",
 		Entity:   MatcherExpressionEntityDestination,
 		Operator: NotEmptyOperator,

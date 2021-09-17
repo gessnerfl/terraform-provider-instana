@@ -35,7 +35,7 @@ func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operator restapi
 			},
 		}
 
-		expectedResult := restapi.NewComparisionExpression(entitySpecKey, restapi.MatcherExpressionEntityDestination, operator, "value")
+		expectedResult := restapi.NewComparisonExpression(entitySpecKey, restapi.MatcherExpressionEntityDestination, operator, "value")
 		runTestCaseForMappingToAPI(expr, expectedResult, t)
 	}
 }

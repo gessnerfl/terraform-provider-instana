@@ -32,7 +32,7 @@ func TestShouldSuccessfullyValidateConsistentApplicationConfigWithMatchSpecifica
 	config := ApplicationConfig{
 		ID:                 idFieldValue,
 		Label:              labelFieldValue,
-		MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+		MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 		Scope:              ApplicationConfigScopeIncludeAllDownstream,
 		BoundaryScope:      BoundaryScopeInbound,
 	}
@@ -63,7 +63,7 @@ func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      BoundaryScopeInbound,
 		}
@@ -79,7 +79,7 @@ func TestShouldFailToValidateApplicationConfigWhenIDIsBlank(t *testing.T) {
 		ApplicationConfig{
 			ID:                 " ",
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      BoundaryScopeInbound,
 		}
@@ -94,7 +94,7 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
 			ID:                 idFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      BoundaryScopeInbound,
 		}
@@ -110,7 +110,7 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsBlank(t *testing.T) {
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              " ",
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      BoundaryScopeInbound,
 		}
@@ -144,7 +144,7 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationAndTagFilter
 			Label:               labelFieldValue,
 			Scope:               ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:       BoundaryScopeInbound,
-			MatchSpecification:  NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification:  NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			TagFilterExpression: NewStringTagFilter(TagFilterEntityDestination, keyFieldValue, EqualsOperator, &value),
 		}
 
@@ -158,7 +158,7 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t
 	config := ApplicationConfig{
 		ID:                 idFieldValue,
 		Label:              labelFieldValue,
-		MatchSpecification: NewComparisionExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+		MatchSpecification: NewComparisonExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 		Scope:              ApplicationConfigScopeIncludeAllDownstream,
 		BoundaryScope:      BoundaryScopeInbound,
 	}
@@ -196,7 +196,7 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			BoundaryScope:      BoundaryScopeInbound,
 		}
 
@@ -211,7 +211,7 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsBlank(t *testing.T) {
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              " ",
 			BoundaryScope:      BoundaryScopeInbound,
 		}
@@ -227,7 +227,7 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsNotSupported(t *testing
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              "invalid",
 			BoundaryScope:      BoundaryScopeInbound,
 		}
@@ -243,7 +243,7 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsMissing(t *test
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 		}
 
@@ -258,7 +258,7 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsBlank(t *testin
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      " ",
 		}
@@ -274,7 +274,7 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsNotSupported(t 
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      "invalid",
 		}
@@ -293,8 +293,8 @@ func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
 
 func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator LogicalOperatorType) func(t *testing.T) {
 	return func(t *testing.T) {
-		left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-		right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+		left := NewComparisonExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+		right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 		exp := NewBinaryOperator(left, operator, right)
 
@@ -306,7 +306,7 @@ func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator Log
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsMissing(t *testing.T) {
-	right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(nil, LogicalAnd, right)
 
@@ -317,8 +317,8 @@ func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsMissing(t *testin
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testing.T) {
-	left := NewComparisionExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-	right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	left := NewComparisonExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, right)
 
@@ -329,8 +329,8 @@ func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testi
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsNotValid(t *testing.T) {
-	left := NewComparisionExpression("leftKey", MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-	right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	left := NewComparisonExpression("leftKey", MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, "FOO", right)
 
@@ -341,7 +341,7 @@ func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsNotValid(t *testin
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testing.T) {
-	left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	left := NewComparisonExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, nil)
 
@@ -352,8 +352,8 @@ func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testi
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *testing.T) {
-	left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-	right := NewComparisionExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	left := NewComparisonExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisonExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, right)
 
@@ -364,8 +364,8 @@ func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *test
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsMissing(t *testing.T) {
-	left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-	right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	left := NewComparisonExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, "", right)
 
@@ -383,7 +383,7 @@ func TestShouldCreateValidComparisionExpression(t *testing.T) {
 
 func createTestShouldCreateValidComparisionExpression(operator TagFilterOperator) func(*testing.T) {
 	return func(t *testing.T) {
-		exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, operator, valueFieldValue)
+		exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, operator, valueFieldValue)
 
 		err := exp.Validate()
 
@@ -393,7 +393,7 @@ func createTestShouldCreateValidComparisionExpression(operator TagFilterOperator
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenKeyIsMissing(t *testing.T) {
-	exp := NewComparisionExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue)
+	exp := NewComparisonExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue)
 
 	err := exp.Validate()
 
@@ -402,7 +402,7 @@ func TestShouldFailToValidateComparisionExpressionWhenKeyIsMissing(t *testing.T)
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenEntityIsNotValid(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntity("invalid"), EqualsOperator, valueFieldValue)
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntity("invalid"), EqualsOperator, valueFieldValue)
 
 	err := exp.Validate()
 
@@ -411,7 +411,7 @@ func TestShouldFailToValidateComparisionExpressionWhenEntityIsNotValid(t *testin
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsMissing(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, "", valueFieldValue)
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, "", valueFieldValue)
 
 	err := exp.Validate()
 
@@ -420,7 +420,7 @@ func TestShouldFailToValidateComparisionExpressionWhenOperatorIsMissing(t *testi
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsNotValid(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, "FOO", valueFieldValue)
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, "FOO", valueFieldValue)
 
 	err := exp.Validate()
 
@@ -429,7 +429,7 @@ func TestShouldFailToValidateComparisionExpressionWhenOperatorIsNotValid(t *test
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenValueIsMissing(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, "")
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, "")
 
 	err := exp.Validate()
 
@@ -491,7 +491,7 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsNotValid(t *te
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenValueIsSet(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, IsEmptyOperator, "")
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, IsEmptyOperator, "")
 
 	err := exp.Validate()
 

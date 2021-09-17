@@ -75,12 +75,12 @@ const defaultLabel = "label"
 
 var defaultMatchSpecificationModel = restapi.NewBinaryOperator(
 	restapi.NewBinaryOperator(
-		restapi.NewComparisionExpression("entity.name", restapi.MatcherExpressionEntityDestination, restapi.ContainsOperator, "foo"),
+		restapi.NewComparisonExpression("entity.name", restapi.MatcherExpressionEntityDestination, restapi.ContainsOperator, "foo"),
 		restapi.LogicalAnd,
-		restapi.NewComparisionExpression("entity.type", restapi.MatcherExpressionEntityDestination, restapi.EqualsOperator, "mysql"),
+		restapi.NewComparisonExpression("entity.type", restapi.MatcherExpressionEntityDestination, restapi.EqualsOperator, "mysql"),
 	),
 	restapi.LogicalOr,
-	restapi.NewComparisionExpression("entity.type", restapi.MatcherExpressionEntitySource, restapi.EqualsOperator, "elasticsearch"))
+	restapi.NewComparisonExpression("entity.type", restapi.MatcherExpressionEntitySource, restapi.EqualsOperator, "elasticsearch"))
 
 const applicationConfigID = "application-config-id"
 
@@ -123,25 +123,28 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(ApplicationConfigFieldFullLabel)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeDefault))
-	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldMatchSpecification)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ApplicationConfigFieldMatchSpecification)
+	require.Equal(t, []string{ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter}, schema[ApplicationConfigFieldMatchSpecification].ExactlyOneOf)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ApplicationConfigFieldTagFilter)
+	require.Equal(t, []string{ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter}, schema[ApplicationConfigFieldTagFilter].ExactlyOneOf)
 }
 
 func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	old := "entity.type@dest EQUALS 'foo'"
-	new := "entity.type  EQUALS    'foo'"
+	oldValue := "entity.type@dest EQUALS 'foo'"
+	newValue := "entity.type  EQUALS    'foo'"
 
-	require.True(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, old, new, nil))
+	require.True(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, oldValue, newValue, nil))
 }
 
 func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	old := "entity.type@src EQUALS 'foo'"
-	new := validMatchSpecification
+	oldValue := "entity.type@src EQUALS 'foo'"
+	newValue := validMatchSpecification
 
-	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, old, new, nil))
+	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, oldValue, newValue, nil))
 }
 
 func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreEqual(t *testing.T) {
@@ -155,10 +158,10 @@ func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationO
 func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreNotEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	old := invalidMatchSpecification
-	new := "entity.type foo foo foo"
+	oldValue := invalidMatchSpecification
+	newValue := "entity.type foo foo foo"
 
-	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, old, new, nil))
+	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, oldValue, newValue, nil))
 }
 
 func TestShouldReturnNormalizedValueForMatchSpecificationOfApplicationConfigWhenStateFuncIsCalledAndValueCanBeNormalized(t *testing.T) {
@@ -178,7 +181,7 @@ func TestShouldReturnProvidedValueForMatchSpecificationOfApplicationConfigWhenSt
 	require.Equal(t, value, schema[ApplicationConfigFieldMatchSpecification].StateFunc(value))
 }
 
-func TestShouldReturnNoErrorsAndWarningsWhenValidationOfMatchSpecificationOfApplicationConfiIsCalledAndValueCanBeParsed(t *testing.T) {
+func TestShouldReturnNoErrorsAndWarningsWhenValidationOfMatchSpecificationOfApplicationConfigIsCalledAndValueCanBeParsed(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
 	value := validMatchSpecification
@@ -188,7 +191,7 @@ func TestShouldReturnNoErrorsAndWarningsWhenValidationOfMatchSpecificationOfAppl
 	require.Empty(t, errs)
 }
 
-func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfMatchSpecificationOfApplicationConfiIsCalledAndValueCannotBeParsed(t *testing.T) {
+func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfMatchSpecificationOfApplicationConfigIsCalledAndValueCannotBeParsed(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
 	value := invalidMatchSpecification
@@ -342,12 +345,12 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 	require.Equal(t, string(restapi.BoundaryScopeAll), resourceData.Get(ApplicationConfigFieldBoundaryScope))
 }
 
-func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsNotalid(t *testing.T) {
-	comparision := restapi.NewComparisionExpression("entity.name", restapi.MatcherExpressionEntityDestination, "INVALID", "foo")
+func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsNotValid(t *testing.T) {
+	comparison := restapi.NewComparisonExpression("entity.name", restapi.MatcherExpressionEntityDestination, "INVALID", "foo")
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 applicationConfigID,
 		Label:              defaultLabel,
-		MatchSpecification: comparision,
+		MatchSpecification: comparison,
 		Scope:              restapi.ApplicationConfigScopeIncludeNoDownstream,
 	}
 

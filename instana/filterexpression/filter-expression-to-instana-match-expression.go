@@ -37,5 +37,5 @@ func (m *matchExpressionMapperImpl) mapUnaryOperatorExpressionToAPIModel(input *
 }
 
 func (m *matchExpressionMapperImpl) mapComparisonExpressionToAPIModel(input *ComparisonExpression) restapi.MatchExpression {
-	return restapi.NewComparisionExpression(input.Entity.Identifier, input.Entity.Origin.MatcherExpressionEntity(), restapi.TagFilterOperator(input.Operator), input.Value)
+	return restapi.NewComparisonExpression(input.Entity.Identifier, input.Entity.Origin.MatcherExpressionEntity(), restapi.TagFilterOperator(input.Operator), input.Value)
 }

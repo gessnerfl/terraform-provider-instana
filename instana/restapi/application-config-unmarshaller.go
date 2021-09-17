@@ -63,7 +63,7 @@ func (u *applicationConfigUnmarshaller) unmarshalMatchSpecification(raw json.Raw
 	}
 }
 
-func (u *applicationConfigUnmarshaller) unmarshalBinaryOperator(raw json.RawMessage) (BinaryOperator, error) {
+func (u *applicationConfigUnmarshaller) unmarshalBinaryOperator(raw json.RawMessage) (*BinaryOperator, error) {
 	var leftRaw json.RawMessage
 	var rightRaw json.RawMessage
 	temp := BinaryOperator{
@@ -74,14 +74,14 @@ func (u *applicationConfigUnmarshaller) unmarshalBinaryOperator(raw json.RawMess
 	json.Unmarshal(raw, &temp) //cannot fail as already successfully unmarshalled in unmarshalMatchSpecification
 	left, err := u.unmarshalMatchSpecification(leftRaw)
 	if err != nil {
-		return BinaryOperator{}, err
+		return &BinaryOperator{}, err
 	}
 
 	right, err := u.unmarshalMatchSpecification(rightRaw)
 	if err != nil {
-		return BinaryOperator{}, err
+		return &BinaryOperator{}, err
 	}
-	return BinaryOperator{
+	return &BinaryOperator{
 		Dtype:       temp.Dtype,
 		Left:        left,
 		Right:       right,
@@ -89,10 +89,10 @@ func (u *applicationConfigUnmarshaller) unmarshalBinaryOperator(raw json.RawMess
 	}, nil
 }
 
-func (u *applicationConfigUnmarshaller) unmarshalTagMatcherExpression(raw json.RawMessage) (TagMatcherExpression, error) {
+func (u *applicationConfigUnmarshaller) unmarshalTagMatcherExpression(raw json.RawMessage) (*TagMatcherExpression, error) {
 	data := TagMatcherExpression{}
 	json.Unmarshal(raw, &data) //cannot fail as already successfully unmarshalled in unmarshalMatchSpecification
-	return data, nil
+	return &data, nil
 }
 
 func (u *applicationConfigUnmarshaller) unmarshalTagFilterExpressionElement(raw json.RawMessage) (TagFilterExpressionElement, error) {

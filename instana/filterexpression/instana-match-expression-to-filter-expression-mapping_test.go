@@ -26,7 +26,7 @@ func testMappingOfOperatorsOfTagExpression(operator restapi.TagFilterOperator) f
 	return func(t *testing.T) {
 		key := "key"
 		value := "value"
-		input := restapi.NewComparisionExpression(key, restapi.MatcherExpressionEntityDestination, operator, value)
+		input := restapi.NewComparisonExpression(key, restapi.MatcherExpressionEntityDestination, operator, value)
 
 		expectedResult := &FilterExpression{
 			Expression: &LogicalOrExpression{
@@ -49,7 +49,7 @@ func testMappingOfOperatorsOfTagExpression(operator restapi.TagFilterOperator) f
 func TestShouldFailToMapComparisonWhenOperatorOfTagExpressionIsNotValid(t *testing.T) {
 	key := "key"
 	value := "value"
-	input := restapi.NewComparisionExpression(key, restapi.MatcherExpressionEntityDestination, "FOO", value)
+	input := restapi.NewComparisonExpression(key, restapi.MatcherExpressionEntityDestination, "FOO", value)
 
 	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
@@ -101,7 +101,7 @@ func TestShouldFailToMapUnaryOperationWhenOperatorOfTagExpressionIsNotValid(t *t
 
 func TestShouldFailMapToMapExpressionWhenTypeIsMissing(t *testing.T) {
 	key := "key"
-	input := restapi.TagMatcherExpression{
+	input := &restapi.TagMatcherExpression{
 		Key:      key,
 		Operator: "FOO",
 	}

@@ -120,7 +120,7 @@ type MatchExpression interface {
 
 //NewBinaryOperator creates and new binary operator MatchExpression
 func NewBinaryOperator(left MatchExpression, conjunction LogicalOperatorType, right MatchExpression) MatchExpression {
-	return BinaryOperator{
+	return &BinaryOperator{
 		Dtype:       BinaryOperatorExpressionType,
 		Left:        left,
 		Right:       right,
@@ -136,9 +136,9 @@ type BinaryOperator struct {
 	Conjunction LogicalOperatorType `json:"conjunction"`
 }
 
-//NewComparisionExpression creates and new tag matcher expression for a comparision
-func NewComparisionExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator, value string) MatchExpression {
-	return TagMatcherExpression{
+//NewComparisonExpression creates and new tag matcher expression for a comparision
+func NewComparisonExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator, value string) MatchExpression {
+	return &TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
 		Entity:   entity,
@@ -149,7 +149,7 @@ func NewComparisionExpression(key string, entity MatcherExpressionEntity, operat
 
 //NewUnaryOperationExpression creates and new tag matcher expression for a unary operation
 func NewUnaryOperationExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator) MatchExpression {
-	return TagMatcherExpression{
+	return &TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
 		Entity:   entity,
@@ -262,12 +262,12 @@ func (a *ApplicationConfig) validateExpression() error {
 }
 
 //GetType implementation of the interface MatchExpression for BinaryOperator
-func (b BinaryOperator) GetType() MatchExpressionType {
+func (b *BinaryOperator) GetType() MatchExpressionType {
 	return b.Dtype
 }
 
-//Validate implemention of the interface MatchExpression for BinaryOperator
-func (b BinaryOperator) Validate() error {
+//Validate implementation of the interface MatchExpression for BinaryOperator
+func (b *BinaryOperator) Validate() error {
 	if b.Left == nil {
 		return errors.New("left expression is missing")
 	}
@@ -293,12 +293,12 @@ func (b BinaryOperator) Validate() error {
 }
 
 //GetType implementation of the interface MatchExpression for TagMatcherExpression
-func (t TagMatcherExpression) GetType() MatchExpressionType {
+func (t *TagMatcherExpression) GetType() MatchExpressionType {
 	return t.Dtype
 }
 
 //Validate implementation of the interface MatchExpression for TagMatcherExpression
-func (t TagMatcherExpression) Validate() error {
+func (t *TagMatcherExpression) Validate() error {
 	if len(t.Key) == 0 {
 		return errors.New("key of tag expression is missing")
 	}

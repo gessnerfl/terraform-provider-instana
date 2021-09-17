@@ -29,11 +29,11 @@ func (m *matchExpressionMapperImpl) FromAPIModel(input restapi.MatchExpression) 
 
 func (m *matchExpressionMapperImpl) mapExpressionFromAPIModel(input restapi.MatchExpression) (*expressionHandle, error) {
 	if input.GetType() == restapi.BinaryOperatorExpressionType {
-		binaryOp := input.(restapi.BinaryOperator)
-		return m.mapBinaryOperatorFromAPIModel(&binaryOp)
+		binaryOp := input.(*restapi.BinaryOperator)
+		return m.mapBinaryOperatorFromAPIModel(binaryOp)
 	} else if input.GetType() == restapi.LeafExpressionType {
-		tagMatcher := input.(restapi.TagMatcherExpression)
-		primaryExpression, err := m.mapPrimaryExpressionFromAPIModel(&tagMatcher)
+		tagMatcher := input.(*restapi.TagMatcherExpression)
+		primaryExpression, err := m.mapPrimaryExpressionFromAPIModel(tagMatcher)
 		if err != nil {
 			return nil, err
 		}
