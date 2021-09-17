@@ -9,9 +9,14 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
+const (
+	testApplicationConfigId    = "test-application-config-id"
+	testApplicationConfigLabel = "test-application-config-label"
+)
+
 func TestShouldSuccessfullyUnmarshalApplicationConfigWithMatchSpecification(t *testing.T) {
-	id := "test-application-config-id"
-	label := "Test Application Config Label"
+	id := testApplicationConfigId
+	label := testApplicationConfigLabel
 	applicationConfig := ApplicationConfig{
 		ID:                 id,
 		Label:              label,
@@ -30,8 +35,8 @@ func TestShouldSuccessfullyUnmarshalApplicationConfigWithMatchSpecification(t *t
 
 func TestShouldSuccessfullyUnmarshalApplicationConfigWithTagFilterExpressionContainingASingleTagFilter(t *testing.T) {
 	value := "value"
-	id := "test-application-config-id"
-	label := "Test Application Config Label"
+	id := testApplicationConfigId
+	label := testApplicationConfigLabel
 	applicationConfig := ApplicationConfig{
 		ID:                  id,
 		Label:               label,
@@ -50,8 +55,8 @@ func TestShouldSuccessfullyUnmarshalApplicationConfigWithTagFilterExpressionCont
 
 func TestShouldSuccessfullyUnmarshalApplicationConfigWithTagFilterExpressionContainingAnLogicalOr(t *testing.T) {
 	value := "value"
-	id := "test-application-config-id"
-	label := "Test Application Config Label"
+	id := testApplicationConfigId
+	label := testApplicationConfigLabel
 	primaryExpression1 := NewStringTagFilter(TagFilterEntityDestination, "name1", EqualsOperator, &value)
 	primaryExpression2 := NewStringTagFilter(TagFilterEntityDestination, "name2", EqualsOperator, &value)
 	primaryExpression3 := NewStringTagFilter(TagFilterEntityDestination, "name3", EqualsOperator, &value)
@@ -100,8 +105,8 @@ func TestShouldFailToUnmarshalApplicationConfigWhenResponseIsNotAValidJson(t *te
 func TestShouldFailToUnmarshalApplicationConfigWhenExpressionTypeOfMatchSpecificationIsNotSupported(t *testing.T) {
 	//config is invalid because there is no DType for the match specification.
 	applicationConfig := ApplicationConfig{
-		ID:    "id",
-		Label: "label",
+		ID:    testApplicationConfigId,
+		Label: testApplicationConfigLabel,
 		MatchSpecification: TagMatcherExpression{
 			Key:      "foo",
 			Entity:   MatcherExpressionEntityDestination,
@@ -138,8 +143,8 @@ func TestShouldFailToUnmarshalApplicationConfigWhenRightSideOfBinaryExpressionTy
 
 func testShouldFailToUnmarshalApplicationConfigWhenOneSideOfBinaryExpressionIsNotValid(left MatchExpression, right MatchExpression, t *testing.T) {
 	applicationConfig := ApplicationConfig{
-		ID:                 "id",
-		Label:              "label",
+		ID:                 testApplicationConfigId,
+		Label:              testApplicationConfigLabel,
 		MatchSpecification: NewBinaryOperator(left, LogicalOr, right),
 		Scope:              "scope",
 		BoundaryScope:      "boundaryScope",
@@ -160,8 +165,8 @@ func TestShouldFailToUnmarshalApplicationConfigWhenElementOfTagFilterExpressionI
 		Elements:        []TagFilterExpressionElement{},
 	}
 	applicationConfig := ApplicationConfig{
-		ID:                  "id",
-		Label:               "label",
+		ID:                  testApplicationConfigId,
+		Label:               testApplicationConfigLabel,
 		TagFilterExpression: NewLogicalOrTagFilter([]TagFilterExpressionElement{primaryExpression, invalidExpression}),
 		Scope:               "scope",
 		BoundaryScope:       "boundaryScope",
@@ -175,7 +180,7 @@ func TestShouldFailToUnmarshalApplicationConfigWhenElementOfTagFilterExpressionI
 }
 
 func TestShouldFailToUnmarshalApplicationConfigWhenTagFilterIsNotAValidJsonObject(t *testing.T) {
-	json := "{\"id\":\"test-application-config-id\",\"label\":\"Test Application Config Label\",\"matchSpecification\":null,\"tagFilterExpression\":[\"foo\", \"bar\"],\"scope\":\"scope\",\"boundaryScope\":\"boundaryScope\"}"
+	json := "{\"id\":\"test-application-config-id\",\"label\":\"test-application-config-label\",\"matchSpecification\":null,\"tagFilterExpression\":[\"foo\", \"bar\"],\"scope\":\"scope\",\"boundaryScope\":\"boundaryScope\"}"
 
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(json))
 
