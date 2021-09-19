@@ -215,9 +215,6 @@ func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj rest
 }
 
 func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepresentation(input restapi.MatchExpression) (*string, error) {
-	if input == nil {
-		return nil, nil
-	}
 	mapper := filterexpression.NewMatchExpressionMapper()
 	expr, err := mapper.FromAPIModel(input)
 	if err != nil {
@@ -228,9 +225,6 @@ func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepre
 }
 
 func (r *applicationConfigResource) mapTagFilterToNormalizedStringRepresentation(input restapi.TagFilterExpressionElement) (*string, error) {
-	if input == nil {
-		return nil, nil
-	}
 	mapper := tagfilter.NewMapper()
 	expr, err := mapper.FromAPIModel(input)
 	if err != nil {

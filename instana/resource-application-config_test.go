@@ -3,6 +3,7 @@ package instana_test
 import (
 	"context"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -13,7 +14,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
-const resourceApplicationConfigDefinitionTemplate = `
+const resourceApplicationConfigWithMatchSpecificationDefinitionTemplate = `
 provider "instana" {
   api_token = "test-token"
   endpoint = "localhost:%d"
@@ -29,7 +30,7 @@ resource "instana_application_config" "example" {
 }
 `
 
-const serverResponseTemplate = `
+const serverResponseWithMatchSpecificationTemplate = `
 {
 	"id" : "%s",
 	"label" : "prefix name %d suffix",
@@ -66,42 +67,118 @@ const serverResponseTemplate = `
 	}
 }
 `
-const testApplicationConfigDefinition = "instana_application_config.example"
-const defaultMatchSpecification = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type@src EQUALS 'elasticsearch'"
-const defaultMatchSpecificationNormalized = "entity.name@dest CONTAINS 'foo' AND entity.type@dest EQUALS 'mysql' OR entity.type@src EQUALS 'elasticsearch'"
-const validMatchSpecification = "entity.type EQUALS 'foo'"
-const invalidMatchSpecification = "entity.type bla bla bla"
-const defaultLabel = "label"
+
+const resourceApplicationConfigWithTagFilterDefinitionTemplate = `
+provider "instana" {
+  api_token = "test-token"
+  endpoint = "localhost:%d"
+  default_name_prefix = "prefix"
+  default_name_suffix = "suffix"
+}
+
+resource "instana_application_config" "example" {
+  label = "name %d"
+  scope = "INCLUDE_ALL_DOWNSTREAM"
+  boundary_scope = "ALL"
+  tag_filter = "%s"
+}
+`
+
+const serverResponseWithTagFilterTemplate = `
+{
+	"id" : "%s",
+	"label" : "prefix name %d suffix",
+	"scope" : "INCLUDE_ALL_DOWNSTREAM",
+	"boundaryScope" : "ALL",
+	"tagFilterExpression" : {
+		"type" : "EXPRESSION",
+		"logicalOperator": "OR",
+		"elements" : [
+			{
+				"type" : "EXPRESSION",
+				"logicalOperator": "AND",
+				"elements" : [
+					{
+						"type" : "TAG_FILTER",
+						"name" : "entity.name",
+						"entity" : "DESTINATION",
+						"operator" : "CONTAINS",
+						"stringValue" : "foo",
+						"value" : "foo"
+					},
+					{
+						"type" : "TAG_FILTER",
+						"name" : "entity.type",
+						"entity" : "DESTINATION",
+						"operator" : "EQUALS",
+						"stringValue" : "mysql",
+						"value" : "mysql"
+					}
+				]
+			},
+			{
+				"type" : "TAG_FILTER",
+				"name" : "entity.type",
+				"entity" : "SOURCE",
+				"operator" : "EQUALS",
+				"stringValue" : "elasticsearch",
+				"value" : "elasticsearch"
+			}
+		]
+	}
+}
+`
+
+const (
+	testApplicationConfigDefinition = "instana_application_config.example"
+	defaultExpression               = "entity.name CONTAINS 'foo' AND entity.type EQUALS 'mysql' OR entity.type@src EQUALS 'elasticsearch'"
+	defaultNormalizedExpression     = "entity.name@dest CONTAINS 'foo' AND entity.type@dest EQUALS 'mysql' OR entity.type@src EQUALS 'elasticsearch'"
+	validMatchSpecification         = "entity.type EQUALS 'foo'"
+	invalidMatchSpecification       = "entity.type bla bla bla"
+	validTagFilter                  = "entity.type EQUALS 'foo'"
+	invalidTagFilter                = "entity.type bla bla bla"
+	defaultLabel                    = "label"
+	entityName                      = "entity.name"
+	entityType                      = "entity.type"
+)
 
 var defaultMatchSpecificationModel = restapi.NewBinaryOperator(
 	restapi.NewBinaryOperator(
-		restapi.NewComparisonExpression("entity.name", restapi.MatcherExpressionEntityDestination, restapi.ContainsOperator, "foo"),
+		restapi.NewComparisonExpression(entityName, restapi.MatcherExpressionEntityDestination, restapi.ContainsOperator, "foo"),
 		restapi.LogicalAnd,
-		restapi.NewComparisonExpression("entity.type", restapi.MatcherExpressionEntityDestination, restapi.EqualsOperator, "mysql"),
+		restapi.NewComparisonExpression(entityType, restapi.MatcherExpressionEntityDestination, restapi.EqualsOperator, "mysql"),
 	),
 	restapi.LogicalOr,
-	restapi.NewComparisonExpression("entity.type", restapi.MatcherExpressionEntitySource, restapi.EqualsOperator, "elasticsearch"))
+	restapi.NewComparisonExpression(entityType, restapi.MatcherExpressionEntitySource, restapi.EqualsOperator, "elasticsearch"))
+
+var defaultTagFilterModel = restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{
+	restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{
+		restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, entityName, restapi.ContainsOperator, utils.StringPtr("foo")),
+		restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, entityType, restapi.EqualsOperator, utils.StringPtr("mysql")),
+	}),
+	restapi.NewStringTagFilter(restapi.TagFilterEntitySource, entityType, restapi.EqualsOperator, utils.StringPtr("elasticsearch")),
+})
 
 const applicationConfigID = "application-config-id"
 
-func TestCRUDOfApplicationConfigResourceWithMockServer(t *testing.T) {
-	httpServer := createMockHttpServerForResource(restapi.ApplicationConfigsResourcePath, serverResponseTemplate)
+func TestCRUDOfApplicationConfigWithMatchSpecificationResourceWithMockServer(t *testing.T) {
+	httpServer := createMockHttpServerForResource(restapi.ApplicationConfigsResourcePath, serverResponseWithMatchSpecificationTemplate)
 	httpServer.Start()
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
 		Providers: testProviders,
 		Steps: []resource.TestStep{
-			createApplicationConfigResourceTestStep(httpServer.GetPort(), 0),
+			createApplicationConfigWithMatchSpecificationResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testApplicationConfigDefinition),
-			createApplicationConfigResourceTestStep(httpServer.GetPort(), 1),
+			createApplicationConfigWithMatchSpecificationResourceTestStep(httpServer.GetPort(), 1),
 			testStepImport(testApplicationConfigDefinition),
 		},
 	})
 }
 
-func createApplicationConfigResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceApplicationConfigDefinitionTemplate, httpPort, iteration, defaultMatchSpecification)
+func createApplicationConfigWithMatchSpecificationResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceApplicationConfigWithMatchSpecificationDefinitionTemplate, httpPort, iteration, defaultExpression)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(
@@ -110,7 +187,40 @@ func createApplicationConfigResourceTestStep(httpPort int, iteration int) resour
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeAllDownstream)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
-			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultMatchSpecificationNormalized),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultNormalizedExpression),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldTagFilter, ""),
+		),
+	}
+}
+
+func TestCRUDOfApplicationConfigWithTagFilterResourceWithMockServer(t *testing.T) {
+	httpServer := createMockHttpServerForResource(restapi.ApplicationConfigsResourcePath, serverResponseWithTagFilterTemplate)
+	httpServer.Start()
+	defer httpServer.Close()
+
+	resource.UnitTest(t, resource.TestCase{
+		Providers: testProviders,
+		Steps: []resource.TestStep{
+			createApplicationConfigWithTagFilterResourceTestStep(httpServer.GetPort(), 0),
+			testStepImport(testApplicationConfigDefinition),
+			createApplicationConfigWithTagFilterResourceTestStep(httpServer.GetPort(), 1),
+			testStepImport(testApplicationConfigDefinition),
+		},
+	})
+}
+
+func createApplicationConfigWithTagFilterResourceTestStep(httpPort int, iteration int) resource.TestStep {
+	config := fmt.Sprintf(resourceApplicationConfigWithTagFilterDefinitionTemplate, httpPort, iteration, defaultExpression)
+	return resource.TestStep{
+		Config: config,
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeAllDownstream)),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldTagFilter, defaultNormalizedExpression),
+			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, ""),
 		),
 	}
 }
@@ -201,6 +311,78 @@ func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfMatchSpecificationOfAp
 	require.Len(t, errs, 1)
 }
 
+func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	oldValue := "entity.type@dest EQUALS 'foo'"
+	newValue := "entity.type  EQUALS    'foo'"
+
+	require.True(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, oldValue, newValue, nil))
+}
+
+func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	oldValue := "entity.type@src EQUALS 'foo'"
+	newValue := validTagFilter
+
+	require.False(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, oldValue, newValue, nil))
+}
+
+func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreEqual(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	invalidValue := invalidTagFilter
+
+	require.True(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, invalidValue, invalidValue, nil))
+}
+
+func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreNotEqual(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	oldValue := invalidTagFilter
+	newValue := "entity.type foo foo foo"
+
+	require.False(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, oldValue, newValue, nil))
+}
+
+func TestShouldReturnNormalizedValueForTagFilterOfApplicationConfigWhenStateFuncIsCalledAndValueCanBeNormalized(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	expectedValue := "entity.type@dest EQUALS 'foo'"
+	newValue := validTagFilter
+
+	require.Equal(t, expectedValue, schema[ApplicationConfigFieldTagFilter].StateFunc(newValue))
+}
+
+func TestShouldReturnProvidedValueForTagFilterOfApplicationConfigWhenStateFuncIsCalledAndValueCannotBeNormalized(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	value := invalidTagFilter
+
+	require.Equal(t, value, schema[ApplicationConfigFieldTagFilter].StateFunc(value))
+}
+
+func TestShouldReturnNoErrorsAndWarningsWhenValidationOfTagFilterOfApplicationConfigIsCalledAndValueCanBeParsed(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	value := validTagFilter
+
+	warns, errs := schema[ApplicationConfigFieldTagFilter].ValidateFunc(value, ApplicationConfigFieldTagFilter)
+	require.Empty(t, warns)
+	require.Empty(t, errs)
+}
+
+func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfTagFilterOfApplicationConfigIsCalledAndValueCannotBeParsed(t *testing.T) {
+	resourceHandle := NewApplicationConfigResourceHandle()
+	schema := resourceHandle.MetaData().Schema
+	value := invalidTagFilter
+
+	warns, errs := schema[ApplicationConfigFieldTagFilter].ValidateFunc(value, ApplicationConfigFieldTagFilter)
+	require.Empty(t, warns)
+	require.Len(t, errs, 1)
+}
+
 func TestApplicationConfigResourceShouldHaveSchemaVersionTwo(t *testing.T) {
 	require.Equal(t, 3, NewApplicationConfigResourceHandle().MetaData().SchemaVersion)
 }
@@ -284,11 +466,11 @@ func TestShouldRemoveHarmonizedMatchSpecificationWhenMigratingApplicationConfigS
 
 	rawData["id"] = applicationConfigID
 	rawData[ApplicationConfigFieldFullLabel] = defaultLabel
-	rawData[ApplicationConfigFieldMatchSpecification] = defaultMatchSpecification
+	rawData[ApplicationConfigFieldMatchSpecification] = defaultExpression
 	rawData[ApplicationConfigFieldScope] = string(restapi.ApplicationConfigScopeIncludeNoDownstream)
 	rawData[ApplicationConfigFieldBoundaryScope] = string(restapi.BoundaryScopeAll)
 	expectedResult := copyMap(rawData)
-	rawData[ApplicationConfigFieldNormalizedMatchSpecification] = defaultMatchSpecificationNormalized
+	rawData[ApplicationConfigFieldNormalizedMatchSpecification] = defaultNormalizedExpression
 
 	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[2].Upgrade(ctx, rawData, meta)
 
@@ -303,7 +485,7 @@ func TestShouldRemoveHarmonizedMatchSpecificationWhenMigratingApplicationConfigS
 
 	rawData["id"] = applicationConfigID
 	rawData[ApplicationConfigFieldFullLabel] = defaultLabel
-	rawData[ApplicationConfigFieldMatchSpecification] = defaultMatchSpecification
+	rawData[ApplicationConfigFieldMatchSpecification] = defaultExpression
 	rawData[ApplicationConfigFieldScope] = string(restapi.ApplicationConfigScopeIncludeNoDownstream)
 	rawData[ApplicationConfigFieldBoundaryScope] = string(restapi.BoundaryScopeAll)
 	expectedResult := copyMap(rawData)
@@ -320,7 +502,7 @@ func TestShouldReturnCorrectResourceNameForApplicationConfigResource(t *testing.
 	require.Equal(t, name, "instana_application_config")
 }
 
-func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing.T) {
+func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsProvided(t *testing.T) {
 	fullLabel := "prefix label suffix"
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 applicationConfigID,
@@ -336,17 +518,19 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 
 	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
 
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, applicationConfigID, resourceData.Id())
 	require.Equal(t, defaultLabel, resourceData.Get(ApplicationConfigFieldLabel))
 	require.Equal(t, fullLabel, resourceData.Get(ApplicationConfigFieldFullLabel))
-	require.Equal(t, defaultMatchSpecificationNormalized, resourceData.Get(ApplicationConfigFieldMatchSpecification))
+	require.Equal(t, defaultNormalizedExpression, resourceData.Get(ApplicationConfigFieldMatchSpecification))
+	_, tagFilterSet := resourceData.GetOk(ApplicationConfigFieldTagFilter)
+	require.False(t, tagFilterSet)
 	require.Equal(t, string(restapi.ApplicationConfigScopeIncludeNoDownstream), resourceData.Get(ApplicationConfigFieldScope))
 	require.Equal(t, string(restapi.BoundaryScopeAll), resourceData.Get(ApplicationConfigFieldBoundaryScope))
 }
 
 func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsNotValid(t *testing.T) {
-	comparison := restapi.NewComparisonExpression("entity.name", restapi.MatcherExpressionEntityDestination, "INVALID", "foo")
+	comparison := restapi.NewComparisonExpression(entityName, restapi.MatcherExpressionEntityDestination, "INVALID", "foo")
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 applicationConfigID,
 		Label:              defaultLabel,
@@ -360,17 +544,79 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenM
 
 	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
 
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
-func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T) {
+func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenTagFilterIsProvided(t *testing.T) {
+	fullLabel := "prefix label suffix"
+	applicationConfig := restapi.ApplicationConfig{
+		ID:                  applicationConfigID,
+		Label:               fullLabel,
+		TagFilterExpression: defaultTagFilterModel,
+		Scope:               restapi.ApplicationConfigScopeIncludeNoDownstream,
+		BoundaryScope:       restapi.BoundaryScopeAll,
+	}
+
+	testHelper := NewTestHelper(t)
+	sut := NewApplicationConfigResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+
+	require.NoError(t, err)
+	require.Equal(t, applicationConfigID, resourceData.Id())
+	require.Equal(t, defaultLabel, resourceData.Get(ApplicationConfigFieldLabel))
+	require.Equal(t, fullLabel, resourceData.Get(ApplicationConfigFieldFullLabel))
+	_, matchSpecificationSet := resourceData.GetOk(ApplicationConfigFieldMatchSpecification)
+	require.False(t, matchSpecificationSet)
+	require.Equal(t, defaultNormalizedExpression, resourceData.Get(ApplicationConfigFieldTagFilter))
+	require.Equal(t, string(restapi.ApplicationConfigScopeIncludeNoDownstream), resourceData.Get(ApplicationConfigFieldScope))
+	require.Equal(t, string(restapi.BoundaryScopeAll), resourceData.Get(ApplicationConfigFieldBoundaryScope))
+}
+
+func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenTagFilterIsNotValid(t *testing.T) {
+	comparison := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, entityName, "INVALID", utils.StringPtr("foo"))
+	applicationConfig := restapi.ApplicationConfig{
+		ID:                  applicationConfigID,
+		Label:               defaultLabel,
+		TagFilterExpression: comparison,
+		Scope:               restapi.ApplicationConfigScopeIncludeNoDownstream,
+	}
+
+	testHelper := NewTestHelper(t)
+	sut := NewApplicationConfigResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+
+	require.Error(t, err)
+}
+
+func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenNeitherMatchExpressionNorTagFilterIsProvided(t *testing.T) {
+	applicationConfig := restapi.ApplicationConfig{
+		ID:    applicationConfigID,
+		Label: defaultLabel,
+		Scope: restapi.ApplicationConfigScopeIncludeNoDownstream,
+	}
+
+	testHelper := NewTestHelper(t)
+	sut := NewApplicationConfigResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "either match specification or tag filter is required")
+}
+
+func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsAvailable(t *testing.T) {
 	testHelper := NewTestHelper(t)
 	resourceHandle := NewApplicationConfigResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
 	resourceData.Set(ApplicationConfigFieldFullLabel, defaultLabel)
-	resourceData.Set(ApplicationConfigFieldMatchSpecification, defaultMatchSpecification)
+	resourceData.Set(ApplicationConfigFieldMatchSpecification, defaultExpression)
 	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
@@ -381,6 +627,7 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModel(t *testing.T
 	require.Equal(t, applicationConfigID, result.GetIDForResourcePath())
 	require.Equal(t, defaultLabel, result.(*restapi.ApplicationConfig).Label)
 	require.Equal(t, defaultMatchSpecificationModel, result.(*restapi.ApplicationConfig).MatchSpecification)
+	require.Nil(t, result.(*restapi.ApplicationConfig).TagFilterExpression)
 	require.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)
 	require.Equal(t, restapi.BoundaryScopeAll, result.(*restapi.ApplicationConfig).BoundaryScope)
 }
@@ -393,6 +640,45 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificat
 	resourceData.SetId(applicationConfigID)
 	resourceData.Set(ApplicationConfigFieldFullLabel, defaultLabel)
 	resourceData.Set(ApplicationConfigFieldMatchSpecification, "INVALID")
+	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
+	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
+
+	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+
+	require.NotNil(t, err)
+}
+
+func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenTagFilterIsAvailable(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewApplicationConfigResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId(applicationConfigID)
+	resourceData.Set(ApplicationConfigFieldFullLabel, defaultLabel)
+	resourceData.Set(ApplicationConfigFieldTagFilter, defaultExpression)
+	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
+	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
+
+	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+
+	require.Nil(t, err)
+	require.IsType(t, &restapi.ApplicationConfig{}, result)
+	require.Equal(t, applicationConfigID, result.GetIDForResourcePath())
+	require.Equal(t, defaultLabel, result.(*restapi.ApplicationConfig).Label)
+	require.Nil(t, result.(*restapi.ApplicationConfig).MatchSpecification)
+	require.Equal(t, defaultTagFilterModel, result.(*restapi.ApplicationConfig).TagFilterExpression)
+	require.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)
+	require.Equal(t, restapi.BoundaryScopeAll, result.(*restapi.ApplicationConfig).BoundaryScope)
+}
+
+func TestShouldFailToConvertApplicationConfigStateToDataModelWhenTagFilterIsNotValid(t *testing.T) {
+	testHelper := NewTestHelper(t)
+	resourceHandle := NewApplicationConfigResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	resourceData.SetId(applicationConfigID)
+	resourceData.Set(ApplicationConfigFieldFullLabel, defaultLabel)
+	resourceData.Set(ApplicationConfigFieldTagFilter, "INVALID")
 	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
