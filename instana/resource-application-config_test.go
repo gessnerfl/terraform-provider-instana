@@ -140,6 +140,8 @@ const (
 	defaultLabel                    = "label"
 	entityName                      = "entity.name"
 	entityType                      = "entity.type"
+	expressionEntityTypeDestEqValue = "entity.type@dest EQUALS 'foo'"
+	expressionEntityTypeSrcEqValue  = "entity.type@src EQUALS 'foo'"
 )
 
 var defaultMatchSpecificationModel = restapi.NewBinaryOperator(
@@ -242,7 +244,7 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	oldValue := "entity.type@dest EQUALS 'foo'"
+	oldValue := expressionEntityTypeDestEqValue
 	newValue := "entity.type  EQUALS    'foo'"
 
 	require.True(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, oldValue, newValue, nil))
@@ -251,7 +253,7 @@ func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForMatchSpecificationO
 func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecificationOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	oldValue := "entity.type@src EQUALS 'foo'"
+	oldValue := expressionEntityTypeSrcEqValue
 	newValue := validMatchSpecification
 
 	require.False(t, schema[ApplicationConfigFieldMatchSpecification].DiffSuppressFunc(ApplicationConfigFieldMatchSpecification, oldValue, newValue, nil))
@@ -277,7 +279,7 @@ func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForMatchSpecification
 func TestShouldReturnNormalizedValueForMatchSpecificationOfApplicationConfigWhenStateFuncIsCalledAndValueCanBeNormalized(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	expectedValue := "entity.type@dest EQUALS 'foo'"
+	expectedValue := expressionEntityTypeDestEqValue
 	newValue := validMatchSpecification
 
 	require.Equal(t, expectedValue, schema[ApplicationConfigFieldMatchSpecification].StateFunc(newValue))
@@ -314,7 +316,7 @@ func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfMatchSpecificationOfAp
 func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	oldValue := "entity.type@dest EQUALS 'foo'"
+	oldValue := expressionEntityTypeDestEqValue
 	newValue := "entity.type  EQUALS    'foo'"
 
 	require.True(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, oldValue, newValue, nil))
@@ -323,7 +325,7 @@ func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicat
 func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	oldValue := "entity.type@src EQUALS 'foo'"
+	oldValue := expressionEntityTypeSrcEqValue
 	newValue := validTagFilter
 
 	require.False(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, oldValue, newValue, nil))
@@ -349,7 +351,7 @@ func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForTagFilterOfApplica
 func TestShouldReturnNormalizedValueForTagFilterOfApplicationConfigWhenStateFuncIsCalledAndValueCanBeNormalized(t *testing.T) {
 	resourceHandle := NewApplicationConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema
-	expectedValue := "entity.type@dest EQUALS 'foo'"
+	expectedValue := expressionEntityTypeDestEqValue
 	newValue := validTagFilter
 
 	require.Equal(t, expectedValue, schema[ApplicationConfigFieldTagFilter].StateFunc(newValue))
