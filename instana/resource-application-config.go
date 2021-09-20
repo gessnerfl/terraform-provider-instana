@@ -2,7 +2,6 @@ package instana
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -189,27 +188,24 @@ func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {
 
 func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	applicationConfig := obj.(*restapi.ApplicationConfig)
-	var normalizedExpressionString *string
-	var normalizedTagFilterString *string
-	var err error
-
 	if applicationConfig.MatchSpecification != nil {
-		normalizedExpressionString, err = r.mapMatchSpecificationToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
+		normalizedExpressionString, err := r.mapMatchSpecificationToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
+		if err != nil {
+			return err
+		}
+		d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 	} else if applicationConfig.TagFilterExpression != nil {
-		normalizedTagFilterString, err = r.mapTagFilterToNormalizedStringRepresentation(applicationConfig.TagFilterExpression.(restapi.TagFilterExpressionElement))
-	} else {
-		return errors.New("either match specification or tag filter is required")
-	}
-	if err != nil {
-		return err
+		normalizedTagFilterString, err := r.mapTagFilterToNormalizedStringRepresentation(applicationConfig.TagFilterExpression.(restapi.TagFilterExpressionElement))
+		if err != nil {
+			return err
+		}
+		d.Set(ApplicationConfigFieldTagFilter, normalizedTagFilterString)
 	}
 
 	d.Set(ApplicationConfigFieldLabel, formatter.UndoFormat(applicationConfig.Label))
 	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
 	d.Set(ApplicationConfigFieldScope, string(applicationConfig.Scope))
 	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))
-	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
-	d.Set(ApplicationConfigFieldTagFilter, normalizedTagFilterString)
 
 	d.SetId(applicationConfig.ID)
 	return nil

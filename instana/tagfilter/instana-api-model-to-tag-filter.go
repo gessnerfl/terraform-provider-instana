@@ -182,8 +182,8 @@ func (m *tagFilterMapper) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryEx
 }
 
 func (m *tagFilterMapper) mapTagValue(tagFilter *restapi.TagFilter) *TagValue {
-	if tagFilter.TagKey != nil {
-		return &TagValue{Key: *tagFilter.TagKey, Value: *tagFilter.TagValue}
+	if tagFilter.Key != nil {
+		return &TagValue{Key: *tagFilter.Key, Value: tagFilter.Value.(string)}
 	}
 	return nil
 }

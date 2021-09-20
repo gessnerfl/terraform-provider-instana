@@ -39,7 +39,7 @@ func createTestShouldMapStringComparisonToRepresentationOfInstanaAPI(operator re
 			},
 		}
 
-		expectedResult := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, operator, utils.StringPtr("value"))
+		expectedResult := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, operator, "value")
 		runTestCaseForMappingToAPI(expr, expectedResult, t)
 	}
 }
@@ -61,7 +61,7 @@ func createTestShouldMapNumberComparisonToRepresentationOfInstanaAPI(operator re
 			},
 		}
 
-		expectedResult := restapi.NewNumberTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, operator, &numberValue)
+		expectedResult := restapi.NewNumberTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, operator, numberValue)
 		runTestCaseForMappingToAPI(expr, expectedResult, t)
 	}
 }
@@ -83,7 +83,7 @@ func createTestShouldMapBooleanComparisonToRepresentationOfInstanaAPI(operator r
 			},
 		}
 
-		expectedResult := restapi.NewBooleanTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, operator, &boolValue)
+		expectedResult := restapi.NewBooleanTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, operator, boolValue)
 		runTestCaseForMappingToAPI(expr, expectedResult, t)
 	}
 }
@@ -109,7 +109,7 @@ func createTestShouldMapTagComparisonToRepresentationOfInstanaAPI(operator resta
 			},
 		}
 
-		expectedResult := restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, operator, &key, &value)
+		expectedResult := restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, operator, key, value)
 		runTestCaseForMappingToAPI(expr, expectedResult, t)
 	}
 }

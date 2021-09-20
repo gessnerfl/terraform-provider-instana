@@ -219,46 +219,51 @@ var SupportedUnaryExpressionOperators = TagFilterOperators{
 }
 
 //NewStringTagFilter creates a new TagFilter for comparing string values
-func NewStringTagFilter(entity TagFilterEntity, name string, operator TagFilterOperator, value *string) *TagFilter {
+func NewStringTagFilter(entity TagFilterEntity, name string, operator TagFilterOperator, value string) *TagFilter {
 	return &TagFilter{
 		Entity:      entity,
 		Name:        name,
 		Operator:    operator,
-		StringValue: value,
+		StringValue: &value,
+		Value:       value,
 		Type:        TagFilterType,
 	}
 }
 
 //NewNumberTagFilter creates a new TagFilter for comparing number values
-func NewNumberTagFilter(entity TagFilterEntity, name string, operator TagFilterOperator, value *int64) *TagFilter {
+func NewNumberTagFilter(entity TagFilterEntity, name string, operator TagFilterOperator, value int64) *TagFilter {
 	return &TagFilter{
 		Entity:      entity,
 		Name:        name,
 		Operator:    operator,
-		NumberValue: value,
+		NumberValue: &value,
+		Value:       value,
 		Type:        TagFilterType,
 	}
 }
 
 //NewTagTagFilter creates a new TagFilter for comparing tags
-func NewTagTagFilter(entity TagFilterEntity, name string, operator TagFilterOperator, key *string, value *string) *TagFilter {
+func NewTagTagFilter(entity TagFilterEntity, name string, operator TagFilterOperator, key string, value string) *TagFilter {
+	fullString := fmt.Sprintf("%s=%s", key, value)
 	return &TagFilter{
-		Entity:   entity,
-		Name:     name,
-		Operator: operator,
-		TagKey:   key,
-		TagValue: value,
-		Type:     TagFilterType,
+		Entity:      entity,
+		Name:        name,
+		Operator:    operator,
+		Key:         &key,
+		Value:       value,
+		StringValue: &fullString,
+		Type:        TagFilterType,
 	}
 }
 
 //NewBooleanTagFilter creates a new TagFilter for comparing tags
-func NewBooleanTagFilter(entity TagFilterEntity, name string, operator TagFilterOperator, value *bool) *TagFilter {
+func NewBooleanTagFilter(entity TagFilterEntity, name string, operator TagFilterOperator, value bool) *TagFilter {
 	return &TagFilter{
 		Entity:       entity,
 		Name:         name,
 		Operator:     operator,
-		BooleanValue: value,
+		BooleanValue: &value,
+		Value:        value,
 		Type:         TagFilterType,
 	}
 }
@@ -281,8 +286,8 @@ type TagFilter struct {
 	BooleanValue *bool                          `json:"booleanValue"`
 	NumberValue  *int64                         `json:"numberValue"`
 	StringValue  *string                        `json:"stringValue"`
-	TagKey       *string                        `json:"key"`
-	TagValue     *string                        `json:"value"`
+	Key          *string                        `json:"key"`
+	Value        interface{}                    `json:"value"`
 	Type         TagFilterExpressionElementType `json:"type"`
 }
 
@@ -314,5 +319,5 @@ func (f *TagFilter) Validate() error {
 }
 
 func (f *TagFilter) isValueAssigned() bool {
-	return f.TagKey != nil || f.TagValue != nil || f.NumberValue != nil || f.BooleanValue != nil || f.StringValue != nil
+	return f.Key != nil || f.Value != nil || f.NumberValue != nil || f.BooleanValue != nil || f.StringValue != nil
 }

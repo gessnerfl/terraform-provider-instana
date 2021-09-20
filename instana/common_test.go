@@ -21,9 +21,7 @@ func createMockHttpServerForResource(resourcePath string, responseTemplate strin
 	pathTemplate := resourcePath + "/{id}"
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPut, pathTemplate, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, pathTemplate, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, pathTemplate, func(w http.ResponseWriter, r *http.Request) {
+	responseHandler := func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		path := resourcePath + "/" + vars["id"]
 		callCount := getZeroBasedCallCount(httpServer, http.MethodPut, path)
@@ -36,7 +34,10 @@ func createMockHttpServerForResource(resourcePath string, responseTemplate strin
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
-	})
+	}
+	httpServer.AddRoute(http.MethodPut, pathTemplate, responseHandler)
+	httpServer.AddRoute(http.MethodDelete, pathTemplate, responseHandler)
+	httpServer.AddRoute(http.MethodGet, pathTemplate, responseHandler)
 	return httpServer
 }
 

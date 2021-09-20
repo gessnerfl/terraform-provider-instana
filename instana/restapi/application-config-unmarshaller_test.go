@@ -40,7 +40,7 @@ func TestShouldSuccessfullyUnmarshalApplicationConfigWithTagFilterExpressionCont
 	applicationConfig := ApplicationConfig{
 		ID:                  id,
 		Label:               label,
-		TagFilterExpression: NewStringTagFilter(TagFilterEntityDestination, "entity.name", EqualsOperator, &value),
+		TagFilterExpression: NewStringTagFilter(TagFilterEntityDestination, "entity.name", EqualsOperator, value),
 		Scope:               "scope",
 		BoundaryScope:       "boundaryScope",
 	}
@@ -57,10 +57,10 @@ func TestShouldSuccessfullyUnmarshalApplicationConfigWithTagFilterExpressionCont
 	value := "value"
 	id := testApplicationConfigId
 	label := testApplicationConfigLabel
-	primaryExpression1 := NewStringTagFilter(TagFilterEntityDestination, "name1", EqualsOperator, &value)
-	primaryExpression2 := NewStringTagFilter(TagFilterEntityDestination, "name2", EqualsOperator, &value)
-	primaryExpression3 := NewStringTagFilter(TagFilterEntityDestination, "name3", EqualsOperator, &value)
-	primaryExpression4 := NewStringTagFilter(TagFilterEntityDestination, "name4", EqualsOperator, &value)
+	primaryExpression1 := NewStringTagFilter(TagFilterEntityDestination, "name1", EqualsOperator, value)
+	primaryExpression2 := NewStringTagFilter(TagFilterEntityDestination, "name2", EqualsOperator, value)
+	primaryExpression3 := NewStringTagFilter(TagFilterEntityDestination, "name3", EqualsOperator, value)
+	primaryExpression4 := NewStringTagFilter(TagFilterEntityDestination, "name4", EqualsOperator, value)
 	logicalOr := NewLogicalAndTagFilter([]TagFilterExpressionElement{primaryExpression1, primaryExpression2, NewLogicalAndTagFilter([]TagFilterExpressionElement{primaryExpression3, primaryExpression4})})
 	applicationConfig := ApplicationConfig{
 		ID:                  id,
@@ -158,7 +158,7 @@ func testShouldFailToUnmarshalApplicationConfigWhenOneSideOfBinaryExpressionIsNo
 
 func TestShouldFailToUnmarshalApplicationConfigWhenElementOfTagFilterExpressionIsNotValid(t *testing.T) {
 	value := "value"
-	primaryExpression := NewStringTagFilter(TagFilterEntityDestination, "name1", EqualsOperator, &value)
+	primaryExpression := NewStringTagFilter(TagFilterEntityDestination, "name1", EqualsOperator, value)
 	invalidExpression := &TagFilterExpression{
 		Type:            "INVALID",
 		LogicalOperator: LogicalOr,

@@ -243,7 +243,7 @@ func (a *ApplicationConfig) Validate() error {
 }
 
 func (a *ApplicationConfig) validateExpression() error {
-	if (a.MatchSpecification == nil && a.TagFilterExpression == nil) || (a.MatchSpecification != nil && a.TagFilterExpression != nil) {
+	if a.MatchSpecification == nil && a.TagFilterExpression == nil {
 		return errors.New("either match specification or tag filter expression is required")
 	}
 

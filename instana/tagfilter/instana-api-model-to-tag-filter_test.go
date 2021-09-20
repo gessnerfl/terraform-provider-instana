@@ -18,7 +18,7 @@ const (
 
 func TestShouldMapStringTagFilterFromInstanaAPI(t *testing.T) {
 	value := "value"
-	input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, &value)
+	input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, value)
 
 	comparison := &ComparisonExpression{
 		Entity:      &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
@@ -31,7 +31,7 @@ func TestShouldMapStringTagFilterFromInstanaAPI(t *testing.T) {
 
 func TestShouldMapNumberTagFilterFromInstanaAPI(t *testing.T) {
 	value := int64(1234)
-	input := restapi.NewNumberTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, &value)
+	input := restapi.NewNumberTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, value)
 
 	comparison := &ComparisonExpression{
 		Entity:      &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
@@ -44,7 +44,7 @@ func TestShouldMapNumberTagFilterFromInstanaAPI(t *testing.T) {
 
 func TestShouldMapBooleanTagFilterFromInstanaAPI(t *testing.T) {
 	value := true
-	input := restapi.NewBooleanTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, &value)
+	input := restapi.NewBooleanTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, value)
 
 	comparison := &ComparisonExpression{
 		Entity:       &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
@@ -58,12 +58,14 @@ func TestShouldMapBooleanTagFilterFromInstanaAPI(t *testing.T) {
 func TestShouldMapTagTagFilterFromInstanaAPI(t *testing.T) {
 	key := "key"
 	value := "value"
-	input := restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, &key, &value)
+	fullString := "key=value"
+	input := restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, key, value)
 
 	comparison := &ComparisonExpression{
-		Entity:   &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
-		Operator: Operator(restapi.EqualsOperator),
-		TagValue: &TagValue{Key: key, Value: value},
+		Entity:      &EntitySpec{Identifier: tagFilterName, Origin: EntityOriginDestination},
+		Operator:    Operator(restapi.EqualsOperator),
+		StringValue: &fullString,
+		TagValue:    &TagValue{Key: key, Value: value},
 	}
 
 	testMappingOfTagFilterFromInstanaApi(input, comparison, t)
@@ -92,7 +94,7 @@ func TestShouldMapAllSupportedComparisonOperatorsFromInstanaAPI(t *testing.T) {
 func testMappingOfSupportedComparisonOperatorsFromInstanaAPI(operator restapi.TagFilterOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		value := "value"
-		input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, operator, &value)
+		input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, operator, value)
 
 		expectedResult := &FilterExpression{
 			Expression: &LogicalOrExpression{
@@ -114,7 +116,7 @@ func testMappingOfSupportedComparisonOperatorsFromInstanaAPI(operator restapi.Ta
 
 func TestShouldFailToMapTagFilterFromInstanaAPIWhenOperatorIsNotSupported(t *testing.T) {
 	value := "value"
-	input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, "FOO", &value)
+	input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, "FOO", value)
 
 	mapper := NewMapper()
 	_, err := mapper.FromAPIModel(input)

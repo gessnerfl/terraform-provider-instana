@@ -51,11 +51,11 @@ func (m *tagFilterMapper) mapUnaryOperatorExpressionToAPIModel(input *UnaryOpera
 
 func (m *tagFilterMapper) mapComparisonExpressionToAPIModel(input *ComparisonExpression) restapi.TagFilterExpressionElement {
 	if input.TagValue != nil {
-		return restapi.NewTagTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), &input.TagValue.Key, &input.TagValue.Value)
+		return restapi.NewTagTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), input.TagValue.Key, input.TagValue.Value)
 	} else if input.NumberValue != nil {
-		return restapi.NewNumberTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), input.NumberValue)
+		return restapi.NewNumberTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.NumberValue)
 	} else if input.BooleanValue != nil {
-		return restapi.NewBooleanTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), input.BooleanValue)
+		return restapi.NewBooleanTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.BooleanValue)
 	}
-	return restapi.NewStringTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), input.StringValue)
+	return restapi.NewStringTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.StringValue)
 }
