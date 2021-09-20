@@ -1,10 +1,13 @@
 package restapi_test
 
 import (
+	"errors"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/golang/mock/gomock"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
@@ -25,34 +28,50 @@ const (
 	messageLabelBoundaryScope = "boundary scope"
 )
 
-func TestShouldSuccussullyValididateConsistentApplicationConfig(t *testing.T) {
+func TestShouldSuccessfullyValidateConsistentApplicationConfigWithMatchSpecification(t *testing.T) {
 	config := ApplicationConfig{
 		ID:                 idFieldValue,
 		Label:              labelFieldValue,
-		MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+		MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 		Scope:              ApplicationConfigScopeIncludeAllDownstream,
 		BoundaryScope:      BoundaryScopeInbound,
 	}
 
 	err := config.Validate()
 
-	assert.Nil(t, err)
-	assert.Equal(t, idFieldValue, config.GetIDForResourcePath())
+	require.NoError(t, err)
+	require.Equal(t, idFieldValue, config.GetIDForResourcePath())
+}
+
+func TestShouldSuccessfullyValidateConsistentApplicationConfigWithTagFilter(t *testing.T) {
+	value := valueFieldValue
+	config := ApplicationConfig{
+		ID:                  idFieldValue,
+		Label:               labelFieldValue,
+		TagFilterExpression: NewStringTagFilter(TagFilterEntityDestination, keyFieldValue, EqualsOperator, value),
+		Scope:               ApplicationConfigScopeIncludeAllDownstream,
+		BoundaryScope:       BoundaryScopeInbound,
+	}
+
+	err := config.Validate()
+
+	require.NoError(t, err)
+	require.Equal(t, idFieldValue, config.GetIDForResourcePath())
 }
 
 func TestShouldFailToValidateApplicationConfigWhenIDIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "id")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "id")
 }
 
 func TestShouldFailToValidateApplicationConfigWhenIDIsBlank(t *testing.T) {
@@ -60,30 +79,30 @@ func TestShouldFailToValidateApplicationConfigWhenIDIsBlank(t *testing.T) {
 		ApplicationConfig{
 			ID:                 " ",
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "id")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "id")
 }
 
 func TestShouldFailToValidateApplicationConfigWhenLabelIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
 			ID:                 idFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "label")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "label")
 }
 
 func TestShouldFailToValidateApplicationConfigWhenLabelIsBlank(t *testing.T) {
@@ -91,18 +110,18 @@ func TestShouldFailToValidateApplicationConfigWhenLabelIsBlank(t *testing.T) {
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              " ",
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "label")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "label")
 }
 
-func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t *testing.T) {
+func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationAndTagFilterIsMissing(t *testing.T) {
 	config :=
 		ApplicationConfig{
 			ID:            idFieldValue,
@@ -113,23 +132,62 @@ func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsMissing(t 
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "match specification")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "either match specification or tag filter")
+}
+
+func TestShouldValidateApplicationConfigWhenMatchSpecificationAndTagFilterAreProvided(t *testing.T) {
+	value := valueFieldValue
+	config :=
+		ApplicationConfig{
+			ID:                  idFieldValue,
+			Label:               labelFieldValue,
+			Scope:               ApplicationConfigScopeIncludeAllDownstream,
+			BoundaryScope:       BoundaryScopeInbound,
+			MatchSpecification:  NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			TagFilterExpression: NewStringTagFilter(TagFilterEntityDestination, keyFieldValue, EqualsOperator, value),
+		}
+
+	err := config.Validate()
+
+	require.NoError(t, err)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenMatchSpecificationIsNotValid(t *testing.T) {
 	config := ApplicationConfig{
 		ID:                 idFieldValue,
 		Label:              labelFieldValue,
-		MatchSpecification: NewComparisionExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+		MatchSpecification: NewComparisonExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 		Scope:              ApplicationConfigScopeIncludeAllDownstream,
 		BoundaryScope:      BoundaryScopeInbound,
 	}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "key")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "key")
+}
+
+func TestShouldFailToValidateApplicationConfigWhenTagFilterExpressionIsNotValid(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	expectedError := errors.New("test")
+	tagFilter := mocks.NewMockTagFilterExpressionElement(ctrl)
+	tagFilter.EXPECT().Validate().Times(1).Return(expectedError)
+
+	config := ApplicationConfig{
+		ID:                  idFieldValue,
+		Label:               labelFieldValue,
+		TagFilterExpression: tagFilter,
+		Scope:               ApplicationConfigScopeIncludeAllDownstream,
+		BoundaryScope:       BoundaryScopeInbound,
+	}
+
+	err := config.Validate()
+
+	require.Error(t, err)
+	require.Equal(t, expectedError, err)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
@@ -137,14 +195,14 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsMissing(t *testing.T) {
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messageLabelScope)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), messageLabelScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenScopeIsBlank(t *testing.T) {
@@ -152,15 +210,15 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsBlank(t *testing.T) {
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              " ",
 			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messageLabelScope)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), messageLabelScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenScopeIsNotSupported(t *testing.T) {
@@ -168,15 +226,15 @@ func TestShouldFailToValidateApplicationConfigWhenScopeIsNotSupported(t *testing
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              "invalid",
 			BoundaryScope:      BoundaryScopeInbound,
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messageLabelScope)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), messageLabelScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsMissing(t *testing.T) {
@@ -184,14 +242,14 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsMissing(t *test
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), messageLabelBoundaryScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsBlank(t *testing.T) {
@@ -199,15 +257,15 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsBlank(t *testin
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      " ",
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), messageLabelBoundaryScope)
 }
 
 func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsNotSupported(t *testing.T) {
@@ -215,167 +273,167 @@ func TestShouldFailToValidateApplicationConfigWhenBoundaryScopeIsNotSupported(t 
 		ApplicationConfig{
 			ID:                 idFieldValue,
 			Label:              labelFieldValue,
-			MatchSpecification: NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
+			MatchSpecification: NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue),
 			Scope:              ApplicationConfigScopeIncludeAllDownstream,
 			BoundaryScope:      "invalid",
 		}
 
 	err := config.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), messageLabelBoundaryScope)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), messageLabelBoundaryScope)
 }
 
 func TestShouldSuccessfullyValidateConsistentBinaryExpression(t *testing.T) {
-	for _, operator := range SupportedConjunctionTypes {
+	for _, operator := range SupportedLogicalOperatorTypes {
 		t.Run(fmt.Sprintf("TestShouldSuccessfullyValidateConsistentBinaryExpressionOfType%s", operator), createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator))
 	}
 }
 
-func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator ConjunctionType) func(t *testing.T) {
+func createTestShouldSuccessfullyValidateConsistentBinaryExpression(operator LogicalOperatorType) func(t *testing.T) {
 	return func(t *testing.T) {
-		left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-		right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+		left := NewComparisonExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+		right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 		exp := NewBinaryOperator(left, operator, right)
 
 		err := exp.Validate()
 
-		assert.Nil(t, err)
-		assert.Equal(t, BinaryOperatorExpressionType, exp.GetType())
+		require.NoError(t, err)
+		require.Equal(t, BinaryOperatorExpressionType, exp.GetType())
 	}
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsMissing(t *testing.T) {
-	right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(nil, LogicalAnd, right)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "left")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "left")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenLeftOperatorIsNotValid(t *testing.T) {
-	left := NewComparisionExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-	right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	left := NewComparisonExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, right)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "key")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsNotValid(t *testing.T) {
-	left := NewComparisionExpression("leftKey", MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-	right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	left := NewComparisonExpression("leftKey", MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, "FOO", right)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "conjunction")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "conjunction")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsMissing(t *testing.T) {
-	left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	left := NewComparisonExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, nil)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "right")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "right")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenRightOperatorIsNotValid(t *testing.T) {
-	left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-	right := NewComparisionExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	left := NewComparisonExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisonExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, LogicalAnd, right)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "key")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateBinaryExpressionWhenConjunctionIsMissing(t *testing.T) {
-	left := NewComparisionExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
-	right := NewComparisionExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
+	left := NewComparisonExpression(keyLeftFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueLeftFieldValue)
+	right := NewComparisonExpression(keyRightFieldValue, MatcherExpressionEntityDestination, EqualsOperator, valueRightFieldValue)
 
 	exp := NewBinaryOperator(left, "", right)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "conjunction")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "conjunction")
 }
 
 func TestShouldCreateValidComparisionExpression(t *testing.T) {
-	for _, operator := range SupportedComparisionOperators {
+	for _, operator := range SupportedComparisonOperators {
 		t.Run(fmt.Sprintf("TestShouldCreateValidComparisionExpressionOfType%s", operator), createTestShouldCreateValidComparisionExpression(operator))
 	}
 }
 
-func createTestShouldCreateValidComparisionExpression(operator MatcherOperator) func(*testing.T) {
+func createTestShouldCreateValidComparisionExpression(operator TagFilterOperator) func(*testing.T) {
 	return func(t *testing.T) {
-		exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, operator, valueFieldValue)
+		exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, operator, valueFieldValue)
 
 		err := exp.Validate()
 
-		assert.Nil(t, err)
-		assert.Equal(t, LeafExpressionType, exp.GetType())
+		require.NoError(t, err)
+		require.Equal(t, LeafExpressionType, exp.GetType())
 	}
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenKeyIsMissing(t *testing.T) {
-	exp := NewComparisionExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue)
+	exp := NewComparisonExpression("", MatcherExpressionEntityDestination, EqualsOperator, valueFieldValue)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "key")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenEntityIsNotValid(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntity("invalid"), EqualsOperator, valueFieldValue)
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntity("invalid"), EqualsOperator, valueFieldValue)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "entity")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "entity")
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsMissing(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, "", valueFieldValue)
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, "", valueFieldValue)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), operatorFieldName)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), operatorFieldName)
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenOperatorIsNotValid(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, "FOO", valueFieldValue)
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, "FOO", valueFieldValue)
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), operatorFieldName)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), operatorFieldName)
 }
 
 func TestShouldFailToValidateComparisionExpressionWhenValueIsMissing(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, "")
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, EqualsOperator, "")
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "value")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "value")
 }
 
 func TestShouldCreateValidUnaryOperatorExpression(t *testing.T) {
@@ -384,14 +442,14 @@ func TestShouldCreateValidUnaryOperatorExpression(t *testing.T) {
 	}
 }
 
-func createTestShouldCreateValidUnaryOperatorExpression(operator MatcherOperator) func(*testing.T) {
+func createTestShouldCreateValidUnaryOperatorExpression(operator TagFilterOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		exp := NewUnaryOperationExpression(keyFieldValue, MatcherExpressionEntityDestination, operator)
 
 		err := exp.Validate()
 
-		assert.Nil(t, err)
-		assert.Equal(t, LeafExpressionType, exp.GetType())
+		require.NoError(t, err)
+		require.Equal(t, LeafExpressionType, exp.GetType())
 	}
 }
 
@@ -400,8 +458,8 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenKeyIsMissing(t *testing.
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "key")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "key")
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenEntityIsNotValid(t *testing.T) {
@@ -409,8 +467,8 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenEntityIsNotValid(t *test
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "entity")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "entity")
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsMissing(t *testing.T) {
@@ -418,8 +476,8 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsMissing(t *tes
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), operatorFieldName)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), operatorFieldName)
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsNotValid(t *testing.T) {
@@ -427,17 +485,17 @@ func TestShouldFailToValidateUnaryOperatorExpressionWhenOperatorIsNotValid(t *te
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), operatorFieldName)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), operatorFieldName)
 }
 
 func TestShouldFailToValidateUnaryOperatorExpressionWhenValueIsSet(t *testing.T) {
-	exp := NewComparisionExpression(keyFieldValue, MatcherExpressionEntityDestination, IsEmptyOperator, "")
+	exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, IsEmptyOperator, "")
 
 	err := exp.Validate()
 
-	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "value")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "value")
 }
 
 func TestShouldReturnTrueForAllSupportedApplicationConfigScopes(t *testing.T) {
@@ -448,16 +506,16 @@ func TestShouldReturnTrueForAllSupportedApplicationConfigScopes(t *testing.T) {
 
 func createTestCaseToVerifySupportedApplicationConfigScope(scope ApplicationConfigScope) func(t *testing.T) {
 	return func(t *testing.T) {
-		assert.True(t, SupportedApplicationConfigScopes.IsSupported(scope))
+		require.True(t, SupportedApplicationConfigScopes.IsSupported(scope))
 	}
 }
 
 func TestShouldReturnfalseWhenApplicationConfigScopeIsNotSupported(t *testing.T) {
-	assert.False(t, SupportedApplicationConfigScopes.IsSupported(ApplicationConfigScope(valueInvalid)))
+	require.False(t, SupportedApplicationConfigScopes.IsSupported(ApplicationConfigScope(valueInvalid)))
 }
 
 func TestShouldReturnStringRepresentationOfSupporedApplicationConfigScopes(t *testing.T) {
-	assert.Equal(t, []string{"INCLUDE_NO_DOWNSTREAM", "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING", "INCLUDE_ALL_DOWNSTREAM"}, SupportedApplicationConfigScopes.ToStringSlice())
+	require.Equal(t, []string{"INCLUDE_NO_DOWNSTREAM", "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING", "INCLUDE_ALL_DOWNSTREAM"}, SupportedApplicationConfigScopes.ToStringSlice())
 }
 
 func TestShouldReturnTrueForAllSupportedApplicationConfigBoundaryScopes(t *testing.T) {
@@ -468,16 +526,16 @@ func TestShouldReturnTrueForAllSupportedApplicationConfigBoundaryScopes(t *testi
 
 func createTestCaseToVerifySupportedApplicationConfigBoundaryScope(scope BoundaryScope) func(t *testing.T) {
 	return func(t *testing.T) {
-		assert.True(t, SupportedBoundaryScopes.IsSupported(scope))
+		require.True(t, SupportedBoundaryScopes.IsSupported(scope))
 	}
 }
 
 func TestShouldReturnfalseWhenApplicationConfigBoundaryScopeIsNotSupported(t *testing.T) {
-	assert.False(t, SupportedBoundaryScopes.IsSupported(BoundaryScope(valueInvalid)))
+	require.False(t, SupportedBoundaryScopes.IsSupported(BoundaryScope(valueInvalid)))
 }
 
 func TestShouldReturnStringRepresentationOfSupporedApplicationConfigBoundaryScopes(t *testing.T) {
-	assert.Equal(t, []string{"ALL", "INBOUND", "DEFAULT"}, SupportedBoundaryScopes.ToStringSlice())
+	require.Equal(t, []string{"ALL", "INBOUND", "DEFAULT"}, SupportedBoundaryScopes.ToStringSlice())
 }
 
 func TestShouldReturnTrueForAllSupportedMatcherExpressionEntities(t *testing.T) {
@@ -488,14 +546,14 @@ func TestShouldReturnTrueForAllSupportedMatcherExpressionEntities(t *testing.T) 
 
 func createTestCaseToVerifySupportedMatcherExpressionEntity(entity MatcherExpressionEntity) func(t *testing.T) {
 	return func(t *testing.T) {
-		assert.True(t, SupportedMatcherExpressionEntities.IsSupported(entity))
+		require.True(t, SupportedMatcherExpressionEntities.IsSupported(entity))
 	}
 }
 
 func TestShouldReturnfalseWhenMatcherExpressionEntityIsNotSupported(t *testing.T) {
-	assert.False(t, SupportedMatcherExpressionEntities.IsSupported(MatcherExpressionEntity(valueInvalid)))
+	require.False(t, SupportedMatcherExpressionEntities.IsSupported(MatcherExpressionEntity(valueInvalid)))
 }
 
 func TestShouldReturnStringRepresentationOfSupporedMatcherExpressionEntities(t *testing.T) {
-	assert.Equal(t, []string{"SOURCE", "DESTINATION", "NOT_APPLICABLE"}, SupportedMatcherExpressionEntities.ToStringSlice())
+	require.Equal(t, []string{"SOURCE", "DESTINATION", "NOT_APPLICABLE"}, SupportedMatcherExpressionEntities.ToStringSlice())
 }

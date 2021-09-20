@@ -11,34 +11,29 @@ import (
 )
 
 const (
-	invalidOperator     = "invalid operator"
-	invalidEntityOrigin = "Invalid entity origin"
-	unaryOperator       = "unary operator"
-	comparision         = "comparision"
-
-	messageExpectedToGetInvalidLogicalAndError  = "Expected to get invalid logical AND error"
-	messageExpectedToGetInvalidLogicalOrError   = "Expected to get invalid logical OR error"
-	messageExpectedToGetInvalidConjunctionError = "Expected to get invalid conjunction error"
+	invalidOperator = "invalid operator"
+	unaryOperator   = "unary operator"
+	comparison      = "comparison"
 )
 
 func TestShouldMapValidOperatorsOfTagExpression(t *testing.T) {
-	for _, v := range restapi.SupportedComparisionOperators {
+	for _, v := range restapi.SupportedComparisonOperators {
 		t.Run(fmt.Sprintf("test mapping of %s", v), testMappingOfOperatorsOfTagExpression(v))
 	}
 }
 
-func testMappingOfOperatorsOfTagExpression(operator restapi.MatcherOperator) func(t *testing.T) {
+func testMappingOfOperatorsOfTagExpression(operator restapi.TagFilterOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		key := "key"
 		value := "value"
-		input := restapi.NewComparisionExpression(key, restapi.MatcherExpressionEntityDestination, operator, value)
+		input := restapi.NewComparisonExpression(key, restapi.MatcherExpressionEntityDestination, operator, value)
 
 		expectedResult := &FilterExpression{
 			Expression: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
-						Comparision: &ComparisionExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+						Comparison: &ComparisonExpression{
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: Operator(operator),
 							Value:    value,
 						},
@@ -51,17 +46,17 @@ func testMappingOfOperatorsOfTagExpression(operator restapi.MatcherOperator) fun
 	}
 }
 
-func TestShouldFailToMapComparisionWhenOperatorOfTagExpressionIsNotValid(t *testing.T) {
+func TestShouldFailToMapComparisonWhenOperatorOfTagExpressionIsNotValid(t *testing.T) {
 	key := "key"
 	value := "value"
-	input := restapi.NewComparisionExpression(key, restapi.MatcherExpressionEntityDestination, "FOO", value)
+	input := restapi.NewComparisonExpression(key, restapi.MatcherExpressionEntityDestination, "FOO", value)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), invalidOperator)
-	require.Contains(t, err.Error(), comparision)
+	require.Contains(t, err.Error(), comparison)
 }
 
 func TestShouldMapValidUnaryOperationsOfTagExpression(t *testing.T) {
@@ -70,7 +65,7 @@ func TestShouldMapValidUnaryOperationsOfTagExpression(t *testing.T) {
 	}
 }
 
-func testMappingOfUnaryOperationOfTagExpression(operator restapi.MatcherOperator) func(t *testing.T) {
+func testMappingOfUnaryOperationOfTagExpression(operator restapi.TagFilterOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		key := "key"
 		input := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, operator)
@@ -80,7 +75,7 @@ func testMappingOfUnaryOperationOfTagExpression(operator restapi.MatcherOperator
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: Operator(operator),
 						},
 					},
@@ -96,7 +91,7 @@ func TestShouldFailToMapUnaryOperationWhenOperatorOfTagExpressionIsNotValid(t *t
 	key := "key"
 	input := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, "FOO")
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -106,12 +101,12 @@ func TestShouldFailToMapUnaryOperationWhenOperatorOfTagExpressionIsNotValid(t *t
 
 func TestShouldFailMapToMapExpressionWhenTypeIsMissing(t *testing.T) {
 	key := "key"
-	input := restapi.TagMatcherExpression{
+	input := &restapi.TagMatcherExpression{
 		Key:      key,
 		Operator: "FOO",
 	}
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -130,7 +125,7 @@ func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+						Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 						Operator: operator,
 					},
 				},
@@ -138,7 +133,7 @@ func TestShouldMapLogicalAndWhenLeftAndRightIsAPrimaryExpression(t *testing.T) {
 				Right: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -163,7 +158,7 @@ func TestShouldMapLogicalAndWhenLeftIsAPrimaryExpressionAndRightIsAnotherAndExpr
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+						Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 						Operator: operator,
 					},
 				},
@@ -171,7 +166,7 @@ func TestShouldMapLogicalAndWhenLeftIsAPrimaryExpressionAndRightIsAnotherAndExpr
 				Right: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -179,7 +174,7 @@ func TestShouldMapLogicalAndWhenLeftIsAPrimaryExpressionAndRightIsAnotherAndExpr
 					Right: &LogicalAndExpression{
 						Left: &PrimaryExpression{
 							UnaryOperation: &UnaryOperationExpression{
-								Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+								Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 								Operator: operator,
 							},
 						},
@@ -198,7 +193,7 @@ func TestShouldFailToMapLogicalAndWhenLeftIsOrExpression(t *testing.T) {
 	nestedOr := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalOr, primaryExpression)
 	input := restapi.NewBinaryOperator(nestedOr, restapi.LogicalAnd, primaryExpression)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -211,7 +206,7 @@ func TestShouldFailToMapLogicalAndWhenRightIsOrExpression(t *testing.T) {
 	nestedOr := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalOr, primaryExpression)
 	input := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalAnd, nestedOr)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -224,7 +219,7 @@ func TestShouldFailToMapLogicalAndWhenLeftIsAndExpression(t *testing.T) {
 	nestedAnd := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalAnd, primaryExpression)
 	input := restapi.NewBinaryOperator(nestedAnd, restapi.LogicalAnd, primaryExpression)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -243,7 +238,7 @@ func TestShouldMapLogiclOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T) 
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+						Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 						Operator: operator,
 					},
 				},
@@ -253,7 +248,7 @@ func TestShouldMapLogiclOrWhenLeftAndRightSideIsPrimaryExpression(t *testing.T) 
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -279,7 +274,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpressi
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+						Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 						Operator: operator,
 					},
 				},
@@ -287,7 +282,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpressi
 				Right: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -298,7 +293,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsALogicalAndAndRightSideIsPrimaryExpressi
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -323,7 +318,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+						Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 						Operator: operator,
 					},
 				},
@@ -333,7 +328,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -343,7 +338,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 					Left: &LogicalAndExpression{
 						Left: &PrimaryExpression{
 							UnaryOperation: &UnaryOperationExpression{
-								Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+								Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 								Operator: operator,
 							},
 						},
@@ -370,7 +365,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+						Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 						Operator: operator,
 					},
 				},
@@ -380,7 +375,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 				Left: &LogicalAndExpression{
 					Left: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+							Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 							Operator: operator,
 						},
 					},
@@ -388,7 +383,7 @@ func TestShouldMapLogiclOrWhenLeftSideIsAPrimaryExpressionAndRightSideIsALogical
 					Right: &LogicalAndExpression{
 						Left: &PrimaryExpression{
 							UnaryOperation: &UnaryOperationExpression{
-								Entity:   &EntitySpec{Key: key, Origin: EntityOriginDestination},
+								Entity:   &EntitySpec{Identifier: key, Origin: EntityOriginDestination},
 								Operator: operator,
 							},
 						},
@@ -407,7 +402,7 @@ func TestShouldFailToMapLogicalOrWhenLeftIsOrExpression(t *testing.T) {
 	nestedOr := restapi.NewBinaryOperator(primaryExpression, restapi.LogicalOr, primaryExpression)
 	input := restapi.NewBinaryOperator(nestedOr, restapi.LogicalOr, primaryExpression)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -419,7 +414,7 @@ func TestShouldFailToMapBinaryExpressionWhenConjunctionTypeIsNotValid(t *testing
 	primaryExpression := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, restapi.IsEmptyOperator)
 	input := restapi.NewBinaryOperator(primaryExpression, "FOO", primaryExpression)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -432,7 +427,7 @@ func TestShouldReturnMappingErrorIfLeftSideOfConjunctionIsNotValid(t *testing.T)
 	primaryExpressionRight := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, restapi.IsEmptyOperator)
 	input := restapi.NewBinaryOperator(primaryExpressionLeft, restapi.LogicalOr, primaryExpressionRight)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -446,7 +441,7 @@ func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T
 	primaryExpressionRight := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, "INVALID")
 	input := restapi.NewBinaryOperator(primaryExpressionLeft, restapi.LogicalOr, primaryExpressionRight)
 
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	_, err := mapper.FromAPIModel(input)
 
 	require.NotNil(t, err)
@@ -455,7 +450,7 @@ func TestShouldReturnMappingErrorIfRightSideOfConjunctionIsNotValid(t *testing.T
 }
 
 func runTestCaseForMappingFromAPI(input restapi.MatchExpression, expectedResult *FilterExpression, t *testing.T) {
-	mapper := NewMapper()
+	mapper := NewMatchExpressionMapper()
 	result, err := mapper.FromAPIModel(input)
 
 	require.Nil(t, err)

@@ -1,4 +1,4 @@
-package filterexpression
+package tagfilter
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//ExpressionRenderer interface definition for all types of the Filter expression to render the corresponding value
+//ExpressionRenderer interface definition to render an expression in its normalized form
 type ExpressionRenderer interface {
 	Render() string
 }
@@ -19,17 +19,17 @@ type ExpressionRenderer interface {
 type EntityOrigin interface {
 	//Key returns the key of the entity origin
 	Key() string
-	//MatcherExpressionEntity returns the Instana API Matcher Expression Entity
-	MatcherExpressionEntity() restapi.MatcherExpressionEntity
+	//TagFilterEntity returns the Instana API Ta Filter Entity
+	TagFilterEntity() restapi.TagFilterEntity
 }
 
-func newEntityOrigin(key string, matcherExpressionEntity restapi.MatcherExpressionEntity) EntityOrigin {
-	return &baseEntityOrigin{key: key, matcherExpressionEntity: matcherExpressionEntity}
+func newEntityOrigin(key string, tagFilterEntity restapi.TagFilterEntity) EntityOrigin {
+	return &baseEntityOrigin{key: key, tagFilterEntity: tagFilterEntity}
 }
 
 type baseEntityOrigin struct {
-	key                     string
-	matcherExpressionEntity restapi.MatcherExpressionEntity
+	key             string
+	tagFilterEntity restapi.TagFilterEntity
 }
 
 //Key interface implementation of EntityOrigin
@@ -37,31 +37,31 @@ func (o *baseEntityOrigin) Key() string {
 	return o.key
 }
 
-//MatcherExpressionEntity interface implementation of EntityOrigin
-func (o *baseEntityOrigin) MatcherExpressionEntity() restapi.MatcherExpressionEntity {
-	return o.matcherExpressionEntity
+//TagFilterEntity interface implementation of EntityOrigin
+func (o *baseEntityOrigin) TagFilterEntity() restapi.TagFilterEntity {
+	return o.tagFilterEntity
 }
 
 var (
-	//EntityOriginSource constant value for the source EntityOrigin
-	EntityOriginSource = newEntityOrigin("src", restapi.MatcherExpressionEntitySource)
-	//EntityOriginDestination constant value for the destination EntityOrigin
-	EntityOriginDestination = newEntityOrigin("dest", restapi.MatcherExpressionEntityDestination)
-	//EntityOriginNotApplicable constant value for the not applicable EntityOrigin
-	EntityOriginNotApplicable = newEntityOrigin("na", restapi.MatcherExpressionEntityNotApplicable)
+	//EntityOriginSource constant value for the EntityOrigin source
+	EntityOriginSource = newEntityOrigin("src", restapi.TagFilterEntitySource)
+	//EntityOriginDestination constant value for the EntityOrigin destination
+	EntityOriginDestination = newEntityOrigin("dest", restapi.TagFilterEntityDestination)
+	//EntityOriginNotApplicable constant value when no EntityOrigin is applicable
+	EntityOriginNotApplicable = newEntityOrigin("na", restapi.TagFilterEntityNotApplicable)
 )
 
 //EntityOrigins custom type for a slice of entity origins
 type EntityOrigins []EntityOrigin
 
-//ForInstanaAPIEntity returns the EntityOrigin for its cooresponding MatchExpressionEntity from the Instana API
-func (origins EntityOrigins) ForInstanaAPIEntity(input restapi.MatcherExpressionEntity) EntityOrigin {
+//ForInstanaAPIEntity returns the EntityOrigin for its corresponding TagFilterEntity from the Instana API
+func (origins EntityOrigins) ForInstanaAPIEntity(input restapi.TagFilterEntity) EntityOrigin {
 	for _, o := range origins {
-		if o.MatcherExpressionEntity() == input {
+		if o.TagFilterEntity() == input {
 			return o
 		}
 	}
-	log.Printf("match specification entity %s is not supported; fall back to default origin %s", input, EntityOriginDestination.Key())
+	log.Printf("tag filter entity %s is not supported; fall back to default origin %s", input, EntityOriginDestination.Key())
 	return EntityOriginDestination
 }
 
@@ -72,14 +72,14 @@ func (origins EntityOrigins) ForKey(input string) EntityOrigin {
 			return o
 		}
 	}
-	log.Printf("entity origin %s is not supported; fall back to default origin %s", input, EntityOriginDestination.Key())
+	log.Printf("entity origin with key %s is not supported; fall back to default origin %s", input, EntityOriginDestination.Key())
 	return EntityOriginDestination
 }
 
 //SupportedEntityOrigins slice of supported EntityOrigins
 var SupportedEntityOrigins = EntityOrigins{EntityOriginSource, EntityOriginDestination, EntityOriginNotApplicable}
 
-//EntitySpec custom type for any kind of entity path specification
+//EntitySpec custom type for an entity path specification
 type EntitySpec struct {
 	Identifier    string
 	Origin        EntityOrigin
@@ -102,21 +102,21 @@ func (o *EntitySpec) Capture(values []string) error {
 	return nil
 }
 
-//Render implementation of the ExpressionRenderer interface of EntitySpec
+//Render implementation of the ExpressionRenderer interface
 func (o *EntitySpec) Render() string {
-	return o.Identifier + "@" + string(o.Origin.Key())
+	return o.Identifier + "@" + o.Origin.Key()
 }
 
-//Operator custom type for any kind of operator
+//Operator custom type for an operator
 type Operator string
 
-//Capture captures the string representation of an operator from the given string. Interface of participle
+//Capture captures the string representation of an operator from the given string and converts it to upper case. Interface of participle
 func (o *Operator) Capture(values []string) error {
 	*o = Operator(strings.ToUpper(values[0]))
 	return nil
 }
 
-//FilterExpression representation of a dynamic focus filter expression
+//FilterExpression representation of a tag filter expression
 type FilterExpression struct {
 	Expression *LogicalOrExpression `parser:"@@"`
 }
@@ -126,7 +126,7 @@ func (e *FilterExpression) Render() string {
 	return e.Expression.Render()
 }
 
-//LogicalOrExpression representation of a logical OR or as a wrapper for a, LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
+//LogicalOrExpression representation of a logical OR, or as a wrapper for a LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalOrExpression struct {
 	Left     *LogicalAndExpression `parser:"  @@"`
 	Operator *Operator             `parser:"( @\"OR\""`
@@ -141,7 +141,7 @@ func (e *LogicalOrExpression) Render() string {
 	return e.Left.Render()
 }
 
-//LogicalAndExpression representation of a logical AND or as a wrapper for a PrimaryExpression only. The wrapping is required to handle precedence.
+//LogicalAndExpression representation of a logical AND, or as a wrapper for a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalAndExpression struct {
 	Left     *PrimaryExpression    `parser:"  @@"`
 	Operator *Operator             `parser:"( @\"AND\""`
@@ -172,17 +172,38 @@ func (e *PrimaryExpression) Render() string {
 
 //ComparisonExpression representation of a comparison expression.
 type ComparisonExpression struct {
-	Entity   *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
-	Operator Operator    `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
-	Value    string      `parser:"@String"`
+	Entity       *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
+	Operator     Operator    `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
+	TagValue     *TagValue   `parser:"( @@"`
+	NumberValue  *int64      `parser:"| @Number"`
+	BooleanValue *bool       `parser:"| @( \"FALSE\" | \"TRUE\" )"`
+	StringValue  *string     `parser:"| @String )"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *ComparisonExpression) Render() string {
-	return fmt.Sprintf("%s %s '%s'", e.Entity.Render(), e.Operator, e.Value)
+	if e.TagValue != nil {
+		return fmt.Sprintf("%s %s %s", e.Entity.Render(), e.Operator, e.TagValue.Render())
+	} else if e.NumberValue != nil {
+		return fmt.Sprintf("%s %s %d", e.Entity.Render(), e.Operator, *e.NumberValue)
+	} else if e.BooleanValue != nil {
+		return fmt.Sprintf("%s %s %t", e.Entity.Render(), e.Operator, *e.BooleanValue)
+	}
+	return fmt.Sprintf("%s %s '%s'", e.Entity.Render(), e.Operator, *e.StringValue)
 }
 
-//UnaryOperationExpression representation of a unary expression representing a unary operator
+//TagValue representation of a tag value
+type TagValue struct {
+	Key   string `parser:"@Ident \"=\""`
+	Value string `parser:"@Ident"`
+}
+
+//Render implementation of ExpressionRenderer.Render
+func (v *TagValue) Render() string {
+	return fmt.Sprintf("%s=%s", v.Key, v.Value)
+}
+
+//UnaryOperationExpression representation of a unary expression
 type UnaryOperationExpression struct {
 	Entity   *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
 	Operator Operator    `parser:"@( \"IS_EMPTY\" | \"IS_BLANK\"  | \"NOT_EMPTY\" | \"NOT_BLANK\" )"`
@@ -198,8 +219,9 @@ var (
 		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|STARTS_WITH|ENDS_WITH|NOT_STARTS_WITH|NOT_ENDS_WITH|GREATER_OR_EQUAL_THAN|LESS_OR_EQUAL_THAN|LESS_THAN|GREATER_THAN)` +
 		`|(?P<EntityOrigin>(?i)src|dest|na)` +
 		`|(?P<EntityOriginOperator>(?i)@)` +
+		`|(?P<TagSeparator>(?i)=)` +
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_\-/]*)` +
-		`|(?P<Number>[-+]?\d+(\.\d+)?)` +
+		`|(?P<Number>[-+]?\d+)` +
 		`|(?P<String>'[^']*'|"[^"]*")`,
 	))
 	filterParser = participle.MustBuild(
@@ -226,7 +248,7 @@ func NewParser() Parser {
 	return new(parserImpl)
 }
 
-//Parser interface for working with Dynamic Focus filters of instana
+//Parser interface for working with tag filter expressions of instana
 type Parser interface {
 	Parse(expression string) (*FilterExpression, error)
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -28,6 +29,8 @@ const (
 	ApplicationConfigFieldMatchSpecification = "match_specification"
 	//ApplicationConfigFieldNormalizedMatchSpecification const for the normalized_match_specification field of the application config
 	ApplicationConfigFieldNormalizedMatchSpecification = "normalized_match_specification"
+	//ApplicationConfigFieldTagFilter const for the tag_filter field of the application config
+	ApplicationConfigFieldTagFilter = "tag_filter"
 )
 
 var (
@@ -63,9 +66,11 @@ var (
 	}
 	//ApplicationConfigMatchSpecification schema for the application config field match_specification
 	ApplicationConfigMatchSpecification = &schema.Schema{
-		Type:        schema.TypeString,
-		Required:    true,
-		Description: "The match specification of the application config",
+		Type:         schema.TypeString,
+		Optional:     true,
+		ExactlyOneOf: []string{ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter},
+		Description:  "The match specification of the application config",
+		Deprecated:   fmt.Sprintf("%s is deprecated. Please migrate to %s", ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter),
 		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 			normalized, err := filterexpression.Normalize(new)
 			if err == nil {
@@ -92,9 +97,38 @@ var (
 	//ApplicationConfigNormalizedMatchSpecification schema for the application config field normalized_match_specification
 	ApplicationConfigNormalizedMatchSpecification = &schema.Schema{
 		Type:        schema.TypeString,
-		Required:    false,
+		Optional:    true,
 		Computed:    true,
-		Description: "The match specification of the application config",
+		Description: "The normalized match specification of the application config",
+	}
+	//ApplicationConfigTagFilter schema for the application config field tag_filter
+	ApplicationConfigTagFilter = &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		ExactlyOneOf: []string{ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter},
+		Description:  "The tag filter of the application config",
+		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+			normalized, err := tagfilter.Normalize(new)
+			if err == nil {
+				return normalized == old
+			}
+			return old == new
+		},
+		StateFunc: func(val interface{}) string {
+			normalized, err := tagfilter.Normalize(val.(string))
+			if err == nil {
+				return normalized
+			}
+			return val.(string)
+		},
+		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+			v := val.(string)
+			if _, err := tagfilter.NewParser().Parse(v); err != nil {
+				errs = append(errs, fmt.Errorf("%q is not a valid tag filter; %s", key, err))
+			}
+
+			return
+		},
 	}
 )
 
@@ -109,6 +143,7 @@ func NewApplicationConfigResourceHandle() ResourceHandle {
 				ApplicationConfigFieldScope:              ApplicationConfigScope,
 				ApplicationConfigFieldBoundaryScope:      ApplicationConfigBoundaryScope,
 				ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
+				ApplicationConfigFieldTagFilter:          ApplicationConfigTagFilter,
 			},
 			SchemaVersion: 3,
 		},
@@ -153,43 +188,76 @@ func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {
 
 func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	applicationConfig := obj.(*restapi.ApplicationConfig)
-	normalizedExpressionString, err := r.mapAPIModelToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
-	if err != nil {
-		return err
+	if applicationConfig.MatchSpecification != nil {
+		normalizedExpressionString, err := r.mapMatchSpecificationToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
+		if err != nil {
+			return err
+		}
+		d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
+	} else if applicationConfig.TagFilterExpression != nil {
+		normalizedTagFilterString, err := r.mapTagFilterToNormalizedStringRepresentation(applicationConfig.TagFilterExpression.(restapi.TagFilterExpressionElement))
+		if err != nil {
+			return err
+		}
+		d.Set(ApplicationConfigFieldTagFilter, normalizedTagFilterString)
 	}
 
 	d.Set(ApplicationConfigFieldLabel, formatter.UndoFormat(applicationConfig.Label))
 	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
 	d.Set(ApplicationConfigFieldScope, string(applicationConfig.Scope))
 	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))
-	d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 
 	d.SetId(applicationConfig.ID)
 	return nil
 }
 
-func (r *applicationConfigResource) mapAPIModelToNormalizedStringRepresentation(input restapi.MatchExpression) (string, error) {
-	mapper := filterexpression.NewMapper()
+func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepresentation(input restapi.MatchExpression) (*string, error) {
+	mapper := filterexpression.NewMatchExpressionMapper()
 	expr, err := mapper.FromAPIModel(input)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return expr.Render(), nil
+	renderedExpression := expr.Render()
+	return &renderedExpression, nil
+}
+
+func (r *applicationConfigResource) mapTagFilterToNormalizedStringRepresentation(input restapi.TagFilterExpressionElement) (*string, error) {
+	mapper := tagfilter.NewMapper()
+	expr, err := mapper.FromAPIModel(input)
+	if err != nil {
+		return nil, err
+	}
+	renderedExpression := expr.Render()
+	return &renderedExpression, nil
 }
 
 func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	matchSpecification, err := r.mapExpressionStringToAPIModel(d.Get(ApplicationConfigFieldMatchSpecification).(string))
-	if err != nil {
-		return &restapi.ApplicationConfig{}, err
+	var matchSpecification restapi.MatchExpression
+	var tagFilter restapi.TagFilterExpressionElement
+	var err error
+
+	if matchSpecificationString, ok := d.GetOk(ApplicationConfigFieldMatchSpecification); ok {
+		matchSpecification, err = r.mapExpressionStringToAPIModel(matchSpecificationString.(string))
+		if err != nil {
+			return &restapi.ApplicationConfig{}, err
+		}
+	}
+
+	if tagFilterString, ok := d.GetOk(ApplicationConfigFieldTagFilter); ok {
+		tagFilter, err = r.mapTagFilterStringToAPIModel(tagFilterString.(string))
+		if err != nil {
+			return &restapi.ApplicationConfig{}, err
+		}
 	}
 
 	label := r.computeFullApplicationConfigLabelString(d, formatter)
 	return &restapi.ApplicationConfig{
-		ID:                 d.Id(),
-		Label:              label,
-		Scope:              restapi.ApplicationConfigScope(d.Get(ApplicationConfigFieldScope).(string)),
-		BoundaryScope:      restapi.BoundaryScope(d.Get(ApplicationConfigFieldBoundaryScope).(string)),
-		MatchSpecification: matchSpecification,
+		ID:                  d.Id(),
+		Label:               label,
+		Scope:               restapi.ApplicationConfigScope(d.Get(ApplicationConfigFieldScope).(string)),
+		BoundaryScope:       restapi.BoundaryScope(d.Get(ApplicationConfigFieldBoundaryScope).(string)),
+		MatchSpecification:  matchSpecification,
+		TagFilterExpression: tagFilter,
 	}, nil
 }
 
@@ -200,7 +268,18 @@ func (r *applicationConfigResource) mapExpressionStringToAPIModel(input string) 
 		return nil, err
 	}
 
-	mapper := filterexpression.NewMapper()
+	mapper := filterexpression.NewMatchExpressionMapper()
+	return mapper.ToAPIModel(expr), nil
+}
+
+func (r *applicationConfigResource) mapTagFilterStringToAPIModel(input string) (restapi.TagFilterExpressionElement, error) {
+	parser := tagfilter.NewParser()
+	expr, err := parser.Parse(input)
+	if err != nil {
+		return nil, err
+	}
+
+	mapper := tagfilter.NewMapper()
 	return mapper.ToAPIModel(expr), nil
 }
 

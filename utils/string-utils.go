@@ -23,3 +23,8 @@ func RandomString(length int) string {
 	}
 	return string(b)
 }
+
+//StringPtr converts a string to a string pointer
+func StringPtr(input string) *string {
+	return &input
+}
