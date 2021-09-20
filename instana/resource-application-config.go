@@ -71,6 +71,7 @@ var (
 		Optional:     true,
 		ExactlyOneOf: []string{ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter},
 		Description:  "The match specification of the application config",
+		Deprecated:   fmt.Sprintf("%s is deprecated. Please migrate to %s", ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter),
 		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 			normalized, err := filterexpression.Normalize(new)
 			if err == nil {
