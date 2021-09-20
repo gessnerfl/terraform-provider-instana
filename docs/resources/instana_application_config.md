@@ -24,20 +24,66 @@ resource "instana_application_config" "example" {
 * `label` - Required - The name/label of the application perspective
 * `scope` - Optional - The scope of the application perspective. Default value: `INCLUDE_NO_DOWNSTREAM`. Allowed valued: `INCLUDE_ALL_DOWNSTREAM`, `INCLUDE_NO_DOWNSTREAM`, `INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING`
 * `boundary_scope` - Optional - The boundary scope of the application perspective. Default value `DEFAULT`. Allowed values: `INBOUND`, `ALL`, `DEFAULT`
-* `match_specification` - Required - specifies which entities should be included in the application
+* `match_specification` - **Deprecated:** use `tag_filer` - Optional - specifies which entities should be included in the application; one of match_specification and tag_filter must be provided
+* `tag_filter` - Optional - specifies which entities should be included in the application; one of match_specification and tag_filter must be provided
+
+### Tag Filter
+The **tag_filter** defines which entities should be included into the application. It supports:
+
+* logical AND and/or logical OR conjunctions whereas AND has higher precedence then OR
+* comparison operators EQUALS, NOT_EQUAL, CONTAINS | NOT_CONTAIN, STARTS_WITH, ENDS_WITH, NOT_STARTS_WITH, NOT_ENDS_WITH, GREATER_OR_EQUAL_THAN, LESS_OR_EQUAL_THAN, LESS_THAN, GREATER_THAN
+* unary operators IS_EMPTY, NOT_EMPTY, IS_BLANK, NOT_BLANK.
+
+The **match_specification** is defined by the following eBNF:
+
+```plain
+tag_filter                := logical_or
+logical_or                := logical_and OR logical_or | logical_and
+logical_and               := primary_expression AND logical_and | primary_expression
+primary_expression        := comparison | unary_operator_expression
+comparison                := identifier comparison_operator value | identifier@entity_origin comparison_operator value
+comparison_operator       := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN | STARTS_WITH | ENDS_WITH | NOT_STARTS_WITH | NOT_ENDS_WITH | GREATER_OR_EQUAL_THAN | LESS_OR_EQUAL_THAN | LESS_THAN | GREATER_THAN
+unary_operator_expression := identifier unary_operator | identifier@entity_origin unary_operator
+unary_operator            := IS_EMPTY | NOT_EMPTY | IS_BLANK | NOT_BLANK
+entity_origin             := src | dest | na
+value                     := string_value | number_value | boolean_value | tag
+string_value              := "'" <string> "'"
+number_value              := (+-)?[0-9]+
+boolean_value             := TRUE | FALSE
+tag                       := identifier=identifier
+identifier                := [a-zA-Z_][\.a-zA-Z0-9_\-/]*
+
+```
+
+#### Examples:
+
+**Basic**
+
+```plain
+entity.service.name EQUALS 'my-service' AND entity.tag EQUALS stage=PROD AND call.http.status EQUALS 404
+```
+
+**Calls filtered on source**
+
+```plain
+entity.service.name@src EQUALS 'my-service' AND entity.tag@src EQUALS stage=PROD
+```
 
 ### Match Specification
+
+**DEPRECATED:** Use `tag_filter` expressions as alternative.
+
 The **match_specification** defines which entities should be included into the application. It supports:
 
 * logical AND and/or logical OR conjunctions whereas AND has higher precedence then OR
-* comparisons EQUALS, NOT_EQUAL, CONTAINS, NOT_CONTAIN
+* comparison operators EQUALS, NOT_EQUAL, CONTAINS | NOT_CONTAIN, STARTS_WITH, ENDS_WITH, NOT_STARTS_WITH, NOT_ENDS_WITH, GREATER_OR_EQUAL_THAN, LESS_OR_EQUAL_THAN, LESS_THAN, GREATER_THAN
 * unary operators IS_EMPTY, NOT_EMPTY, IS_BLANK, NOT_BLANK.
 
 The **match_specification** is defined by the following eBNF:
 
 ```plain
 match_specification       := logical_or
-binary_operation          := logical_and OR logical_or | logical_and
+logical_or                := logical_and OR logical_or | logical_and
 logical_and               := primary_expression AND logical_and | primary_expression
 primary_expression        := comparison | unary_operator_expression
 comparison                := key comparison_operator value | key@entity_origin comparison_operator value
