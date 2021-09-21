@@ -1,5 +1,17 @@
 # Changelog
 
+## [v1.1.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.1) (2021-09-21)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.0...v1.1.1)
+
+**Closed issues:**
+
+- Documentation for RBAC groups is missing [\#108](https://github.com/gessnerfl/terraform-provider-instana/issues/108)
+
+**Merged pull requests:**
+
+- Update changelog after release 1.1.0 [\#109](https://github.com/gessnerfl/terraform-provider-instana/pull/109) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v1.1.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.0) (2021-09-20)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.0.0...v1.1.0)
@@ -41,6 +53,7 @@
 - Feature/95 import support [\#98](https://github.com/gessnerfl/terraform-provider-instana/pull/98) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/94 api tokens [\#97](https://github.com/gessnerfl/terraform-provider-instana/pull/97) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/87 sdkv2 [\#96](https://github.com/gessnerfl/terraform-provider-instana/pull/96) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/84 support entity origin in app config match spec [\#85](https://github.com/gessnerfl/terraform-provider-instana/pull/85) ([gessnerfl](https://github.com/gessnerfl))
 
 ## [v0.11.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.11.0) (2021-02-09)
 
@@ -83,7 +96,6 @@
 
 **Merged pull requests:**
 
-- Feature/84 support entity origin in app config match spec [\#85](https://github.com/gessnerfl/terraform-provider-instana/pull/85) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/72 website monitoring [\#82](https://github.com/gessnerfl/terraform-provider-instana/pull/82) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/77 sli configuration [\#81](https://github.com/gessnerfl/terraform-provider-instana/pull/81) ([jonassiefker](https://github.com/jonassiefker))
 - Feature/79 rest resource improvement [\#80](https://github.com/gessnerfl/terraform-provider-instana/pull/80) ([gessnerfl](https://github.com/gessnerfl))
