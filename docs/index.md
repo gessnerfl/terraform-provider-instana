@@ -59,7 +59,7 @@ then the permission 'Access role configuration' must be activated
 `<tenant>-<organization>.instana.io`. For onPremise installation the endpoint URL depends on your local setup.
 * `default_name_prefix` - Optional - string will be added in front the resource UI name or label by default
 (not supported by all resources). For existing resources the string will only be added when the name/label is changed.
-* default_name_suffix - `Optional` - Default value " (TF managed)" - string will be appended to the resource UI name or 
+* `default_name_suffix` - `Optional` - Default value " (TF managed)" - string will be appended to the resource UI name or 
 label by default (not supported by all resources). For existing resources the string will only be appended when the 
 name/label is changed.
 
