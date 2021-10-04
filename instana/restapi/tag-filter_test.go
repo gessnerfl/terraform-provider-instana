@@ -281,21 +281,6 @@ func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithAnInvalidOperator(t *t
 	require.Contains(t, err.Error(), errorTagFilterOperatorInvalid)
 }
 
-func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithAStringValueAssigned(t *testing.T) {
-	value := "value"
-	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.StringValue = &value })
-}
-
-func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithANumberValueAssigned(t *testing.T) {
-	value := int64(1234)
-	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.NumberValue = &value })
-}
-
-func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithABooleanValueAssigned(t *testing.T) {
-	value := true
-	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.BooleanValue = &value })
-}
-
 func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithATagValueAssigned(t *testing.T) {
 	value := "value"
 	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.Value = &value })
