@@ -319,5 +319,5 @@ func (f *TagFilter) Validate() error {
 }
 
 func (f *TagFilter) isValueAssigned() bool {
-	return f.Value != nil || f.NumberValue != nil || f.BooleanValue != nil || f.StringValue != nil
+	return f.Value != nil
 }
