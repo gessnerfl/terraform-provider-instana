@@ -2,6 +2,7 @@ package restapi_test
 
 import (
 	"errors"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/golang/mock/gomock"
 	"testing"
 
@@ -263,6 +264,14 @@ func TestShouldReturnNoErrorWhenValidatingUnaryTagFilterWithASupportedOperator(t
 	}
 }
 
+func TestShouldReturnNoErrorWhenValidatingUnaryTagFilterWithASupportedOperatorHavingATagKeyDefined(t *testing.T) {
+	for _, op := range SupportedUnaryExpressionOperators {
+		sut := NewUnaryTagFilter(TagFilterEntityDestination, "agent.tag.stage", op)
+		sut.Key = utils.StringPtr("stage")
+		require.NoError(t, sut.Validate())
+	}
+}
+
 func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithAnInvalidOperator(t *testing.T) {
 	sut := NewUnaryTagFilter(TagFilterEntityDestination, tagFilterEntityName, "INVALID")
 
@@ -285,11 +294,6 @@ func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithANumberValueAssigned(t
 func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithABooleanValueAssigned(t *testing.T) {
 	value := true
 	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.BooleanValue = &value })
-}
-
-func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithATagKeyAssigned(t *testing.T) {
-	key := "key"
-	testUnaryOperatorHasNoValueAssigned(t, func(sut *TagFilter) { sut.Key = &key })
 }
 
 func TestShouldReturnErrorWhenValidatingUnaryTagFilterWithATagValueAssigned(t *testing.T) {
