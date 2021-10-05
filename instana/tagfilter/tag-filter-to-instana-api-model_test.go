@@ -111,6 +111,69 @@ func createTestShouldMapTagComparisonToRepresentationOfInstanaAPI(operator resta
 	}
 }
 
+func TestShouldMapTagComparisonToRepresentationOfInstanaAPIUsingAStringValue(t *testing.T) {
+	key := "key"
+	value := "value"
+	expr := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:      &EntitySpec{Identifier: entitySpecKey, TagKey: &key, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+						Operator:    Operator(restapi.EqualsOperator),
+						StringValue: &value,
+					},
+				},
+			},
+		},
+	}
+
+	expectedResult := restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, restapi.EqualsOperator, key, value)
+	runTestCaseForMappingToAPI(expr, expectedResult, t)
+}
+
+func TestShouldMapTagComparisonToRepresentationOfInstanaAPIUsingANumberValue(t *testing.T) {
+	key := "key"
+	value := int64(1234)
+	expr := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:      &EntitySpec{Identifier: entitySpecKey, TagKey: &key, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+						Operator:    Operator(restapi.EqualsOperator),
+						NumberValue: &value,
+					},
+				},
+			},
+		},
+	}
+
+	expectedResult := restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, restapi.EqualsOperator, key, "1234")
+	runTestCaseForMappingToAPI(expr, expectedResult, t)
+}
+
+func TestShouldMapTagComparisonToRepresentationOfInstanaAPIUsingABooleanValue(t *testing.T) {
+	key := "key"
+	value := true
+	expr := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					Comparison: &ComparisonExpression{
+						Entity:       &EntitySpec{Identifier: entitySpecKey, TagKey: &key, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+						Operator:     Operator(restapi.EqualsOperator),
+						BooleanValue: &value,
+					},
+				},
+			},
+		},
+	}
+
+	expectedResult := restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, entitySpecKey, restapi.EqualsOperator, key, "true")
+	runTestCaseForMappingToAPI(expr, expectedResult, t)
+}
+
 func TestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(t *testing.T) {
 	for _, v := range restapi.SupportedUnaryExpressionOperators {
 		t.Run(fmt.Sprintf("test mapping of %s", v), createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(v))

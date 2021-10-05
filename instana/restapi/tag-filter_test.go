@@ -232,6 +232,23 @@ func TestShouldCreateValidUnaryTagFilter(t *testing.T) {
 	require.NoError(t, sut.Validate())
 }
 
+func TestShouldCreateValidUnaryTagFilterForATag(t *testing.T) {
+	tagKey := "key"
+	sut := NewUnaryTagFilterWithTagKey(TagFilterEntityDestination, tagFilterEntityName, &tagKey, IsEmptyOperator)
+
+	require.Equal(t, TagFilterType, sut.Type)
+	require.Equal(t, TagFilterType, sut.GetType())
+	require.Equal(t, tagFilterEntityName, sut.Name)
+	require.Equal(t, TagFilterEntityDestination, sut.Entity)
+	require.Equal(t, IsEmptyOperator, sut.Operator)
+	require.Nil(t, sut.StringValue)
+	require.Nil(t, sut.NumberValue)
+	require.Nil(t, sut.BooleanValue)
+	require.Equal(t, &tagKey, sut.Key)
+	require.Nil(t, sut.Value)
+	require.NoError(t, sut.Validate())
+}
+
 func TestShouldReturnNoErrorWhenValidatingTagFilterWithASupportedEntityType(t *testing.T) {
 	for _, entity := range SupportedTagFilterEntities {
 		sut := NewUnaryTagFilter(entity, tagFilterEntityName, IsEmptyOperator)
