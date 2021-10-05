@@ -15,6 +15,7 @@ const (
 	keyEntityName = "entity.name"
 	keyEntityKind = "entity.kind"
 	keyEntityType = "entity.type"
+	keyAgentTags  = "agent.tag"
 
 	valueMyValue = "my value"
 
@@ -85,7 +86,7 @@ func TestShouldParseStringTagComparisonExpression(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: "agent.tag", TagKey: utils.StringPtr("key")},
+						Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
 						Operator:    Operator(restapi.EqualsOperator),
 						StringValue: utils.StringPtr("value"),
 					},
@@ -104,7 +105,7 @@ func TestShouldParseNumberTagComparisonExpression(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: "agent.tag", TagKey: utils.StringPtr("key")},
+						Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
 						Operator:    Operator(restapi.EqualsOperator),
 						NumberValue: utils.Int64Ptr(1234),
 					},
@@ -123,7 +124,7 @@ func TestShouldParseBooleanTagComparisonExpression(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					Comparison: &ComparisonExpression{
-						Entity:       &EntitySpec{Identifier: "agent.tag", TagKey: utils.StringPtr("key")},
+						Entity:       &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
 						Operator:     Operator(restapi.EqualsOperator),
 						BooleanValue: utils.BoolPtr(true),
 					},
@@ -295,7 +296,7 @@ func TestShouldParseFullySpecifiedUnaryTagFilter(t *testing.T) {
 			Left: &LogicalAndExpression{
 				Left: &PrimaryExpression{
 					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: "agent.tag", TagKey: utils.StringPtr("stage"), Origin: utils.StringPtr(EntityOriginDestination.Key())},
+						Entity:   &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("stage"), Origin: utils.StringPtr(EntityOriginDestination.Key())},
 						Operator: Operator(restapi.NotEmptyOperator),
 					},
 				},
