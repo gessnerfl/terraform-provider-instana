@@ -207,7 +207,7 @@ var (
 		participle.Lexer(filterLexer),
 		participle.Unquote("String"),
 		participle.CaseInsensitive("Keyword"),
-		participle.UseLookahead(3),
+		participle.UseLookahead(5),
 	)
 )
 

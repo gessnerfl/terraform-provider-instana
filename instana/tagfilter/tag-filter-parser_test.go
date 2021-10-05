@@ -286,6 +286,26 @@ func createTestCaseForParsingSupportedUnaryOperators(operator restapi.TagFilterO
 	}
 }
 
+func TestShouldParseFullySpecifiedUnaryTagFilter(t *testing.T) {
+	//expression := "agent.tag:stage@dest NOT_EMPTY AND service.name@src EQUALS 'foo'"
+	expression := "agent.tag:stage@dest NOT_EMPTY"
+
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					UnaryOperation: &UnaryOperationExpression{
+						Entity:   &EntitySpec{Identifier: "agent.tag", TagKey: utils.StringPtr("stage"), Origin: utils.StringPtr(EntityOriginDestination.Key())},
+						Operator: Operator(restapi.NotEmptyOperator),
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
 func TestShouldParseComparisonOperationsCaseInsensitive(t *testing.T) {
 	expression := "entity.name Equals 'foo'"
 
