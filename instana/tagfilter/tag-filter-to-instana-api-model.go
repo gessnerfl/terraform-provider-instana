@@ -1,6 +1,7 @@
 package tagfilter
 
 import (
+	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
@@ -46,16 +47,33 @@ func (m *tagFilterMapper) mapPrimaryExpressionToAPIModel(input *PrimaryExpressio
 }
 
 func (m *tagFilterMapper) mapUnaryOperatorExpressionToAPIModel(input *UnaryOperationExpression) restapi.TagFilterExpressionElement {
-	return restapi.NewUnaryTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator))
+	origin := EntityOriginDestination.TagFilterEntity()
+	if input.Entity.Origin != nil {
+		origin = SupportedEntityOrigins.ForKey(*input.Entity.Origin).TagFilterEntity()
+	}
+	return restapi.NewUnaryTagFilterWithTagKey(origin, input.Entity.Identifier, input.Entity.TagKey, restapi.TagFilterOperator(input.Operator))
 }
 
 func (m *tagFilterMapper) mapComparisonExpressionToAPIModel(input *ComparisonExpression) restapi.TagFilterExpressionElement {
-	if input.TagValue != nil {
-		return restapi.NewTagTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), input.TagValue.Key, input.TagValue.Value)
-	} else if input.NumberValue != nil {
-		return restapi.NewNumberTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.NumberValue)
-	} else if input.BooleanValue != nil {
-		return restapi.NewBooleanTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.BooleanValue)
+	origin := EntityOriginDestination.TagFilterEntity()
+	if input.Entity.Origin != nil {
+		origin = SupportedEntityOrigins.ForKey(*input.Entity.Origin).TagFilterEntity()
 	}
-	return restapi.NewStringTagFilter(input.Entity.Origin.TagFilterEntity(), input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.StringValue)
+	if input.Entity.TagKey != nil {
+		return restapi.NewTagTagFilter(origin, input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.Entity.TagKey, m.mapValueAsString(input))
+	} else if input.NumberValue != nil {
+		return restapi.NewNumberTagFilter(origin, input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.NumberValue)
+	} else if input.BooleanValue != nil {
+		return restapi.NewBooleanTagFilter(origin, input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.BooleanValue)
+	}
+	return restapi.NewStringTagFilter(origin, input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.StringValue)
+}
+
+func (m *tagFilterMapper) mapValueAsString(input *ComparisonExpression) string {
+	if input.NumberValue != nil {
+		return fmt.Sprintf("%d", *input.NumberValue)
+	} else if input.BooleanValue != nil {
+		return fmt.Sprintf("%t", *input.BooleanValue)
+	}
+	return *input.StringValue
 }

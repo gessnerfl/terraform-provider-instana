@@ -278,6 +278,17 @@ func NewUnaryTagFilter(entity TagFilterEntity, name string, operator TagFilterOp
 	}
 }
 
+//NewUnaryTagFilterWithTagKey creates a new TagFilter for unary expressions supporting tagKeys
+func NewUnaryTagFilterWithTagKey(entity TagFilterEntity, name string, tagKey *string, operator TagFilterOperator) *TagFilter {
+	return &TagFilter{
+		Entity:   entity,
+		Name:     name,
+		Key:      tagKey,
+		Operator: operator,
+		Type:     TagFilterType,
+	}
+}
+
 //TagFilter data structure of a Tag Filter from the Instana API
 type TagFilter struct {
 	Entity       TagFilterEntity                `json:"entity"`
