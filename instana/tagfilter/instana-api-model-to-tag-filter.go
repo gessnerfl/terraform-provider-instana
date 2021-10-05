@@ -162,7 +162,7 @@ func (m *tagFilterMapper) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryEx
 	if restapi.SupportedUnaryExpressionOperators.IsSupported(tagFilter.Operator) {
 		return &PrimaryExpression{
 			UnaryOperation: &UnaryOperationExpression{
-				Entity:   &EntitySpec{Identifier: tagFilter.Name, Origin: utils.StringPtr(origin.Key())},
+				Entity:   &EntitySpec{Identifier: tagFilter.Name, TagKey: tagFilter.Key, Origin: utils.StringPtr(origin.Key())},
 				Operator: Operator(tagFilter.Operator),
 			},
 		}, nil

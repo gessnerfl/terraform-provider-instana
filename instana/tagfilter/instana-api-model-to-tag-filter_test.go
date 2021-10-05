@@ -56,7 +56,7 @@ func TestShouldMapBooleanTagFilterFromInstanaAPI(t *testing.T) {
 	testMappingOfTagFilterFromInstanaApi(input, comparison, t)
 }
 
-func TestShouldMapTagTagFilterFromInstanaAPI(t *testing.T) {
+func TestShouldMapComparisonTagFilterWithTagKeyValueFromInstanaAPI(t *testing.T) {
 	key := "key"
 	value := "value"
 	input := restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, key, value)
@@ -150,6 +150,26 @@ func testMappingOfSupportedUnaryOperationFromInstanaAPI(operator restapi.TagFilt
 
 		runTestCaseForMappingFromAPI(input, expectedResult, t)
 	}
+}
+
+func TestShouldMapUnaryTagFilterWithTagKeyFromInstanaAPI(t *testing.T) {
+	key := "key"
+	input := restapi.NewUnaryTagFilterWithTagKey(restapi.TagFilterEntityDestination, tagFilterName, &key, restapi.NotEmptyOperator)
+
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &PrimaryExpression{
+					UnaryOperation: &UnaryOperationExpression{
+						Entity:   &EntitySpec{Identifier: tagFilterName, TagKey: &key, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+						Operator: Operator(restapi.NotEmptyOperator),
+					},
+				},
+			},
+		},
+	}
+
+	runTestCaseForMappingFromAPI(input, expectedResult, t)
 }
 
 func TestShouldFailToMapTagFilterFromInstanaAPIWhenUnaryOperationIsNotSupported(t *testing.T) {
