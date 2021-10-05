@@ -2,6 +2,7 @@ package tagfilter
 
 import (
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/utils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
@@ -161,7 +162,7 @@ func (m *tagFilterMapper) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryEx
 	if restapi.SupportedUnaryExpressionOperators.IsSupported(tagFilter.Operator) {
 		return &PrimaryExpression{
 			UnaryOperation: &UnaryOperationExpression{
-				Entity:   &EntitySpec{Identifier: tagFilter.Name, Origin: origin},
+				Entity:   &EntitySpec{Identifier: tagFilter.Name, TagKey: tagFilter.Key, Origin: utils.StringPtr(origin.Key())},
 				Operator: Operator(tagFilter.Operator),
 			},
 		}, nil
@@ -171,21 +172,21 @@ func (m *tagFilterMapper) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryEx
 	}
 	return &PrimaryExpression{
 		Comparison: &ComparisonExpression{
-			Entity:       &EntitySpec{Identifier: tagFilter.Name, Origin: origin},
+			Entity:       &EntitySpec{Identifier: tagFilter.Name, TagKey: tagFilter.Key, Origin: utils.StringPtr(origin.Key())},
 			Operator:     Operator(tagFilter.Operator),
-			StringValue:  tagFilter.StringValue,
+			StringValue:  m.mapStringOrTagValue(tagFilter),
 			BooleanValue: tagFilter.BooleanValue,
 			NumberValue:  tagFilter.NumberValue,
-			TagValue:     m.mapTagValue(tagFilter),
 		},
 	}, nil
 }
 
-func (m *tagFilterMapper) mapTagValue(tagFilter *restapi.TagFilter) *TagValue {
+func (m *tagFilterMapper) mapStringOrTagValue(tagFilter *restapi.TagFilter) *string {
 	if tagFilter.Key != nil {
-		return &TagValue{Key: *tagFilter.Key, Value: tagFilter.Value.(string)}
+		tagValue := tagFilter.Value.(string)
+		return &tagValue
 	}
-	return nil
+	return tagFilter.StringValue
 }
 
 type expressionHandle struct {

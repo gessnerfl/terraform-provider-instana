@@ -79,32 +79,24 @@ func (origins EntityOrigins) ForKey(input string) EntityOrigin {
 //SupportedEntityOrigins slice of supported EntityOrigins
 var SupportedEntityOrigins = EntityOrigins{EntityOriginSource, EntityOriginDestination, EntityOriginNotApplicable}
 
-//EntitySpec custom type for an entity path specification
+//EntitySpec custom type for an entity path specification            Ident (@TagKeySeparator @Ident)? (@EntityOriginOperator @EntityOrigin)? "
 type EntitySpec struct {
-	Identifier    string
-	Origin        EntityOrigin
-	OriginDefined bool
-}
-
-//Capture captures the string representation of an entity path from the given string. Interface of participle
-func (o *EntitySpec) Capture(values []string) error {
-	val := values[0]
-	if val == "@" {
-		o.OriginDefined = true
-	} else if o.OriginDefined {
-		o.Origin = SupportedEntityOrigins.ForKey(val)
-	} else {
-		*o = EntitySpec{
-			Identifier: values[0],
-			Origin:     EntityOriginDestination,
-		}
-	}
-	return nil
+	Identifier string  `parser:"@Ident"`
+	TagKey     *string `parser:"( \":\" @Ident )?"`
+	Origin     *string `parser:"( \"@\" @EntityOrigin )?"`
 }
 
 //Render implementation of the ExpressionRenderer interface
 func (o *EntitySpec) Render() string {
-	return o.Identifier + "@" + o.Origin.Key()
+	origin := EntityOriginDestination.Key()
+	tagKey := ""
+	if o.TagKey != nil {
+		tagKey = ":" + *o.TagKey
+	}
+	if o.Origin != nil {
+		origin = SupportedEntityOrigins.ForKey(*o.Origin).Key()
+	}
+	return o.Identifier + tagKey + "@" + origin
 }
 
 //Operator custom type for an operator
@@ -172,19 +164,16 @@ func (e *PrimaryExpression) Render() string {
 
 //ComparisonExpression representation of a comparison expression.
 type ComparisonExpression struct {
-	Entity       *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
+	Entity       *EntitySpec `parser:"@@"`
 	Operator     Operator    `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
-	TagValue     *TagValue   `parser:"( @@"`
-	NumberValue  *int64      `parser:"| @Number"`
+	NumberValue  *int64      `parser:"( @Number"`
 	BooleanValue *bool       `parser:"| @( \"FALSE\" | \"TRUE\" )"`
 	StringValue  *string     `parser:"| @String )"`
 }
 
 //Render implementation of ExpressionRenderer.Render
 func (e *ComparisonExpression) Render() string {
-	if e.TagValue != nil {
-		return fmt.Sprintf("%s %s %s", e.Entity.Render(), e.Operator, e.TagValue.Render())
-	} else if e.NumberValue != nil {
+	if e.NumberValue != nil {
 		return fmt.Sprintf("%s %s %d", e.Entity.Render(), e.Operator, *e.NumberValue)
 	} else if e.BooleanValue != nil {
 		return fmt.Sprintf("%s %s %t", e.Entity.Render(), e.Operator, *e.BooleanValue)
@@ -192,20 +181,9 @@ func (e *ComparisonExpression) Render() string {
 	return fmt.Sprintf("%s %s '%s'", e.Entity.Render(), e.Operator, *e.StringValue)
 }
 
-//TagValue representation of a tag value
-type TagValue struct {
-	Key   string `parser:"@Ident \"=\""`
-	Value string `parser:"@Ident"`
-}
-
-//Render implementation of ExpressionRenderer.Render
-func (v *TagValue) Render() string {
-	return fmt.Sprintf("%s=%s", v.Key, v.Value)
-}
-
 //UnaryOperationExpression representation of a unary expression
 type UnaryOperationExpression struct {
-	Entity   *EntitySpec `parser:"@Ident (@EntityOriginOperator @EntityOrigin)? "`
+	Entity   *EntitySpec `parser:"@@"`
 	Operator Operator    `parser:"@( \"IS_EMPTY\" | \"IS_BLANK\"  | \"NOT_EMPTY\" | \"NOT_BLANK\" )"`
 }
 
@@ -219,7 +197,7 @@ var (
 		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|STARTS_WITH|ENDS_WITH|NOT_STARTS_WITH|NOT_ENDS_WITH|GREATER_OR_EQUAL_THAN|LESS_OR_EQUAL_THAN|LESS_THAN|GREATER_THAN)` +
 		`|(?P<EntityOrigin>(?i)src|dest|na)` +
 		`|(?P<EntityOriginOperator>(?i)@)` +
-		`|(?P<TagSeparator>(?i)=)` +
+		`|(?P<TagKeySeparator>(?i):)` +
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_\-/]*)` +
 		`|(?P<Number>[-+]?\d+)` +
 		`|(?P<String>'[^']*'|"[^"]*")`,
@@ -229,7 +207,7 @@ var (
 		participle.Lexer(filterLexer),
 		participle.Unquote("String"),
 		participle.CaseInsensitive("Keyword"),
-		participle.UseLookahead(3),
+		participle.UseLookahead(5),
 	)
 )
 
