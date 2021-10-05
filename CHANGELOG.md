@@ -1,5 +1,41 @@
 # Changelog
 
+## [v1.1.4](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.4) (2021-10-05)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.3...v1.1.4)
+
+**Breaking changes:**
+
+- Tag Filter does not support unary expressions for tags [\#114](https://github.com/gessnerfl/terraform-provider-instana/issues/114)
+
+**Fixed bugs:**
+
+- Provider vs. Instana-Server v195: "Error: value not allowed for unary operator expression" [\#100](https://github.com/gessnerfl/terraform-provider-instana/issues/100)
+
+**Merged pull requests:**
+
+- Bugfix/114 tags for unary expressions [\#115](https://github.com/gessnerfl/terraform-provider-instana/pull/115) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v1.1.3](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.3) (2021-10-04)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.2...v1.1.3)
+
+**Merged pull requests:**
+
+- \#111: value check for tag filter should consider value parameter only [\#113](https://github.com/gessnerfl/terraform-provider-instana/pull/113) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v1.1.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.2) (2021-10-04)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.1...v1.1.2)
+
+**Fixed bugs:**
+
+- Terraform Provider is considering tag keys as value [\#111](https://github.com/gessnerfl/terraform-provider-instana/issues/111)
+
+**Merged pull requests:**
+
+- \#111: fix handling of tag keys in unary expressions [\#112](https://github.com/gessnerfl/terraform-provider-instana/pull/112) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v1.1.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.1) (2021-09-21)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.0...v1.1.1)
@@ -19,10 +55,6 @@
 **Implemented enhancements:**
 
 - Add support to manage groups [\#93](https://github.com/gessnerfl/terraform-provider-instana/issues/93)
-
-**Fixed bugs:**
-
-- Provider vs. Instana-Server v195: "Error: value not allowed for unary operator expression" [\#100](https://github.com/gessnerfl/terraform-provider-instana/issues/100)
 
 **Closed issues:**
 
@@ -53,7 +85,6 @@
 - Feature/95 import support [\#98](https://github.com/gessnerfl/terraform-provider-instana/pull/98) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/94 api tokens [\#97](https://github.com/gessnerfl/terraform-provider-instana/pull/97) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/87 sdkv2 [\#96](https://github.com/gessnerfl/terraform-provider-instana/pull/96) ([gessnerfl](https://github.com/gessnerfl))
-- Feature/84 support entity origin in app config match spec [\#85](https://github.com/gessnerfl/terraform-provider-instana/pull/85) ([gessnerfl](https://github.com/gessnerfl))
 
 ## [v0.11.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v0.11.0) (2021-02-09)
 
@@ -96,6 +127,7 @@
 
 **Merged pull requests:**
 
+- Feature/84 support entity origin in app config match spec [\#85](https://github.com/gessnerfl/terraform-provider-instana/pull/85) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/72 website monitoring [\#82](https://github.com/gessnerfl/terraform-provider-instana/pull/82) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/77 sli configuration [\#81](https://github.com/gessnerfl/terraform-provider-instana/pull/81) ([jonassiefker](https://github.com/jonassiefker))
 - Feature/79 rest resource improvement [\#80](https://github.com/gessnerfl/terraform-provider-instana/pull/80) ([gessnerfl](https://github.com/gessnerfl))
@@ -118,10 +150,6 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.0...v0.9.1)
 
-**Fixed bugs:**
-
-- Breaking Change of EQUAL Condition Operator in Release 188 [\#69](https://github.com/gessnerfl/terraform-provider-instana/issues/69)
-
 **Merged pull requests:**
 
 - Bugfix/69 equal condition operator [\#70](https://github.com/gessnerfl/terraform-provider-instana/pull/70) ([gessnerfl](https://github.com/gessnerfl))
@@ -143,6 +171,7 @@
 
 **Fixed bugs:**
 
+- Breaking Change of EQUAL Condition Operator in Release 188 [\#69](https://github.com/gessnerfl/terraform-provider-instana/issues/69)
 - Breaking change of matching\_operator in Instana API [\#48](https://github.com/gessnerfl/terraform-provider-instana/issues/48)
 - Idempotence in "instana\_alerting\_config" only with priorities/event\_filter\_event\_types in alphabetical order [\#43](https://github.com/gessnerfl/terraform-provider-instana/issues/43)
 
