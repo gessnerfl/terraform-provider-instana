@@ -51,7 +51,7 @@ func (m *tagFilterMapper) mapUnaryOperatorExpressionToAPIModel(input *UnaryOpera
 	if input.Entity.Origin != nil {
 		origin = SupportedEntityOrigins.ForKey(*input.Entity.Origin).TagFilterEntity()
 	}
-	return restapi.NewUnaryTagFilterWithTagKey(origin, input.Entity.Identifier, input.Entity.TagKey, restapi.TagFilterOperator(input.Operator))
+	return restapi.NewUnaryTagFilterWithTagKey(origin, input.Entity.Identifier, input.Entity.TagKey, restapi.ExpressionOperator(input.Operator))
 }
 
 func (m *tagFilterMapper) mapComparisonExpressionToAPIModel(input *ComparisonExpression) restapi.TagFilterExpressionElement {
@@ -60,13 +60,13 @@ func (m *tagFilterMapper) mapComparisonExpressionToAPIModel(input *ComparisonExp
 		origin = SupportedEntityOrigins.ForKey(*input.Entity.Origin).TagFilterEntity()
 	}
 	if input.Entity.TagKey != nil {
-		return restapi.NewTagTagFilter(origin, input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.Entity.TagKey, m.mapValueAsString(input))
+		return restapi.NewTagTagFilter(origin, input.Entity.Identifier, restapi.ExpressionOperator(input.Operator), *input.Entity.TagKey, m.mapValueAsString(input))
 	} else if input.NumberValue != nil {
-		return restapi.NewNumberTagFilter(origin, input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.NumberValue)
+		return restapi.NewNumberTagFilter(origin, input.Entity.Identifier, restapi.ExpressionOperator(input.Operator), *input.NumberValue)
 	} else if input.BooleanValue != nil {
-		return restapi.NewBooleanTagFilter(origin, input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.BooleanValue)
+		return restapi.NewBooleanTagFilter(origin, input.Entity.Identifier, restapi.ExpressionOperator(input.Operator), *input.BooleanValue)
 	}
-	return restapi.NewStringTagFilter(origin, input.Entity.Identifier, restapi.TagFilterOperator(input.Operator), *input.StringValue)
+	return restapi.NewStringTagFilter(origin, input.Entity.Identifier, restapi.ExpressionOperator(input.Operator), *input.StringValue)
 }
 
 func (m *tagFilterMapper) mapValueAsString(input *ComparisonExpression) string {

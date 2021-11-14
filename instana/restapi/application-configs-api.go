@@ -137,7 +137,7 @@ type BinaryOperator struct {
 }
 
 //NewComparisonExpression creates and new tag matcher expression for a comparision
-func NewComparisonExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator, value string) MatchExpression {
+func NewComparisonExpression(key string, entity MatcherExpressionEntity, operator ExpressionOperator, value string) MatchExpression {
 	return &TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
@@ -148,7 +148,7 @@ func NewComparisonExpression(key string, entity MatcherExpressionEntity, operato
 }
 
 //NewUnaryOperationExpression creates and new tag matcher expression for a unary operation
-func NewUnaryOperationExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator) MatchExpression {
+func NewUnaryOperationExpression(key string, entity MatcherExpressionEntity, operator ExpressionOperator) MatchExpression {
 	return &TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
@@ -199,7 +199,7 @@ type TagMatcherExpression struct {
 	Dtype    MatchExpressionType     `json:"type"`
 	Key      string                  `json:"key"`
 	Entity   MatcherExpressionEntity `json:"entity"`
-	Operator TagFilterOperator       `json:"operator"`
+	Operator ExpressionOperator      `json:"operator"`
 	Value    *string                 `json:"value"`
 }
 

@@ -1,0 +1,44 @@
+package restapi_test
+
+import (
+	"testing"
+
+	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/stretchr/testify/require"
+)
+
+func TestShouldReturnTrueForAllSupportedLogicalOperatorTypes(t *testing.T) {
+	for _, v := range SupportedLogicalOperatorTypes {
+		require.True(t, SupportedLogicalOperatorTypes.IsSupported(v))
+	}
+}
+
+func TestShouldReturnFalseForAllNonSupportedLogicalOperatorTypes(t *testing.T) {
+	for _, v := range []string{"FOO", "BAR", "INVALID"} {
+		require.False(t, SupportedLogicalOperatorTypes.IsSupported(LogicalOperatorType(v)))
+	}
+}
+
+func TestShouldReturnTrueForAllSupportedComparisonOperators(t *testing.T) {
+	for _, v := range SupportedComparisonOperators {
+		require.True(t, SupportedComparisonOperators.IsSupported(v))
+	}
+}
+
+func TestShouldReturnFalseForAllNonSupportedComparisonOperators(t *testing.T) {
+	for _, v := range append(SupportedUnaryExpressionOperators, "INVALID_OPERATOR") {
+		require.False(t, SupportedComparisonOperators.IsSupported(v))
+	}
+}
+
+func TestShouldReturnTrueForAllSupportedUnaryExpressionOperators(t *testing.T) {
+	for _, v := range SupportedUnaryExpressionOperators {
+		require.True(t, SupportedUnaryExpressionOperators.IsSupported(v))
+	}
+}
+
+func TestShouldReturnFalseForAllNonSupportedUnaryExpressionOperators(t *testing.T) {
+	for _, v := range append(SupportedComparisonOperators, "INVALID_OPERATOR") {
+		require.False(t, SupportedUnaryExpressionOperators.IsSupported(v))
+	}
+}

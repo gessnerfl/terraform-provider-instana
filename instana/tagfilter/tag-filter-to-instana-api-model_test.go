@@ -23,7 +23,7 @@ func TestShouldMapComparisonToRepresentationOfInstanaAPI(t *testing.T) {
 	}
 }
 
-func createTestShouldMapStringComparisonToRepresentationOfInstanaAPI(operator restapi.TagFilterOperator) func(*testing.T) {
+func createTestShouldMapStringComparisonToRepresentationOfInstanaAPI(operator restapi.ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expr := &FilterExpression{
 			Expression: &LogicalOrExpression{
@@ -44,7 +44,7 @@ func createTestShouldMapStringComparisonToRepresentationOfInstanaAPI(operator re
 	}
 }
 
-func createTestShouldMapNumberComparisonToRepresentationOfInstanaAPI(operator restapi.TagFilterOperator) func(*testing.T) {
+func createTestShouldMapNumberComparisonToRepresentationOfInstanaAPI(operator restapi.ExpressionOperator) func(*testing.T) {
 	numberValue := int64(1234)
 	return func(t *testing.T) {
 		expr := &FilterExpression{
@@ -66,7 +66,7 @@ func createTestShouldMapNumberComparisonToRepresentationOfInstanaAPI(operator re
 	}
 }
 
-func createTestShouldMapBooleanComparisonToRepresentationOfInstanaAPI(operator restapi.TagFilterOperator) func(*testing.T) {
+func createTestShouldMapBooleanComparisonToRepresentationOfInstanaAPI(operator restapi.ExpressionOperator) func(*testing.T) {
 	boolValue := true
 	return func(t *testing.T) {
 		expr := &FilterExpression{
@@ -88,7 +88,7 @@ func createTestShouldMapBooleanComparisonToRepresentationOfInstanaAPI(operator r
 	}
 }
 
-func createTestShouldMapTagComparisonToRepresentationOfInstanaAPI(operator restapi.TagFilterOperator) func(*testing.T) {
+func createTestShouldMapTagComparisonToRepresentationOfInstanaAPI(operator restapi.ExpressionOperator) func(*testing.T) {
 	key := "key"
 	value := "value"
 	return func(t *testing.T) {
@@ -180,7 +180,7 @@ func TestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(t *testing.T) {
 	}
 }
 
-func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName restapi.TagFilterOperator) func(*testing.T) {
+func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName restapi.ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expr := &FilterExpression{
 			Expression: &LogicalOrExpression{

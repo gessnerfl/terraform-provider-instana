@@ -380,7 +380,7 @@ func TestShouldCreateValidComparisionExpression(t *testing.T) {
 	}
 }
 
-func createTestShouldCreateValidComparisionExpression(operator TagFilterOperator) func(*testing.T) {
+func createTestShouldCreateValidComparisionExpression(operator ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, operator, valueFieldValue)
 
@@ -442,7 +442,7 @@ func TestShouldCreateValidUnaryOperatorExpression(t *testing.T) {
 	}
 }
 
-func createTestShouldCreateValidUnaryOperatorExpression(operator TagFilterOperator) func(*testing.T) {
+func createTestShouldCreateValidUnaryOperatorExpression(operator ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		exp := NewUnaryOperationExpression(keyFieldValue, MatcherExpressionEntityDestination, operator)
 

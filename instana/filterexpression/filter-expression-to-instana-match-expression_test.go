@@ -19,7 +19,7 @@ func TestShouldMapSimpleComparisionToRepresentationOfInstanaAPI(t *testing.T) {
 	}
 }
 
-func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operator restapi.TagFilterOperator) func(*testing.T) {
+func createTestShouldMapComparisionToRepresentationOfInstanaAPI(operator restapi.ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expr := &FilterExpression{
 			Expression: &LogicalOrExpression{
@@ -46,7 +46,7 @@ func TestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(t *testing.T) {
 	}
 }
 
-func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName restapi.TagFilterOperator) func(*testing.T) {
+func createTestShouldMapUnaryOperatorToRepresentationOfInstanaAPI(operatorName restapi.ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expr := &FilterExpression{
 			Expression: &LogicalOrExpression{
