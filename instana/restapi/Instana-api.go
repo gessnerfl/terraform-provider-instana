@@ -23,6 +23,7 @@ type InstanaAPI interface {
 	BuiltinEventSpecifications() ReadOnlyRestResource
 	APITokens() RestResource
 	ApplicationConfigs() RestResource
+	ApplicationAlertConfigs() RestResource
 	AlertingChannels() RestResource
 	AlertingConfigurations() RestResource
 	SliConfigs() RestResource
@@ -45,7 +46,7 @@ func (api *baseInstanaAPI) CustomEventSpecifications() RestResource {
 	return NewCreatePUTUpdatePUTRestResource(CustomEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&CustomEventSpecification{}), api.client)
 }
 
-//CustomEventSpecifications implementation of InstanaAPI interface
+//BuiltinEventSpecifications implementation of InstanaAPI interface
 func (api *baseInstanaAPI) BuiltinEventSpecifications() ReadOnlyRestResource {
 	return NewReadOnlyRestResource(BuiltinEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&BuiltinEventSpecification{}), NewDefaultJSONUnmarshaller(&[]BuiltinEventSpecification{}), api.client)
 }
@@ -58,6 +59,11 @@ func (api *baseInstanaAPI) APITokens() RestResource {
 //ApplicationConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) ApplicationConfigs() RestResource {
 	return NewCreatePUTUpdatePUTRestResource(ApplicationConfigsResourcePath, NewApplicationConfigUnmarshaller(), api.client)
+}
+
+//ApplicationAlertConfigs implementation of InstanaAPI interface
+func (api *baseInstanaAPI) ApplicationAlertConfigs() RestResource {
+	return NewCreatePOSTUpdatePOSTRestResource(ApplicationAlertConfigsResourcePath, NewDefaultJSONUnmarshaller(&ApplicationAlertConfig{}), api.client)
 }
 
 //AlertingChannels implementation of InstanaAPI interface

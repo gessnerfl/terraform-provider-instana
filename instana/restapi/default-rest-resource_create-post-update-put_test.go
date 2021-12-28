@@ -72,7 +72,7 @@ func TestShouldFailToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenT
 		_, err := sut.Create(testObject)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Unmarshalled object does not implement InstanaDataObject")
+		assert.Contains(t, err.Error(), "unmarshalled object does not implement InstanaDataObject")
 	})
 }
 
@@ -165,7 +165,7 @@ func TestShouldFailToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenT
 		_, err := sut.Update(testObject)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Unmarshalled object does not implement InstanaDataObject")
+		assert.Contains(t, err.Error(), "unmarshalled object does not implement InstanaDataObject")
 	})
 }
 

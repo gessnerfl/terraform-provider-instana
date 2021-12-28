@@ -12,7 +12,7 @@ func NewCreatePUTUpdatePUTRestResource(resourcePath string, unmarshaller JSONUnm
 	}
 }
 
-//NewCreatePOSTUpdatePUTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using PUT as operation for create and update
+//NewCreatePOSTUpdatePUTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using POST as operation for create and PUT for update
 func NewCreatePOSTUpdatePUTRestResource(resourcePath string, unmarshaller JSONUnmarshaller, client RestClient) RestResource {
 	return &defaultRestResource{
 		mode:         DefaultRestResourceModeCreatePOSTUpdatePUT,
@@ -22,14 +22,28 @@ func NewCreatePOSTUpdatePUTRestResource(resourcePath string, unmarshaller JSONUn
 	}
 }
 
+//NewCreatePOSTUpdatePOSTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using POST as operation for create and update
+func NewCreatePOSTUpdatePOSTRestResource(resourcePath string, unmarshaller JSONUnmarshaller, client RestClient) RestResource {
+	return &defaultRestResource{
+		mode:         DefaultRestResourceModeCreateAndUpdatePOST,
+		resourcePath: resourcePath,
+		unmarshaller: unmarshaller,
+		client:       client,
+	}
+}
+
 //DefaultRestResourceMode custom type for create/update behavior of the defaultRestResource
 type DefaultRestResourceMode string
+
+type restClientOperation func(InstanaDataObject, string) ([]byte, error)
 
 const (
 	//DefaultRestResourceModeCreateAndUpdatePUT constant value for the DefaultRestResourceMode CREATE_PUT_UPDATE_PUT where create and update is implemented as an upsert using HTTP PUT method only
 	DefaultRestResourceModeCreateAndUpdatePUT = DefaultRestResourceMode("CREATE_PUT_UPDATE_PUT")
 	//DefaultRestResourceModeCreatePOSTUpdatePUT constant value for the DefaultRestResourceMode CREATE_POST_UPDATE_PUT where create is implemented as an HTTP POST method and update is implemented as HTTP PUT method
 	DefaultRestResourceModeCreatePOSTUpdatePUT = DefaultRestResourceMode("CREATE_POST_UPDATE_PUT")
+	//DefaultRestResourceModeCreateAndUpdatePOST constant value for the DefaultRestResourceMode CREATE_POST_UPDATE_POST where create is implemented as an HTTP POST method and update is implemented as HTTP PUT method
+	DefaultRestResourceModeCreateAndUpdatePOST = DefaultRestResourceMode("CREATE_POST_UPDATE_POST")
 )
 
 type defaultRestResource struct {
@@ -49,20 +63,23 @@ func (r *defaultRestResource) GetOne(id string) (InstanaDataObject, error) {
 
 func (r *defaultRestResource) Create(data InstanaDataObject) (InstanaDataObject, error) {
 	if r.mode == DefaultRestResourceModeCreateAndUpdatePUT {
-		return r.Update(data)
+		return r.upsert(data, r.client.Put)
 	}
 	return r.upsert(data, r.client.Post)
 }
 
 func (r *defaultRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
+	if r.mode == DefaultRestResourceModeCreateAndUpdatePOST {
+		return r.upsert(data, r.client.Post)
+	}
 	return r.upsert(data, r.client.Put)
 }
 
-func (r *defaultRestResource) upsert(data InstanaDataObject, restClientFunc func(InstanaDataObject, string) ([]byte, error)) (InstanaDataObject, error) {
+func (r *defaultRestResource) upsert(data InstanaDataObject, operation restClientOperation) (InstanaDataObject, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
-	response, err := restClientFunc(data, r.resourcePath)
+	response, err := operation(data, r.resourcePath)
 	if err != nil {
 		return data, err
 	}
@@ -76,7 +93,7 @@ func (r *defaultRestResource) validateResponseAndConvertToStruct(data []byte) (I
 	}
 	dataObject, ok := object.(InstanaDataObject)
 	if !ok {
-		return dataObject, errors.New("Unmarshalled object does not implement InstanaDataObject")
+		return dataObject, errors.New("unmarshalled object does not implement InstanaDataObject")
 	}
 
 	if err := dataObject.Validate(); err != nil {
