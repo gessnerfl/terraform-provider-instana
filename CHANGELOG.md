@@ -1,5 +1,29 @@
 # Changelog
 
+## [Unreleased](https://github.com/gessnerfl/terraform-provider-instana/tree/HEAD)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.5...HEAD)
+
+**Implemented enhancements:**
+
+- Address vulnerabilities [\#110](https://github.com/gessnerfl/terraform-provider-instana/issues/110)
+
+## [v1.1.5](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.5) (2021-12-28)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.4...v1.1.5)
+
+**Fixed bugs:**
+
+-  Instana Terraform provider has wrong documentation paths on registry.terraform.io [\#117](https://github.com/gessnerfl/terraform-provider-instana/issues/117)
+
+**Closed issues:**
+
+- at least two elements are expected for a tag filter expression [\#116](https://github.com/gessnerfl/terraform-provider-instana/issues/116)
+
+**Merged pull requests:**
+
+- \#117: fix naming of resources and data sources in documentation [\#118](https://github.com/gessnerfl/terraform-provider-instana/pull/118) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v1.1.4](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.4) (2021-10-05)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.3...v1.1.4)
@@ -52,6 +76,10 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.0.0...v1.1.0)
 
+**Breaking changes:**
+
+- Resource instana\_user\_role not working anymore [\#92](https://github.com/gessnerfl/terraform-provider-instana/issues/92)
+
 **Implemented enhancements:**
 
 - Add support to manage groups [\#93](https://github.com/gessnerfl/terraform-provider-instana/issues/93)
@@ -69,10 +97,6 @@
 ## [v1.0.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.0.0) (2021-04-25)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.11.0...v1.0.0)
-
-**Breaking changes:**
-
-- Resource instana\_user\_role not working anymore [\#92](https://github.com/gessnerfl/terraform-provider-instana/issues/92)
 
 **Implemented enhancements:**
 
@@ -150,6 +174,10 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.9.0...v0.9.1)
 
+**Fixed bugs:**
+
+- Breaking Change of EQUAL Condition Operator in Release 188 [\#69](https://github.com/gessnerfl/terraform-provider-instana/issues/69)
+
 **Merged pull requests:**
 
 - Bugfix/69 equal condition operator [\#70](https://github.com/gessnerfl/terraform-provider-instana/pull/70) ([gessnerfl](https://github.com/gessnerfl))
@@ -171,7 +199,6 @@
 
 **Fixed bugs:**
 
-- Breaking Change of EQUAL Condition Operator in Release 188 [\#69](https://github.com/gessnerfl/terraform-provider-instana/issues/69)
 - Breaking change of matching\_operator in Instana API [\#48](https://github.com/gessnerfl/terraform-provider-instana/issues/48)
 - Idempotence in "instana\_alerting\_config" only with priorities/event\_filter\_event\_types in alphabetical order [\#43](https://github.com/gessnerfl/terraform-provider-instana/issues/43)
 
