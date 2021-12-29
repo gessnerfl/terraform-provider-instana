@@ -19,13 +19,13 @@ type ApplicationAlertRule struct {
 
 //IncludedEndpoint custom type to include of a specific endpoint in an alert config
 type IncludedEndpoint struct {
-	Name      string `json:"name"`
-	Inclusive bool   `json:"inclusive"`
+	EndpointId string `json:"endpointId"`
+	Inclusive  bool   `json:"inclusive"`
 }
 
 //IncludedService custom type to include of a specific service in an alert config
 type IncludedService struct {
-	Name      string `json:"name"`
+	ServiceId string `json:"serviceId"`
 	Inclusive bool   `json:"inclusive"`
 
 	Endpoints map[string]IncludedEndpoint `json:"endpoints"`
@@ -33,8 +33,8 @@ type IncludedService struct {
 
 //IncludedApplication custom type to include specific applications in an alert config
 type IncludedApplication struct {
-	Name      string `json:"name"`
-	Inclusive bool   `json:"inclusive"`
+	ApplicationId string `json:"applicationId"`
+	Inclusive     bool   `json:"inclusive"`
 
 	Services map[string]IncludedService `json:"services"`
 }

@@ -61,7 +61,7 @@ var (
 		Required:     false,
 		Optional:     true,
 		Default:      string(restapi.BoundaryScopeDefault),
-		ValidateFunc: validation.StringInSlice(restapi.SupportedBoundaryScopes.ToStringSlice(), false),
+		ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationConfigBoundaryScopes.ToStringSlice(), false),
 		Description:  "The boundary scope of the application config",
 	}
 	//ApplicationConfigMatchSpecification schema for the application config field match_specification
