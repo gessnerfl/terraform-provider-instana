@@ -42,3 +42,8 @@ func TestShouldReturnFalseForAllNonSupportedUnaryExpressionOperators(t *testing.
 		require.False(t, SupportedUnaryExpressionOperators.IsSupported(v))
 	}
 }
+
+func TestShouldReturnSupportedOperatorsAsStringSlice(t *testing.T) {
+	expected := []string{"IS_EMPTY", "NOT_EMPTY", "IS_BLANK", "NOT_BLANK"}
+	require.Equal(t, expected, SupportedUnaryExpressionOperators.ToStringSlice())
+}

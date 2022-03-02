@@ -16,11 +16,11 @@ func (granularities Granularities) IsSupported(granularity Granularity) bool {
 	return false
 }
 
-//ToInt32Slice Returns the corresponding int32 representations
-func (granularities Granularities) ToInt32Slice() []int32 {
-	result := make([]int32, len(granularities))
+//ToIntSlice Returns the corresponding int representations
+func (granularities Granularities) ToIntSlice() []int {
+	result := make([]int, len(granularities))
 	for i, v := range granularities {
-		result[i] = int32(v)
+		result[i] = int(v)
 	}
 	return result
 }

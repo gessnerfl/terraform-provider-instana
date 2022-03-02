@@ -42,6 +42,15 @@ func (operators ExpressionOperators) IsSupported(o ExpressionOperator) bool {
 	return false
 }
 
+//ToStringSlice Returns the corresponding string representations
+func (operators ExpressionOperators) ToStringSlice() []string {
+	result := make([]string, len(operators))
+	for i, v := range operators {
+		result[i] = string(v)
+	}
+	return result
+}
+
 const (
 	//EqualsOperator constant for the EQUALS operator
 	EqualsOperator = ExpressionOperator("EQUALS")
@@ -102,3 +111,6 @@ var SupportedUnaryExpressionOperators = ExpressionOperators{
 	IsBlankOperator,
 	NotBlankOperator,
 }
+
+//SupportedExpressionOperators list of all supported operators of Instana API
+var SupportedExpressionOperators = append(SupportedComparisonOperators, SupportedUnaryExpressionOperators...)

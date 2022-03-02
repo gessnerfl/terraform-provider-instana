@@ -19,7 +19,7 @@ func TestShouldReturnFalseForAllNonSupportedGranularities(t *testing.T) {
 	}
 }
 
-func TestShouldReturnSupportedGranularitiesAsInt32Slice(t *testing.T) {
-	expected := []int32{300000, 600000, 900000, 1200000, 1800000}
-	require.Equal(t, expected, SupportedGranularities.ToInt32Slice())
+func TestShouldReturnSupportedGranularitiesAsIntSlice(t *testing.T) {
+	expected := []int{300000, 600000, 900000, 1200000, 1800000}
+	require.Equal(t, expected, SupportedGranularities.ToIntSlice())
 }

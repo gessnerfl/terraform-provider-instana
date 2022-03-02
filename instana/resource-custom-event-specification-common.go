@@ -97,7 +97,7 @@ var customEventSpecificationSchemaDownstreamBroadcastToAllAlertingConfigs = &sch
 var customEventSpecificationSchemaRuleSeverity = &schema.Schema{
 	Type:         schema.TypeString,
 	Required:     true,
-	ValidateFunc: validation.StringInSlice([]string{restapi.SeverityWarning.GetTerraformRepresentation(), restapi.SeverityCritical.GetTerraformRepresentation()}, false),
+	ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
 	Description:  "Configures the severity of the rule of the custom event specification",
 }
 

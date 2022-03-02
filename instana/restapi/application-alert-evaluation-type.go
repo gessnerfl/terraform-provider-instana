@@ -30,7 +30,9 @@ const (
 	EvaluationTypePerApplication = ApplicationAlertEvaluationType("PER_AP")
 	//EvaluationTypePerApplicationService constant value for ApplicationAlertEvaluationType PER_AP_SERVICE
 	EvaluationTypePerApplicationService = ApplicationAlertEvaluationType("PER_AP_SERVICE")
+	//EvaluationTypePerApplicationEndpoint constant value for ApplicationAlertEvaluationType PER_AP_ENDPOINT
+	EvaluationTypePerApplicationEndpoint = ApplicationAlertEvaluationType("PER_AP_ENDPOINT")
 )
 
 //SupportedApplicationAlertEvaluationTypes list of all supported ApplicationAlertEvaluationTypes
-var SupportedApplicationAlertEvaluationTypes = ApplicationAlertEvaluationTypes{EvaluationTypePerApplication, EvaluationTypePerApplicationService}
+var SupportedApplicationAlertEvaluationTypes = ApplicationAlertEvaluationTypes{EvaluationTypePerApplication, EvaluationTypePerApplicationService, EvaluationTypePerApplicationEndpoint}

@@ -20,6 +20,6 @@ func TestShouldReturnFalseForAllNonSupportedApplicationAlertEvaluationTypes(t *t
 }
 
 func TestShouldReturnSupportedApplicationAlertEvaluationTypesAsStringSlice(t *testing.T) {
-	expected := []string{"PER_AP", "PER_AP_SERVICE"}
+	expected := []string{"PER_AP", "PER_AP_SERVICE", "PER_AP_ENDPOINT"}
 	require.Equal(t, expected, SupportedApplicationAlertEvaluationTypes.ToStringSlice())
 }
