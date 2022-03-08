@@ -4,6 +4,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"strings"
 )
 
 //SchemaFieldAPIToken the name of the provider configuration option for the api token
@@ -90,8 +91,8 @@ func bindResourceHandle(resources map[string]*schema.Resource, resourceHandle Re
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	apiToken := d.Get(SchemaFieldAPIToken).(string)
-	endpoint := d.Get(SchemaFieldEndpoint).(string)
+	apiToken := strings.TrimSpace(d.Get(SchemaFieldAPIToken).(string))
+	endpoint := strings.TrimSpace(d.Get(SchemaFieldEndpoint).(string))
 	defaultNamePrefix := d.Get(SchemaFieldDefaultNamePrefix).(string)
 	defaultNameSuffix := d.Get(SchemaFieldDefaultNameSuffix).(string)
 	instanaAPI := restapi.NewInstanaAPI(apiToken, endpoint)

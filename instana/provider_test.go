@@ -62,7 +62,7 @@ func validateResourcesMapForAlerting(resourceMap map[string]*schema.Resource, t 
 	assert.NotNil(t, resourceMap[ResourceInstanaAlertingConfig])
 }
 
-func TestProviderShouldContainValidDataSourceeDefinitions(t *testing.T) {
+func TestProviderShouldContainValidDataSourceDefinitions(t *testing.T) {
 	config := Provider()
 
 	assert.Equal(t, 1, len(config.DataSourcesMap))
