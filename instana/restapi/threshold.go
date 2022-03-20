@@ -78,7 +78,7 @@ var SupportedThresholdSeasonalities = ThresholdSeasonalities{ThresholdSeasonalit
 type Threshold struct {
 	Type            string                `json:"type"`
 	Operator        ThresholdOperator     `json:"operator"`
-	Baseline        *[]float64            `json:"baseline"`
+	Baseline        *[][]float64          `json:"baseline"`
 	DeviationFactor *float32              `json:"deviationFactor"`
 	LastUpdated     int64                 `json:"lastUpdated"`
 	Seasonality     *ThresholdSeasonality `json:"seasonality"`

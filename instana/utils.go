@@ -87,11 +87,31 @@ func GetIntPointerFromResourceData(d *schema.ResourceData, key string) *int {
 	return nil
 }
 
+//GetInt32PointerFromResourceData gets a int32 value from the resource data and either returns a pointer to the value or nil if the value is not defined
+func GetInt32PointerFromResourceData(d *schema.ResourceData, key string) *int32 {
+	val, ok := d.GetOk(key)
+	if ok {
+		intValue := val.(int32)
+		return &intValue
+	}
+	return nil
+}
+
 //GetFloat64PointerFromResourceData gets a float64 value from the resource data and either returns a pointer to the value or nil if the value is not defined
 func GetFloat64PointerFromResourceData(d *schema.ResourceData, key string) *float64 {
 	val, ok := d.GetOk(key)
 	if ok {
 		floatValue := val.(float64)
+		return &floatValue
+	}
+	return nil
+}
+
+//GetFloat32PointerFromResourceData gets a float32 value from the resource data and either returns a pointer to the value or nil if the value is not defined
+func GetFloat32PointerFromResourceData(d *schema.ResourceData, key string) *float32 {
+	val, ok := d.GetOk(key)
+	if ok {
+		floatValue := val.(float32)
 		return &floatValue
 	}
 	return nil
