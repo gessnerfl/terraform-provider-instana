@@ -89,3 +89,9 @@ func TestApplicationConfigResourceShouldHaveNoStateUpgrader(t *testing.T) {
 
 	require.Empty(t, resourceHandler.StateUpgraders())
 }
+
+func TestShouldReturnCorrectResourceNameForApplicationAlertConfigResource(t *testing.T) {
+	name := NewApplicationAlertConfigResourceHandle().MetaData().ResourceName
+
+	require.Equal(t, name, "instana_application_alert_config")
+}
