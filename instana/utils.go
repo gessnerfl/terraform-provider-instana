@@ -43,18 +43,6 @@ func ReadStringSetParameterFromResource(d *schema.ResourceData, key string) []st
 	return nil
 }
 
-//ConvertStringToInterfaceSlice converts a string slice to interface slice for e.g. persistene in TF state
-func ConvertStringToInterfaceSlice(input []string) []interface{} {
-	if len(input) > 0 {
-		result := make([]interface{}, len(input))
-		for i, v := range input {
-			result[i] = v
-		}
-		return result
-	}
-	return []interface{}{}
-}
-
 //ConvertSeverityFromInstanaAPIToTerraformRepresentation converts the integer representation of the Instana API to the string representation of the Terraform provider
 func ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity int) (string, error) {
 	if severity == restapi.SeverityWarning.GetAPIRepresentation() {
@@ -91,7 +79,7 @@ func GetIntPointerFromResourceData(d *schema.ResourceData, key string) *int {
 func GetInt32PointerFromResourceData(d *schema.ResourceData, key string) *int32 {
 	val, ok := d.GetOk(key)
 	if ok {
-		intValue := val.(int32)
+		intValue := int32(val.(int))
 		return &intValue
 	}
 	return nil
@@ -111,7 +99,7 @@ func GetFloat64PointerFromResourceData(d *schema.ResourceData, key string) *floa
 func GetFloat32PointerFromResourceData(d *schema.ResourceData, key string) *float32 {
 	val, ok := d.GetOk(key)
 	if ok {
-		floatValue := val.(float32)
+		floatValue := float32(val.(float64))
 		return &floatValue
 	}
 	return nil

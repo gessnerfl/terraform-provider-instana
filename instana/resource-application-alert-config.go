@@ -732,10 +732,10 @@ func (r *applicationAlertConfigResource) mapRuleToSchema(config *restapi.Applica
 	ruleAttribute[ApplicationAlertConfigFieldRuleAggregation] = config.Rule.Aggregation
 
 	if config.Rule.StatusCodeStart != nil {
-		ruleAttribute[ApplicationAlertConfigFieldRuleStatusCodeStart] = *config.Rule.StatusCodeStart
+		ruleAttribute[ApplicationAlertConfigFieldRuleStatusCodeStart] = int(*config.Rule.StatusCodeStart)
 	}
 	if config.Rule.StatusCodeEnd != nil {
-		ruleAttribute[ApplicationAlertConfigFieldRuleStatusCodeEnd] = *config.Rule.StatusCodeEnd
+		ruleAttribute[ApplicationAlertConfigFieldRuleStatusCodeEnd] = int(*config.Rule.StatusCodeEnd)
 	}
 	if config.Rule.Level != nil {
 		ruleAttribute[ApplicationAlertConfigFieldRuleLogsLevel] = *config.Rule.Level
@@ -783,7 +783,7 @@ func (r *applicationAlertConfigResource) mapThresholdToSchema(config *restapi.Ap
 		thresholdConfig[ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline] = *config.Threshold.Baseline
 	}
 	if config.Threshold.DeviationFactor != nil {
-		thresholdConfig[ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor] = *config.Threshold.DeviationFactor
+		thresholdConfig[ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor] = float64(*config.Threshold.DeviationFactor)
 	}
 	if config.Threshold.Seasonality != nil {
 		thresholdConfig[ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality] = *config.Threshold.Seasonality
@@ -811,10 +811,10 @@ func (r *applicationAlertConfigResource) mapTimeThresholdToSchema(config *restap
 	timeThresholdConfig[ApplicationAlertConfigFieldTimeThresholdTimeWindow] = config.TimeThreshold.TimeWindow
 
 	if config.TimeThreshold.Violations != nil {
-		timeThresholdConfig[ApplicationAlertConfigFieldTimeThresholdViolationsInPeriodViolations] = *config.TimeThreshold.Violations
+		timeThresholdConfig[ApplicationAlertConfigFieldTimeThresholdViolationsInPeriodViolations] = int(*config.TimeThreshold.Violations)
 	}
 	if config.TimeThreshold.Requests != nil {
-		timeThresholdConfig[ApplicationAlertConfigFieldTimeThresholdRequestImpactRequests] = *config.TimeThreshold.Requests
+		timeThresholdConfig[ApplicationAlertConfigFieldTimeThresholdRequestImpactRequests] = int(*config.TimeThreshold.Requests)
 	}
 
 	timeThresholdType := r.mapTimeThresholdTypeToSchema(config.TimeThreshold.Type)
