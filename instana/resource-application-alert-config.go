@@ -23,12 +23,12 @@ const (
 	ApplicationAlertConfigFieldApplicationsInclusive = "inclusive"
 	//ApplicationAlertConfigFieldApplicationsServices constant value for field applications.services of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsServices = "services"
-	//ApplicationAlertConfigFieldApplicationsServicesServiceId constant value for field applications.services.service_id of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplicationsServicesServiceId = "service_id"
+	//ApplicationAlertConfigFieldApplicationsServicesServiceID constant value for field applications.services.service_id of resource instana_application_alert_config
+	ApplicationAlertConfigFieldApplicationsServicesServiceID = "service_id"
 	//ApplicationAlertConfigFieldApplicationsServicesEndpoints constant value for field applications.services.endpoints of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsServicesEndpoints = "endpoints"
-	//ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointId constant value for field applications.services.endpoints.endpoint_id of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointId = "endpoint_id"
+	//ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID constant value for field applications.services.endpoints.endpoint_id of resource instana_application_alert_config
+	ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID = "endpoint_id"
 	//ApplicationAlertConfigFieldBoundaryScope constant value for field boundary_scope of resource instana_application_alert_config
 	ApplicationAlertConfigFieldBoundaryScope = "boundary_scope"
 	//ApplicationAlertConfigFieldCustomPayloadFields constant value for field custom_payload_fields of resource instana_application_alert_config
@@ -223,7 +223,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 								Required: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldApplicationsServicesServiceId: {
+										ApplicationAlertConfigFieldApplicationsServicesServiceID: {
 											Type:         schema.TypeString,
 											Required:     true,
 											Description:  "ID of the included service",
@@ -240,7 +240,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 											Required: true,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
-													ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointId: {
+													ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID: {
 														Type:         schema.TypeString,
 														Required:     true,
 														Description:  "ID of the included endpoint",
@@ -695,7 +695,7 @@ func (r *applicationAlertConfigResource) mapApplicationToSchema(app *restapi.Inc
 
 func (r *applicationAlertConfigResource) mapServiceToSchema(service *restapi.IncludedService) map[string]interface{} {
 	result := make(map[string]interface{})
-	result[ApplicationAlertConfigFieldApplicationsServicesServiceId] = service.ServiceID
+	result[ApplicationAlertConfigFieldApplicationsServicesServiceID] = service.ServiceID
 	result[ApplicationAlertConfigFieldApplicationsInclusive] = service.Inclusive
 
 	endpoints := make([]interface{}, len(service.Endpoints))
@@ -710,7 +710,7 @@ func (r *applicationAlertConfigResource) mapServiceToSchema(service *restapi.Inc
 
 func (r *applicationAlertConfigResource) mapEndpointToSchema(endpoint *restapi.IncludedEndpoint) map[string]interface{} {
 	result := make(map[string]interface{})
-	result[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointId] = endpoint.EndpointID
+	result[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID] = endpoint.EndpointID
 	result[ApplicationAlertConfigFieldApplicationsInclusive] = endpoint.Inclusive
 	return result
 }
@@ -916,7 +916,7 @@ func (r *applicationAlertConfigResource) mapServiceFromSchema(appData map[string
 		}
 	}
 	return restapi.IncludedService{
-		ServiceID: appData[ApplicationAlertConfigFieldApplicationsServicesServiceId].(string),
+		ServiceID: appData[ApplicationAlertConfigFieldApplicationsServicesServiceID].(string),
 		Inclusive: appData[ApplicationAlertConfigFieldApplicationsInclusive].(bool),
 		Endpoints: endpoints,
 	}
@@ -924,7 +924,7 @@ func (r *applicationAlertConfigResource) mapServiceFromSchema(appData map[string
 
 func (r *applicationAlertConfigResource) mapEndpointFromSchema(appData map[string]interface{}) restapi.IncludedEndpoint {
 	return restapi.IncludedEndpoint{
-		EndpointID: appData[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointId].(string),
+		EndpointID: appData[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID].(string),
 		Inclusive:  appData[ApplicationAlertConfigFieldApplicationsInclusive].(bool),
 	}
 }
