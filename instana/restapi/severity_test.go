@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestShouldReturnTheProperRespresentationsForSeverityWarning(t *testing.T) {
+func TestShouldReturnTheProperRepresentationsForSeverityWarning(t *testing.T) {
 	assert.Equal(t, 5, SeverityWarning.GetAPIRepresentation())
 	assert.Equal(t, "warning", SeverityWarning.GetTerraformRepresentation())
 }
 
-func TestShouldReturnTheProperRespresentationsForSeverityCritical(t *testing.T) {
+func TestShouldReturnTheProperRepresentationsForSeverityCritical(t *testing.T) {
 	assert.Equal(t, 10, SeverityCritical.GetAPIRepresentation())
 	assert.Equal(t, "critical", SeverityCritical.GetTerraformRepresentation())
 }
@@ -22,6 +22,10 @@ func TestShouldReturnTrueForAllSupportedSeverities(t *testing.T) {
 	for _, v := range SupportedSeverities {
 		require.True(t, SupportedSeverities.IsSupported(v))
 	}
+}
+
+func TestShouldReturnFalseWhenSecerityIsNotSupported(t *testing.T) {
+	require.False(t, SupportedSeverities.IsSupported(Severity{}))
 }
 
 func TestShouldReturnSupportedSeveritiesAsStringSliceOfTerraformRepresentations(t *testing.T) {
