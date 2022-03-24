@@ -1,4 +1,4 @@
-# Alerting Channel Office 365 Resource
+# Alerting Channel Webhook Resource
 
 Alerting channel configuration to integrate with WebHooks.
 
