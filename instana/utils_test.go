@@ -6,13 +6,13 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRandomID(t *testing.T) {
 	id := RandomID()
 
-	assert.NotEqual(t, 0, len(id))
+	require.NotEqual(t, 0, len(id))
 }
 
 func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.T) {
@@ -22,15 +22,15 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle(), data)
 	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
 
-	assert.NotNil(t, result)
-	assert.Equal(t, []string{"test1", "test2"}, result)
+	require.NotNil(t, result)
+	require.Equal(t, []string{"test1", "test2"}, result)
 }
 
 func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle())
 	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
 
-	assert.Nil(t, result)
+	require.Nil(t, result)
 }
 
 func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T) {
@@ -40,17 +40,17 @@ func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T)
 	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle(), data)
 	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
 
-	assert.NotNil(t, result)
-	assert.Len(t, result, 2)
-	assert.Contains(t, result, "test1")
-	assert.Contains(t, result, "test2")
+	require.NotNil(t, result)
+	require.Len(t, result, 2)
+	require.Contains(t, result, "test1")
+	require.Contains(t, result, "test2")
 }
 
 func TestReadStringSetParameterFromResourceWhenParameterIsMissing(t *testing.T) {
 	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle())
 	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
 
-	assert.Nil(t, result)
+	require.Nil(t, result)
 }
 
 func TestShouldReturnStringRepresentationOfSeverityWarning(t *testing.T) {
@@ -64,15 +64,15 @@ func TestShouldReturnStringRepresentationOfSeverityCritical(t *testing.T) {
 func testShouldReturnStringRepresentationOfSeverity(severity restapi.Severity, t *testing.T) {
 	result, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity.GetAPIRepresentation())
 
-	assert.Nil(t, err)
-	assert.Equal(t, severity.GetTerraformRepresentation(), result)
+	require.Nil(t, err)
+	require.Equal(t, severity.GetTerraformRepresentation(), result)
 }
 
 func TestShouldFailToConvertStringRepresentationForSeverityWhenIntValueIsNotValid(t *testing.T) {
 	result, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(1)
 
-	assert.NotNil(t, err)
-	assert.Equal(t, "INVALID", result)
+	require.NotNil(t, err)
+	require.Equal(t, "INVALID", result)
 }
 
 func TestShouldReturnIntRepresentationOfSeverityWarning(t *testing.T) {
@@ -86,23 +86,173 @@ func TestShouldReturnIntRepresentationOfSeverityCritical(t *testing.T) {
 func testShouldReturnIntRepresentationOfSeverity(severity restapi.Severity, t *testing.T) {
 	result, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity.GetTerraformRepresentation())
 
-	assert.Nil(t, err)
-	assert.Equal(t, severity.GetAPIRepresentation(), result)
+	require.Nil(t, err)
+	require.Equal(t, severity.GetAPIRepresentation(), result)
 }
 
 func TestShouldFailToConvertIntRepresentationForSeverityWhenStringValueIsNotValid(t *testing.T) {
 	result, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation("foo")
 
-	assert.NotNil(t, err)
-	assert.Equal(t, -1, result)
+	require.NotNil(t, err)
+	require.Equal(t, -1, result)
 }
 
-func TestShoulSuccessfullyMergeTheTwoPrividedMapsIntoASingleMap(t *testing.T) {
+func TestShouldSuccessfullyMergeTheTwoProvidedMapsIntoASingleMap(t *testing.T) {
 	mapA := map[string]*schema.Schema{"a": {}, "b": {}}
 	mapB := map[string]*schema.Schema{"c": {}, "d": {}}
 	mapMerged := map[string]*schema.Schema{"a": {}, "b": {}, "c": {}, "d": {}}
 
 	result := MergeSchemaMap(mapA, mapB)
 
-	assert.Equal(t, mapMerged, result)
+	require.Equal(t, mapMerged, result)
+}
+
+func TestShouldReturnIntPointerFromResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeInt,
+		Required: true,
+	}
+
+	value := 12
+	data := make(map[string]interface{})
+	data["test"] = value
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Equal(t, &value, GetIntPointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnNilWhenIntPointerIsRequestedButNotSetInResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeInt,
+		Required: true,
+	}
+
+	data := make(map[string]interface{})
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Nil(t, GetIntPointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnInt32PointerFromResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeInt,
+		Required: true,
+	}
+
+	value := int32(12)
+	data := make(map[string]interface{})
+	data["test"] = int(value)
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Equal(t, &value, GetInt32PointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnNilWhenInt32PointerIsRequestedButNotSetInResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeInt,
+		Required: true,
+	}
+
+	data := make(map[string]interface{})
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Nil(t, GetInt32PointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnFloat64PointerFromResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeFloat,
+		Required: true,
+	}
+
+	value := float64(12.1)
+	data := make(map[string]interface{})
+	data["test"] = value
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Equal(t, &value, GetFloat64PointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnNilWhenFloat64PointerIsRequestedButNotSetInResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeFloat,
+		Required: true,
+	}
+
+	data := make(map[string]interface{})
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Nil(t, GetFloat64PointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnFloat32PointerFromResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeFloat,
+		Required: true,
+	}
+
+	value := float32(12.1)
+	data := make(map[string]interface{})
+	data["test"] = float64(value)
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Equal(t, &value, GetFloat32PointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnNilWhenFloat32PointerIsRequestedButNotSetInResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeFloat,
+		Required: true,
+	}
+
+	data := make(map[string]interface{})
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Nil(t, GetFloat32PointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnStringPointerFromResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeString,
+		Required: true,
+	}
+
+	value := "test"
+	data := make(map[string]interface{})
+	data["test"] = value
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Equal(t, &value, GetStringPointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnNilWhenStringPointerIsRequestedButNotSetInResource(t *testing.T) {
+	resourceSchema := make(map[string]*schema.Schema)
+	resourceSchema["test"] = &schema.Schema{
+		Type:     schema.TypeString,
+		Required: true,
+	}
+
+	data := make(map[string]interface{})
+
+	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
+
+	require.Nil(t, GetStringPointerFromResourceData(resourceData, "test"))
 }

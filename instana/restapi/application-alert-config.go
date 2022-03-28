@@ -8,6 +8,7 @@ type ApplicationAlertRule struct {
 	AlertType   string      `json:"alertType"`
 	MetricName  string      `json:"metricName"`
 	Aggregation Aggregation `json:"aggregation"`
+	StableHash  *int32      `json:"stableHash"`
 
 	StatusCodeStart *int32 `json:"statusCodeStart"`
 	StatusCodeEnd   *int32 `json:"statusCodeEnd"`
@@ -39,13 +40,6 @@ type IncludedApplication struct {
 	Services map[string]IncludedService `json:"services"`
 }
 
-//StaticStringField custom type to represent static fields with a string value for custom payloads
-type StaticStringField struct {
-	Type  string `json:"type"`
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
 //ApplicationAlertConfig is the representation of an application alert configuration in Instana
 type ApplicationAlertConfig struct {
 	ID                    string                         `json:"id"`
@@ -61,7 +55,7 @@ type ApplicationAlertConfig struct {
 	EvaluationType        ApplicationAlertEvaluationType `json:"evaluationType"`
 	AlertChannelIDs       []string                       `json:"alertChannelIds"`
 	Granularity           Granularity                    `json:"granularity"`
-	CustomerPayloadFields []StaticStringField            `json:"customerPayloadFields"`
+	CustomerPayloadFields []CustomPayloadField           `json:"customerPayloadFields"`
 	Rule                  ApplicationAlertRule           `json:"rule"`
 	Threshold             Threshold                      `json:"threshold"`
 	TimeThreshold         TimeThreshold                  `json:"timeThreshold"`
