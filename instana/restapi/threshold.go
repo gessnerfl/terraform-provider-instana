@@ -80,7 +80,7 @@ type Threshold struct {
 	Operator        ThresholdOperator     `json:"operator"`
 	Baseline        *[][]float64          `json:"baseline"`
 	DeviationFactor *float32              `json:"deviationFactor"`
-	LastUpdated     int64                 `json:"lastUpdated"`
+	LastUpdated     *int64                `json:"lastUpdated"`
 	Seasonality     *ThresholdSeasonality `json:"seasonality"`
 	Value           *float64              `json:"value"`
 }
