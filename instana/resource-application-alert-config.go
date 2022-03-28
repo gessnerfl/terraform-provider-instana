@@ -33,7 +33,9 @@ const (
 	ApplicationAlertConfigFieldBoundaryScope = "boundary_scope"
 	//ApplicationAlertConfigFieldCustomPayloadFields constant value for field custom_payload_fields of resource instana_application_alert_config
 	ApplicationAlertConfigFieldCustomPayloadFields = "custom_payload_fields"
-	//ApplicationAlertConfigFieldCustomPayloadFieldsKey = "key" constant value for field custom_payload_fields.key of resource instana_application_alert_config
+	//ApplicationAlertConfigFieldCustomPayloadFieldsType constant value for field custom_payload_fields.type of resource instana_application_alert_config
+	ApplicationAlertConfigFieldCustomPayloadFieldsType = "type"
+	//ApplicationAlertConfigFieldCustomPayloadFieldsKey constant value for field custom_payload_fields.key of resource instana_application_alert_config
 	ApplicationAlertConfigFieldCustomPayloadFieldsKey = "key"
 	//ApplicationAlertConfigFieldCustomPayloadFieldsValue constant value for field custom_payload_fields.value of resource instana_application_alert_config
 	ApplicationAlertConfigFieldCustomPayloadFieldsValue = "value"
@@ -277,6 +279,12 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 					MaxItems: 20,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldCustomPayloadFieldsType: {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(restapi.SupportedCustomPayloadTypes.ToStringSlice(), false),
+								Description:  "The type of the custom payload field",
+							},
 							ApplicationAlertConfigFieldCustomPayloadFieldsKey: {
 								Type:        schema.TypeString,
 								Required:    true,
@@ -369,7 +377,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 											Type:         schema.TypeString,
 											Required:     true,
 											Description:  "The log level for which this rule applies to",
-											ValidateFunc: validation.StringInSlice(restapi.SupportedLogLevels.ToStringSlice(), true),
+											ValidateFunc: validation.StringInSlice(restapi.SupportedLogLevels.ToStringSlice(), false),
 										},
 										ApplicationAlertConfigFieldRuleLogsMessage: {
 											Type:        schema.TypeString,
@@ -510,7 +518,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 										ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality: {
 											Type:         schema.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(restapi.SupportedThresholdSeasonalities.ToStringSlice(), true),
+											ValidateFunc: validation.StringInSlice(restapi.SupportedThresholdSeasonalities.ToStringSlice(), false),
 											Description:  "The seasonality of the historic baseline threshold",
 										},
 									},
@@ -719,6 +727,7 @@ func (r *applicationAlertConfigResource) mapCustomPayloadFieldsToSchema(config *
 	result := make([]map[string]string, len(config.CustomerPayloadFields))
 	for i, v := range config.CustomerPayloadFields {
 		field := make(map[string]string)
+		field[ApplicationAlertConfigFieldCustomPayloadFieldsType] = string(v.Type)
 		field[ApplicationAlertConfigFieldCustomPayloadFieldsKey] = v.Key
 		field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = v.Value
 		result[i] = field
@@ -929,20 +938,21 @@ func (r *applicationAlertConfigResource) mapEndpointFromSchema(appData map[strin
 	}
 }
 
-func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.StaticStringField {
+func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.CustomPayloadField {
 	val := d.Get(ApplicationAlertConfigFieldCustomPayloadFields)
 	if val != nil {
 		fields := val.([]map[string]string)
-		result := make([]restapi.StaticStringField, len(fields))
+		result := make([]restapi.CustomPayloadField, len(fields))
 		for i, v := range fields {
-			result[i] = restapi.StaticStringField{
+			result[i] = restapi.CustomPayloadField{
+				Type:  restapi.CustomPayloadType(v[ApplicationAlertConfigFieldCustomPayloadFieldsType]),
 				Key:   v[ApplicationAlertConfigFieldCustomPayloadFieldsKey],
 				Value: v[ApplicationAlertConfigFieldCustomPayloadFieldsValue],
 			}
 		}
 		return result
 	}
-	return []restapi.StaticStringField{}
+	return []restapi.CustomPayloadField{}
 }
 
 func (r *applicationAlertConfigResource) mapRuleFromSchema(d *schema.ResourceData) restapi.ApplicationAlertRule {
