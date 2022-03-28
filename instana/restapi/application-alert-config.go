@@ -8,6 +8,7 @@ type ApplicationAlertRule struct {
 	AlertType   string      `json:"alertType"`
 	MetricName  string      `json:"metricName"`
 	Aggregation Aggregation `json:"aggregation"`
+	StableHash  *int32      `json:"stableHash"`
 
 	StatusCodeStart *int32 `json:"statusCodeStart"`
 	StatusCodeEnd   *int32 `json:"statusCodeEnd"`

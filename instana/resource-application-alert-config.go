@@ -59,6 +59,8 @@ const (
 	ApplicationAlertConfigFieldRuleMetricName = "metric_name"
 	//ApplicationAlertConfigFieldRuleAggregation constant value for field rule.*.aggregation of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleAggregation = "aggregation"
+	//ApplicationAlertConfigFieldRuleStableHash constant value for field rule.*.stable_hash of resource instana_application_alert_config
+	ApplicationAlertConfigFieldRuleStableHash = "stable_hash"
 	//ApplicationAlertConfigFieldRuleOperator constant value for field rule.*.operator of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleOperator = "operator"
 	//ApplicationAlertConfigFieldRuleErrorRate constant value for field rule.error_rate of resource instana_application_alert_config
@@ -139,6 +141,12 @@ var (
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), true),
 		Description:  "The aggregation function of the application alert rule",
+	}
+
+	applicationAlertSchemaRequiredRuleStableHash = &schema.Schema{
+		Type:        schema.TypeInt,
+		Optional:    true,
+		Description: "The stable hash used for the application alert rule",
 	}
 
 	applicationAlertSchemaOptionalRuleAggregation = &schema.Schema{
@@ -359,6 +367,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 									Schema: map[string]*schema.Schema{
 										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
+										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 									},
 								},
 								ExactlyOneOf: applicationAlertRuleTypeKeys,
@@ -373,6 +382,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 									Schema: map[string]*schema.Schema{
 										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
+										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 										ApplicationAlertConfigFieldRuleLogsLevel: {
 											Type:         schema.TypeString,
 											Required:     true,
@@ -399,6 +409,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 									Schema: map[string]*schema.Schema{
 										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaRequiredRuleAggregation,
+										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 									},
 								},
 								ExactlyOneOf: applicationAlertRuleTypeKeys,
@@ -413,6 +424,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 									Schema: map[string]*schema.Schema{
 										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
+										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 										ApplicationAlertConfigFieldRuleStatusCodeStart: {
 											Type:         schema.TypeInt,
 											Optional:     true,
@@ -439,6 +451,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 									Schema: map[string]*schema.Schema{
 										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
+										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 									},
 								},
 								ExactlyOneOf: applicationAlertRuleTypeKeys,
@@ -740,6 +753,10 @@ func (r *applicationAlertConfigResource) mapRuleToSchema(config *restapi.Applica
 	ruleAttribute[ApplicationAlertConfigFieldRuleMetricName] = config.Rule.MetricName
 	ruleAttribute[ApplicationAlertConfigFieldRuleAggregation] = config.Rule.Aggregation
 
+	if config.Rule.StableHash != nil {
+		ruleAttribute[ApplicationAlertConfigFieldRuleStableHash] = int(*config.Rule.StableHash)
+	}
+
 	if config.Rule.StatusCodeStart != nil {
 		ruleAttribute[ApplicationAlertConfigFieldRuleStatusCodeStart] = int(*config.Rule.StatusCodeStart)
 	}
@@ -969,6 +986,7 @@ func (r *applicationAlertConfigResource) mapRuleFromSchema(d *schema.ResourceDat
 			AlertType:       r.mapAlertTypeFromSchema(alertType),
 			MetricName:      config[ApplicationAlertConfigFieldRuleMetricName].(string),
 			Aggregation:     restapi.Aggregation(config[ApplicationAlertConfigFieldRuleAggregation].(string)),
+			StableHash:      GetInt32PointerFromResourceData(d, ApplicationAlertConfigFieldRuleStableHash),
 			StatusCodeStart: GetInt32PointerFromResourceData(d, ApplicationAlertConfigFieldRuleStatusCodeStart),
 			StatusCodeEnd:   GetInt32PointerFromResourceData(d, ApplicationAlertConfigFieldRuleStatusCodeEnd),
 			Level:           levelPtr,
