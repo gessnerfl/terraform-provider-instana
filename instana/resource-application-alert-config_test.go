@@ -116,7 +116,15 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				MetricName:  metricName,
 				StableHash:  &stableHash,
 			},
-			expected: []interface{}{map[string]interface{}{"error_rate": []interface{}{}, "logs": []interface{}{}, "slowness": []interface{}{}, "status_code": []interface{}{}, "throughput": []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"error_rate":  []interface{}{},
+					"logs":        []interface{}{},
+					"slowness":    []interface{}{},
+					"status_code": []interface{}{},
+					"throughput":  []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}},
+				},
+			},
 		},
 		{
 			name: "StatusCode",
@@ -128,7 +136,15 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				StatusCodeStart: &statusCodeStart,
 				StatusCodeEnd:   &statusCodeEnd,
 			},
-			expected: []interface{}{map[string]interface{}{"error_rate": []interface{}{}, "logs": []interface{}{}, "slowness": []interface{}{}, "status_code": []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash), "status_code_start": int(statusCodeStart), "status_code_end": int(statusCodeEnd)}}, "throughput": []interface{}{}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"error_rate":  []interface{}{},
+					"logs":        []interface{}{},
+					"slowness":    []interface{}{},
+					"status_code": []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash), "status_code_start": int(statusCodeStart), "status_code_end": int(statusCodeEnd)}},
+					"throughput":  []interface{}{},
+				},
+			},
 		},
 		{
 			name: "Slowness",
@@ -138,7 +154,15 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				MetricName:  metricName,
 				StableHash:  &stableHash,
 			},
-			expected: []interface{}{map[string]interface{}{"error_rate": []interface{}{}, "logs": []interface{}{}, "slowness": []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}}, "status_code": []interface{}{}, "throughput": []interface{}{}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"error_rate":  []interface{}{},
+					"logs":        []interface{}{},
+					"slowness":    []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}},
+					"status_code": []interface{}{},
+					"throughput":  []interface{}{},
+				},
+			},
 		},
 		{
 			name: "Logs",
@@ -151,7 +175,15 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				Operator:    &logOperator,
 				Level:       &logLevel,
 			},
-			expected: []interface{}{map[string]interface{}{"error_rate": []interface{}{}, "logs": []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash), "level": string(logLevel), "message": logMessage, "operator": string(logOperator)}}, "slowness": []interface{}{}, "status_code": []interface{}{}, "throughput": []interface{}{}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"error_rate":  []interface{}{},
+					"logs":        []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash), "level": string(logLevel), "message": logMessage, "operator": string(logOperator)}},
+					"slowness":    []interface{}{},
+					"status_code": []interface{}{},
+					"throughput":  []interface{}{},
+				},
+			},
 		},
 		{
 			name: "ErrorRate",
@@ -161,7 +193,15 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				MetricName:  metricName,
 				StableHash:  &stableHash,
 			},
-			expected: []interface{}{map[string]interface{}{"error_rate": []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}}, "logs": []interface{}{}, "slowness": []interface{}{}, "status_code": []interface{}{}, "throughput": []interface{}{}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"error_rate":  []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}},
+					"logs":        []interface{}{},
+					"slowness":    []interface{}{},
+					"status_code": []interface{}{},
+					"throughput":  []interface{}{},
+				},
+			},
 		},
 	}
 
@@ -179,7 +219,12 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				LastUpdated: &thresholdLastUpdate,
 				Value:       &thresholdValue,
 			},
-			expected: []interface{}{map[string]interface{}{"historic_baseline": []interface{}{}, "static": []interface{}{map[string]interface{}{"last_updated": int(thresholdLastUpdate), "operator": string(restapi.ThresholdOperatorGreaterThan), "value": thresholdValue}}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"historic_baseline": []interface{}{},
+					"static":            []interface{}{map[string]interface{}{"last_updated": int(thresholdLastUpdate), "operator": string(restapi.ThresholdOperatorGreaterThan), "value": thresholdValue}},
+				},
+			},
 		},
 		{
 			name: "HistoricBaseLine",
@@ -191,7 +236,20 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				Baseline:        &thresholdBaseline,
 				DeviationFactor: &thresholdDeviationFactor,
 			},
-			expected: []interface{}{map[string]interface{}{"historic_baseline": []interface{}{map[string]interface{}{"last_updated": int(thresholdLastUpdate), "operator": string(restapi.ThresholdOperatorGreaterThan), "seasonality": string(thresholdSeasonality), "baseline": thresholdBaseline, "deviation_factor": float64(thresholdDeviationFactor)}}, "static": []interface{}{}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"historic_baseline": []interface{}{
+						map[string]interface{}{
+							"last_updated":     int(thresholdLastUpdate),
+							"operator":         string(restapi.ThresholdOperatorGreaterThan),
+							"seasonality":      string(thresholdSeasonality),
+							"baseline":         thresholdBaseline,
+							"deviation_factor": float64(thresholdDeviationFactor),
+						},
+					},
+					"static": []interface{}{},
+				},
+			},
 		},
 	}
 
@@ -206,7 +264,13 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				TimeWindow: timeThresholdWindow,
 				Requests:   &timeThresholdRequests,
 			},
-			expected: []interface{}{map[string]interface{}{"request_impact": []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow), "requests": int(timeThresholdRequests)}}, "violations_in_period": []interface{}{}, "violations_in_sequence": []interface{}{}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"request_impact":         []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow), "requests": int(timeThresholdRequests)}},
+					"violations_in_period":   []interface{}{},
+					"violations_in_sequence": []interface{}{},
+				},
+			},
 		},
 		{
 			name: "ViolationsInPeriod",
@@ -215,7 +279,13 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				TimeWindow: timeThresholdWindow,
 				Violations: &timeThresholdViolations,
 			},
-			expected: []interface{}{map[string]interface{}{"request_impact": []interface{}{}, "violations_in_period": []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow), "violations": int(timeThresholdViolations)}}, "violations_in_sequence": []interface{}{}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"request_impact":         []interface{}{},
+					"violations_in_period":   []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow), "violations": int(timeThresholdViolations)}},
+					"violations_in_sequence": []interface{}{},
+				},
+			},
 		},
 		{
 			name: "ViolationsInSequence",
@@ -223,7 +293,13 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 				Type:       "violationsInSequence",
 				TimeWindow: timeThresholdWindow,
 			},
-			expected: []interface{}{map[string]interface{}{"request_impact": []interface{}{}, "violations_in_period": []interface{}{}, "violations_in_sequence": []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow)}}}},
+			expected: []interface{}{
+				map[string]interface{}{
+					"request_impact":         []interface{}{},
+					"violations_in_period":   []interface{}{},
+					"violations_in_sequence": []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow)}},
+				},
+			},
 		},
 	}
 
@@ -263,12 +339,24 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 					},
 				},
 			},
-			BoundaryScope:       restapi.BoundaryScopeInbound,
-			Description:         "application-alert-config-description",
-			EvaluationType:      restapi.EvaluationTypePerApplication,
-			Granularity:         restapi.Granularity600000,
-			IncludeInternal:     false,
-			IncludeSynthetic:    false,
+			BoundaryScope:    restapi.BoundaryScopeInbound,
+			Description:      "application-alert-config-description",
+			EvaluationType:   restapi.EvaluationTypePerApplication,
+			Granularity:      restapi.Granularity600000,
+			IncludeInternal:  false,
+			IncludeSynthetic: false,
+			CustomerPayloadFields: []restapi.CustomPayloadField{
+				{
+					Type:  restapi.StaticCustomPayloadType,
+					Key:   "static-key",
+					Value: "static-value",
+				},
+				{
+					Type:  restapi.DynamicCustomPayloadType,
+					Key:   "dynamic-key",
+					Value: "dynamic-value",
+				},
+			},
 			Name:                fullName,
 			Rule:                ruleTestPair.input,
 			Severity:            restapi.SeverityCritical.GetAPIRepresentation(),
@@ -287,7 +375,24 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 		require.NoError(t, err)
 		require.Equal(t, applicationAlertConfigID, resourceData.Id())
 		require.Equal(t, []interface{}{"channel-2", "channel-1"}, (resourceData.Get(ApplicationAlertConfigFieldAlertChannelIDs).(*schema.Set)).List())
-		require.Equal(t, []interface{}{map[string]interface{}{"application_id": "app-1", "inclusive": true, "services": []interface{}{map[string]interface{}{"endpoints": []interface{}{map[string]interface{}{"endpoint_id": "edp-1", "inclusive": true}}, "inclusive": true, "service_id": "srv-1"}}}}, resourceData.Get(ApplicationAlertConfigFieldApplications))
+		require.Equal(t, []interface{}{
+			map[string]interface{}{
+				"application_id": "app-1",
+				"inclusive":      true,
+				"services": []interface{}{
+					map[string]interface{}{
+						"service_id": "srv-1",
+						"inclusive":  true,
+						"endpoints": []interface{}{
+							map[string]interface{}{
+								"endpoint_id": "edp-1",
+								"inclusive":   true,
+							},
+						},
+					},
+				},
+			},
+		}, resourceData.Get(ApplicationAlertConfigFieldApplications))
 		require.Equal(t, string(restapi.BoundaryScopeInbound), resourceData.Get(ApplicationAlertConfigFieldBoundaryScope))
 		require.Equal(t, "application-alert-config-description", resourceData.Get(ApplicationAlertConfigFieldDescription))
 		require.Equal(t, "application-alert-config-name", resourceData.Get(ApplicationAlertConfigFieldName))
@@ -295,7 +400,10 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 		require.Equal(t, string(restapi.EvaluationTypePerApplication), resourceData.Get(ApplicationAlertConfigFieldEvaluationType))
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeInternal).(bool))
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeSynthetic).(bool))
-		require.Empty(t, resourceData.Get(ApplicationAlertConfigFieldCustomPayloadFields))
+		require.Equal(t, []interface{}{
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "static", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-value"},
+		}, resourceData.Get(ApplicationAlertConfigFieldCustomPayloadFields))
 		require.Equal(t, ruleTestPair.expected, resourceData.Get(ApplicationAlertConfigFieldRule))
 		require.Equal(t, restapi.SeverityCritical.GetTerraformRepresentation(), resourceData.Get(ApplicationAlertConfigFieldSeverity))
 		require.Equal(t, "service.name@src EQUALS 'test'", resourceData.Get(ApplicationAlertConfigFieldTagFilter))
