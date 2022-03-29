@@ -61,8 +61,6 @@ const (
 	ApplicationAlertConfigFieldRuleAggregation = "aggregation"
 	//ApplicationAlertConfigFieldRuleStableHash constant value for field rule.*.stable_hash of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleStableHash = "stable_hash"
-	//ApplicationAlertConfigFieldRuleOperator constant value for field rule.*.operator of resource instana_application_alert_config
-	ApplicationAlertConfigFieldRuleOperator = "operator"
 	//ApplicationAlertConfigFieldRuleErrorRate constant value for field rule.error_rate of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleErrorRate = "error_rate"
 	//ApplicationAlertConfigFieldRuleLogs constant value for field rule.logs of resource instana_application_alert_config
@@ -71,6 +69,8 @@ const (
 	ApplicationAlertConfigFieldRuleLogsLevel = "level"
 	//ApplicationAlertConfigFieldRuleLogsMessage constant value for field rule.logs.message of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleLogsMessage = "message"
+	//ApplicationAlertConfigFieldRuleLogsOperator constant value for field rule.logs.operator of resource instana_application_alert_config
+	ApplicationAlertConfigFieldRuleLogsOperator = "operator"
 	//ApplicationAlertConfigFieldRuleSlowness constant value for field rule.slowness of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleSlowness = "slowness"
 	//ApplicationAlertConfigFieldRuleStatusCode constant value for field rule.status_code of resource instana_application_alert_config
@@ -394,7 +394,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 											Optional:    true,
 											Description: "The log message for which this rule applies to",
 										},
-										ApplicationAlertConfigFieldRuleOperator: applicationAlertSchemaRequiredRuleOperator,
+										ApplicationAlertConfigFieldRuleLogsOperator: applicationAlertSchemaRequiredRuleOperator,
 									},
 								},
 								ExactlyOneOf: applicationAlertRuleTypeKeys,
@@ -770,6 +770,9 @@ func (r *applicationAlertConfigResource) mapRuleToSchema(config *restapi.Applica
 	if config.Rule.Message != nil {
 		ruleAttribute[ApplicationAlertConfigFieldRuleLogsMessage] = *config.Rule.Message
 	}
+	if config.Rule.Operator != nil {
+		ruleAttribute[ApplicationAlertConfigFieldRuleLogsOperator] = *config.Rule.Operator
+	}
 
 	alertType := r.mapAlertTypeToSchema(config.Rule.AlertType)
 	rule := make(map[string]interface{})
@@ -1002,6 +1005,11 @@ func (r *applicationAlertConfigResource) mapRuleFromSchema(d *schema.ResourceDat
 			message := v.(string)
 			messagePtr = &message
 		}
+		var operatorPtr *restapi.ExpressionOperator
+		if v, ok := config[ApplicationAlertConfigFieldRuleLogsOperator]; ok {
+			operator := restapi.ExpressionOperator(v.(string))
+			operatorPtr = &operator
+		}
 		return restapi.ApplicationAlertRule{
 			AlertType:       r.mapAlertTypeFromSchema(alertType),
 			MetricName:      config[ApplicationAlertConfigFieldRuleMetricName].(string),
@@ -1011,6 +1019,7 @@ func (r *applicationAlertConfigResource) mapRuleFromSchema(d *schema.ResourceDat
 			StatusCodeEnd:   statusCodeEndPtr,
 			Level:           levelPtr,
 			Message:         messagePtr,
+			Operator:        operatorPtr,
 		}
 	}
 	return restapi.ApplicationAlertRule{}

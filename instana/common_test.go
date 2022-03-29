@@ -96,3 +96,17 @@ func copyMap(input map[string]interface{}) map[string]interface{} {
 
 	return result
 }
+
+func toInterfaceSlice[T any](value []T) []interface{} {
+	result := make([]interface{}, len(value))
+	for i, v := range value {
+		result[i] = v
+	}
+	return result
+}
+
+type testPair[A any, E any] struct {
+	name     string
+	input    A
+	expected E
+}
