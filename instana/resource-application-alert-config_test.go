@@ -109,20 +109,26 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 	logOperator := restapi.EqualsOperator
 	rules := []testPair[restapi.ApplicationAlertRule, []interface{}]{
 		{
-			name: "Throughput",
+			name: ApplicationAlertConfigFieldRuleThroughput,
 			input: restapi.ApplicationAlertRule{
-				AlertType:   "throughput",
+				AlertType:   ApplicationAlertConfigFieldRuleThroughput,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
 				StableHash:  &stableHash,
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"error_rate":  []interface{}{},
-					"logs":        []interface{}{},
-					"slowness":    []interface{}{},
-					"status_code": []interface{}{},
-					"throughput":  []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}},
+					ApplicationAlertConfigFieldRuleErrorRate:  []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:  metricName,
+							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
+						},
+					},
 				},
 			},
 		},
@@ -138,36 +144,50 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"error_rate":  []interface{}{},
-					"logs":        []interface{}{},
-					"slowness":    []interface{}{},
-					"status_code": []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash), "status_code_start": int(statusCodeStart), "status_code_end": int(statusCodeEnd)}},
-					"throughput":  []interface{}{},
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs:      []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness:  []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation:     string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:      metricName,
+							ApplicationAlertConfigFieldRuleStableHash:      int(stableHash),
+							ApplicationAlertConfigFieldRuleStatusCodeStart: int(statusCodeStart),
+							ApplicationAlertConfigFieldRuleStatusCodeEnd:   int(statusCodeEnd),
+						},
+					},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
 				},
 			},
 		},
 		{
-			name: "Slowness",
+			name: ApplicationAlertConfigFieldRuleSlowness,
 			input: restapi.ApplicationAlertRule{
-				AlertType:   "slowness",
+				AlertType:   ApplicationAlertConfigFieldRuleSlowness,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
 				StableHash:  &stableHash,
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"error_rate":  []interface{}{},
-					"logs":        []interface{}{},
-					"slowness":    []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}},
-					"status_code": []interface{}{},
-					"throughput":  []interface{}{},
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs:      []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:  metricName,
+							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
+						},
+					},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
 				},
 			},
 		},
 		{
-			name: "Logs",
+			name: ApplicationAlertConfigFieldRuleLogs,
 			input: restapi.ApplicationAlertRule{
-				AlertType:   "logs",
+				AlertType:   ApplicationAlertConfigFieldRuleLogs,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
 				StableHash:  &stableHash,
@@ -177,11 +197,20 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"error_rate":  []interface{}{},
-					"logs":        []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash), "level": string(logLevel), "message": logMessage, "operator": string(logOperator)}},
-					"slowness":    []interface{}{},
-					"status_code": []interface{}{},
-					"throughput":  []interface{}{},
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation:   string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:    metricName,
+							ApplicationAlertConfigFieldRuleStableHash:    int(stableHash),
+							ApplicationAlertConfigFieldRuleLogsLevel:     string(logLevel),
+							ApplicationAlertConfigFieldRuleLogsMessage:   logMessage,
+							ApplicationAlertConfigFieldThresholdOperator: string(logOperator),
+						},
+					},
+					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
 				},
 			},
 		},
@@ -195,11 +224,17 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"error_rate":  []interface{}{map[string]interface{}{"aggregation": string(restapi.MinAggregation), "metric_name": metricName, "stable_hash": int(stableHash)}},
-					"logs":        []interface{}{},
-					"slowness":    []interface{}{},
-					"status_code": []interface{}{},
-					"throughput":  []interface{}{},
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:  metricName,
+							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
+						},
+					},
+					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
 				},
 			},
 		},
@@ -221,8 +256,14 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"historic_baseline": []interface{}{},
-					"static":            []interface{}{map[string]interface{}{"last_updated": int(thresholdLastUpdate), "operator": string(restapi.ThresholdOperatorGreaterThan), "value": thresholdValue}},
+					ApplicationAlertConfigFieldThresholdHistoricBaseline: []interface{}{},
+					ApplicationAlertConfigFieldThresholdStatic: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldThresholdLastUpdated: int(thresholdLastUpdate),
+							ApplicationAlertConfigFieldThresholdOperator:    string(restapi.ThresholdOperatorGreaterThan),
+							ApplicationAlertConfigFieldThresholdStaticValue: thresholdValue,
+						},
+					},
 				},
 			},
 		},
@@ -238,16 +279,16 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"historic_baseline": []interface{}{
+					ApplicationAlertConfigFieldThresholdHistoricBaseline: []interface{}{
 						map[string]interface{}{
-							"last_updated":     int(thresholdLastUpdate),
-							"operator":         string(restapi.ThresholdOperatorGreaterThan),
-							"seasonality":      string(thresholdSeasonality),
-							"baseline":         thresholdBaseline,
-							"deviation_factor": float64(thresholdDeviationFactor),
+							ApplicationAlertConfigFieldThresholdLastUpdated:                     int(thresholdLastUpdate),
+							ApplicationAlertConfigFieldThresholdOperator:                        string(restapi.ThresholdOperatorGreaterThan),
+							ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality:     string(thresholdSeasonality),
+							ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline:        thresholdBaseline,
+							ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor: float64(thresholdDeviationFactor),
 						},
 					},
-					"static": []interface{}{},
+					ApplicationAlertConfigFieldThresholdStatic: []interface{}{},
 				},
 			},
 		},
@@ -266,9 +307,14 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"request_impact":         []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow), "requests": int(timeThresholdRequests)}},
-					"violations_in_period":   []interface{}{},
-					"violations_in_sequence": []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdRequestImpact: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow:            int(timeThresholdWindow),
+							ApplicationAlertConfigFieldTimeThresholdRequestImpactRequests: int(timeThresholdRequests),
+						},
+					},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInPeriod:   []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInSequence: []interface{}{},
 				},
 			},
 		},
@@ -281,9 +327,14 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"request_impact":         []interface{}{},
-					"violations_in_period":   []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow), "violations": int(timeThresholdViolations)}},
-					"violations_in_sequence": []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdRequestImpact: []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInPeriod: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow:                   int(timeThresholdWindow),
+							ApplicationAlertConfigFieldTimeThresholdViolationsInPeriodViolations: int(timeThresholdViolations),
+						},
+					},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInSequence: []interface{}{},
 				},
 			},
 		},
@@ -295,9 +346,13 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModel(t *testing
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					"request_impact":         []interface{}{},
-					"violations_in_period":   []interface{}{},
-					"violations_in_sequence": []interface{}{map[string]interface{}{"time_window": int(timeThresholdWindow)}},
+					ApplicationAlertConfigFieldTimeThresholdRequestImpact:      []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInPeriod: []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInSequence: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow: int(timeThresholdWindow),
+						},
+					},
 				},
 			},
 		},
@@ -401,7 +456,7 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeInternal).(bool))
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeSynthetic).(bool))
 		require.Equal(t, []interface{}{
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "static", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: ApplicationAlertConfigFieldThresholdStatic, ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
 			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-value"},
 		}, resourceData.Get(ApplicationAlertConfigFieldCustomPayloadFields))
 		require.Equal(t, ruleTestPair.expected, resourceData.Get(ApplicationAlertConfigFieldRule))
@@ -421,7 +476,7 @@ func requireApplicationAlertConfigThresholdSetOnSchema(t *testing.T, expected []
 	actualEntries := actual[0].(map[string]interface{})
 
 	for k, e := range expectedEntries {
-		if k == "historic_baseline" && len(e.([]interface{})) > 0 {
+		if k == ApplicationAlertConfigFieldThresholdHistoricBaseline && len(e.([]interface{})) > 0 {
 			expectedHistoricBaselineSlice := e.([]interface{})
 			actualHistoricBaselineSlice := actualEntries[k].([]interface{})
 			require.Equal(t, 1, len(expectedHistoricBaselineSlice))
@@ -429,12 +484,12 @@ func requireApplicationAlertConfigThresholdSetOnSchema(t *testing.T, expected []
 			expectedHistoricBaseline := expectedHistoricBaselineSlice[0].(map[string]interface{})
 			actualHistoricBaseline := actualHistoricBaselineSlice[0].(map[string]interface{})
 			for key, expectedBaselineValue := range expectedHistoricBaseline {
-				if key == "baseline" {
+				if key == ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline {
 					actualBaseline := actualHistoricBaseline[key].(*schema.Set)
 					actualBaselineSlice := make([][]float64, actualBaseline.Len())
 					for i, v := range actualBaseline.List() {
 						values := v.(*schema.Set).List()
-						actualBaselineSlice[i] = toFloat64Slice(values)
+						actualBaselineSlice[i] = ConvertInterfaceSlice[float64](values)
 					}
 					require.Equal(t, expectedBaselineValue, actualBaselineSlice)
 				} else {
@@ -447,10 +502,374 @@ func requireApplicationAlertConfigThresholdSetOnSchema(t *testing.T, expected []
 	}
 }
 
-func toFloat64Slice(input []interface{}) []float64 {
-	result := make([]float64, len(input))
-	for i, v := range input {
-		result[i] = v.(float64)
+func TestShouldMapApplicationConfigTerraformResourceStateToModel(t *testing.T) {
+	metricName := "test-metric"
+	stableHash := int32(1234)
+	statusCodeStart := int32(200)
+	statusCodeEnd := int32(300)
+	logMessage := "test-log-message"
+	logLevel := restapi.LogLevelError
+	logOperator := restapi.EqualsOperator
+	rules := []testPair[[]map[string]interface{}, restapi.ApplicationAlertRule]{
+		{
+			name: ApplicationAlertConfigFieldRuleThroughput,
+			expected: restapi.ApplicationAlertRule{
+				AlertType:   ApplicationAlertConfigFieldRuleThroughput,
+				Aggregation: restapi.MinAggregation,
+				MetricName:  metricName,
+				StableHash:  &stableHash,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldRuleErrorRate:  []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:  metricName,
+							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "StatusCode",
+			expected: restapi.ApplicationAlertRule{
+				AlertType:       "statusCode",
+				Aggregation:     restapi.MinAggregation,
+				MetricName:      metricName,
+				StableHash:      &stableHash,
+				StatusCodeStart: &statusCodeStart,
+				StatusCodeEnd:   &statusCodeEnd,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs:      []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness:  []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation:     string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:      metricName,
+							ApplicationAlertConfigFieldRuleStableHash:      int(stableHash),
+							ApplicationAlertConfigFieldRuleStatusCodeStart: int(statusCodeStart),
+							ApplicationAlertConfigFieldRuleStatusCodeEnd:   int(statusCodeEnd),
+						},
+					},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
+				},
+			},
+		},
+		{
+			name: ApplicationAlertConfigFieldRuleSlowness,
+			expected: restapi.ApplicationAlertRule{
+				AlertType:   ApplicationAlertConfigFieldRuleSlowness,
+				Aggregation: restapi.MinAggregation,
+				MetricName:  metricName,
+				StableHash:  &stableHash,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs:      []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:  metricName,
+							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
+						},
+					},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
+				},
+			},
+		},
+		{
+			name: ApplicationAlertConfigFieldRuleLogs,
+			expected: restapi.ApplicationAlertRule{
+				AlertType:   ApplicationAlertConfigFieldRuleLogs,
+				Aggregation: restapi.MinAggregation,
+				MetricName:  metricName,
+				StableHash:  &stableHash,
+				Message:     &logMessage,
+				Operator:    &logOperator,
+				Level:       &logLevel,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation:   string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:    metricName,
+							ApplicationAlertConfigFieldRuleStableHash:    int(stableHash),
+							ApplicationAlertConfigFieldRuleLogsLevel:     string(logLevel),
+							ApplicationAlertConfigFieldRuleLogsMessage:   logMessage,
+							ApplicationAlertConfigFieldThresholdOperator: string(logOperator),
+						},
+					},
+					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
+				},
+			},
+		},
+		{
+			name: "ErrorRate",
+			expected: restapi.ApplicationAlertRule{
+				AlertType:   "errorRate",
+				Aggregation: restapi.MinAggregation,
+				MetricName:  metricName,
+				StableHash:  &stableHash,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:  metricName,
+							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
+						},
+					},
+					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
+				},
+			},
+		},
 	}
-	return result
+
+	thresholdValue := 123.3
+	thresholdLastUpdate := int64(12345)
+	thresholdSeasonality := restapi.ThresholdSeasonalityDaily
+	thresholdBaseline := [][]float64{{1.23, 4.56}, {1.23, 7.89}}
+	thresholdDeviationFactor := float32(1.23)
+	thresholds := []testPair[[]map[string]interface{}, restapi.Threshold]{
+		{
+			name: "StaticThreshold",
+			expected: restapi.Threshold{
+				Type:        "staticThreshold",
+				Operator:    restapi.ThresholdOperatorGreaterThan,
+				LastUpdated: &thresholdLastUpdate,
+				Value:       &thresholdValue,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldThresholdHistoricBaseline: []interface{}{},
+					ApplicationAlertConfigFieldThresholdStatic: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldThresholdLastUpdated: int(thresholdLastUpdate),
+							ApplicationAlertConfigFieldThresholdOperator:    string(restapi.ThresholdOperatorGreaterThan),
+							ApplicationAlertConfigFieldThresholdStaticValue: thresholdValue,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "HistoricBaseLine",
+			expected: restapi.Threshold{
+				Type:            "historicBaseline",
+				Operator:        restapi.ThresholdOperatorGreaterThan,
+				LastUpdated:     &thresholdLastUpdate,
+				Seasonality:     &thresholdSeasonality,
+				Baseline:        &thresholdBaseline,
+				DeviationFactor: &thresholdDeviationFactor,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldThresholdHistoricBaseline: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldThresholdLastUpdated:                     int(thresholdLastUpdate),
+							ApplicationAlertConfigFieldThresholdOperator:                        string(restapi.ThresholdOperatorGreaterThan),
+							ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality:     string(thresholdSeasonality),
+							ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline:        thresholdBaseline,
+							ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor: float64(thresholdDeviationFactor),
+						},
+					},
+					ApplicationAlertConfigFieldThresholdStatic: []interface{}{},
+				},
+			},
+		},
+	}
+
+	timeThresholdWindow := int64(12345)
+	timeThresholdRequests := int32(5)
+	timeThresholdViolations := int32(3)
+	timeThresholds := []testPair[[]map[string]interface{}, restapi.TimeThreshold]{
+		{
+			name: "RequestImpact",
+			expected: restapi.TimeThreshold{
+				Type:       "requestImpact",
+				TimeWindow: timeThresholdWindow,
+				Requests:   &timeThresholdRequests,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldTimeThresholdRequestImpact: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow:            int(timeThresholdWindow),
+							ApplicationAlertConfigFieldTimeThresholdRequestImpactRequests: int(timeThresholdRequests),
+						},
+					},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInPeriod:   []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInSequence: []interface{}{},
+				},
+			},
+		},
+		{
+			name: "ViolationsInPeriod",
+			expected: restapi.TimeThreshold{
+				Type:       "violationsInPeriod",
+				TimeWindow: timeThresholdWindow,
+				Violations: &timeThresholdViolations,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldTimeThresholdRequestImpact: []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInPeriod: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow:                   int(timeThresholdWindow),
+							ApplicationAlertConfigFieldTimeThresholdViolationsInPeriodViolations: int(timeThresholdViolations),
+						},
+					},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInSequence: []interface{}{},
+				},
+			},
+		},
+		{
+			name: "ViolationsInSequence",
+			expected: restapi.TimeThreshold{
+				Type:       "violationsInSequence",
+				TimeWindow: timeThresholdWindow,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldTimeThresholdRequestImpact:      []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInPeriod: []interface{}{},
+					ApplicationAlertConfigFieldTimeThresholdViolationsInSequence: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow: int(timeThresholdWindow),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, rule := range rules {
+		for _, threshold := range thresholds {
+			for _, timeThreshold := range timeThresholds {
+				t.Run(fmt.Sprintf("TestShouldMapApplicationConfigTerraformResourceStateToModelWith%sAnd%sAnd%s", rule.name, threshold.name, timeThreshold.name), createTestShouldMapApplicationConfigTerraformResourceStateToModelCase(rule, threshold, timeThreshold))
+			}
+		}
+	}
+}
+
+func createTestShouldMapApplicationConfigTerraformResourceStateToModelCase(ruleTestPair testPair[[]map[string]interface{}, restapi.ApplicationAlertRule],
+	thresholdTestPair testPair[[]map[string]interface{}, restapi.Threshold],
+	timeThresholdTestPair testPair[[]map[string]interface{}, restapi.TimeThreshold]) func(t *testing.T) {
+	return func(t *testing.T) {
+		fullName := "prefix application-alert-config-name suffix"
+		applicationAlertConfigID := "application-alert-config-id"
+
+		expectedApplicationConfig := restapi.ApplicationAlertConfig{
+			ID:              applicationAlertConfigID,
+			AlertChannelIDs: []string{"channel-2", "channel-1"},
+			Applications: map[string]restapi.IncludedApplication{
+				"app-1": {
+					ApplicationID: "app-1",
+					Inclusive:     true,
+					Services: map[string]restapi.IncludedService{
+						"srv-1": {
+							ServiceID: "srv-1",
+							Inclusive: true,
+							Endpoints: map[string]restapi.IncludedEndpoint{
+								"edp-1": {
+									EndpointID: "edp-1",
+									Inclusive:  true,
+								},
+							},
+						},
+					},
+				},
+			},
+			BoundaryScope:    restapi.BoundaryScopeInbound,
+			Description:      "application-alert-config-description",
+			EvaluationType:   restapi.EvaluationTypePerApplication,
+			Granularity:      restapi.Granularity600000,
+			IncludeInternal:  false,
+			IncludeSynthetic: false,
+			CustomerPayloadFields: []restapi.CustomPayloadField{
+				{
+					Type:  restapi.StaticCustomPayloadType,
+					Key:   "static-key",
+					Value: "static-value",
+				},
+				{
+					Type:  restapi.DynamicCustomPayloadType,
+					Key:   "dynamic-key",
+					Value: "dynamic-value",
+				},
+			},
+			Name:                fullName,
+			Rule:                ruleTestPair.expected,
+			Severity:            restapi.SeverityCritical.GetAPIRepresentation(),
+			TagFilterExpression: restapi.NewStringTagFilter(restapi.TagFilterEntitySource, "service.name", restapi.EqualsOperator, "test"),
+			Threshold:           thresholdTestPair.expected,
+			TimeThreshold:       timeThresholdTestPair.expected,
+			Triggering:          true,
+		}
+
+		testHelper := NewTestHelper(t)
+		sut := NewApplicationAlertConfigResourceHandle()
+		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+		resourceData.Set(ApplicationAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})
+		resourceData.Set(ApplicationAlertConfigFieldApplications, []interface{}{
+			map[string]interface{}{
+				"application_id": "app-1",
+				"inclusive":      true,
+				"services": []interface{}{
+					map[string]interface{}{
+						"service_id": "srv-1",
+						"inclusive":  true,
+						"endpoints": []interface{}{
+							map[string]interface{}{
+								"endpoint_id": "edp-1",
+								"inclusive":   true,
+							},
+						},
+					},
+				},
+			},
+		})
+		resourceData.Set(ApplicationAlertConfigFieldBoundaryScope, restapi.BoundaryScopeInbound)
+		resourceData.Set(ApplicationAlertConfigFieldCustomPayloadFields, []interface{}{
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: ApplicationAlertConfigFieldThresholdStatic, ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-value"},
+		})
+		resourceData.Set(ApplicationAlertConfigFieldDescription, "application-alert-config-description")
+		resourceData.Set(ApplicationAlertConfigFieldEvaluationType, restapi.EvaluationTypePerApplication)
+		resourceData.Set(ApplicationAlertConfigFieldGranularity, restapi.Granularity600000)
+		resourceData.Set(ApplicationAlertConfigFieldIncludeInternal, false)
+		resourceData.Set(ApplicationAlertConfigFieldIncludeSynthetic, false)
+		resourceData.Set(ApplicationAlertConfigFieldName, "application-alert-config-name")
+		resourceData.Set(ApplicationAlertConfigFieldFullName, fullName)
+		resourceData.Set(ApplicationAlertConfigFieldRule, ruleTestPair.input)
+		resourceData.Set(ApplicationAlertConfigFieldSeverity, restapi.SeverityCritical.GetTerraformRepresentation())
+		resourceData.Set(ApplicationAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
+		resourceData.Set(ApplicationAlertConfigFieldThreshold, thresholdTestPair.input)
+		resourceData.Set(ApplicationAlertConfigFieldTimeThreshold, timeThresholdTestPair.input)
+		resourceData.Set(ApplicationAlertConfigFieldTriggering, true)
+		resourceData.SetId(applicationAlertConfigID)
+
+		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+
+		require.NoError(t, err)
+		require.Equal(t, &expectedApplicationConfig, result)
+	}
 }

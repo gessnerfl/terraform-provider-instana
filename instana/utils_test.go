@@ -256,3 +256,12 @@ func TestShouldReturnNilWhenStringPointerIsRequestedButNotSetInResource(t *testi
 
 	require.Nil(t, GetStringPointerFromResourceData(resourceData, "test"))
 }
+
+func TestShouldConvertInterfaceSliceToTargetIntSlice(t *testing.T) {
+	input := []interface{}{12, 34, 56}
+	expectedResult := []int{12, 34, 56}
+
+	result := ConvertInterfaceSlice[int](input)
+
+	require.Equal(t, expectedResult, result)
+}
