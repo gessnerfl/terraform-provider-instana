@@ -17,13 +17,6 @@ import (
 )
 
 const resourceAPITokenDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_api_token" "example" {
   name = "name %d"
   can_configure_service_mapping = true
@@ -167,7 +160,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAPITokenConfigResourceTestStep(httpServer.GetPort(), 0, id, accessGrantingToken, internalID),
 			testStepImportWithCustomID(testAPITokenDefinition, internalID),
@@ -179,7 +172,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 
 func createAPITokenConfigResourceTestStep(httpPort int, iteration int, id string, accessGrantingToken string, internalID string) resource.TestStep {
 	return resource.TestStep{
-		Config: fmt.Sprintf(resourceAPITokenDefinitionTemplate, httpPort, iteration),
+		Config: appendProviderConfig(fmt.Sprintf(resourceAPITokenDefinitionTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testAPITokenDefinition, "id", id),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldAccessGrantingToken, accessGrantingToken),

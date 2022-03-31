@@ -11,6 +11,110 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 )
 
+/*
+func TestCRUDOfApplicationAlertConfig(t *testing.T) {
+	id := RandomID()
+	testutils.DeactivateTLSServerCertificateVerification()
+	httpServer := testutils.NewTestHTTPServer()
+	httpServer.AddRoute(http.MethodPost, apiTokenApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodDelete, apiTokenApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodGet, apiTokenApiPath, func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		modCount := httpServer.GetCallCount(http.MethodPut, restapi.APITokensResourcePath+"/"+internalID)
+		json := fmt.Sprintf(`
+		{
+			"id" : "%s",
+			"accessGrantingToken": "%s",
+			"internalId" : "%s",
+			"name" : "name %d",
+			"canConfigureServiceMapping" : true,
+			"canConfigureEumApplications" : true,
+			"canConfigureMobileAppMonitoring" : true,
+			"canConfigureUsers" : true,
+			"canInstallNewAgents" : true,
+			"canSeeUsageInformation" : true,
+			"canConfigureIntegrations" : true,
+			"canSeeOnPremLicenseInformation" : true,
+			"canConfigureCustomAlerts" : true,
+			"canConfigureApiTokens" : true,
+			"canConfigureAgentRunMode" : true,
+			"canViewAuditLog" : true,
+			"canConfigureAgents" : true,
+			"canConfigureAuthenticationMethods" : true,
+			"canConfigureApplications" : true,
+			"canConfigureTeams" : true,
+			"canConfigureReleases" : true,
+			"canConfigureLogManagement" : true,
+			"canCreatePublicCustomDashboards" : true,
+			"canViewLogs" : true,
+			"canViewTraceDetails" : true,
+			"canConfigureSessionSettings" : true,
+			"canConfigureServiceLevelIndicators" : true,
+			"canConfigureGlobalAlertPayload" : true,
+			"canConfigureGlobalAlertConfigs" : true,
+			"canViewAccountAndBillingInformation" : true,
+			"canEditAllAccessibleCustomDashboards" : true
+		}
+		`, id, accessGrantingToken, vars["internal-id"], modCount)
+		w.Header().Set(contentType, r.Header.Get(contentType))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(json))
+	})
+	httpServer.Start()
+	defer httpServer.Close()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProviderFactories: testProviderFactory,
+		Steps: []resource.TestStep{
+			createAPITokenConfigResourceTestStep(httpServer.GetPort(), 0, id, accessGrantingToken, internalID),
+			testStepImportWithCustomID(testAPITokenDefinition, internalID),
+			createAPITokenConfigResourceTestStep(httpServer.GetPort(), 1, id, accessGrantingToken, internalID),
+			testStepImportWithCustomID(testAPITokenDefinition, internalID),
+		},
+	})
+}
+
+func createApplicationAlertConfigResourceTestStep(httpPort int, iteration int, id string, accessGrantingToken string, internalID string) resource.TestStep {
+	return resource.TestStep{
+		Config: fmt.Sprintf(resourceAPITokenDefinitionTemplate, httpPort, iteration),
+		Check: resource.ComposeTestCheckFunc(
+			resource.TestCheckResourceAttr(testAPITokenDefinition, "id", id),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldAccessGrantingToken, accessGrantingToken),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldInternalID, internalID),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceMapping, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureEumApplications, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureMobileAppMonitoring, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureUsers, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanInstallNewAgents, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeUsageInformation, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureIntegrations, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeOnPremiseLicenseInformation, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureCustomAlerts, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAPITokens, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgentRunMode, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAuditLog, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgents, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAuthenticationMethods, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureApplications, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureTeams, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureReleases, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureLogManagement, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanCreatePublicCustomDashboards, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewLogs, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewTraceDetails, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureSessionSettings, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceLevelIndicators, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertPayload, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertConfigs, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAccountAndBillingInformation, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanEditAllAccessibleCustomDashboards, valueTrue),
+		),
+	}
+}
+*/
+
 func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationAlertConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual(t *testing.T) {
 	resourceHandle := NewApplicationAlertConfigResourceHandle()
 	schema := resourceHandle.MetaData().Schema

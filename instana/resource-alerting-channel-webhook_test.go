@@ -15,13 +15,6 @@ import (
 )
 
 const resourceAlertingChannelWebhookDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_alerting_channel_webhook" "example" {
   name = "name %d"
   webhook_urls = [ "url1", "url2" ]
@@ -50,7 +43,7 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAlertingChannelWebhookResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testAlertingChannelWebhookDefinition),
@@ -61,7 +54,7 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 }
 
 func createAlertingChannelWebhookResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceAlertingChannelWebhookDefinitionTemplate, httpPort, iteration)
+	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelWebhookDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(

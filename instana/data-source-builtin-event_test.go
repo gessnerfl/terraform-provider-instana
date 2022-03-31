@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -24,13 +23,6 @@ import (
 const testBuiltInEventSpecDataSource = "data.instana_builtin_event_spec.test"
 
 const dataSourceBuiltinEventSpecificationDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:{{PORT}}"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 data "instana_builtin_event_spec" "test" {
   name = "System load too high"
   short_plugin_id = "host"
@@ -57,10 +49,10 @@ func TestDatasourceBuiltInEventsEndToEnd(t *testing.T) {
 	httpServer.Start()
 	defer httpServer.Close()
 
-	resourceDefinition := strings.ReplaceAll(dataSourceBuiltinEventSpecificationDefinitionTemplate, "{{PORT}}", strconv.Itoa(httpServer.GetPort()))
+	resourceDefinition := appendProviderConfig(dataSourceBuiltinEventSpecificationDefinitionTemplate, httpServer.GetPort())
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			{
 				Config: resourceDefinition,

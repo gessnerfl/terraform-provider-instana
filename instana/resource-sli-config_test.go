@@ -14,13 +14,6 @@ import (
 )
 
 const sliConfigTerraformTemplate = `
-provider "instana" {
-	api_token = "test-token"
-	endpoint = "localhost:%d"
-	default_name_prefix = "prefix"
-	default_name_suffix = "suffix"
-}
-
 resource "instana_sli_config" "example_sli_config" {
 	name = "name %d"
 	initial_evaluation_timestamp = 0
@@ -84,7 +77,7 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createSliConfigTestCheckFunctions(httpServer.GetPort(), 0),
 			testStepImport(sliConfigDefinition),
@@ -96,7 +89,7 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 
 func createSliConfigTestCheckFunctions(httpPort int, iteration int) resource.TestStep {
 	return resource.TestStep{
-		Config: fmt.Sprintf(sliConfigTerraformTemplate, httpPort, iteration),
+		Config: appendProviderConfig(fmt.Sprintf(sliConfigTerraformTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
 			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, formatResourceName(iteration)),
