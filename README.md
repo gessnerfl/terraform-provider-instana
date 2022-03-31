@@ -18,7 +18,7 @@ The documentation of the provider can be found on the Terraform Registry Page <h
 ### Testing
 
  Mocking:
- Tests are co-located in the package next to the implementation. We use gomock (<https://github.com/golang/mock)> for mocking. Mocks are 
+ Tests are co-located in the package next to the implementation. We use gomock (<https://github.com/golang/mock>) for mocking. Mocks are 
  created using the *source mode*. All mocks are create in the `mock` package. To generate mocks you can use the helper script 
  `generate-mock-for-file <source-file>` from the root directory of this project.
 

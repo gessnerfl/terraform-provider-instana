@@ -27,7 +27,7 @@ func (types CustomPayloadTypes) ToStringSlice() []string {
 
 const (
 	//StaticCustomPayloadType constant value for the static CustomPayloadType
-	StaticCustomPayloadType = CustomPayloadType("static")
+	StaticCustomPayloadType = CustomPayloadType("staticString")
 	//DynamicCustomPayloadType constant value for the dynamic CustomPayloadType
 	DynamicCustomPayloadType = CustomPayloadType("dynamic")
 )

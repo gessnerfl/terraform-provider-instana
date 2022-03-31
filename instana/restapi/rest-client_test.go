@@ -26,7 +26,7 @@ func TestShouldReturnDataForSuccessfulGetRequest(t *testing.T) {
 	verifySuccessResponseData(response, err, t)
 }
 
-func TestShouldReturnErrorMessageForGetRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
+func TestShouldReturnErrorMessageForGetRequestWhenStatusIsNotASuccessStatusAndNotEntityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
 	httpServer := setupAndStartHttpServer(http.MethodGet, testPath, statusCode)
 	defer httpServer.Close()
@@ -37,7 +37,7 @@ func TestShouldReturnErrorMessageForGetRequestWhenStatusIsNotASuccessStatusAndNo
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
 }
 
-func TestShouldReturnNotFoundErrorMessageForGetRequestWhenStatusIsNotEnityNotFound(t *testing.T) {
+func TestShouldReturnNotFoundErrorMessageForGetRequestWhenStatusIsNotEntityNotFound(t *testing.T) {
 	httpServer := setupAndStartHttpServer(http.MethodGet, testPath, http.StatusNotFound)
 	defer httpServer.Close()
 
@@ -78,7 +78,7 @@ func TestShouldReturnErrorMessageForGetOneRequestWhenStatusIsNotASuccessStatusAn
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
 }
 
-func TestShouldReturnNotFoundErrorMessageForGetOneRequestWhenStatusIsNotEnityNotFound(t *testing.T) {
+func TestShouldReturnNotFoundErrorMessageForGetOneRequestWhenStatusIsNotEntityNotFound(t *testing.T) {
 	httpServer := setupAndStartHttpServer(http.MethodGet, testPathWithID, http.StatusNotFound)
 	defer httpServer.Close()
 
@@ -98,7 +98,7 @@ func TestShouldReturnDataForSuccessfulPostRequest(t *testing.T) {
 	verifySuccessResponseData(response, err, t)
 }
 
-func TestShouldReturnErrorMessageForPostRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
+func TestShouldReturnErrorMessageForPostRequestWhenStatusIsNotASuccessStatusAndNotEntityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
 	httpServer := setupAndStartHttpServer(http.MethodPost, testPath, statusCode)
 	defer httpServer.Close()
@@ -108,6 +108,28 @@ func TestShouldReturnErrorMessageForPostRequestWhenStatusIsNotASuccessStatusAndN
 
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
 }
+
+func TestShouldReturnDataForSuccessfulPostWithIDRequest(t *testing.T) {
+	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPost, testPathWithID)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	response, err := restClient.PostWithID(testDataObject{id: testID}, testPath)
+
+	verifySuccessResponseData(response, err, t)
+}
+
+func TestShouldReturnErrorMessageForPostWithIDRequestWhenStatusIsNotASuccessStatusAndNotEntityNotFound(t *testing.T) {
+	statusCode := http.StatusBadRequest
+	httpServer := setupAndStartHttpServer(http.MethodPost, testPathWithID, statusCode)
+	defer httpServer.Close()
+
+	restClient := createSut(httpServer)
+	_, err := restClient.PostWithID(testDataObject{id: testID}, testPath)
+
+	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
+}
+
 func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
 	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodPut, testPathWithID)
 	defer httpServer.Close()
@@ -118,7 +140,7 @@ func TestShouldReturnDataForSuccessfulPutRequest(t *testing.T) {
 	verifySuccessResponseData(response, err, t)
 }
 
-func TestShouldReturnErrorMessageForPutRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
+func TestShouldReturnErrorMessageForPutRequestWhenStatusIsNotASuccessStatusAndNotEntityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
 	httpServer := setupAndStartHttpServer(http.MethodPut, testPathWithID, statusCode)
 	defer httpServer.Close()
@@ -152,7 +174,7 @@ func shouldReturnDataForSuccessfulPostByQueryRequest(t *testing.T, queryParamete
 	verifySuccessResponseData(response, err, t)
 }
 
-func TestShouldReturnErrorMessageForPostByQueryRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
+func TestShouldReturnErrorMessageForPostByQueryRequestWhenStatusIsNotASuccessStatusAndNotEntityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
 	queryParameters := map[string]string{
 		"a": "b",
@@ -205,7 +227,7 @@ func TestShouldReturnEntityNotFoundErrorForPutByQueryRequestWhenStatusIsNotFound
 	verifyFailedCallWithStatusCodeIsResponse(err, statusCode, t)
 }
 
-func TestShouldReturnErrorMessageForPutByQueryRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
+func TestShouldReturnErrorMessageForPutByQueryRequestWhenStatusIsNotASuccessStatusAndNotEntityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
 	queryParameters := map[string]string{
 		"a": "b",
@@ -245,7 +267,7 @@ func TestShouldReturnNothingForSuccessfulDeleteRequest(t *testing.T) {
 	require.Nil(t, err)
 }
 
-func TestShouldReturnErrorMessageForDeleteRequestWhenStatusIsNotASuccessStatusAndNotEnityNotFound(t *testing.T) {
+func TestShouldReturnErrorMessageForDeleteRequestWhenStatusIsNotASuccessStatusAndNotEntityNotFound(t *testing.T) {
 	statusCode := http.StatusBadRequest
 	httpServer := setupAndStartHttpServer(http.MethodDelete, testPathWithID, statusCode)
 	defer httpServer.Close()

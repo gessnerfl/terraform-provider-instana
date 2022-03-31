@@ -14,26 +14,26 @@ const ResourceInstanaApplicationAlertConfig = "instana_application_alert_config"
 
 const (
 	//ApplicationAlertConfigFieldAlertChannelIDs constant value for field alerting_channel_ids of resource instana_application_alert_config
-	ApplicationAlertConfigFieldAlertChannelIDs = "alerting_channel_ids"
+	ApplicationAlertConfigFieldAlertChannelIDs = "alert_channel_ids"
 	//ApplicationAlertConfigFieldApplications constant value for field applications of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplications = "applications"
+	ApplicationAlertConfigFieldApplications = "application"
 	//ApplicationAlertConfigFieldApplicationsApplicationID constant value for field applications.application_id of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsApplicationID = "application_id"
 	//ApplicationAlertConfigFieldApplicationsInclusive constant value for field applications.inclusive of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsInclusive            = "inclusive"
 	applicationAlertConfigFieldApplicationsInclusiveDescription = "Defines whether this node and his child nodes are included (true) or excluded (false)"
 	//ApplicationAlertConfigFieldApplicationsServices constant value for field applications.services of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplicationsServices = "services"
+	ApplicationAlertConfigFieldApplicationsServices = "service"
 	//ApplicationAlertConfigFieldApplicationsServicesServiceID constant value for field applications.services.service_id of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsServicesServiceID = "service_id"
 	//ApplicationAlertConfigFieldApplicationsServicesEndpoints constant value for field applications.services.endpoints of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplicationsServicesEndpoints = "endpoints"
+	ApplicationAlertConfigFieldApplicationsServicesEndpoints = "endpoint"
 	//ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID constant value for field applications.services.endpoints.endpoint_id of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID = "endpoint_id"
 	//ApplicationAlertConfigFieldBoundaryScope constant value for field boundary_scope of resource instana_application_alert_config
 	ApplicationAlertConfigFieldBoundaryScope = "boundary_scope"
 	//ApplicationAlertConfigFieldCustomPayloadFields constant value for field custom_payload_fields of resource instana_application_alert_config
-	ApplicationAlertConfigFieldCustomPayloadFields = "custom_payload_fields"
+	ApplicationAlertConfigFieldCustomPayloadFields = "custom_payload_field"
 	//ApplicationAlertConfigFieldCustomPayloadFieldsType constant value for field custom_payload_fields.type of resource instana_application_alert_config
 	ApplicationAlertConfigFieldCustomPayloadFieldsType = "type"
 	//ApplicationAlertConfigFieldCustomPayloadFieldsKey constant value for field custom_payload_fields.key of resource instana_application_alert_config
@@ -196,6 +196,16 @@ var (
 	}
 )
 
+func applicationAlertConfigApplicationSchemaSetFunc(i interface{}) int {
+	return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldApplicationsApplicationID])
+}
+func applicationAlertConfigApplicationServiceSchemaSetFunc(i interface{}) int {
+	return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldApplicationsServicesServiceID])
+}
+func applicationAlertConfigApplicationServiceEndpointSchemaSetFunc(i interface{}) int {
+	return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID])
+}
+
 //NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
 func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 	return &applicationAlertConfigResource{
@@ -213,8 +223,9 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 					Description: "List of IDs of alert channels defined in Instana.",
 				},
 				ApplicationAlertConfigFieldApplications: {
-					Type:     schema.TypeList,
+					Type:     schema.TypeSet,
 					Required: true,
+					Set:      applicationAlertConfigApplicationSchemaSetFunc,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							ApplicationAlertConfigFieldApplicationsApplicationID: {
@@ -229,8 +240,9 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 								Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
 							},
 							ApplicationAlertConfigFieldApplicationsServices: {
-								Type:     schema.TypeList,
-								Required: true,
+								Type:     schema.TypeSet,
+								Optional: true,
+								Set:      applicationAlertConfigApplicationServiceSchemaSetFunc,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										ApplicationAlertConfigFieldApplicationsServicesServiceID: {
@@ -245,8 +257,9 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 											Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
 										},
 										ApplicationAlertConfigFieldApplicationsServicesEndpoints: {
-											Type:     schema.TypeList,
-											Required: true,
+											Type:     schema.TypeSet,
+											Optional: true,
+											Set:      applicationAlertConfigApplicationServiceEndpointSchemaSetFunc,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
 													ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID: {
@@ -279,7 +292,10 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 					Description:  "The boundary scope of the application alert config",
 				},
 				ApplicationAlertConfigFieldCustomPayloadFields: {
-					Type:     schema.TypeList,
+					Type: schema.TypeSet,
+					Set: func(i interface{}) int {
+						return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldCustomPayloadFieldsKey])
+					},
 					Optional: true,
 					MinItems: 0,
 					MaxItems: 20,
@@ -912,7 +928,7 @@ func (r *applicationAlertConfigResource) mapApplicationsFromSchema(d *schema.Res
 	val := d.Get(ApplicationAlertConfigFieldApplications)
 	result := make(map[string]restapi.IncludedApplication)
 	if val != nil {
-		for _, v := range val.([]interface{}) {
+		for _, v := range val.(*schema.Set).List() {
 			app := r.mapApplicationFromSchema(v.(map[string]interface{}))
 			result[app.ApplicationID] = app
 		}
@@ -923,7 +939,7 @@ func (r *applicationAlertConfigResource) mapApplicationsFromSchema(d *schema.Res
 func (r *applicationAlertConfigResource) mapApplicationFromSchema(appData map[string]interface{}) restapi.IncludedApplication {
 	services := make(map[string]restapi.IncludedService)
 	if appData[ApplicationAlertConfigFieldApplicationsServices] != nil {
-		for _, v := range appData[ApplicationAlertConfigFieldApplicationsServices].([]interface{}) {
+		for _, v := range appData[ApplicationAlertConfigFieldApplicationsServices].(*schema.Set).List() {
 			service := r.mapServiceFromSchema(v.(map[string]interface{}))
 			services[service.ServiceID] = service
 		}
@@ -938,7 +954,7 @@ func (r *applicationAlertConfigResource) mapApplicationFromSchema(appData map[st
 func (r *applicationAlertConfigResource) mapServiceFromSchema(appData map[string]interface{}) restapi.IncludedService {
 	endpoints := make(map[string]restapi.IncludedEndpoint)
 	if appData[ApplicationAlertConfigFieldApplicationsServicesEndpoints] != nil {
-		for _, v := range appData[ApplicationAlertConfigFieldApplicationsServicesEndpoints].([]interface{}) {
+		for _, v := range appData[ApplicationAlertConfigFieldApplicationsServicesEndpoints].(*schema.Set).List() {
 			endpoint := r.mapEndpointFromSchema(v.(map[string]interface{}))
 			endpoints[endpoint.EndpointID] = endpoint
 		}
@@ -960,7 +976,7 @@ func (r *applicationAlertConfigResource) mapEndpointFromSchema(appData map[strin
 func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.CustomPayloadField {
 	val := d.Get(ApplicationAlertConfigFieldCustomPayloadFields)
 	if val != nil {
-		fields := val.([]interface{})
+		fields := val.(*schema.Set).List()
 		result := make([]restapi.CustomPayloadField, len(fields))
 		for i, v := range fields {
 			field := v.(map[string]interface{})

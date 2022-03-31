@@ -1,9 +1,14 @@
 package instana_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,51 +16,178 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 )
 
-/*
+var applicationAlertConfigTerraformTemplate = `
+resource "instana_application_alert_config" "example" {
+	name              = "name %d"
+    description       = "test-alert-description"
+    boundary_scope    = "ALL"
+    severity          = "warning"
+    triggering        = false
+    include_internal  = false
+    include_synthetic = false
+    alert_channel_ids = [ "alert-channel-id-1", "alert-channel-id-2" ]
+    granularity       = 600000
+	evaluation_type   = "PER_AP"
+
+	tag_filter        = "call.type@na EQUALS 'HTTP'"
+    
+    application {
+		application_id = "app-id"
+		inclusive 	   = true
+		
+        service {
+			service_id = "service-1-id"
+			inclusive  = true
+
+			endpoint {
+				endpoint_id = "endpoint-1-1-id"
+				inclusive   = true
+			}
+        }
+		
+        service {
+			service_id = "service-2-id"
+			inclusive  = true
+        }
+	}
+
+	rule {
+		slowness {
+			metric_name = "latency"
+			aggregation = "P90"
+		}
+    }
+
+	threshold {
+		static {
+			operator = ">="
+			value    = 5.0
+		}
+    }
+
+	time_threshold {
+		violations_in_sequence {
+			time_window = 600000
+		}
+    }
+
+	custom_payload_field {
+		type  = "staticString"
+		key   = "test"
+		value = "test123"
+	}
+}
+`
+
+var applicationAlertConfigServerResponseTemplate = `
+	{
+    "id": "%s",
+    "name": "prefix name %d suffix",
+    "description": "test-alert-description",
+    "boundaryScope": "ALL",
+    "applicationId": "app-id",
+    "applications": {
+      "app-id": {
+        "applicationId": "app-id",
+        "inclusive": true,
+        "services": {
+			"service-1-id": {
+				"serviceId": "service-1-id",
+				"inclusive": true,
+				"endpoints": {
+					"endpoint-1-1-id": {
+						"endpointId": "endpoint-1-1-id",
+					    "inclusive": true
+					}
+				}
+			},
+			"service-2-id": {
+				"serviceId": "service-2-id",
+				"inclusive": true
+			}
+		}
+      }
+    },
+    "severity": 5,
+    "triggering": false,
+    "tagFilters": [],
+    "tagFilterExpression": {
+      "type": "TAG_FILTER",
+      "name": "call.type",
+      "stringValue": "HTTP",
+      "numberValue": null,
+      "booleanValue": null,
+      "key": null,
+      "value": "HTTP",
+      "operator": "EQUALS",
+      "entity": "NOT_APPLICABLE"
+    },
+    "includeInternal": false,
+    "includeSynthetic": false,
+    "rule": {
+      "alertType": "slowness",
+      "aggregation": "P90",
+      "metricName": "latency"
+    },
+    "threshold": {
+      "type": "staticThreshold",
+      "operator": ">=",
+      "value": 5.0,
+      "lastUpdated": 0
+    },
+    "alertChannelIds": [ "alert-channel-id-1", "alert-channel-id-2" ],
+    "granularity": 600000,
+    "timeThreshold": {
+      "type": "violationsInSequence",
+      "timeWindow": 600000
+    },
+    "evaluationType": "PER_AP",
+    "customPayloadFields": [
+		{
+			"type": "staticString",
+			"key": "test",
+			"value": "test123"
+      	}
+	],
+    "created": 1647679325301,
+    "readOnly": false,
+    "enabled": true,
+    "derivedFromGlobalAlert": false
+  }
+`
+
+const (
+	testApplicationAlertConfigDefinition = "instana_application_alert_config.example"
+	applicationAlertConfigApiPath        = restapi.ApplicationAlertConfigsResourcePath + "/{internal-id}"
+)
+
 func TestCRUDOfApplicationAlertConfig(t *testing.T) {
 	id := RandomID()
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodPost, apiTokenApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodDelete, apiTokenApiPath, testutils.EchoHandlerFunc)
-	httpServer.AddRoute(http.MethodGet, apiTokenApiPath, func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		modCount := httpServer.GetCallCount(http.MethodPut, restapi.APITokensResourcePath+"/"+internalID)
-		json := fmt.Sprintf(`
-		{
-			"id" : "%s",
-			"accessGrantingToken": "%s",
-			"internalId" : "%s",
-			"name" : "name %d",
-			"canConfigureServiceMapping" : true,
-			"canConfigureEumApplications" : true,
-			"canConfigureMobileAppMonitoring" : true,
-			"canConfigureUsers" : true,
-			"canInstallNewAgents" : true,
-			"canSeeUsageInformation" : true,
-			"canConfigureIntegrations" : true,
-			"canSeeOnPremLicenseInformation" : true,
-			"canConfigureCustomAlerts" : true,
-			"canConfigureApiTokens" : true,
-			"canConfigureAgentRunMode" : true,
-			"canViewAuditLog" : true,
-			"canConfigureAgents" : true,
-			"canConfigureAuthenticationMethods" : true,
-			"canConfigureApplications" : true,
-			"canConfigureTeams" : true,
-			"canConfigureReleases" : true,
-			"canConfigureLogManagement" : true,
-			"canCreatePublicCustomDashboards" : true,
-			"canViewLogs" : true,
-			"canViewTraceDetails" : true,
-			"canConfigureSessionSettings" : true,
-			"canConfigureServiceLevelIndicators" : true,
-			"canConfigureGlobalAlertPayload" : true,
-			"canConfigureGlobalAlertConfigs" : true,
-			"canViewAccountAndBillingInformation" : true,
-			"canEditAllAccessibleCustomDashboards" : true
+	httpServer.AddRoute(http.MethodPost, restapi.ApplicationAlertConfigsResourcePath, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("POST on %s\n", restapi.ApplicationAlertConfigsResourcePath)
+		config := &restapi.ApplicationAlertConfig{}
+		err := json.NewDecoder(r.Body).Decode(config)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			r.Write(bytes.NewBufferString("Failed to get request"))
+		} else {
+			config.ID = id
+			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(config)
 		}
-		`, id, accessGrantingToken, vars["internal-id"], modCount)
+	})
+	httpServer.AddRoute(http.MethodPost, applicationAlertConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("POST on %s\n", applicationAlertConfigApiPath)
+		testutils.EchoHandlerFunc(w, r)
+	})
+	httpServer.AddRoute(http.MethodDelete, applicationAlertConfigApiPath, testutils.EchoHandlerFunc)
+	httpServer.AddRoute(http.MethodGet, applicationAlertConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
+		modCount := httpServer.GetCallCount(http.MethodPost, restapi.ApplicationAlertConfigsResourcePath+"/"+id)
+		fmt.Printf("GET on %s with mod count %d\n", applicationAlertConfigApiPath, modCount)
+		json := fmt.Sprintf(applicationAlertConfigServerResponseTemplate, id, modCount)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(json))
@@ -66,54 +198,25 @@ func TestCRUDOfApplicationAlertConfig(t *testing.T) {
 	resource.UnitTest(t, resource.TestCase{
 		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
-			createAPITokenConfigResourceTestStep(httpServer.GetPort(), 0, id, accessGrantingToken, internalID),
-			testStepImportWithCustomID(testAPITokenDefinition, internalID),
-			createAPITokenConfigResourceTestStep(httpServer.GetPort(), 1, id, accessGrantingToken, internalID),
-			testStepImportWithCustomID(testAPITokenDefinition, internalID),
+			createApplicationAlertConfigResourceTestStep(httpServer.GetPort(), 0, id),
+			testStepImportWithCustomID(testApplicationAlertConfigDefinition, id),
+			createApplicationAlertConfigResourceTestStep(httpServer.GetPort(), 1, id),
+			testStepImportWithCustomID(testApplicationAlertConfigDefinition, id),
 		},
 	})
 }
 
-func createApplicationAlertConfigResourceTestStep(httpPort int, iteration int, id string, accessGrantingToken string, internalID string) resource.TestStep {
+func createApplicationAlertConfigResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	return resource.TestStep{
-		Config: fmt.Sprintf(resourceAPITokenDefinitionTemplate, httpPort, iteration),
+		Config: appendProviderConfig(fmt.Sprintf(applicationAlertConfigTerraformTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr(testAPITokenDefinition, "id", id),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldAccessGrantingToken, accessGrantingToken),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldInternalID, internalID),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldFullName, formatResourceFullName(iteration)),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceMapping, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureEumApplications, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureMobileAppMonitoring, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureUsers, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanInstallNewAgents, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeUsageInformation, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureIntegrations, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeOnPremiseLicenseInformation, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureCustomAlerts, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAPITokens, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgentRunMode, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAuditLog, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgents, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAuthenticationMethods, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureApplications, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureTeams, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureReleases, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureLogManagement, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanCreatePublicCustomDashboards, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewLogs, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewTraceDetails, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureSessionSettings, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceLevelIndicators, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertPayload, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertConfigs, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAccountAndBillingInformation, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanEditAllAccessibleCustomDashboards, valueTrue),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, "id", id),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldName, formatResourceName(iteration)),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldFullName, formatResourceFullName(iteration)),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldDescription, "test-alert-description"),
 		),
 	}
 }
-*/
 
 func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationAlertConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual(t *testing.T) {
 	resourceHandle := NewApplicationAlertConfigResourceHandle()
@@ -534,24 +637,7 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 		require.NoError(t, err)
 		require.Equal(t, applicationAlertConfigID, resourceData.Id())
 		require.Equal(t, []interface{}{"channel-2", "channel-1"}, (resourceData.Get(ApplicationAlertConfigFieldAlertChannelIDs).(*schema.Set)).List())
-		require.Equal(t, []interface{}{
-			map[string]interface{}{
-				"application_id": "app-1",
-				"inclusive":      true,
-				"services": []interface{}{
-					map[string]interface{}{
-						"service_id": "srv-1",
-						"inclusive":  true,
-						"endpoints": []interface{}{
-							map[string]interface{}{
-								"endpoint_id": "edp-1",
-								"inclusive":   true,
-							},
-						},
-					},
-				},
-			},
-		}, resourceData.Get(ApplicationAlertConfigFieldApplications))
+		requireApplicationAlertConfigApplicationSetOnSchema(t, resourceData)
 		require.Equal(t, string(restapi.BoundaryScopeInbound), resourceData.Get(ApplicationAlertConfigFieldBoundaryScope))
 		require.Equal(t, "application-alert-config-description", resourceData.Get(ApplicationAlertConfigFieldDescription))
 		require.Equal(t, "application-alert-config-name", resourceData.Get(ApplicationAlertConfigFieldName))
@@ -560,9 +646,9 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeInternal).(bool))
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeSynthetic).(bool))
 		require.Equal(t, []interface{}{
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: ApplicationAlertConfigFieldThresholdStatic, ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "staticString", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
 			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-value"},
-		}, resourceData.Get(ApplicationAlertConfigFieldCustomPayloadFields))
+		}, resourceData.Get(ApplicationAlertConfigFieldCustomPayloadFields).(*schema.Set).List())
 		require.Equal(t, ruleTestPair.expected, resourceData.Get(ApplicationAlertConfigFieldRule))
 		require.Equal(t, restapi.SeverityCritical.GetTerraformRepresentation(), resourceData.Get(ApplicationAlertConfigFieldSeverity))
 		require.Equal(t, "service.name@src EQUALS 'test'", resourceData.Get(ApplicationAlertConfigFieldTagFilter))
@@ -570,6 +656,24 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 		require.Equal(t, timeThresholdTestPair.expected, resourceData.Get(ApplicationAlertConfigFieldTimeThreshold))
 		require.True(t, resourceData.Get(ApplicationAlertConfigFieldTriggering).(bool))
 	}
+}
+
+func requireApplicationAlertConfigApplicationSetOnSchema(t *testing.T, resourceData *schema.ResourceData) {
+	actualValues := resourceData.Get(ApplicationAlertConfigFieldApplications).(*schema.Set)
+	require.Equal(t, 1, actualValues.Len())
+	app := actualValues.List()[0].(map[string]interface{})
+	require.Equal(t, "app-1", app[ApplicationAlertConfigFieldApplicationsApplicationID])
+	require.True(t, app[ApplicationAlertConfigFieldApplicationsInclusive].(bool))
+	services := app[ApplicationAlertConfigFieldApplicationsServices].(*schema.Set)
+	require.Equal(t, 1, services.Len())
+	service := services.List()[0].(map[string]interface{})
+	require.Equal(t, "srv-1", service[ApplicationAlertConfigFieldApplicationsServicesServiceID])
+	require.True(t, service[ApplicationAlertConfigFieldApplicationsInclusive].(bool))
+	endpoints := service[ApplicationAlertConfigFieldApplicationsServicesEndpoints].(*schema.Set)
+	require.Equal(t, 1, endpoints.Len())
+	endpoint := endpoints.List()[0].(map[string]interface{})
+	require.Equal(t, "edp-1", endpoint[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID])
+	require.True(t, endpoint[ApplicationAlertConfigFieldApplicationsInclusive].(bool))
 }
 
 func requireApplicationAlertConfigThresholdSetOnSchema(t *testing.T, expected []interface{}, resourceData *schema.ResourceData) {
@@ -935,16 +1039,16 @@ func createTestShouldMapApplicationConfigTerraformResourceStateToModelCase(ruleT
 		resourceData.Set(ApplicationAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})
 		resourceData.Set(ApplicationAlertConfigFieldApplications, []interface{}{
 			map[string]interface{}{
-				"application_id": "app-1",
-				"inclusive":      true,
-				"services": []interface{}{
+				ApplicationAlertConfigFieldApplicationsApplicationID: "app-1",
+				ApplicationAlertConfigFieldApplicationsInclusive:     true,
+				ApplicationAlertConfigFieldApplicationsServices: []interface{}{
 					map[string]interface{}{
-						"service_id": "srv-1",
-						"inclusive":  true,
-						"endpoints": []interface{}{
+						ApplicationAlertConfigFieldApplicationsServicesServiceID: "srv-1",
+						ApplicationAlertConfigFieldApplicationsInclusive:         true,
+						ApplicationAlertConfigFieldApplicationsServicesEndpoints: []interface{}{
 							map[string]interface{}{
-								"endpoint_id": "edp-1",
-								"inclusive":   true,
+								ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID: "edp-1",
+								ApplicationAlertConfigFieldApplicationsInclusive:                   true,
 							},
 						},
 					},
@@ -953,7 +1057,7 @@ func createTestShouldMapApplicationConfigTerraformResourceStateToModelCase(ruleT
 		})
 		resourceData.Set(ApplicationAlertConfigFieldBoundaryScope, restapi.BoundaryScopeInbound)
 		resourceData.Set(ApplicationAlertConfigFieldCustomPayloadFields, []interface{}{
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: ApplicationAlertConfigFieldThresholdStatic, ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "staticString", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
 			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-value"},
 		})
 		resourceData.Set(ApplicationAlertConfigFieldDescription, "application-alert-config-description")

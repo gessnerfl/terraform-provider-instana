@@ -70,7 +70,7 @@ func (r *defaultRestResource) Create(data InstanaDataObject) (InstanaDataObject,
 
 func (r *defaultRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
 	if r.mode == DefaultRestResourceModeCreateAndUpdatePOST {
-		return r.upsert(data, r.client.Post)
+		return r.upsert(data, r.client.PostWithID)
 	}
 	return r.upsert(data, r.client.Put)
 }
