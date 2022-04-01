@@ -14,6 +14,9 @@ import (
 //ErrEntityNotFound error message which is returned when the entity cannot be found at the server
 var ErrEntityNotFound = errors.New("Failed to get resource from Instana API. 404 - Resource not found")
 
+const contentTypeHeader = "Content-Type"
+const encodingApplicationJson = "application/json; charset=utf-8"
+
 //RestClient interface to access REST resources of the Instana API
 type RestClient interface {
 	Get(resourcePath string) ([]byte, error)
@@ -84,21 +87,21 @@ func (client *restClientImpl) GetOne(id string, resourcePath string) ([]byte, er
 //Post executes a HTTP PUT request to create or update the given resource
 func (client *restClientImpl) Post(data InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildURL(resourcePath)
-	req := client.createRequest().SetHeader("Content-Type", "application/json; charset=utf-8").SetBody(data)
+	req := client.createRequest().SetHeader(contentTypeHeader, encodingApplicationJson).SetBody(data)
 	return client.executeRequestWithThrottling(resty.MethodPost, url, req)
 }
 
 //PostWithID executes a HTTP PUT request to create or update the given resource using the ID from the InstanaDataObject in the resource path
 func (client *restClientImpl) PostWithID(data InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, data.GetIDForResourcePath())
-	req := client.createRequest().SetHeader("Content-Type", "application/json; charset=utf-8").SetBody(data)
+	req := client.createRequest().SetHeader(contentTypeHeader, encodingApplicationJson).SetBody(data)
 	return client.executeRequestWithThrottling(resty.MethodPost, url, req)
 }
 
 //Put executes a HTTP PUT request to create or update the given resource
 func (client *restClientImpl) Put(data InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, data.GetIDForResourcePath())
-	req := client.createRequest().SetHeader("Content-Type", "application/json; charset=utf-8").SetBody(data)
+	req := client.createRequest().SetHeader(contentTypeHeader, encodingApplicationJson).SetBody(data)
 	return client.executeRequestWithThrottling(resty.MethodPut, url, req)
 }
 
