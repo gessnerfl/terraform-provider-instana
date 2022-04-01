@@ -7,6 +7,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"strings"
 )
 
 //ResourceInstanaApplicationAlertConfig the name of the terraform-provider-instana resource to manage application alert config
@@ -14,25 +15,26 @@ const ResourceInstanaApplicationAlertConfig = "instana_application_alert_config"
 
 const (
 	//ApplicationAlertConfigFieldAlertChannelIDs constant value for field alerting_channel_ids of resource instana_application_alert_config
-	ApplicationAlertConfigFieldAlertChannelIDs = "alerting_channel_ids"
+	ApplicationAlertConfigFieldAlertChannelIDs = "alert_channel_ids"
 	//ApplicationAlertConfigFieldApplications constant value for field applications of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplications = "applications"
+	ApplicationAlertConfigFieldApplications = "application"
 	//ApplicationAlertConfigFieldApplicationsApplicationID constant value for field applications.application_id of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsApplicationID = "application_id"
 	//ApplicationAlertConfigFieldApplicationsInclusive constant value for field applications.inclusive of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplicationsInclusive = "inclusive"
+	ApplicationAlertConfigFieldApplicationsInclusive            = "inclusive"
+	applicationAlertConfigFieldApplicationsInclusiveDescription = "Defines whether this node and his child nodes are included (true) or excluded (false)"
 	//ApplicationAlertConfigFieldApplicationsServices constant value for field applications.services of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplicationsServices = "services"
+	ApplicationAlertConfigFieldApplicationsServices = "service"
 	//ApplicationAlertConfigFieldApplicationsServicesServiceID constant value for field applications.services.service_id of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsServicesServiceID = "service_id"
 	//ApplicationAlertConfigFieldApplicationsServicesEndpoints constant value for field applications.services.endpoints of resource instana_application_alert_config
-	ApplicationAlertConfigFieldApplicationsServicesEndpoints = "endpoints"
+	ApplicationAlertConfigFieldApplicationsServicesEndpoints = "endpoint"
 	//ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID constant value for field applications.services.endpoints.endpoint_id of resource instana_application_alert_config
 	ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID = "endpoint_id"
 	//ApplicationAlertConfigFieldBoundaryScope constant value for field boundary_scope of resource instana_application_alert_config
 	ApplicationAlertConfigFieldBoundaryScope = "boundary_scope"
 	//ApplicationAlertConfigFieldCustomPayloadFields constant value for field custom_payload_fields of resource instana_application_alert_config
-	ApplicationAlertConfigFieldCustomPayloadFields = "custom_payload_fields"
+	ApplicationAlertConfigFieldCustomPayloadFields = "custom_payload_field"
 	//ApplicationAlertConfigFieldCustomPayloadFieldsType constant value for field custom_payload_fields.type of resource instana_application_alert_config
 	ApplicationAlertConfigFieldCustomPayloadFieldsType = "type"
 	//ApplicationAlertConfigFieldCustomPayloadFieldsKey constant value for field custom_payload_fields.key of resource instana_application_alert_config
@@ -61,8 +63,6 @@ const (
 	ApplicationAlertConfigFieldRuleAggregation = "aggregation"
 	//ApplicationAlertConfigFieldRuleStableHash constant value for field rule.*.stable_hash of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleStableHash = "stable_hash"
-	//ApplicationAlertConfigFieldRuleOperator constant value for field rule.*.operator of resource instana_application_alert_config
-	ApplicationAlertConfigFieldRuleOperator = "operator"
 	//ApplicationAlertConfigFieldRuleErrorRate constant value for field rule.error_rate of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleErrorRate = "error_rate"
 	//ApplicationAlertConfigFieldRuleLogs constant value for field rule.logs of resource instana_application_alert_config
@@ -71,6 +71,8 @@ const (
 	ApplicationAlertConfigFieldRuleLogsLevel = "level"
 	//ApplicationAlertConfigFieldRuleLogsMessage constant value for field rule.logs.message of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleLogsMessage = "message"
+	//ApplicationAlertConfigFieldRuleLogsOperator constant value for field rule.logs.operator of resource instana_application_alert_config
+	ApplicationAlertConfigFieldRuleLogsOperator = "operator"
 	//ApplicationAlertConfigFieldRuleSlowness constant value for field rule.slowness of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleSlowness = "slowness"
 	//ApplicationAlertConfigFieldRuleStatusCode constant value for field rule.status_code of resource instana_application_alert_config
@@ -195,6 +197,16 @@ var (
 	}
 )
 
+func applicationAlertConfigApplicationSchemaSetFunc(i interface{}) int {
+	return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldApplicationsApplicationID])
+}
+func applicationAlertConfigApplicationServiceSchemaSetFunc(i interface{}) int {
+	return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldApplicationsServicesServiceID])
+}
+func applicationAlertConfigApplicationServiceEndpointSchemaSetFunc(i interface{}) int {
+	return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID])
+}
+
 //NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
 func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 	return &applicationAlertConfigResource{
@@ -212,8 +224,9 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 					Description: "List of IDs of alert channels defined in Instana.",
 				},
 				ApplicationAlertConfigFieldApplications: {
-					Type:     schema.TypeList,
+					Type:     schema.TypeSet,
 					Required: true,
+					Set:      applicationAlertConfigApplicationSchemaSetFunc,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							ApplicationAlertConfigFieldApplicationsApplicationID: {
@@ -224,13 +237,13 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 							},
 							ApplicationAlertConfigFieldApplicationsInclusive: {
 								Type:        schema.TypeBool,
-								Optional:    true,
-								Default:     false,
-								Description: "Defines whether this node and his child nodes are included (true) or excluded (false)",
+								Required:    true,
+								Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
 							},
 							ApplicationAlertConfigFieldApplicationsServices: {
-								Type:     schema.TypeList,
-								Required: true,
+								Type:     schema.TypeSet,
+								Optional: true,
+								Set:      applicationAlertConfigApplicationServiceSchemaSetFunc,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										ApplicationAlertConfigFieldApplicationsServicesServiceID: {
@@ -241,13 +254,13 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 										},
 										ApplicationAlertConfigFieldApplicationsInclusive: {
 											Type:        schema.TypeBool,
-											Optional:    true,
-											Default:     false,
-											Description: "Defines whether this node and his child nodes are included (true) or excluded (false)",
+											Required:    true,
+											Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
 										},
 										ApplicationAlertConfigFieldApplicationsServicesEndpoints: {
-											Type:     schema.TypeList,
-											Required: true,
+											Type:     schema.TypeSet,
+											Optional: true,
+											Set:      applicationAlertConfigApplicationServiceEndpointSchemaSetFunc,
 											Elem: &schema.Resource{
 												Schema: map[string]*schema.Schema{
 													ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID: {
@@ -258,9 +271,8 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 													},
 													ApplicationAlertConfigFieldApplicationsInclusive: {
 														Type:        schema.TypeBool,
-														Optional:    true,
-														Default:     false,
-														Description: "Defines whether this node and his child nodes are included (true) or excluded (false)",
+														Required:    true,
+														Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
 													},
 												},
 											},
@@ -281,7 +293,10 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 					Description:  "The boundary scope of the application alert config",
 				},
 				ApplicationAlertConfigFieldCustomPayloadFields: {
-					Type:     schema.TypeList,
+					Type: schema.TypeSet,
+					Set: func(i interface{}) int {
+						return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldCustomPayloadFieldsKey])
+					},
 					Optional: true,
 					MinItems: 0,
 					MaxItems: 20,
@@ -394,7 +409,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 											Optional:    true,
 											Description: "The log message for which this rule applies to",
 										},
-										ApplicationAlertConfigFieldRuleOperator: applicationAlertSchemaRequiredRuleOperator,
+										ApplicationAlertConfigFieldRuleLogsOperator: applicationAlertSchemaRequiredRuleOperator,
 									},
 								},
 								ExactlyOneOf: applicationAlertRuleTypeKeys,
@@ -743,7 +758,16 @@ func (r *applicationAlertConfigResource) mapCustomPayloadFieldsToSchema(config *
 		field := make(map[string]string)
 		field[ApplicationAlertConfigFieldCustomPayloadFieldsType] = string(v.Type)
 		field[ApplicationAlertConfigFieldCustomPayloadFieldsKey] = v.Key
-		field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = v.Value
+		if v.Type == restapi.DynamicCustomPayloadType {
+			value := v.Value.(restapi.DynamicCustomPayloadFieldValue)
+			key := ""
+			if value.Key != nil {
+				key = "=" + *value.Key
+			}
+			field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = value.TagName + key
+		} else {
+			field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = string(v.Value.(restapi.StaticStringCustomPayloadFieldValue))
+		}
 		result[i] = field
 	}
 	return result
@@ -769,6 +793,9 @@ func (r *applicationAlertConfigResource) mapRuleToSchema(config *restapi.Applica
 	}
 	if config.Rule.Message != nil {
 		ruleAttribute[ApplicationAlertConfigFieldRuleLogsMessage] = *config.Rule.Message
+	}
+	if config.Rule.Operator != nil {
+		ruleAttribute[ApplicationAlertConfigFieldRuleLogsOperator] = *config.Rule.Operator
 	}
 
 	alertType := r.mapAlertTypeToSchema(config.Rule.AlertType)
@@ -887,7 +914,7 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 		CustomerPayloadFields: r.mapCustomPayloadFieldsFromSchema(d),
 		Description:           d.Get(ApplicationAlertConfigFieldDescription).(string),
 		EvaluationType:        restapi.ApplicationAlertEvaluationType(d.Get(ApplicationAlertConfigFieldEvaluationType).(string)),
-		Granularity:           restapi.Granularity(d.Get(ApplicationAlertConfigFieldGranularity).(int32)),
+		Granularity:           restapi.Granularity(d.Get(ApplicationAlertConfigFieldGranularity).(int)),
 		IncludeInternal:       d.Get(ApplicationAlertConfigFieldIncludeInternal).(bool),
 		IncludeSynthetic:      d.Get(ApplicationAlertConfigFieldIncludeSynthetic).(bool),
 		Name:                  fullName,
@@ -911,7 +938,7 @@ func (r *applicationAlertConfigResource) mapApplicationsFromSchema(d *schema.Res
 	val := d.Get(ApplicationAlertConfigFieldApplications)
 	result := make(map[string]restapi.IncludedApplication)
 	if val != nil {
-		for _, v := range val.([]interface{}) {
+		for _, v := range val.(*schema.Set).List() {
 			app := r.mapApplicationFromSchema(v.(map[string]interface{}))
 			result[app.ApplicationID] = app
 		}
@@ -922,7 +949,7 @@ func (r *applicationAlertConfigResource) mapApplicationsFromSchema(d *schema.Res
 func (r *applicationAlertConfigResource) mapApplicationFromSchema(appData map[string]interface{}) restapi.IncludedApplication {
 	services := make(map[string]restapi.IncludedService)
 	if appData[ApplicationAlertConfigFieldApplicationsServices] != nil {
-		for _, v := range appData[ApplicationAlertConfigFieldApplicationsServices].([]interface{}) {
+		for _, v := range appData[ApplicationAlertConfigFieldApplicationsServices].(*schema.Set).List() {
 			service := r.mapServiceFromSchema(v.(map[string]interface{}))
 			services[service.ServiceID] = service
 		}
@@ -937,7 +964,7 @@ func (r *applicationAlertConfigResource) mapApplicationFromSchema(appData map[st
 func (r *applicationAlertConfigResource) mapServiceFromSchema(appData map[string]interface{}) restapi.IncludedService {
 	endpoints := make(map[string]restapi.IncludedEndpoint)
 	if appData[ApplicationAlertConfigFieldApplicationsServicesEndpoints] != nil {
-		for _, v := range appData[ApplicationAlertConfigFieldApplicationsServicesEndpoints].([]interface{}) {
+		for _, v := range appData[ApplicationAlertConfigFieldApplicationsServicesEndpoints].(*schema.Set).List() {
 			endpoint := r.mapEndpointFromSchema(v.(map[string]interface{}))
 			endpoints[endpoint.EndpointID] = endpoint
 		}
@@ -956,64 +983,97 @@ func (r *applicationAlertConfigResource) mapEndpointFromSchema(appData map[strin
 	}
 }
 
-func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.CustomPayloadField {
+func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.CustomPayloadField[any] {
 	val := d.Get(ApplicationAlertConfigFieldCustomPayloadFields)
 	if val != nil {
-		fields := val.([]map[string]string)
-		result := make([]restapi.CustomPayloadField, len(fields))
+		fields := val.(*schema.Set).List()
+		result := make([]restapi.CustomPayloadField[any], len(fields))
 		for i, v := range fields {
-			result[i] = restapi.CustomPayloadField{
-				Type:  restapi.CustomPayloadType(v[ApplicationAlertConfigFieldCustomPayloadFieldsType]),
-				Key:   v[ApplicationAlertConfigFieldCustomPayloadFieldsKey],
-				Value: v[ApplicationAlertConfigFieldCustomPayloadFieldsValue],
+			field := v.(map[string]interface{})
+			customPayloadFieldType := restapi.CustomPayloadType(field[ApplicationAlertConfigFieldCustomPayloadFieldsType].(string))
+			key := field[ApplicationAlertConfigFieldCustomPayloadFieldsKey].(string)
+			value := field[ApplicationAlertConfigFieldCustomPayloadFieldsValue].(string)
+
+			if customPayloadFieldType == restapi.DynamicCustomPayloadType {
+				parts := strings.Split(value, "=")
+				dynamicValue := restapi.DynamicCustomPayloadFieldValue{TagName: parts[0]}
+				if len(parts) == 2 {
+					valueKey := parts[1]
+					dynamicValue.Key = &valueKey
+				}
+				result[i] = restapi.CustomPayloadField[any]{
+					Type:  customPayloadFieldType,
+					Key:   key,
+					Value: dynamicValue,
+				}
+			} else {
+				result[i] = restapi.CustomPayloadField[any]{
+					Type:  customPayloadFieldType,
+					Key:   key,
+					Value: restapi.StaticStringCustomPayloadFieldValue(value),
+				}
 			}
 		}
 		return result
 	}
-	return []restapi.CustomPayloadField{}
+	return []restapi.CustomPayloadField[any]{}
 }
 
 func (r *applicationAlertConfigResource) mapRuleFromSchema(d *schema.ResourceData) restapi.ApplicationAlertRule {
-	rule := d.Get(ApplicationAlertConfigFieldRule).([]map[string]interface{})[0]
+	ruleSlice := d.Get(ApplicationAlertConfigFieldRule).([]interface{})
+	rule := ruleSlice[0].(map[string]interface{})
 	for alertType, v := range rule {
-		config := v.(map[string]interface{})
-		var levelPtr *restapi.LogLevel
-		if levelString, ok := config[ApplicationAlertConfigFieldRuleLogsLevel]; ok {
-			level := restapi.LogLevel(levelString.(string))
-			levelPtr = &level
-		}
-		var stableHashPtr *int32
-		if v, ok := config[ApplicationAlertConfigFieldRuleStableHash]; ok {
-			stableHash := int32(v.(int))
-			stableHashPtr = &stableHash
-		}
-		var statusCodeStartPtr *int32
-		if v, ok := config[ApplicationAlertConfigFieldRuleStatusCodeStart]; ok {
-			statusCodeStart := int32(v.(int))
-			statusCodeStartPtr = &statusCodeStart
-		}
-		var statusCodeEndPtr *int32
-		if v, ok := config[ApplicationAlertConfigFieldRuleStatusCodeEnd]; ok {
-			statusCodeEnd := int32(v.(int))
-			statusCodeEndPtr = &statusCodeEnd
-		}
-		var messagePtr *string
-		if v, ok := config[ApplicationAlertConfigFieldRuleLogsMessage]; ok {
-			message := v.(string)
-			messagePtr = &message
-		}
-		return restapi.ApplicationAlertRule{
-			AlertType:       r.mapAlertTypeFromSchema(alertType),
-			MetricName:      config[ApplicationAlertConfigFieldRuleMetricName].(string),
-			Aggregation:     restapi.Aggregation(config[ApplicationAlertConfigFieldRuleAggregation].(string)),
-			StableHash:      stableHashPtr,
-			StatusCodeStart: statusCodeStartPtr,
-			StatusCodeEnd:   statusCodeEndPtr,
-			Level:           levelPtr,
-			Message:         messagePtr,
+		configSlice := v.([]interface{})
+		if len(configSlice) == 1 {
+			config := configSlice[0].(map[string]interface{})
+			return r.mapRuleConfigFromSchema(config, alertType)
 		}
 	}
 	return restapi.ApplicationAlertRule{}
+}
+
+func (r *applicationAlertConfigResource) mapRuleConfigFromSchema(config map[string]interface{}, alertType string) restapi.ApplicationAlertRule {
+	var levelPtr *restapi.LogLevel
+	if levelString, ok := config[ApplicationAlertConfigFieldRuleLogsLevel]; ok {
+		level := restapi.LogLevel(levelString.(string))
+		levelPtr = &level
+	}
+	var stableHashPtr *int32
+	if v, ok := config[ApplicationAlertConfigFieldRuleStableHash]; ok {
+		stableHash := int32(v.(int))
+		stableHashPtr = &stableHash
+	}
+	var statusCodeStartPtr *int32
+	if v, ok := config[ApplicationAlertConfigFieldRuleStatusCodeStart]; ok {
+		statusCodeStart := int32(v.(int))
+		statusCodeStartPtr = &statusCodeStart
+	}
+	var statusCodeEndPtr *int32
+	if v, ok := config[ApplicationAlertConfigFieldRuleStatusCodeEnd]; ok {
+		statusCodeEnd := int32(v.(int))
+		statusCodeEndPtr = &statusCodeEnd
+	}
+	var messagePtr *string
+	if v, ok := config[ApplicationAlertConfigFieldRuleLogsMessage]; ok {
+		message := v.(string)
+		messagePtr = &message
+	}
+	var operatorPtr *restapi.ExpressionOperator
+	if v, ok := config[ApplicationAlertConfigFieldRuleLogsOperator]; ok {
+		operator := restapi.ExpressionOperator(v.(string))
+		operatorPtr = &operator
+	}
+	return restapi.ApplicationAlertRule{
+		AlertType:       r.mapAlertTypeFromSchema(alertType),
+		MetricName:      config[ApplicationAlertConfigFieldRuleMetricName].(string),
+		Aggregation:     restapi.Aggregation(config[ApplicationAlertConfigFieldRuleAggregation].(string)),
+		StableHash:      stableHashPtr,
+		StatusCodeStart: statusCodeStartPtr,
+		StatusCodeEnd:   statusCodeEndPtr,
+		Level:           levelPtr,
+		Message:         messagePtr,
+		Operator:        operatorPtr,
+	}
 }
 
 func (r *applicationAlertConfigResource) mapAlertTypeFromSchema(alertType string) string {
@@ -1038,40 +1098,59 @@ func (r *applicationAlertConfigResource) mapTagFilterExpressionFromSchema(input 
 }
 
 func (r *applicationAlertConfigResource) mapThresholdFromSchema(d *schema.ResourceData) restapi.Threshold {
-	threshold := d.Get(ApplicationAlertConfigFieldThreshold).([]map[string]interface{})[0]
+	thresholdSlice := d.Get(ApplicationAlertConfigFieldThreshold).([]interface{})
+	threshold := thresholdSlice[0].(map[string]interface{})
 	for thresholdType, v := range threshold {
-		config := v.(map[string]interface{})
-		var seasonalityPtr *restapi.ThresholdSeasonality
-		if v, ok := config[ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality]; ok {
-			seasonality := restapi.ThresholdSeasonality(v.(string))
-			seasonalityPtr = &seasonality
-		}
-		var lastUpdatePtr *int64
-		if v, ok := config[ApplicationAlertConfigFieldThresholdLastUpdated]; ok {
-			lastUpdate := int64(v.(int))
-			lastUpdatePtr = &lastUpdate
-		}
-		var valuePtr *float64
-		if v, ok := config[ApplicationAlertConfigFieldThresholdStaticValue]; ok {
-			value := v.(float64)
-			valuePtr = &value
-		}
-		var deviationFactorPtr *float32
-		if v, ok := config[ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor]; ok {
-			deviationFactor := float32(v.(float64))
-			deviationFactorPtr = &deviationFactor
-		}
-		return restapi.Threshold{
-			Type:            r.mapThresholdTypeToSchema(thresholdType),
-			Operator:        restapi.ThresholdOperator(config[ApplicationAlertConfigFieldThresholdOperator].(string)),
-			LastUpdated:     lastUpdatePtr,
-			Value:           valuePtr,
-			DeviationFactor: deviationFactorPtr,
-			Baseline:        config[ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline].(*[][]float64),
-			Seasonality:     seasonalityPtr,
+		configSlice := v.([]interface{})
+		if len(configSlice) == 1 {
+			config := configSlice[0].(map[string]interface{})
+			return r.mapThresholdConfigFromSchema(config, thresholdType)
 		}
 	}
 	return restapi.Threshold{}
+}
+
+func (r *applicationAlertConfigResource) mapThresholdConfigFromSchema(config map[string]interface{}, thresholdType string) restapi.Threshold {
+	var seasonalityPtr *restapi.ThresholdSeasonality
+	if v, ok := config[ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality]; ok {
+		seasonality := restapi.ThresholdSeasonality(v.(string))
+		seasonalityPtr = &seasonality
+	}
+	var lastUpdatePtr *int64
+	if v, ok := config[ApplicationAlertConfigFieldThresholdLastUpdated]; ok {
+		lastUpdate := int64(v.(int))
+		lastUpdatePtr = &lastUpdate
+	}
+	var valuePtr *float64
+	if v, ok := config[ApplicationAlertConfigFieldThresholdStaticValue]; ok {
+		value := v.(float64)
+		valuePtr = &value
+	}
+	var deviationFactorPtr *float32
+	if v, ok := config[ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor]; ok {
+		deviationFactor := float32(v.(float64))
+		deviationFactorPtr = &deviationFactor
+	}
+	var baselinePtr *[][]float64
+	if v, ok := config[ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline]; ok {
+		baselineSet := v.(*schema.Set)
+		if baselineSet.Len() > 0 {
+			baseline := make([][]float64, baselineSet.Len())
+			for i, val := range baselineSet.List() {
+				baseline[i] = ConvertInterfaceSlice[float64](val.(*schema.Set).List())
+			}
+			baselinePtr = &baseline
+		}
+	}
+	return restapi.Threshold{
+		Type:            r.mapThresholdTypeFromSchema(thresholdType),
+		Operator:        restapi.ThresholdOperator(config[ApplicationAlertConfigFieldThresholdOperator].(string)),
+		LastUpdated:     lastUpdatePtr,
+		Value:           valuePtr,
+		DeviationFactor: deviationFactorPtr,
+		Baseline:        baselinePtr,
+		Seasonality:     seasonalityPtr,
+	}
 }
 
 func (r *applicationAlertConfigResource) mapThresholdTypeFromSchema(input string) string {
@@ -1084,24 +1163,28 @@ func (r *applicationAlertConfigResource) mapThresholdTypeFromSchema(input string
 }
 
 func (r *applicationAlertConfigResource) mapTimeThresholdFromSchema(d *schema.ResourceData) restapi.TimeThreshold {
-	timeThreshold := d.Get(ApplicationAlertConfigFieldThreshold).([]map[string]interface{})[0]
+	timeThresholdSlice := d.Get(ApplicationAlertConfigFieldTimeThreshold).([]interface{})
+	timeThreshold := timeThresholdSlice[0].(map[string]interface{})
 	for timeThresholdType, v := range timeThreshold {
-		config := v.(map[string]interface{})
-		var violationsPtr *int32
-		if v, ok := config[ApplicationAlertConfigFieldTimeThresholdViolationsInPeriodViolations]; ok {
-			violations := int32(v.(int))
-			violationsPtr = &violations
-		}
-		var requestsPtr *int32
-		if v, ok := config[ApplicationAlertConfigFieldTimeThresholdRequestImpactRequests]; ok {
-			requests := int32(v.(int))
-			requestsPtr = &requests
-		}
-		return restapi.TimeThreshold{
-			Type:       r.mapTimeThresholdTypeFromSchema(timeThresholdType),
-			TimeWindow: config[ApplicationAlertConfigFieldTimeThresholdTimeWindow].(int64),
-			Violations: violationsPtr,
-			Requests:   requestsPtr,
+		configSlice := v.([]interface{})
+		if len(configSlice) == 1 {
+			config := configSlice[0].(map[string]interface{})
+			var violationsPtr *int32
+			if v, ok := config[ApplicationAlertConfigFieldTimeThresholdViolationsInPeriodViolations]; ok {
+				violations := int32(v.(int))
+				violationsPtr = &violations
+			}
+			var requestsPtr *int32
+			if v, ok := config[ApplicationAlertConfigFieldTimeThresholdRequestImpactRequests]; ok {
+				requests := int32(v.(int))
+				requestsPtr = &requests
+			}
+			return restapi.TimeThreshold{
+				Type:       r.mapTimeThresholdTypeFromSchema(timeThresholdType),
+				TimeWindow: int64(config[ApplicationAlertConfigFieldTimeThresholdTimeWindow].(int)),
+				Violations: violationsPtr,
+				Requests:   requestsPtr,
+			}
 		}
 	}
 	return restapi.TimeThreshold{}

@@ -14,13 +14,6 @@ import (
 )
 
 const resourceApplicationConfigWithMatchSpecificationDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_application_config" "example" {
   label = "name %d"
   scope = "INCLUDE_ALL_DOWNSTREAM"
@@ -106,13 +99,6 @@ const serverResponseWithMatchSpecificationTemplate = `
 `
 
 const resourceApplicationConfigWithTagFilterDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_application_config" "example" {
   label = "name %d"
   scope = "INCLUDE_ALL_DOWNSTREAM"
@@ -209,7 +195,7 @@ func TestCRUDOfApplicationConfigWithMatchSpecificationResourceWithMockServer(t *
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createApplicationConfigWithMatchSpecificationResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testApplicationConfigDefinition),
@@ -220,7 +206,7 @@ func TestCRUDOfApplicationConfigWithMatchSpecificationResourceWithMockServer(t *
 }
 
 func createApplicationConfigWithMatchSpecificationResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceApplicationConfigWithMatchSpecificationDefinitionTemplate, httpPort, iteration, defaultMatchSpecification)
+	config := appendProviderConfig(fmt.Sprintf(resourceApplicationConfigWithMatchSpecificationDefinitionTemplate, iteration, defaultMatchSpecification), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(
@@ -241,7 +227,7 @@ func TestCRUDOfApplicationConfigWithTagFilterResourceWithMockServer(t *testing.T
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createApplicationConfigWithTagFilterResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testApplicationConfigDefinition),
@@ -252,7 +238,7 @@ func TestCRUDOfApplicationConfigWithTagFilterResourceWithMockServer(t *testing.T
 }
 
 func createApplicationConfigWithTagFilterResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceApplicationConfigWithTagFilterDefinitionTemplate, httpPort, iteration, defaultTagFilter)
+	config := appendProviderConfig(fmt.Sprintf(resourceApplicationConfigWithTagFilterDefinitionTemplate, iteration, defaultTagFilter), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(

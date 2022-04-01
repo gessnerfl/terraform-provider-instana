@@ -128,3 +128,12 @@ func MergeSchemaMap(mapA map[string]*schema.Schema, mapB map[string]*schema.Sche
 
 	return mergedMap
 }
+
+//ConvertInterfaceSlice converts the given interface slice to the desired target slice
+func ConvertInterfaceSlice[T any](input []interface{}) []T {
+	result := make([]T, len(input))
+	for i, v := range input {
+		result[i] = v.(T)
+	}
+	return result
+}

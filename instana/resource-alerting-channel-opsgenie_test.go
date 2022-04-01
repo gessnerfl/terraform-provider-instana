@@ -14,13 +14,6 @@ import (
 )
 
 const resourceAlertingChannelOpsGenieDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_alerting_channel_ops_genie" "example" {
   name = "name %d"
   api_key = "api-key"
@@ -48,7 +41,7 @@ func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAlertingChannelOpsGenielResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testAlertingChannelOpsGenieDefinition),
@@ -59,7 +52,7 @@ func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
 }
 
 func createAlertingChannelOpsGenielResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceAlertingChannelOpsGenieDefinitionTemplate, httpPort, iteration)
+	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelOpsGenieDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(

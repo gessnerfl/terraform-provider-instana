@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.214.1231",
+    "version": "1.221.543",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -49,7 +49,7 @@
     },
     {
       "name": "Application Metrics",
-      "description": "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n### Mandatory Parameters\r\n\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\r\n\r\n### Optional Parameters\r\n\r\n**metrics** Default you will get an aggregated metric with for the selected timeFrame \r\n\r\n* *granularity* \r\n  * if it is not set you will get a an aggregated value for the selected timeframe. \r\n  * if the granularity is set you will get data points with the specified granularity in seconds\r\n    * The value can be selected freely between 1 - selected windowSize.\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n\r\n### Defaults\r\n\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
+      "description": "The endpoints of this group retrieve the metrics for defined applications, discovered services and endpoints.\r\n### Mandatory Parameters\r\n\r\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\r\n1. *metric* select a particular metric to get a list of available metrics query the [catalogue endpoint](#operation/getMetricDefinitions)\r\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getMetricDefinitions) gives you the metrics with the available aggregations.\r\n\r\n### Optional Parameters\r\n\r\n**metrics** Default you will get an aggregated metric with for the selected timeframe \r\n\r\n* *granularity* \r\n   * If it is not set you will get a an aggregated value for the selected timeframe\r\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\r\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\r\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\r\n   \r\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\r\n1. *page* select the page number you want to retrieve\r\n2. *pageSize* set the number of applications you want to return with one query\r\n\r\n**order** You can order the returned items alphanumerical by label, either ascending or descending\r\n1. *by* if the granularity is set to 1 you can use the metric name eg. \"latency.p95\" to order by that value\r\n1. *direction* either ascending or descending\r\n\r\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\r\n```\r\n  windowSize           to\r\n     (ms)       (unix-timestamp)\r\n<----------------------|\r\n```\r\n\r\nTo narrow down the result set you have four options to search for an application.\r\n\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n\r\n* *nameFilter:* filter by name with \"contains\" semantic.\r\n\r\n* *applicationId:* search directly for an application by applicationId \r\n\r\n* *serviceId:* search for applications that include a particular service by serviceId\r\n\r\n* *endpointId:* search for applications that include a particular endpoint by endpointId\r\n\r\n### Defaults\r\n\r\n**metrics**\r\n* *granularity:* 1\r\n\r\n**order**\r\n* by application label ascending.\r\n\r\n**timeFrame**\r\n```\r\n\"timeFrame\": {\r\n\t\"windowSize\": 60000,\r\n\t\"to\": {current timestamp}\r\n}\r\n```\r\n**nameFilter | applicationId | serviceId | endpointId**\r\n* no filters are applied in the default call\r\n"
     },
     {
       "name": "Application Catalog",
@@ -60,7 +60,7 @@
     },
     {
       "name": "Application Analyze",
-      "description": "The following four endpoints expose our analyze functionality.\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Parameters\n### Mandatory Parameters (only for group Endpoints):\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForApplication)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n### Optional Parameters\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getApplicationCatalogTags)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * if it is not set you will get a an aggregated value for the selected timeframe. \n   * if the granularity is set you will get data points with the specified granularity in seconds\n   * The value can be selected freely between 1 - selected windowSize.\n\n### Defaults:\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
+      "description": "The following four endpoints expose our analyze functionality.\nPart of this are two group endpoints to retrieve metrics for traces and calls rolled up and filtered individually. \nFurthermore you can [search and filter all traces](#operation/getTraces) and retrieve [all details](#operation/getTrace) attached to the trace.\n\n## Parameters\n### Mandatory Parameters (only for group Endpoints):\n**group** It is mandatory to select a tag by which the calls and traces are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the calls and traces are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getTagsForApplication)\n  * for the trace endpoint only two tags are reasonable and working: `trace.endpoint.name` and `trace.service.name` which indicate the entry endpoint or service for the trace\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `kubernetes.deployment.label` you would need provide the label you want to groupBy here.\n\n### Optional Parameters\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilters** As in the UI you able to filter your query by a tag. To get a list of all available tags you can query the [tag catalog](#operation/getApplicationCatalogTags)\n* *name* The name of the tag as returned by the catalog\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" \n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n   * Traces Sum\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getApplicationCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * If it is not set you will get a an aggregated value for the selected timeframe\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n\n### Defaults:\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
     },
     {
       "name": "Application Settings"
@@ -80,7 +80,7 @@
     },
     {
       "name": "Website Analyze",
-      "description": "The following four endpoints expose our analyze functionality.\n\n## Mandatory Parameters :\n\n**type** \n\n**group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the beacons are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getWebsiteCatalogTags)\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.\n\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilterExpression** As in the UI you are able to filter your query using tags and operators such as `AND` and `OR`. To get a list of all available tags you can query the [tag catalog](#operation/getWebsiteCatalogTags)\n* *name* The name of the tag as returned by the catalog, e.g `beacon.meta`, `beacon.http.path`\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" of you are using meta tags `beacon.meta` you can filter for those by setting `yourMetaTagName=foo` in the value field, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getWebsiteCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * if it is not set you will get a an aggregated value for the selected timeframe. \n   * if the granularity is set you will get data points with the specified granularity in seconds\n   * The value can be selected freely between 1 - selected windowSize.\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
+      "description": "The following four endpoints expose our analyze functionality.\n\n## Mandatory Parameters :\n\n**type** \n\n**group (only for group Endpoints)** It is mandatory to select a tag by which the beacons are grouped for the distinct endpoint call\n* *groupByTag* select a tag by which the beacons are grouped \n  * a full list of available tags can be retrieved from [tags catalogue](#operation/getWebsiteCatalogTags)\n* *groupByTagSecondLevelKey* tags of type KEY_VALUE_PAIR need a second parameter e.g for `beacon.meta` you would need provide the label you want to groupBy here.\n\n\n## Optional Parameters:\n\n**pagination**\n* *offset* set the starting point for the data retrieval\n* *retrievalSize* you set the number of returned values\n* *ingestionTime* if you want to paginate through your result set you are interested in having the data for a fixed time point, the results set has a `cursor` class that has a ingestionTime property that indicates what you have to enter here.\n\n**order**\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n**tagFilterExpression** As in the UI you are able to filter your query using tags and operators such as `AND` and `OR`. To get a list of all available tags you can query the [tag catalog](#operation/getWebsiteCatalogTags)\n* *name* The name of the tag as returned by the catalog, e.g `beacon.meta`, `beacon.http.path`\n* *value* The filter value of the tag, possible types are:\n  * \"STRING\" alphanumerical values, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n  * \"NUMBER\" numerical values, valid operators: \"EQUALS\", \"LESS_THAN\" \"GREATER_THAN\"\n  * \"KEY_VALUE_PAIR\" of you are using meta tags `beacon.meta` you can filter for those by setting `yourMetaTagName=foo` in the value field, valid operators: \"EQUALS\", \"CONTAINS\", \"NOT_EQUAL\", \"NOT_CONTAIN\", \"NOT_EMPTY\",  \"IS_EMPTY\"\n* *operator* one of the valid operators for the type of the selected tag\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric, available metrics in this context are\n   * Latency Mean\n   * Error Rate\n2. *aggregation* depending on the selected metric different aggregations are available e.g. SUM, MEAN, P95. The aforementioned [catalogue endpoint](#operation/getWebsiteCatalogMetrics) gives you the metrics with the available aggregations.\n3. *granularity* \n   * If it is not set you will get a an aggregated value for the selected timeframe\n   * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n \n\n## Defaults:\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n"
     },
     {
       "name": "Mobile App Metrics"
@@ -155,6 +155,9 @@
     },
     {
       "name": "Synthetic Settings"
+    },
+    {
+      "name": "Synthetic Results"
     }
   ],
   "paths": {
@@ -381,6 +384,7 @@
         "operationId": "getApplications",
         "parameters": [
           {
+            "description": "Name of application",
             "in": "query",
             "name": "nameFilter",
             "schema": {
@@ -388,6 +392,7 @@
             }
           },
           {
+            "description": "Size of time window in milliseconds",
             "in": "query",
             "name": "windowSize",
             "schema": {
@@ -396,6 +401,7 @@
             }
           },
           {
+            "description": "Timestamp since Unix Epoch in milliseconds of the end of the time window",
             "in": "query",
             "name": "to",
             "schema": {
@@ -404,6 +410,7 @@
             }
           },
           {
+            "description": "Page number from results",
             "in": "query",
             "name": "page",
             "schema": {
@@ -412,6 +419,7 @@
             }
           },
           {
+            "description": "Number of items per page",
             "in": "query",
             "name": "pageSize",
             "schema": {
@@ -420,6 +428,7 @@
             }
           },
           {
+            "description": "Filter for application scope, i.e: INBOUND or ALL",
             "in": "query",
             "name": "applicationBoundaryScope",
             "schema": {
@@ -460,6 +469,7 @@
         "operationId": "getApplicationServices",
         "parameters": [
           {
+            "description": "Name of application/service",
             "in": "query",
             "name": "nameFilter",
             "schema": {
@@ -467,6 +477,7 @@
             }
           },
           {
+            "description": "Size of time window in milliseconds",
             "in": "query",
             "name": "windowSize",
             "schema": {
@@ -475,6 +486,7 @@
             }
           },
           {
+            "description": "Timestamp since Unix Epoch in milliseconds of the end of the time window",
             "in": "query",
             "name": "to",
             "schema": {
@@ -483,6 +495,7 @@
             }
           },
           {
+            "description": "Page number from results",
             "in": "query",
             "name": "page",
             "schema": {
@@ -491,6 +504,7 @@
             }
           },
           {
+            "description": "Number of items per page",
             "in": "query",
             "name": "pageSize",
             "schema": {
@@ -499,6 +513,7 @@
             }
           },
           {
+            "description": "Filter for application scope, i.e: INBOUND or ALL",
             "in": "query",
             "name": "applicationBoundaryScope",
             "schema": {
@@ -536,9 +551,10 @@
     },
     "/api/application-monitoring/applications/services/endpoints": {
       "get": {
-        "operationId": "application.resources.endpoints",
+        "operationId": "getApplicationEndpoints",
         "parameters": [
           {
+            "description": "Name of service",
             "in": "query",
             "name": "nameFilter",
             "schema": {
@@ -546,6 +562,7 @@
             }
           },
           {
+            "description": "Type of Endpoint",
             "in": "query",
             "name": "types",
             "schema": {
@@ -557,6 +574,7 @@
             }
           },
           {
+            "description": "List of technologies",
             "in": "query",
             "name": "technologies",
             "schema": {
@@ -568,6 +586,7 @@
             }
           },
           {
+            "description": "Size of time window in milliseconds",
             "in": "query",
             "name": "windowSize",
             "schema": {
@@ -576,6 +595,7 @@
             }
           },
           {
+            "description": "Timestamp since Unix Epoch in milliseconds of the end of the time window",
             "in": "query",
             "name": "to",
             "schema": {
@@ -584,6 +604,7 @@
             }
           },
           {
+            "description": "Page number from results",
             "in": "query",
             "name": "page",
             "schema": {
@@ -592,6 +613,7 @@
             }
           },
           {
+            "description": "Number of items per page",
             "in": "query",
             "name": "pageSize",
             "schema": {
@@ -600,6 +622,7 @@
             }
           },
           {
+            "description": "Filter for application scope, i.e: INBOUND or ALL",
             "in": "query",
             "name": "applicationBoundaryScope",
             "schema": {
@@ -667,6 +690,8 @@
                 "GROUPING",
                 "FILTERING",
                 "SMART_ALERTS",
+                "SMART_ALERTS_LOGS",
+                "SMART_ALERTS_ADAPTIVE_BASELINE",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
@@ -762,6 +787,8 @@
                 "GROUPING",
                 "FILTERING",
                 "SMART_ALERTS",
+                "SMART_ALERTS_LOGS",
+                "SMART_ALERTS_ADAPTIVE_BASELINE",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
@@ -937,6 +964,7 @@
         "operationId": "getServices",
         "parameters": [
           {
+            "description": "Name of service",
             "in": "query",
             "name": "nameFilter",
             "schema": {
@@ -944,6 +972,7 @@
             }
           },
           {
+            "description": "Size of time window in milliseconds",
             "in": "query",
             "name": "windowSize",
             "schema": {
@@ -952,6 +981,7 @@
             }
           },
           {
+            "description": "Timestamp since Unix Epoch in milliseconds of the end of the time window",
             "in": "query",
             "name": "to",
             "schema": {
@@ -960,6 +990,7 @@
             }
           },
           {
+            "description": "Page number from results",
             "in": "query",
             "name": "page",
             "schema": {
@@ -968,6 +999,7 @@
             }
           },
           {
+            "description": "Number of items per page",
             "in": "query",
             "name": "pageSize",
             "schema": {
@@ -2161,6 +2193,13 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "in": "query",
+            "name": "filterEventUpdates",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -2187,7 +2226,8 @@
         "summary": "Get all events",
         "tags": [
           "Events"
-        ]
+        ],
+        "description": "This endpoint retrieves all available events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n### Example\n\nFetch all events that have been opened or closed within the last 30 minutes.\n\n```bash\ncurl --request GET 'https://<HOST>/api/events?windowSize=30000&filterEventUpdates=true' \\\n--header 'Authorization: apiToken <Token>'\n```"
       }
     },
     "/api/events/settings/alertingChannels": {
@@ -4483,12 +4523,13 @@
         "summary": "Get a particular event",
         "tags": [
           "Events"
-        ]
+        ],
+        "description": "This endpoint retrieves an event given its ID.\n\n### Path Parameters:\n\n- **eventId:** The ID of the event to fetch."
       }
     },
     "/api/host-agent": {
       "get": {
-        "operationId": "search",
+        "operationId": "searchHostAgents",
         "parameters": [
           {
             "in": "query",
@@ -4683,7 +4724,7 @@
     },
     "/api/host-agent/{hostId}/logs": {
       "get": {
-        "operationId": "getLogs",
+        "operationId": "getAgentLogs",
         "parameters": [
           {
             "in": "path",
@@ -4741,7 +4782,7 @@
     },
     "/api/host-agent/{hostId}/update": {
       "post": {
-        "operationId": "update",
+        "operationId": "updateAgent",
         "parameters": [
           {
             "in": "path",
@@ -5620,6 +5661,87 @@
         ]
       }
     },
+    "/api/mobile-app-monitoring/analyze/beacon-groups": {
+      "post": {
+        "operationId": "getMobileAppBeaconGroups",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "fillTimeSeries",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetMobileAppBeaconGroups"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileAppBeaconGroupsResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get grouped beacon metrics",
+        "tags": [
+          "Mobile App Analyze"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/analyze/beacons": {
+      "post": {
+        "operationId": "getMobileAppBeacons",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetMobileAppBeacons"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileAppBeaconResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get all beacons",
+        "tags": [
+          "Mobile App Analyze"
+        ]
+      }
+    },
     "/api/mobile-app-monitoring/catalog": {
       "get": {
         "operationId": "getMobileAppTagCatalog",
@@ -5642,6 +5764,8 @@
                 "GROUPING",
                 "FILTERING",
                 "SMART_ALERTS",
+                "SMART_ALERTS_LOGS",
+                "SMART_ALERTS_ADAPTIVE_BASELINE",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
@@ -5851,6 +5975,278 @@
         ]
       }
     },
+    "/api/mobile-app-monitoring/config/{mobileAppId}/geo-location": {
+      "get": {
+        "operationId": "getMobileAppGeoLocationConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoLocationConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Get geo location configuration for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      },
+      "put": {
+        "operationId": "updateMobileAppGeoLocationConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeoLocationConfiguration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoLocationConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Update geo location configuration for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/config/{mobileAppId}/geo-mapping-rules": {
+      "get": {
+        "operationId": "getMobileAppGeoMappingRules",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Get custom geo mapping rules for mobile app",
+        "tags": [
+          "Website Configuration"
+        ]
+      },
+      "put": {
+        "operationId": "setMobileAppGeoMappingRules",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Set custom geo mapping rules for mobile app",
+        "tags": [
+          "Website Configuration"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/config/{mobileAppId}/ip-masking": {
+      "get": {
+        "operationId": "getMobileAppIpMaskingConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpMaskingConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Get IP masking configuration for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      },
+      "put": {
+        "operationId": "updateMobileAppIpMaskingConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mobileAppId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpMaskingConfiguration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpMaskingConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureMobileAppMonitoring"
+            ]
+          }
+        ],
+        "summary": "Update IP masking configuration for mobile app",
+        "tags": [
+          "Mobile App Configuration"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/metrics": {
+      "post": {
+        "deprecated": true,
+        "operationId": "getMobileAppBeaconMetrics",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetMobileAppMetrics"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MobileAppMetricResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get beacon metrics",
+        "tags": [
+          "Mobile App Metrics"
+        ]
+      }
+    },
     "/api/mobile-app-monitoring/session": {
       "get": {
         "operationId": "getSession",
@@ -5903,6 +6299,42 @@
           }
         ],
         "summary": "Get session",
+        "tags": [
+          "Mobile App Metrics"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/v2/metrics": {
+      "post": {
+        "operationId": "getMobileAppBeaconMetricsV2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetMobileAppMetricsV2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricAPIResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get beacon metrics",
         "tags": [
           "Mobile App Metrics"
         ]
@@ -6116,7 +6548,7 @@
     },
     "/api/settings/accesslog": {
       "get": {
-        "operationId": "getAuditLogs",
+        "operationId": "getAccessLogs",
         "parameters": [
           {
             "in": "query",
@@ -6353,7 +6785,7 @@
     },
     "/api/settings/auditlog": {
       "get": {
-        "operationId": "getAuditLogs_1",
+        "operationId": "getAuditLogs",
         "parameters": [
           {
             "in": "query",
@@ -6468,7 +6900,7 @@
         "operationId": "inviteUsers",
         "requestBody": {
           "content": {
-            "*/*": {
+            "application/json": {
               "schema": {
                 "type": "array",
                 "items": {
@@ -6476,7 +6908,8 @@
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "default": {
@@ -6774,7 +7207,10 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "string"
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
           },
@@ -6821,7 +7257,10 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "string"
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
           },
@@ -7194,7 +7633,8 @@
     },
     "/api/settings/sli": {
       "get": {
-        "operationId": "getSli_1",
+        "deprecated": true,
+        "operationId": "getAllSliConfigs",
         "responses": {
           "default": {
             "content": {
@@ -7222,7 +7662,8 @@
         ]
       },
       "post": {
-        "operationId": "createSli",
+        "deprecated": true,
+        "operationId": "createSliConfig",
         "requestBody": {
           "content": {
             "application/json": {
@@ -7260,7 +7701,8 @@
     },
     "/api/settings/sli/{id}": {
       "delete": {
-        "operationId": "delete",
+        "deprecated": true,
+        "operationId": "deleteSliConfig",
         "parameters": [
           {
             "in": "path",
@@ -7292,7 +7734,8 @@
         ]
       },
       "get": {
-        "operationId": "getSli_2",
+        "deprecated": true,
+        "operationId": "getSliConfig",
         "parameters": [
           {
             "in": "path",
@@ -7327,7 +7770,8 @@
         ]
       },
       "put": {
-        "operationId": "putSli",
+        "deprecated": true,
+        "operationId": "updateSliConfig",
         "parameters": [
           {
             "in": "path",
@@ -7625,6 +8069,141 @@
         ]
       }
     },
+    "/api/settings/v2/sli": {
+      "get": {
+        "operationId": "getAllSliConfigsV2",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Get All SLI Configs",
+        "tags": [
+          "SLI Settings"
+        ]
+      },
+      "post": {
+        "operationId": "createSliConfigV2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SliConfiguration"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Create SLI Config",
+        "tags": [
+          "SLI Settings"
+        ],
+        "description": "This endpoint creates the Service Level Indicator Configuration\n\n## Mandatory Parameters:\n\n- **id** A unique identifier for each SLI configuration\n\n- **sliName:** Name for the SLI configuration\n\n- **sliEntity:** Entity of the SLI configuration\n\n### SLI Entity specific parameters\n\nDepending on the chosen `sliType` in the `sliEntity`, there are further required parameters:\n\n#### Application SLI entity\n\nThis option can be used to create a Time-Based SLI\n\n- **sliEntity.applicationId:** The Id of the Application Perspective\n\n- **sliEntity.boundaryScope:** Boundary scope of the Application Perspective\n\n- **metricConfiguration.metricName:** The metric name on which to compute the SLI\n\n- **metricConfiguration.metricAggregation:** The aggregation of the metric\n\n- **metricConfiguration.threshold:** Threshold for the metric\n\n#### Availability SLI entity\n\nThis opetion can be used to create an Event-Based SLI\n\n- **sliEntity.applicationId:** The Id of the Application Perspective\n\n- **sliEntity.boundaryScope:** Boundary scope of the Application Perspective\n\n## Deprecated Parameters for Availability SLI entity:\n\n- **sliEntity.serviceId:** The ID if the Service in he context of an Application Perspective\n\n- **sliEntity.endpointId:** The ID of an Endpoint belonging to a Service\n\n- **sliEntity.goodEventFilters:** The list of TagFilters to match good events / calls\n\n- **sliEntity.badEventFilters:** The list of TagFilters to match bad events / calls\n\nAll of these filters can be included using the list of TagFilterExpressions via **sliEntity.goodEventFilterExpression** and **sliEntity.badEventFilterExpression**.\nThese parameters will be removed in the upcoming releases.\n"
+      }
+    },
+    "/api/settings/v2/sli/{id}": {
+      "delete": {
+        "operationId": "deleteSliConfigV2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Delete SLI Config",
+        "tags": [
+          "SLI Settings"
+        ]
+      },
+      "get": {
+        "operationId": "getSliConfigV2",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SliConfigurationWithLastUpdated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureServiceLevelIndicators"
+            ]
+          }
+        ],
+        "summary": "Get SLI Config",
+        "tags": [
+          "SLI Settings"
+        ]
+      }
+    },
     "/api/sli/report/{sliId}": {
       "get": {
         "operationId": "getSli",
@@ -7715,7 +8294,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeaconGroupsResult"
+                  "$ref": "#/components/schemas/WebsiteBeaconGroupsResult"
                 }
               }
             }
@@ -7751,7 +8330,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BeaconResult"
+                  "$ref": "#/components/schemas/WebsiteBeaconResult"
                 }
               }
             }
@@ -7792,6 +8371,8 @@
                 "GROUPING",
                 "FILTERING",
                 "SMART_ALERTS",
+                "SMART_ALERTS_LOGS",
+                "SMART_ALERTS_ADAPTIVE_BASELINE",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
                 "APPLICATION_CONFIG_BLUEPRINT"
@@ -7911,7 +8492,7 @@
         ]
       },
       "post": {
-        "operationId": "post",
+        "operationId": "createWebsite",
         "parameters": [
           {
             "in": "query",
@@ -7951,7 +8532,7 @@
     },
     "/api/website-monitoring/config/{websiteId}": {
       "delete": {
-        "operationId": "delete_1",
+        "operationId": "deleteWebsite",
         "parameters": [
           {
             "in": "path",
@@ -7980,7 +8561,7 @@
         ]
       },
       "get": {
-        "operationId": "get",
+        "operationId": "getWebsite",
         "parameters": [
           {
             "in": "path",
@@ -8008,7 +8589,7 @@
         ]
       },
       "put": {
-        "operationId": "rename",
+        "operationId": "renameWebsite",
         "parameters": [
           {
             "in": "path",
@@ -8054,8 +8635,244 @@
         ]
       }
     },
+    "/api/website-monitoring/config/{websiteId}/geo-location": {
+      "get": {
+        "operationId": "getWebsiteGeoLocationConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoLocationConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureEumApplications"
+            ]
+          }
+        ],
+        "summary": "Get geo location configuration for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      },
+      "put": {
+        "operationId": "updateWebsiteGeoLocationConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeoLocationConfiguration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeoLocationConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureEumApplications"
+            ]
+          }
+        ],
+        "summary": "Update geo location configuration for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      }
+    },
+    "/api/website-monitoring/config/{websiteId}/geo-mapping-rules": {
+      "get": {
+        "operationId": "getWebsiteGeoMappingRules",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureEumApplications"
+            ]
+          }
+        ],
+        "summary": "Get custom geo mapping rules for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      },
+      "put": {
+        "operationId": "setWebsiteGeoMappingRules",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "text/csv": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureEumApplications"
+            ]
+          }
+        ],
+        "summary": "Set custom geo mapping rules for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      }
+    },
+    "/api/website-monitoring/config/{websiteId}/ip-masking": {
+      "get": {
+        "operationId": "getWebsiteIpMaskingConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpMaskingConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureEumApplications"
+            ]
+          }
+        ],
+        "summary": "Get IP masking configuration for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      },
+      "put": {
+        "operationId": "updateWebsiteIpMaskingConfiguration",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "websiteId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IpMaskingConfiguration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IpMaskingConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureEumApplications"
+            ]
+          }
+        ],
+        "summary": "Update IP masking configuration for website",
+        "tags": [
+          "Website Configuration"
+        ]
+      }
+    },
     "/api/website-monitoring/metrics": {
       "post": {
+        "deprecated": true,
         "operationId": "getBeaconMetrics",
         "requestBody": {
           "content": {
@@ -8146,6 +8963,42 @@
           "Website Metrics"
         ]
       }
+    },
+    "/api/website-monitoring/v2/metrics": {
+      "post": {
+        "operationId": "getBeaconMetricsV2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetWebsiteMetricsV2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricAPIResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get beacon metrics",
+        "tags": [
+          "Website Metrics"
+        ]
+      }
     }
   },
   "components": {
@@ -8220,6 +9073,7 @@
               "GRANT_TEMP_ACCESS",
               "FIRST_LOGIN",
               "LOGIN",
+              "FAILED_LOGIN",
               "LOGOUT"
             ]
           },
@@ -8304,6 +9158,23 @@
         "required": [
           "operator",
           "type"
+        ]
+      },
+      "AdjustedTimeframe": {
+        "type": "object",
+        "properties": {
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "windowSize": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "to"
         ]
       },
       "AgentConfigurationUpdate": {
@@ -8814,6 +9685,7 @@
           "customPayloadFields",
           "description",
           "evaluationType",
+          "granularity",
           "name",
           "rule",
           "threshold",
@@ -8946,6 +9818,7 @@
           "customPayloadFields",
           "description",
           "evaluationType",
+          "granularity",
           "id",
           "name",
           "rule",
@@ -8992,6 +9865,10 @@
           },
           "metricName": {
             "type": "string"
+          },
+          "stableHash": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "required": [
@@ -9094,6 +9971,9 @@
       "ApplicationMetricResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "items": {
             "type": "array",
             "items": {
@@ -9387,60 +10267,6 @@
           "traceId"
         ]
       },
-      "BeaconGroupsResult": {
-        "type": "object",
-        "properties": {
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
-            }
-          },
-          "totalHits": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          },
-          "totalRepresentedItemCount": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "BeaconResult": {
-        "type": "object",
-        "properties": {
-          "canLoadMore": {
-            "type": "boolean"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WebsiteBeaconsItem"
-            }
-          },
-          "totalHits": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          },
-          "totalRepresentedItemCount": {
-            "type": "integer",
-            "format": "int64",
-            "minimum": 0
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
       "BinaryOperatorDTO": {
         "type": "object",
         "allOf": [
@@ -9635,6 +10461,9 @@
       "CallGroupsResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "canLoadMore": {
             "type": "boolean"
           },
@@ -9650,6 +10479,11 @@
             "minimum": 0
           },
           "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
             "type": "integer",
             "format": "int64",
             "minimum": 0
@@ -10251,6 +11085,9 @@
       "EndpointMetricResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "items": {
             "type": "array",
             "items": {
@@ -10605,6 +11442,102 @@
           "rootSpan"
         ]
       },
+      "GeoLocationConfiguration": {
+        "type": "object",
+        "properties": {
+          "geoDetailRemoval": {
+            "type": "string",
+            "enum": [
+              "NO_REMOVAL",
+              "REMOVE_COORDINATES",
+              "REMOVE_CITY",
+              "REMOVE_ALL"
+            ]
+          },
+          "geoMappingRules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GeoMappingRule"
+            },
+            "maxItems": 512,
+            "minItems": 0
+          }
+        },
+        "required": [
+          "geoDetailRemoval"
+        ]
+      },
+      "GeoMappingRule": {
+        "type": "object",
+        "properties": {
+          "accuracyRadius": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": -1
+          },
+          "cidr": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 0
+          },
+          "city": {
+            "type": "string"
+          },
+          "continent": {
+            "type": "string"
+          },
+          "continentCode": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "leastSpecificSubdivision": {
+            "$ref": "#/components/schemas/GeoSubdivision"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "subdivisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GeoSubdivision"
+            },
+            "maxItems": 8,
+            "minItems": 0
+          }
+        },
+        "required": [
+          "cidr",
+          "subdivisions"
+        ]
+      },
+      "GeoSubdivision": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 0
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "GetApplications": {
         "type": "object",
         "properties": {
@@ -10855,6 +11788,160 @@
           "metrics"
         ]
       },
+      "GetMobileAppBeaconGroups": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/MobileAppBeaconTagGroup"
+          },
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileAppMonitoringMetricsConfiguration"
+            },
+            "maxItems": 5,
+            "minItems": 1
+          },
+          "order": {
+            "$ref": "#/components/schemas/Order"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
+            },
+            "maxItems": 32,
+            "minItems": 0
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SESSION_START",
+              "HTTP_REQUEST",
+              "CRASH",
+              "CUSTOM",
+              "VIEW_CHANGE"
+            ]
+          }
+        },
+        "required": [
+          "group",
+          "metrics",
+          "type"
+        ]
+      },
+      "GetMobileAppBeacons": {
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/CursorPagination"
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
+            },
+            "maxItems": 32,
+            "minItems": 0
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SESSION_START",
+              "HTTP_REQUEST",
+              "CRASH",
+              "CUSTOM",
+              "VIEW_CHANGE"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "GetMobileAppMetrics": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileAppMonitoringMetricsConfiguration"
+            },
+            "maxItems": 5,
+            "minItems": 1
+          },
+          "tagFilters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeprecatedTagFilter"
+            },
+            "maxItems": 32,
+            "minItems": 0
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SESSION_START",
+              "HTTP_REQUEST",
+              "CRASH",
+              "CUSTOM",
+              "VIEW_CHANGE"
+            ]
+          }
+        },
+        "required": [
+          "metrics",
+          "type"
+        ]
+      },
+      "GetMobileAppMetricsV2": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileAppMonitoringMetricsConfiguration"
+            },
+            "maxItems": 5,
+            "minItems": 1
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SESSION_START",
+              "HTTP_REQUEST",
+              "CRASH",
+              "CUSTOM",
+              "VIEW_CHANGE"
+            ]
+          }
+        },
+        "required": [
+          "metrics",
+          "type"
+        ]
+      },
       "GetServices": {
         "type": "object",
         "properties": {
@@ -11099,6 +12186,40 @@
           "type"
         ]
       },
+      "GetWebsiteMetricsV2": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteMonitoringMetricsConfiguration"
+            },
+            "maxItems": 5,
+            "minItems": 1
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "PAGELOAD",
+              "RESOURCELOAD",
+              "HTTPREQUEST",
+              "ERROR",
+              "CUSTOM",
+              "PAGE_CHANGE"
+            ]
+          }
+        },
+        "required": [
+          "metrics",
+          "type"
+        ]
+      },
       "GlobalApplicationAlertConfigWithMetadata": {
         "type": "object",
         "properties": {
@@ -11230,6 +12351,7 @@
           "customPayloadFields",
           "description",
           "evaluationType",
+          "granularity",
           "id",
           "name",
           "rule",
@@ -11342,6 +12464,7 @@
           "customPayloadFields",
           "description",
           "evaluationType",
+          "granularity",
           "name",
           "rule",
           "threshold",
@@ -11794,6 +12917,22 @@
           "id"
         ]
       },
+      "IpMaskingConfiguration": {
+        "type": "object",
+        "properties": {
+          "ipMasking": {
+            "type": "string",
+            "enum": [
+              "DEFAULT",
+              "STRICT",
+              "REMOVE_ALL_DETAILS"
+            ]
+          }
+        },
+        "required": [
+          "ipMasking"
+        ]
+      },
       "KubernetesPhysicalContext": {
         "type": "object",
         "properties": {
@@ -12047,6 +13186,29 @@
             "type": "string"
           }
         }
+      },
+      "MetricAPIResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "metrics"
+        ]
       },
       "MetricConfig": {
         "type": "object",
@@ -12323,6 +13485,159 @@
           "id",
           "name"
         ]
+      },
+      "MobileAppBeaconGroupsItem": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "earliestTimestamp": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cursor",
+          "metrics",
+          "name"
+        ]
+      },
+      "MobileAppBeaconGroupsResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileAppBeaconGroupsItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "MobileAppBeaconResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MobileAppBeaconsItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "MobileAppBeaconTagGroup": {
+        "type": "object",
+        "properties": {
+          "groupbyTag": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "groupbyTagEntity": {
+            "type": "string",
+            "enum": [
+              "NOT_APPLICABLE",
+              "DESTINATION",
+              "SOURCE"
+            ]
+          },
+          "groupbyTagSecondLevelKey": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "groupbyTag",
+          "groupbyTagEntity"
+        ]
+      },
+      "MobileAppBeaconsItem": {
+        "type": "object",
+        "properties": {
+          "beacon": {
+            "$ref": "#/components/schemas/MobileAppMonitoringBeacon"
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          }
+        },
+        "required": [
+          "beacon",
+          "cursor"
+        ]
+      },
+      "MobileAppMetricResult": {
+        "type": "object",
+        "properties": {
+          "empty": {
+            "type": "boolean"
+          }
+        }
       },
       "MobileAppMonitoringBeacon": {
         "type": "object",
@@ -12737,6 +14052,43 @@
           "metricId"
         ]
       },
+      "MobileAppMonitoringMetricsConfiguration": {
+        "type": "object",
+        "properties": {
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "P99_9",
+              "P99_99",
+              "DISTRIBUTION",
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE"
+            ]
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "metric": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "aggregation",
+          "metric"
+        ]
+      },
       "MonitoringState": {
         "type": "object",
         "properties": {
@@ -12885,6 +14237,9 @@
         "type": "object",
         "properties": {
           "by": {
+            "type": "string"
+          },
+          "collation": {
             "type": "string"
           },
           "direction": {
@@ -13429,6 +14784,9 @@
       "ServiceMetricResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "items": {
             "type": "array",
             "items": {
@@ -14884,6 +16242,9 @@
       "TraceGroupsResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "canLoadMore": {
             "type": "boolean"
           },
@@ -14899,6 +16260,11 @@
             "minimum": 0
           },
           "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
             "type": "integer",
             "format": "int64",
             "minimum": 0
@@ -14926,6 +16292,9 @@
       "TraceResult": {
         "type": "object",
         "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
           "canLoadMore": {
             "type": "boolean"
           },
@@ -14941,6 +16310,11 @@
             "minimum": 0
           },
           "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
             "type": "integer",
             "format": "int64",
             "minimum": 0
@@ -15523,6 +16897,7 @@
           "alertChannelIds",
           "customPayloadFields",
           "description",
+          "granularity",
           "name",
           "rule",
           "threshold",
@@ -15623,6 +16998,7 @@
           "alertChannelIds",
           "customPayloadFields",
           "description",
+          "granularity",
           "id",
           "name",
           "rule",
@@ -15709,6 +17085,76 @@
           "name"
         ]
       },
+      "WebsiteBeaconGroupsResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteBeaconGroupsItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "WebsiteBeaconResult": {
+        "type": "object",
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebsiteBeaconsItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
       "WebsiteBeaconTagGroup": {
         "type": "object",
         "properties": {
@@ -15760,21 +17206,21 @@
           {
             "type": "object",
             "properties": {
-              "badEventsFilterExpression": {
+              "badEventFilterExpression": {
                 "$ref": "#/components/schemas/TagFilterExpressionElement"
               },
               "beaconType": {
                 "type": "string",
                 "enum": [
-                  "PAGE_LOAD",
-                  "PAGE_RESOURCE",
-                  "HTTP_REQUEST",
-                  "JS_ERROR",
+                  "PAGELOAD",
+                  "RESOURCELOAD",
+                  "HTTPREQUEST",
+                  "ERROR",
                   "CUSTOM",
                   "PAGE_CHANGE"
                 ]
               },
-              "goodEventsFilterExpression": {
+              "goodEventFilterExpression": {
                 "$ref": "#/components/schemas/TagFilterExpressionElement"
               },
               "websiteId": {
@@ -15784,9 +17230,9 @@
           }
         ],
         "required": [
-          "badEventsFilterExpression",
+          "badEventFilterExpression",
           "beaconType",
-          "goodEventsFilterExpression",
+          "goodEventFilterExpression",
           "sliType"
         ]
       },
@@ -16001,6 +17447,12 @@
           },
           "httpCallCorrelationAttempted": {
             "type": "boolean"
+          },
+          "httpCallHeaders": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           },
           "httpCallMethod": {
             "type": "string"
@@ -16342,10 +17794,10 @@
               "beaconType": {
                 "type": "string",
                 "enum": [
-                  "PAGE_LOAD",
-                  "PAGE_RESOURCE",
-                  "HTTP_REQUEST",
-                  "JS_ERROR",
+                  "PAGELOAD",
+                  "RESOURCELOAD",
+                  "HTTPREQUEST",
+                  "ERROR",
                   "CUSTOM",
                   "PAGE_CHANGE"
                 ]
@@ -16495,6 +17947,7 @@
       "tags": [
         "Mobile App Metrics",
         "Mobile App Catalog",
+        "Mobile App Analyze",
         "Mobile App Configuration"
       ]
     },

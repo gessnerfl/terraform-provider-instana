@@ -19,6 +19,6 @@ func TestShouldReturnFalseForAllNonSupportedCustomPayloadTypes(t *testing.T) {
 }
 
 func TestShouldReturnSupportedCustomPayloadTypesAsStringSlice(t *testing.T) {
-	expected := []string{"static", "dynamic"}
+	expected := []string{"staticString", "dynamic"}
 	require.Equal(t, expected, SupportedCustomPayloadTypes.ToStringSlice())
 }

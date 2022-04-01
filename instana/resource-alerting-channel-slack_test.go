@@ -13,13 +13,6 @@ import (
 )
 
 const resourceAlertingChannelSlackDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_alerting_channel_slack" "example" {
   	name        = "name %d"
 	webhook_url = "webhook url"
@@ -50,7 +43,7 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAlertingChannelSlackResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testAlertingChannelSlackDefinition),
@@ -61,7 +54,7 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 }
 
 func createAlertingChannelSlackResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceAlertingChannelSlackDefinitionTemplate, httpPort, iteration)
+	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelSlackDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(

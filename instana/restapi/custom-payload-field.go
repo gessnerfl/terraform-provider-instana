@@ -27,7 +27,7 @@ func (types CustomPayloadTypes) ToStringSlice() []string {
 
 const (
 	//StaticCustomPayloadType constant value for the static CustomPayloadType
-	StaticCustomPayloadType = CustomPayloadType("static")
+	StaticCustomPayloadType = CustomPayloadType("staticString")
 	//DynamicCustomPayloadType constant value for the dynamic CustomPayloadType
 	DynamicCustomPayloadType = CustomPayloadType("dynamic")
 )
@@ -35,9 +35,18 @@ const (
 //SupportedCustomPayloadTypes list of all supported CustomPayloadType
 var SupportedCustomPayloadTypes = CustomPayloadTypes{StaticCustomPayloadType, DynamicCustomPayloadType}
 
+//StaticStringCustomPayloadFieldValue type for static string values of custom payload field
+type StaticStringCustomPayloadFieldValue string
+
+//DynamicCustomPayloadFieldValue type for dynamic values of custom payload field
+type DynamicCustomPayloadFieldValue struct {
+	Key     *string `json:"key"`
+	TagName string  `json:"tagName"`
+}
+
 //CustomPayloadField custom type to represent static fields with a string value for custom payloads
-type CustomPayloadField struct {
+type CustomPayloadField[T any] struct {
 	Type  CustomPayloadType `json:"type"`
 	Key   string            `json:"key"`
-	Value string            `json:"value"`
+	Value T                 `json:"value"`
 }

@@ -5,35 +5,50 @@
 package mocks
 
 import (
+	reflect "reflect"
+
 	restapi "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockRestClient is a mock of RestClient interface
+// MockRestClient is a mock of RestClient interface.
 type MockRestClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockRestClientMockRecorder
 }
 
-// MockRestClientMockRecorder is the mock recorder for MockRestClient
+// MockRestClientMockRecorder is the mock recorder for MockRestClient.
 type MockRestClientMockRecorder struct {
 	mock *MockRestClient
 }
 
-// NewMockRestClient creates a new mock instance
+// NewMockRestClient creates a new mock instance.
 func NewMockRestClient(ctrl *gomock.Controller) *MockRestClient {
 	mock := &MockRestClient{ctrl: ctrl}
 	mock.recorder = &MockRestClientMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRestClient) EXPECT() *MockRestClientMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method
+// Delete mocks base method.
+func (m *MockRestClient) Delete(resourceID, resourceBasePath string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", resourceID, resourceBasePath)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockRestClientMockRecorder) Delete(resourceID, resourceBasePath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRestClient)(nil).Delete), resourceID, resourceBasePath)
+}
+
+// Get mocks base method.
 func (m *MockRestClient) Get(resourcePath string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", resourcePath)
@@ -42,13 +57,13 @@ func (m *MockRestClient) Get(resourcePath string) ([]byte, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockRestClientMockRecorder) Get(resourcePath interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRestClient)(nil).Get), resourcePath)
 }
 
-// GetOne mocks base method
+// GetOne mocks base method.
 func (m *MockRestClient) GetOne(id, resourcePath string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOne", id, resourcePath)
@@ -57,13 +72,13 @@ func (m *MockRestClient) GetOne(id, resourcePath string) ([]byte, error) {
 	return ret0, ret1
 }
 
-// GetOne indicates an expected call of GetOne
+// GetOne indicates an expected call of GetOne.
 func (mr *MockRestClientMockRecorder) GetOne(id, resourcePath interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOne", reflect.TypeOf((*MockRestClient)(nil).GetOne), id, resourcePath)
 }
 
-// Post mocks base method
+// Post mocks base method.
 func (m *MockRestClient) Post(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Post", data, resourcePath)
@@ -72,42 +87,13 @@ func (m *MockRestClient) Post(data restapi.InstanaDataObject, resourcePath strin
 	return ret0, ret1
 }
 
-// Post indicates an expected call of Post
+// Post indicates an expected call of Post.
 func (mr *MockRestClientMockRecorder) Post(data, resourcePath interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockRestClient)(nil).Post), data, resourcePath)
 }
 
-// Put mocks base method
-func (m *MockRestClient) Put(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Put", data, resourcePath)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Put indicates an expected call of Put
-func (mr *MockRestClientMockRecorder) Put(data, resourcePath interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockRestClient)(nil).Put), data, resourcePath)
-}
-
-// Delete mocks base method
-func (m *MockRestClient) Delete(resourceID, resourceBasePath string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", resourceID, resourceBasePath)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockRestClientMockRecorder) Delete(resourceID, resourceBasePath interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockRestClient)(nil).Delete), resourceID, resourceBasePath)
-}
-
-// PostByQuery mocks base method
+// PostByQuery mocks base method.
 func (m *MockRestClient) PostByQuery(resourcePath string, queryParams map[string]string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PostByQuery", resourcePath, queryParams)
@@ -116,13 +102,43 @@ func (m *MockRestClient) PostByQuery(resourcePath string, queryParams map[string
 	return ret0, ret1
 }
 
-// PostByQuery indicates an expected call of PostByQuery
+// PostByQuery indicates an expected call of PostByQuery.
 func (mr *MockRestClientMockRecorder) PostByQuery(resourcePath, queryParams interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostByQuery", reflect.TypeOf((*MockRestClient)(nil).PostByQuery), resourcePath, queryParams)
 }
 
-// PutByQuery mocks base method
+// PostWithID mocks base method.
+func (m *MockRestClient) PostWithID(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PostWithID", data, resourcePath)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PostWithID indicates an expected call of PostWithID.
+func (mr *MockRestClientMockRecorder) PostWithID(data, resourcePath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostWithID", reflect.TypeOf((*MockRestClient)(nil).PostWithID), data, resourcePath)
+}
+
+// Put mocks base method.
+func (m *MockRestClient) Put(data restapi.InstanaDataObject, resourcePath string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Put", data, resourcePath)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Put indicates an expected call of Put.
+func (mr *MockRestClientMockRecorder) Put(data, resourcePath interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockRestClient)(nil).Put), data, resourcePath)
+}
+
+// PutByQuery mocks base method.
 func (m *MockRestClient) PutByQuery(resourcePath, is string, queryParams map[string]string) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PutByQuery", resourcePath, is, queryParams)
@@ -131,7 +147,7 @@ func (m *MockRestClient) PutByQuery(resourcePath, is string, queryParams map[str
 	return ret0, ret1
 }
 
-// PutByQuery indicates an expected call of PutByQuery
+// PutByQuery indicates an expected call of PutByQuery.
 func (mr *MockRestClientMockRecorder) PutByQuery(resourcePath, is, queryParams interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutByQuery", reflect.TypeOf((*MockRestClient)(nil).PutByQuery), resourcePath, is, queryParams)

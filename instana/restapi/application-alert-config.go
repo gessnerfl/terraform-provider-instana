@@ -55,7 +55,7 @@ type ApplicationAlertConfig struct {
 	EvaluationType        ApplicationAlertEvaluationType `json:"evaluationType"`
 	AlertChannelIDs       []string                       `json:"alertChannelIds"`
 	Granularity           Granularity                    `json:"granularity"`
-	CustomerPayloadFields []CustomPayloadField           `json:"customerPayloadFields"`
+	CustomerPayloadFields []CustomPayloadField[any]      `json:"customPayloadFields"`
 	Rule                  ApplicationAlertRule           `json:"rule"`
 	Threshold             Threshold                      `json:"threshold"`
 	TimeThreshold         TimeThreshold                  `json:"timeThreshold"`

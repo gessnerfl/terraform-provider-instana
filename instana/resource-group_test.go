@@ -17,13 +17,6 @@ import (
 )
 
 const fullRBACGroupDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_rbac_group" "example" {
   name = "name %d"
   member { 
@@ -48,26 +41,12 @@ resource "instana_rbac_group" "example" {
 `
 
 const minimalRBACGroupDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_rbac_group" "example" {
   name = "name %d"
 }
 `
 
 const rbacGroupDefinitionWithPermissionsAndApplicationIDsAssignedTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_rbac_group" "example" {
   name = "name %d"
 
@@ -127,7 +106,7 @@ func TestCRUDOfMinimalRBACGroupResourceWithMockServer(t *testing.T) {
 
 func createMinimalRbacGroupResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	return resource.TestStep{
-		Config: fmt.Sprintf(minimalRBACGroupDefinitionTemplate, httpPort, iteration),
+		Config: appendProviderConfig(fmt.Sprintf(minimalRBACGroupDefinitionTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
 			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
@@ -163,7 +142,7 @@ func TestCRUDOfRBACGroupResourceWithPermissionsAndApplicationIdsAssignedUsingMoc
 
 func createRbacGroupResourceWithPermissionsAndApplicationIdsAssignedTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	return resource.TestStep{
-		Config: fmt.Sprintf(rbacGroupDefinitionWithPermissionsAndApplicationIDsAssignedTemplate, httpPort, iteration),
+		Config: appendProviderConfig(fmt.Sprintf(rbacGroupDefinitionWithPermissionsAndApplicationIDsAssignedTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
 			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
@@ -211,7 +190,7 @@ func TestCRUDOfFullRBACGroupResourceWithMockServer(t *testing.T) {
 
 func createFullRbacGroupResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	return resource.TestStep{
-		Config: fmt.Sprintf(fullRBACGroupDefinitionTemplate, httpPort, iteration),
+		Config: appendProviderConfig(fmt.Sprintf(fullRBACGroupDefinitionTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
 			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
@@ -273,8 +252,8 @@ func executeRBACGroupIntegrationTest(t *testing.T, serverResponseTemplate string
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
-		Steps:     testStepsFactory(httpServer.GetPort(), id),
+		ProviderFactories: testProviderFactory,
+		Steps:             testStepsFactory(httpServer.GetPort(), id),
 	})
 }
 

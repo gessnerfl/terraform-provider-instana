@@ -63,7 +63,7 @@ func (api *baseInstanaAPI) ApplicationConfigs() RestResource {
 
 //ApplicationAlertConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) ApplicationAlertConfigs() RestResource {
-	return NewCreatePOSTUpdatePOSTRestResource(ApplicationAlertConfigsResourcePath, NewDefaultJSONUnmarshaller(&ApplicationAlertConfig{}), api.client)
+	return NewCreatePOSTUpdatePOSTRestResource(ApplicationAlertConfigsResourcePath, NewApplicationAlertConfigUnmarshaller(), api.client)
 }
 
 //AlertingChannels implementation of InstanaAPI interface
