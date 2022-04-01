@@ -7,6 +7,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"strings"
 )
 
 //ResourceInstanaApplicationAlertConfig the name of the terraform-provider-instana resource to manage application alert config
@@ -757,7 +758,16 @@ func (r *applicationAlertConfigResource) mapCustomPayloadFieldsToSchema(config *
 		field := make(map[string]string)
 		field[ApplicationAlertConfigFieldCustomPayloadFieldsType] = string(v.Type)
 		field[ApplicationAlertConfigFieldCustomPayloadFieldsKey] = v.Key
-		field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = v.Value
+		if v.Type == restapi.DynamicCustomPayloadType {
+			value := v.Value.(restapi.DynamicCustomPayloadFieldValue)
+			key := ""
+			if value.Key != nil {
+				key = "=" + *value.Key
+			}
+			field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = value.TagName + key
+		} else {
+			field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = string(v.Value.(restapi.StaticStringCustomPayloadFieldValue))
+		}
 		result[i] = field
 	}
 	return result
@@ -973,22 +983,40 @@ func (r *applicationAlertConfigResource) mapEndpointFromSchema(appData map[strin
 	}
 }
 
-func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.CustomPayloadField {
+func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.CustomPayloadField[any] {
 	val := d.Get(ApplicationAlertConfigFieldCustomPayloadFields)
 	if val != nil {
 		fields := val.(*schema.Set).List()
-		result := make([]restapi.CustomPayloadField, len(fields))
+		result := make([]restapi.CustomPayloadField[any], len(fields))
 		for i, v := range fields {
 			field := v.(map[string]interface{})
-			result[i] = restapi.CustomPayloadField{
-				Type:  restapi.CustomPayloadType(field[ApplicationAlertConfigFieldCustomPayloadFieldsType].(string)),
-				Key:   field[ApplicationAlertConfigFieldCustomPayloadFieldsKey].(string),
-				Value: field[ApplicationAlertConfigFieldCustomPayloadFieldsValue].(string),
+			customPayloadFieldType := restapi.CustomPayloadType(field[ApplicationAlertConfigFieldCustomPayloadFieldsType].(string))
+			key := field[ApplicationAlertConfigFieldCustomPayloadFieldsKey].(string)
+			value := field[ApplicationAlertConfigFieldCustomPayloadFieldsValue].(string)
+
+			if customPayloadFieldType == restapi.DynamicCustomPayloadType {
+				parts := strings.Split(value, "=")
+				dynamicValue := restapi.DynamicCustomPayloadFieldValue{TagName: parts[0]}
+				if len(parts) == 2 {
+					valueKey := parts[1]
+					dynamicValue.Key = &valueKey
+				}
+				result[i] = restapi.CustomPayloadField[any]{
+					Type:  customPayloadFieldType,
+					Key:   key,
+					Value: dynamicValue,
+				}
+			} else {
+				result[i] = restapi.CustomPayloadField[any]{
+					Type:  customPayloadFieldType,
+					Key:   key,
+					Value: restapi.StaticStringCustomPayloadFieldValue(value),
+				}
 			}
 		}
 		return result
 	}
-	return []restapi.CustomPayloadField{}
+	return []restapi.CustomPayloadField[any]{}
 }
 
 func (r *applicationAlertConfigResource) mapRuleFromSchema(d *schema.ResourceData) restapi.ApplicationAlertRule {

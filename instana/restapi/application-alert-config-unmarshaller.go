@@ -30,5 +30,26 @@ func (u *applicationAlertConfigUnmarshaller) Unmarshal(data []byte) (interface{}
 		return &ApplicationAlertConfig{}, err
 	}
 	temp.TagFilterExpression = tagFilter
+	for i, v := range temp.CustomerPayloadFields {
+		temp.CustomerPayloadFields[i] = u.mapCustomPayloadField(v)
+	}
 	return temp, nil
+}
+
+func (u *applicationAlertConfigUnmarshaller) mapCustomPayloadField(field CustomPayloadField[any]) CustomPayloadField[any] {
+	if field.Type == DynamicCustomPayloadType {
+		data := field.Value.(map[string]interface{})
+		var keyPtr *string
+		if val, ok := data["key"]; ok {
+			key := val.(string)
+			keyPtr = &key
+		}
+		field.Value = DynamicCustomPayloadFieldValue{
+			TagName: data["tagName"].(string),
+			Key:     keyPtr,
+		}
+	} else {
+		field.Value = StaticStringCustomPayloadFieldValue(field.Value.(string))
+	}
+	return field
 }

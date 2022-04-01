@@ -10,6 +10,7 @@ import (
 func TestShouldSuccessfullyUnmarshalApplicationAlertConfig(t *testing.T) {
 	thresholdValue := 123.3
 	thresholdLastUpdate := int64(12345)
+	dynamicValueKey := "dynamic-value-key"
 	applicationAlertConfig := ApplicationAlertConfig{
 		ID:              "test-application-alert-config-id",
 		AlertChannelIDs: []string{"channel-2", "channel-1"},
@@ -37,16 +38,19 @@ func TestShouldSuccessfullyUnmarshalApplicationAlertConfig(t *testing.T) {
 		Granularity:      Granularity600000,
 		IncludeInternal:  false,
 		IncludeSynthetic: false,
-		CustomerPayloadFields: []CustomPayloadField{
+		CustomerPayloadFields: []CustomPayloadField[any]{
 			{
 				Type:  StaticCustomPayloadType,
 				Key:   "static-key",
-				Value: "static-value",
+				Value: StaticStringCustomPayloadFieldValue("static-value"),
 			},
 			{
-				Type:  DynamicCustomPayloadType,
-				Key:   "dynamic-key",
-				Value: "dynamic-value",
+				Type: DynamicCustomPayloadType,
+				Key:  "dynamic-key",
+				Value: DynamicCustomPayloadFieldValue{
+					TagName: "dynamic-value-tag",
+					Key:     &dynamicValueKey,
+				},
 			},
 		},
 		Name: "full-name",

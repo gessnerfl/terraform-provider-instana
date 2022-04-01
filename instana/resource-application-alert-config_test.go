@@ -76,6 +76,12 @@ resource "instana_application_alert_config" "example" {
 		key   = "test"
 		value = "test123"
 	}
+
+	custom_payload_field {
+		type  = "dynamic"
+		key   = "stage"
+		value = "agent.tag=stage"
+	}
 }
 `
 
@@ -147,7 +153,15 @@ var applicationAlertConfigServerResponseTemplate = `
 			"type": "staticString",
 			"key": "test",
 			"value": "test123"
-      	}
+      	},
+		{
+		  "type": "dynamic",
+		  "key": "stage",
+		  "value": {
+			"tagName": "agent.tag",
+			"key": "stage"
+		  }
+		}
 	],
     "created": 1647679325301,
     "readOnly": false,
@@ -580,6 +594,7 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 	return func(t *testing.T) {
 		fullName := "prefix application-alert-config-name suffix"
 		applicationAlertConfigID := "application-alert-config-id"
+		dynamicCustomPayloadFieldValueKey := "dynamic-value-key"
 		applicationConfig := restapi.ApplicationAlertConfig{
 			ID:              applicationAlertConfigID,
 			AlertChannelIDs: []string{"channel-1", "channel-2"},
@@ -607,16 +622,19 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 			Granularity:      restapi.Granularity600000,
 			IncludeInternal:  false,
 			IncludeSynthetic: false,
-			CustomerPayloadFields: []restapi.CustomPayloadField{
+			CustomerPayloadFields: []restapi.CustomPayloadField[any]{
 				{
 					Type:  restapi.StaticCustomPayloadType,
 					Key:   "static-key",
-					Value: "static-value",
+					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},
 				{
-					Type:  restapi.DynamicCustomPayloadType,
-					Key:   "dynamic-key",
-					Value: "dynamic-value",
+					Type: restapi.DynamicCustomPayloadType,
+					Key:  "dynamic-key",
+					Value: restapi.DynamicCustomPayloadFieldValue{
+						TagName: "dynamic-tag-name",
+						Key:     &dynamicCustomPayloadFieldValueKey,
+					},
 				},
 			},
 			Name:                fullName,
@@ -647,7 +665,7 @@ func createTestShouldUpdateApplicationConfigTerraformResourceStateFromModelCase(
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeSynthetic).(bool))
 		require.Equal(t, []interface{}{
 			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "staticString", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-value"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-tag-name=dynamic-value-key"},
 		}, resourceData.Get(ApplicationAlertConfigFieldCustomPayloadFields).(*schema.Set).List())
 		require.Equal(t, ruleTestPair.expected, resourceData.Get(ApplicationAlertConfigFieldRule))
 		require.Equal(t, restapi.SeverityCritical.GetTerraformRepresentation(), resourceData.Get(ApplicationAlertConfigFieldSeverity))
@@ -984,7 +1002,7 @@ func createTestShouldMapApplicationConfigTerraformResourceStateToModelCase(ruleT
 	return func(t *testing.T) {
 		fullName := "prefix application-alert-config-name suffix"
 		applicationAlertConfigID := "application-alert-config-id"
-
+		dynamicCustomPayloadFieldValueKey := "dynamic-value-key"
 		expectedApplicationConfig := restapi.ApplicationAlertConfig{
 			ID:              applicationAlertConfigID,
 			AlertChannelIDs: []string{"channel-2", "channel-1"},
@@ -1012,16 +1030,19 @@ func createTestShouldMapApplicationConfigTerraformResourceStateToModelCase(ruleT
 			Granularity:      restapi.Granularity600000,
 			IncludeInternal:  false,
 			IncludeSynthetic: false,
-			CustomerPayloadFields: []restapi.CustomPayloadField{
+			CustomerPayloadFields: []restapi.CustomPayloadField[any]{
 				{
 					Type:  restapi.StaticCustomPayloadType,
 					Key:   "static-key",
-					Value: "static-value",
+					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},
 				{
-					Type:  restapi.DynamicCustomPayloadType,
-					Key:   "dynamic-key",
-					Value: "dynamic-value",
+					Type: restapi.DynamicCustomPayloadType,
+					Key:  "dynamic-key",
+					Value: restapi.DynamicCustomPayloadFieldValue{
+						TagName: "dynamic-tag-name",
+						Key:     &dynamicCustomPayloadFieldValueKey,
+					},
 				},
 			},
 			Name:                fullName,
@@ -1058,7 +1079,7 @@ func createTestShouldMapApplicationConfigTerraformResourceStateToModelCase(ruleT
 		resourceData.Set(ApplicationAlertConfigFieldBoundaryScope, restapi.BoundaryScopeInbound)
 		resourceData.Set(ApplicationAlertConfigFieldCustomPayloadFields, []interface{}{
 			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "staticString", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-value"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-tag-name=dynamic-value-key"},
 		})
 		resourceData.Set(ApplicationAlertConfigFieldDescription, "application-alert-config-description")
 		resourceData.Set(ApplicationAlertConfigFieldEvaluationType, restapi.EvaluationTypePerApplication)
