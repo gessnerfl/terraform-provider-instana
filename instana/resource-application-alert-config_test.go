@@ -180,7 +180,6 @@ func TestCRUDOfApplicationAlertConfig(t *testing.T) {
 	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPost, restapi.ApplicationAlertConfigsResourcePath, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("POST on %s\n", restapi.ApplicationAlertConfigsResourcePath)
 		config := &restapi.ApplicationAlertConfig{}
 		err := json.NewDecoder(r.Body).Decode(config)
 		if err != nil {
@@ -194,13 +193,11 @@ func TestCRUDOfApplicationAlertConfig(t *testing.T) {
 		}
 	})
 	httpServer.AddRoute(http.MethodPost, applicationAlertConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("POST on %s\n", applicationAlertConfigApiPath)
 		testutils.EchoHandlerFunc(w, r)
 	})
 	httpServer.AddRoute(http.MethodDelete, applicationAlertConfigApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, applicationAlertConfigApiPath, func(w http.ResponseWriter, r *http.Request) {
 		modCount := httpServer.GetCallCount(http.MethodPost, restapi.ApplicationAlertConfigsResourcePath+"/"+id)
-		fmt.Printf("GET on %s with mod count %d\n", applicationAlertConfigApiPath, modCount)
 		json := fmt.Sprintf(applicationAlertConfigServerResponseTemplate, id, modCount)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
@@ -221,6 +218,25 @@ func TestCRUDOfApplicationAlertConfig(t *testing.T) {
 }
 
 func createApplicationAlertConfigResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
+	application1ApplicationId := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsApplicationID)
+	application1Inclusive := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsInclusive)
+	application1Service1ServiceId := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsServices, 0, ApplicationAlertConfigFieldApplicationsServicesServiceID)
+	application1Service1Inclusive := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsServices, 0, ApplicationAlertConfigFieldApplicationsInclusive)
+	application1Service2ServiceId := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsServices, 1, ApplicationAlertConfigFieldApplicationsServicesServiceID)
+	application1Service2Inclusive := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsServices, 1, ApplicationAlertConfigFieldApplicationsInclusive)
+	application1Service1Endpoint1EndpointId := fmt.Sprintf("%s.%d.%s.%d.%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsServices, 0, ApplicationAlertConfigFieldApplicationsServicesEndpoints, 0, ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID)
+	application1Service1Endpoint1Inclusive := fmt.Sprintf("%s.%d.%s.%d.%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsServices, 0, ApplicationAlertConfigFieldApplicationsServicesEndpoints, 0, ApplicationAlertConfigFieldApplicationsInclusive)
+	ruleSlownessMetricName := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldRule, 0, ApplicationAlertConfigFieldRuleSlowness, 0, ApplicationAlertConfigFieldRuleMetricName)
+	ruleSlownessAggregation := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldRule, 0, ApplicationAlertConfigFieldRuleSlowness, 0, ApplicationAlertConfigFieldRuleAggregation)
+	thresholdStaticOperator := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldThreshold, 0, ApplicationAlertConfigFieldThresholdStatic, 0, ApplicationAlertConfigFieldThresholdOperator)
+	thresholdStaticValue := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldThreshold, 0, ApplicationAlertConfigFieldThresholdStatic, 0, ApplicationAlertConfigFieldThresholdStaticValue)
+	timeThresholdViolationsInSequence := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldTimeThreshold, 0, ApplicationAlertConfigFieldTimeThresholdViolationsInSequence, 0, ApplicationAlertConfigFieldTimeThresholdTimeWindow)
+	customPayloadFieldStaticType := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 1, ApplicationAlertConfigFieldCustomPayloadFieldsType)
+	customPayloadFieldStaticKey := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 1, ApplicationAlertConfigFieldCustomPayloadFieldsKey)
+	customPayloadFieldStaticValue := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 1, ApplicationAlertConfigFieldCustomPayloadFieldsValue)
+	customPayloadFieldDynamicType := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsType)
+	customPayloadFieldDynamicKey := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsKey)
+	customPayloadFieldDynamicValue := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsValue)
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(applicationAlertConfigTerraformTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
@@ -228,6 +244,35 @@ func createApplicationAlertConfigResourceTestStep(httpPort int, iteration int, i
 			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldName, formatResourceName(iteration)),
 			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldDescription, "test-alert-description"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation()),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldTriggering, falseAsString),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldIncludeInternal, falseAsString),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldIncludeSynthetic, falseAsString),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldAlertChannelIDs+".0", "alert-channel-id-1"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldAlertChannelIDs+".1", "alert-channel-id-2"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldGranularity, "600000"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldEvaluationType, string(restapi.EvaluationTypePerApplication)),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ApplicationAlertConfigFieldTagFilter, "call.type@na EQUALS 'HTTP'"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, application1ApplicationId, "app-id"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, application1Inclusive, trueAsString),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, application1Service1ServiceId, "service-1-id"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, application1Service1Inclusive, trueAsString),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, application1Service2ServiceId, "service-2-id"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, application1Service2Inclusive, trueAsString),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, application1Service1Endpoint1EndpointId, "endpoint-1-1-id"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, application1Service1Endpoint1Inclusive, trueAsString),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ruleSlownessMetricName, "latency"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, ruleSlownessAggregation, "P90"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, thresholdStaticOperator, ">="),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, thresholdStaticValue, "5"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, timeThresholdViolationsInSequence, "600000"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, customPayloadFieldStaticType, "staticString"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, customPayloadFieldStaticKey, "test"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, customPayloadFieldStaticValue, "test123"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, customPayloadFieldDynamicType, "dynamic"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, customPayloadFieldDynamicKey, "stage"),
+			resource.TestCheckResourceAttr(testApplicationAlertConfigDefinition, customPayloadFieldDynamicValue, "agent.tag=stage"),
 		),
 	}
 }

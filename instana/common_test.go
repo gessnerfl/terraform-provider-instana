@@ -12,6 +12,8 @@ import (
 )
 
 const contentType = "Content-Type"
+const trueAsString = "true"
+const falseAsString = "false"
 
 var providerConfig = `
 provider "instana" {
