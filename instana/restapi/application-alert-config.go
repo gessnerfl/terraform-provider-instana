@@ -3,6 +3,9 @@ package restapi
 //ApplicationAlertConfigsResourcePath the base path of the Instana REST API for application alert configs
 const ApplicationAlertConfigsResourcePath = EventSettingsBasePath + "/application-alert-configs"
 
+//GlobalApplicationAlertConfigsResourcePath the base path of the Instana REST API for global application alert configs
+const GlobalApplicationAlertConfigsResourcePath = EventSettingsBasePath + "/global-alert-configs/applications"
+
 //ApplicationAlertConfig is the representation of an application alert configuration in Instana
 type ApplicationAlertConfig struct {
 	ID                    string                         `json:"id"`

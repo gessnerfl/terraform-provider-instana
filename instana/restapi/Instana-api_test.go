@@ -36,6 +36,11 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 
 		require.NotNil(t, resource)
 	})
+	t.Run("Should return GlobalApplicationAlertConfig instance", func(t *testing.T) {
+		resource := api.GlobalApplicationAlertConfigs()
+
+		require.NotNil(t, resource)
+	})
 	t.Run("Should return AlertingChannel instance", func(t *testing.T) {
 		resource := api.AlertingChannels()
 
