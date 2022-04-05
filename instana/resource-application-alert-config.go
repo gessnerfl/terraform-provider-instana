@@ -10,8 +10,11 @@ import (
 	"strings"
 )
 
-//ResourceInstanaApplicationAlertConfig the name of the terraform-provider-instana resource to manage application alert config
+//ResourceInstanaApplicationAlertConfig the name of the terraform-provider-instana resource to manage application alert configs
 const ResourceInstanaApplicationAlertConfig = "instana_application_alert_config"
+
+//ResourceInstanaGlobalApplicationAlertConfig the name of the terraform-provider-instana resource to manage global application alert configs
+const ResourceInstanaGlobalApplicationAlertConfig = "instana_global_application_alert_config"
 
 const (
 	//ApplicationAlertConfigFieldAlertChannelIDs constant value for field alerting_channel_ids of resource instana_application_alert_config
@@ -207,32 +210,44 @@ func applicationAlertConfigApplicationServiceEndpointSchemaSetFunc(i interface{}
 	return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID])
 }
 
-//NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
-func NewApplicationAlertConfigResourceHandle() ResourceHandle {
-	return &applicationAlertConfigResource{
-		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaApplicationAlertConfig,
+var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
+	ApplicationAlertConfigFieldAlertChannelIDs: {
+		Type:     schema.TypeSet,
+		MinItems: 0,
+		MaxItems: 1024,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+		Optional:    true,
+		Description: "List of IDs of alert channels defined in Instana.",
+	},
+	ApplicationAlertConfigFieldApplications: {
+		Type:     schema.TypeSet,
+		Required: true,
+		Set:      applicationAlertConfigApplicationSchemaSetFunc,
+		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				ApplicationAlertConfigFieldAlertChannelIDs: {
-					Type:     schema.TypeSet,
-					MinItems: 0,
-					MaxItems: 1024,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-					Optional:    true,
-					Description: "List of IDs of alert channels defined in Instana.",
+				ApplicationAlertConfigFieldApplicationsApplicationID: {
+					Type:         schema.TypeString,
+					Required:     true,
+					Description:  "ID of the included application",
+					ValidateFunc: validation.StringLenBetween(0, 64),
 				},
-				ApplicationAlertConfigFieldApplications: {
+				ApplicationAlertConfigFieldApplicationsInclusive: {
+					Type:        schema.TypeBool,
+					Required:    true,
+					Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
+				},
+				ApplicationAlertConfigFieldApplicationsServices: {
 					Type:     schema.TypeSet,
-					Required: true,
-					Set:      applicationAlertConfigApplicationSchemaSetFunc,
+					Optional: true,
+					Set:      applicationAlertConfigApplicationServiceSchemaSetFunc,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							ApplicationAlertConfigFieldApplicationsApplicationID: {
+							ApplicationAlertConfigFieldApplicationsServicesServiceID: {
 								Type:         schema.TypeString,
 								Required:     true,
-								Description:  "ID of the included application",
+								Description:  "ID of the included service",
 								ValidateFunc: validation.StringLenBetween(0, 64),
 							},
 							ApplicationAlertConfigFieldApplicationsInclusive: {
@@ -240,16 +255,16 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 								Required:    true,
 								Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
 							},
-							ApplicationAlertConfigFieldApplicationsServices: {
+							ApplicationAlertConfigFieldApplicationsServicesEndpoints: {
 								Type:     schema.TypeSet,
 								Optional: true,
-								Set:      applicationAlertConfigApplicationServiceSchemaSetFunc,
+								Set:      applicationAlertConfigApplicationServiceEndpointSchemaSetFunc,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldApplicationsServicesServiceID: {
+										ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID: {
 											Type:         schema.TypeString,
 											Required:     true,
-											Description:  "ID of the included service",
+											Description:  "ID of the included endpoint",
 											ValidateFunc: validation.StringLenBetween(0, 64),
 										},
 										ApplicationAlertConfigFieldApplicationsInclusive: {
@@ -257,399 +272,402 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 											Required:    true,
 											Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
 										},
-										ApplicationAlertConfigFieldApplicationsServicesEndpoints: {
-											Type:     schema.TypeSet,
-											Optional: true,
-											Set:      applicationAlertConfigApplicationServiceEndpointSchemaSetFunc,
-											Elem: &schema.Resource{
-												Schema: map[string]*schema.Schema{
-													ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID: {
-														Type:         schema.TypeString,
-														Required:     true,
-														Description:  "ID of the included endpoint",
-														ValidateFunc: validation.StringLenBetween(0, 64),
-													},
-													ApplicationAlertConfigFieldApplicationsInclusive: {
-														Type:        schema.TypeBool,
-														Required:    true,
-														Description: applicationAlertConfigFieldApplicationsInclusiveDescription,
-													},
-												},
-											},
-											Description: "Selection of endpoints in scope.",
-										},
 									},
 								},
-								Description: "Selection of services in scope.",
+								Description: "Selection of endpoints in scope.",
 							},
 						},
 					},
-					Description: "Selection of applications in scope.",
-				},
-				ApplicationAlertConfigFieldBoundaryScope: {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationAlertConfigBoundaryScopes.ToStringSlice(), false),
-					Description:  "The boundary scope of the application alert config",
-				},
-				ApplicationAlertConfigFieldCustomPayloadFields: {
-					Type: schema.TypeSet,
-					Set: func(i interface{}) int {
-						return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldCustomPayloadFieldsKey])
-					},
-					Optional: true,
-					MinItems: 0,
-					MaxItems: 20,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							ApplicationAlertConfigFieldCustomPayloadFieldsType: {
-								Type:         schema.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringInSlice(restapi.SupportedCustomPayloadTypes.ToStringSlice(), false),
-								Description:  "The type of the custom payload field",
-							},
-							ApplicationAlertConfigFieldCustomPayloadFieldsKey: {
-								Type:        schema.TypeString,
-								Required:    true,
-								Description: "The key of the custom payload field",
-							},
-							ApplicationAlertConfigFieldCustomPayloadFieldsValue: {
-								Type:        schema.TypeString,
-								Required:    true,
-								Description: "The value of the custom payload field",
-							},
-						},
-					},
-					Description: "An optional list of custom payload fields (static key/value pairs added to the event)",
-				},
-				ApplicationAlertConfigFieldDescription: {
-					Type:         schema.TypeString,
-					Required:     true,
-					Description:  "The description text of the application alert config",
-					ValidateFunc: validation.StringLenBetween(0, 65536),
-				},
-				ApplicationAlertConfigFieldEvaluationType: {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationAlertEvaluationTypes.ToStringSlice(), false),
-					Description:  "The evaluation type of the application alert config",
-				},
-				ApplicationAlertConfigFieldGranularity: {
-					Type:         schema.TypeInt,
-					Optional:     true,
-					Default:      restapi.Granularity600000,
-					ValidateFunc: validation.IntInSlice(restapi.SupportedGranularities.ToIntSlice()),
-					Description:  "The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used",
-				},
-				ApplicationAlertConfigFieldIncludeInternal: {
-					Type:        schema.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Optional flag to indicate whether also internal calls are included in the scope or not. The default is false",
-				},
-				ApplicationAlertConfigFieldIncludeSynthetic: {
-					Type:        schema.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Optional flag to indicate whether also synthetic calls are included in the scope or not. The default is false",
-				},
-				ApplicationAlertConfigFieldName: {
-					Type:         schema.TypeString,
-					Required:     true,
-					Description:  "Name for the application alert configuration",
-					ValidateFunc: validation.StringLenBetween(0, 256),
-				},
-				ApplicationAlertConfigFieldFullName: {
-					Type:        schema.TypeString,
-					Computed:    true,
-					Description: "The full name field of the application alert config. The field is computed and contains the name which is sent to Instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
-				},
-				ApplicationAlertConfigFieldRule: {
-					Type:        schema.TypeList,
-					MinItems:    1,
-					MaxItems:    1,
-					Required:    true,
-					Description: "Indicates the type of rule this alert configuration is about.",
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							ApplicationAlertConfigFieldRuleErrorRate: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Rule based on the error rate of the configured alert configuration target",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
-										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
-										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
-									},
-								},
-								ExactlyOneOf: applicationAlertRuleTypeKeys,
-							},
-							ApplicationAlertConfigFieldRuleLogs: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Rule based on logs of the configured alert configuration target",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
-										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
-										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
-										ApplicationAlertConfigFieldRuleLogsLevel: {
-											Type:         schema.TypeString,
-											Required:     true,
-											Description:  "The log level for which this rule applies to",
-											ValidateFunc: validation.StringInSlice(restapi.SupportedLogLevels.ToStringSlice(), false),
-										},
-										ApplicationAlertConfigFieldRuleLogsMessage: {
-											Type:        schema.TypeString,
-											Optional:    true,
-											Description: "The log message for which this rule applies to",
-										},
-										ApplicationAlertConfigFieldRuleLogsOperator: applicationAlertSchemaRequiredRuleOperator,
-									},
-								},
-								ExactlyOneOf: applicationAlertRuleTypeKeys,
-							},
-							ApplicationAlertConfigFieldRuleSlowness: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Rule based on the slowness of the configured alert configuration target",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
-										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaRequiredRuleAggregation,
-										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
-									},
-								},
-								ExactlyOneOf: applicationAlertRuleTypeKeys,
-							},
-							ApplicationAlertConfigFieldRuleStatusCode: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Rule based on the HTTP status code of the configured alert configuration target",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
-										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
-										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
-										ApplicationAlertConfigFieldRuleStatusCodeStart: {
-											Type:         schema.TypeInt,
-											Optional:     true,
-											Description:  "minimal HTTP status code applied for this rule",
-											ValidateFunc: validation.IntAtLeast(1),
-										},
-										ApplicationAlertConfigFieldRuleStatusCodeEnd: {
-											Type:         schema.TypeInt,
-											Optional:     true,
-											Description:  "maximum HTTP status code applied for this rule",
-											ValidateFunc: validation.IntAtLeast(1),
-										},
-									},
-								},
-								ExactlyOneOf: applicationAlertRuleTypeKeys,
-							},
-							ApplicationAlertConfigFieldRuleThroughput: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Rule based on the throughput of the configured alert configuration target",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
-										ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
-										ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
-									},
-								},
-								ExactlyOneOf: applicationAlertRuleTypeKeys,
-							},
-						},
-					},
-				},
-				ApplicationAlertConfigFieldSeverity: {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
-					Description:  "The severity of the alert when triggered",
-				},
-				ApplicationAlertConfigFieldTagFilter: {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "The tag filter of the application alert config",
-					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-						normalized, err := tagfilter.Normalize(new)
-						if err == nil {
-							return normalized == old
-						}
-						return old == new
-					},
-					StateFunc: func(val interface{}) string {
-						normalized, err := tagfilter.Normalize(val.(string))
-						if err == nil {
-							return normalized
-						}
-						return val.(string)
-					},
-					ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-						v := val.(string)
-						if _, err := tagfilter.NewParser().Parse(v); err != nil {
-							errs = append(errs, fmt.Errorf("%q is not a valid tag filter; %s", key, err))
-						}
-
-						return
-					},
-				},
-				ApplicationAlertConfigFieldThreshold: {
-					Type:        schema.TypeList,
-					MinItems:    1,
-					MaxItems:    1,
-					Required:    true,
-					Description: "Indicates the type of threshold this alert rule is evaluated on.",
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							ApplicationAlertConfigFieldThresholdHistoricBaseline: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Threshold based on a historic baseline.",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldThresholdOperator:    applicationAlertSchemaRequiredThresholdOperator,
-										ApplicationAlertConfigFieldThresholdLastUpdated: applicationAlertSchemaOptionalThresholdLastUpdated,
-										ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline: {
-											Type:     schema.TypeSet,
-											Optional: true,
-											Elem: &schema.Schema{
-												Type:     schema.TypeSet,
-												Optional: false,
-												Elem: &schema.Schema{
-													Type: schema.TypeFloat,
-												},
-											},
-											Description: "The baseline of the historic baseline threshold",
-										},
-										ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor: {
-											Type:         schema.TypeFloat,
-											Optional:     true,
-											ValidateFunc: validation.FloatBetween(0.5, 16),
-											Description:  "The baseline of the historic baseline threshold",
-										},
-										ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality: {
-											Type:         schema.TypeString,
-											Required:     true,
-											ValidateFunc: validation.StringInSlice(restapi.SupportedThresholdSeasonalities.ToStringSlice(), false),
-											Description:  "The seasonality of the historic baseline threshold",
-										},
-									},
-								},
-								ExactlyOneOf: applicationAlertThresholdTypeKeys,
-							},
-							ApplicationAlertConfigFieldThresholdStatic: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Static threshold definition",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldThresholdOperator:    applicationAlertSchemaRequiredThresholdOperator,
-										ApplicationAlertConfigFieldThresholdLastUpdated: applicationAlertSchemaOptionalThresholdLastUpdated,
-										ApplicationAlertConfigFieldThresholdStaticValue: {
-											Type:        schema.TypeFloat,
-											Optional:    true,
-											Description: "The value of the static threshold",
-										},
-									},
-								},
-								ExactlyOneOf: applicationAlertThresholdTypeKeys,
-							},
-						},
-					},
-				},
-				ApplicationAlertConfigFieldTimeThreshold: {
-					Type:        schema.TypeList,
-					MinItems:    1,
-					MaxItems:    1,
-					Required:    true,
-					Description: "Indicates the type of violation of the defined threshold.",
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							ApplicationAlertConfigFieldTimeThresholdRequestImpact: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Time threshold base on request impact",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldTimeThresholdTimeWindow: applicationAlertSchemaRequiredTimeThresholdTimeWindow,
-										ApplicationAlertConfigFieldTimeThresholdRequestImpactRequests: {
-											Type:         schema.TypeInt,
-											Optional:     true,
-											ValidateFunc: validation.IntAtLeast(1),
-											Description:  "The number of requests in the given window",
-										},
-									},
-								},
-								ExactlyOneOf: applicationAlertTimeThresholdTypeKeys,
-							},
-							ApplicationAlertConfigFieldTimeThresholdViolationsInPeriod: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Time threshold base on violations in period",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldTimeThresholdTimeWindow: applicationAlertSchemaRequiredTimeThresholdTimeWindow,
-										ApplicationAlertConfigFieldTimeThresholdViolationsInPeriodViolations: {
-											Type:         schema.TypeInt,
-											Optional:     true,
-											ValidateFunc: validation.IntBetween(1, 12),
-											Description:  "The violations appeared in the period",
-										},
-									},
-								},
-								ExactlyOneOf: applicationAlertTimeThresholdTypeKeys,
-							},
-							ApplicationAlertConfigFieldTimeThresholdViolationsInSequence: {
-								Type:        schema.TypeList,
-								MinItems:    0,
-								MaxItems:    1,
-								Optional:    true,
-								Description: "Time threshold base on violations in sequence",
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										ApplicationAlertConfigFieldTimeThresholdTimeWindow: applicationAlertSchemaRequiredTimeThresholdTimeWindow,
-									},
-								},
-								ExactlyOneOf: applicationAlertTimeThresholdTypeKeys,
-							},
-						},
-					},
-				},
-				ApplicationAlertConfigFieldTriggering: {
-					Type:        schema.TypeBool,
-					Optional:    true,
-					Default:     false,
-					Description: "Optional flag to indicate whether also an Incident is triggered or not. The default is false",
+					Description: "Selection of services in scope.",
 				},
 			},
 		},
+		Description: "Selection of applications in scope.",
+	},
+	ApplicationAlertConfigFieldBoundaryScope: {
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationAlertConfigBoundaryScopes.ToStringSlice(), false),
+		Description:  "The boundary scope of the application alert config",
+	},
+	ApplicationAlertConfigFieldCustomPayloadFields: {
+		Type: schema.TypeSet,
+		Set: func(i interface{}) int {
+			return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldCustomPayloadFieldsKey])
+		},
+		Optional: true,
+		MinItems: 0,
+		MaxItems: 20,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				ApplicationAlertConfigFieldCustomPayloadFieldsType: {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(restapi.SupportedCustomPayloadTypes.ToStringSlice(), false),
+					Description:  "The type of the custom payload field",
+				},
+				ApplicationAlertConfigFieldCustomPayloadFieldsKey: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The key of the custom payload field",
+				},
+				ApplicationAlertConfigFieldCustomPayloadFieldsValue: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The value of the custom payload field",
+				},
+			},
+		},
+		Description: "An optional list of custom payload fields (static key/value pairs added to the event)",
+	},
+	ApplicationAlertConfigFieldDescription: {
+		Type:         schema.TypeString,
+		Required:     true,
+		Description:  "The description text of the application alert config",
+		ValidateFunc: validation.StringLenBetween(0, 65536),
+	},
+	ApplicationAlertConfigFieldEvaluationType: {
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationAlertEvaluationTypes.ToStringSlice(), false),
+		Description:  "The evaluation type of the application alert config",
+	},
+	ApplicationAlertConfigFieldGranularity: {
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Default:      restapi.Granularity600000,
+		ValidateFunc: validation.IntInSlice(restapi.SupportedGranularities.ToIntSlice()),
+		Description:  "The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used",
+	},
+	ApplicationAlertConfigFieldIncludeInternal: {
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Optional flag to indicate whether also internal calls are included in the scope or not. The default is false",
+	},
+	ApplicationAlertConfigFieldIncludeSynthetic: {
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Optional flag to indicate whether also synthetic calls are included in the scope or not. The default is false",
+	},
+	ApplicationAlertConfigFieldName: {
+		Type:         schema.TypeString,
+		Required:     true,
+		Description:  "Name for the application alert configuration",
+		ValidateFunc: validation.StringLenBetween(0, 256),
+	},
+	ApplicationAlertConfigFieldFullName: {
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The full name field of the application alert config. The field is computed and contains the name which is sent to Instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
+	},
+	ApplicationAlertConfigFieldRule: {
+		Type:        schema.TypeList,
+		MinItems:    1,
+		MaxItems:    1,
+		Required:    true,
+		Description: "Indicates the type of rule this alert configuration is about.",
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				ApplicationAlertConfigFieldRuleErrorRate: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Rule based on the error rate of the configured alert configuration target",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
+							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
+							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
+						},
+					},
+					ExactlyOneOf: applicationAlertRuleTypeKeys,
+				},
+				ApplicationAlertConfigFieldRuleLogs: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Rule based on logs of the configured alert configuration target",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
+							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
+							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
+							ApplicationAlertConfigFieldRuleLogsLevel: {
+								Type:         schema.TypeString,
+								Required:     true,
+								Description:  "The log level for which this rule applies to",
+								ValidateFunc: validation.StringInSlice(restapi.SupportedLogLevels.ToStringSlice(), false),
+							},
+							ApplicationAlertConfigFieldRuleLogsMessage: {
+								Type:        schema.TypeString,
+								Optional:    true,
+								Description: "The log message for which this rule applies to",
+							},
+							ApplicationAlertConfigFieldRuleLogsOperator: applicationAlertSchemaRequiredRuleOperator,
+						},
+					},
+					ExactlyOneOf: applicationAlertRuleTypeKeys,
+				},
+				ApplicationAlertConfigFieldRuleSlowness: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Rule based on the slowness of the configured alert configuration target",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
+							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaRequiredRuleAggregation,
+							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
+						},
+					},
+					ExactlyOneOf: applicationAlertRuleTypeKeys,
+				},
+				ApplicationAlertConfigFieldRuleStatusCode: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Rule based on the HTTP status code of the configured alert configuration target",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
+							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
+							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
+							ApplicationAlertConfigFieldRuleStatusCodeStart: {
+								Type:         schema.TypeInt,
+								Optional:     true,
+								Description:  "minimal HTTP status code applied for this rule",
+								ValidateFunc: validation.IntAtLeast(1),
+							},
+							ApplicationAlertConfigFieldRuleStatusCodeEnd: {
+								Type:         schema.TypeInt,
+								Optional:     true,
+								Description:  "maximum HTTP status code applied for this rule",
+								ValidateFunc: validation.IntAtLeast(1),
+							},
+						},
+					},
+					ExactlyOneOf: applicationAlertRuleTypeKeys,
+				},
+				ApplicationAlertConfigFieldRuleThroughput: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Rule based on the throughput of the configured alert configuration target",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
+							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
+							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
+						},
+					},
+					ExactlyOneOf: applicationAlertRuleTypeKeys,
+				},
+			},
+		},
+	},
+	ApplicationAlertConfigFieldSeverity: {
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
+		Description:  "The severity of the alert when triggered",
+	},
+	ApplicationAlertConfigFieldTagFilter: {
+		Type:        schema.TypeString,
+		Optional:    true,
+		Description: "The tag filter of the application alert config",
+		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+			normalized, err := tagfilter.Normalize(new)
+			if err == nil {
+				return normalized == old
+			}
+			return old == new
+		},
+		StateFunc: func(val interface{}) string {
+			normalized, err := tagfilter.Normalize(val.(string))
+			if err == nil {
+				return normalized
+			}
+			return val.(string)
+		},
+		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+			v := val.(string)
+			if _, err := tagfilter.NewParser().Parse(v); err != nil {
+				errs = append(errs, fmt.Errorf("%q is not a valid tag filter; %s", key, err))
+			}
+
+			return
+		},
+	},
+	ApplicationAlertConfigFieldThreshold: {
+		Type:        schema.TypeList,
+		MinItems:    1,
+		MaxItems:    1,
+		Required:    true,
+		Description: "Indicates the type of threshold this alert rule is evaluated on.",
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				ApplicationAlertConfigFieldThresholdHistoricBaseline: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Threshold based on a historic baseline.",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldThresholdOperator:    applicationAlertSchemaRequiredThresholdOperator,
+							ApplicationAlertConfigFieldThresholdLastUpdated: applicationAlertSchemaOptionalThresholdLastUpdated,
+							ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline: {
+								Type:     schema.TypeSet,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type:     schema.TypeSet,
+									Optional: false,
+									Elem: &schema.Schema{
+										Type: schema.TypeFloat,
+									},
+								},
+								Description: "The baseline of the historic baseline threshold",
+							},
+							ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor: {
+								Type:         schema.TypeFloat,
+								Optional:     true,
+								ValidateFunc: validation.FloatBetween(0.5, 16),
+								Description:  "The baseline of the historic baseline threshold",
+							},
+							ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality: {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(restapi.SupportedThresholdSeasonalities.ToStringSlice(), false),
+								Description:  "The seasonality of the historic baseline threshold",
+							},
+						},
+					},
+					ExactlyOneOf: applicationAlertThresholdTypeKeys,
+				},
+				ApplicationAlertConfigFieldThresholdStatic: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Static threshold definition",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldThresholdOperator:    applicationAlertSchemaRequiredThresholdOperator,
+							ApplicationAlertConfigFieldThresholdLastUpdated: applicationAlertSchemaOptionalThresholdLastUpdated,
+							ApplicationAlertConfigFieldThresholdStaticValue: {
+								Type:        schema.TypeFloat,
+								Optional:    true,
+								Description: "The value of the static threshold",
+							},
+						},
+					},
+					ExactlyOneOf: applicationAlertThresholdTypeKeys,
+				},
+			},
+		},
+	},
+	ApplicationAlertConfigFieldTimeThreshold: {
+		Type:        schema.TypeList,
+		MinItems:    1,
+		MaxItems:    1,
+		Required:    true,
+		Description: "Indicates the type of violation of the defined threshold.",
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				ApplicationAlertConfigFieldTimeThresholdRequestImpact: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Time threshold base on request impact",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow: applicationAlertSchemaRequiredTimeThresholdTimeWindow,
+							ApplicationAlertConfigFieldTimeThresholdRequestImpactRequests: {
+								Type:         schema.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+								Description:  "The number of requests in the given window",
+							},
+						},
+					},
+					ExactlyOneOf: applicationAlertTimeThresholdTypeKeys,
+				},
+				ApplicationAlertConfigFieldTimeThresholdViolationsInPeriod: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Time threshold base on violations in period",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow: applicationAlertSchemaRequiredTimeThresholdTimeWindow,
+							ApplicationAlertConfigFieldTimeThresholdViolationsInPeriodViolations: {
+								Type:         schema.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 12),
+								Description:  "The violations appeared in the period",
+							},
+						},
+					},
+					ExactlyOneOf: applicationAlertTimeThresholdTypeKeys,
+				},
+				ApplicationAlertConfigFieldTimeThresholdViolationsInSequence: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Time threshold base on violations in sequence",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldTimeThresholdTimeWindow: applicationAlertSchemaRequiredTimeThresholdTimeWindow,
+						},
+					},
+					ExactlyOneOf: applicationAlertTimeThresholdTypeKeys,
+				},
+			},
+		},
+	},
+	ApplicationAlertConfigFieldTriggering: {
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Optional flag to indicate whether also an Incident is triggered or not. The default is false",
+	},
+}
+
+//NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
+func NewApplicationAlertConfigResourceHandle() ResourceHandle {
+	return &applicationAlertConfigResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaApplicationAlertConfig,
+			Schema:       applicationAlertConfigResourceSchema,
+		},
+		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource { return api.ApplicationAlertConfigs() },
+	}
+}
+
+//NewGlobalApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for global application alert configs
+func NewGlobalApplicationAlertConfigResourceHandle() ResourceHandle {
+	return &applicationAlertConfigResource{
+		metaData: ResourceMetaData{
+			ResourceName: ResourceInstanaGlobalApplicationAlertConfig,
+			Schema:       applicationAlertConfigResourceSchema,
+		},
+		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource { return api.GlobalApplicationAlertConfigs() },
 	}
 }
 
 type applicationAlertConfigResource struct {
-	metaData ResourceMetaData
+	metaData         ResourceMetaData
+	resourceProvider func(api restapi.InstanaAPI) restapi.RestResource
 }
 
 func (r *applicationAlertConfigResource) MetaData() *ResourceMetaData {
@@ -661,7 +679,7 @@ func (r *applicationAlertConfigResource) StateUpgraders() []schema.StateUpgrader
 }
 
 func (r *applicationAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
-	return api.ApplicationAlertConfigs()
+	return r.resourceProvider(api)
 }
 
 func (r *applicationAlertConfigResource) SetComputedFields(d *schema.ResourceData) {
