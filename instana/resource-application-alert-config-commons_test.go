@@ -93,15 +93,8 @@ resource "%s" "example" {
     }
 
 	custom_payload_field {
-		type  = "staticString"
 		key   = "test"
 		value = "test123"
-	}
-
-	custom_payload_field {
-		type  = "dynamic"
-		key   = "stage"
-		value = "agent.tag=stage"
 	}
 }
 `
@@ -174,15 +167,7 @@ var applicationAlertConfigServerResponseTemplate = `
 			"type": "staticString",
 			"key": "test",
 			"value": "test123"
-      	},
-		{
-		  "type": "dynamic",
-		  "key": "stage",
-		  "value": {
-			"tagName": "agent.tag",
-			"key": "stage"
-		  }
-		}
+      	}
 	],
     "created": 1647679325301,
     "readOnly": false,
@@ -266,12 +251,8 @@ func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int, itera
 	thresholdStaticOperator := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldThreshold, 0, ApplicationAlertConfigFieldThresholdStatic, 0, ApplicationAlertConfigFieldThresholdOperator)
 	thresholdStaticValue := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldThreshold, 0, ApplicationAlertConfigFieldThresholdStatic, 0, ApplicationAlertConfigFieldThresholdStaticValue)
 	timeThresholdViolationsInSequence := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldTimeThreshold, 0, ApplicationAlertConfigFieldTimeThresholdViolationsInSequence, 0, ApplicationAlertConfigFieldTimeThresholdTimeWindow)
-	customPayloadFieldStaticType := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 1, ApplicationAlertConfigFieldCustomPayloadFieldsType)
-	customPayloadFieldStaticKey := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 1, ApplicationAlertConfigFieldCustomPayloadFieldsKey)
-	customPayloadFieldStaticValue := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 1, ApplicationAlertConfigFieldCustomPayloadFieldsValue)
-	customPayloadFieldDynamicType := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsType)
-	customPayloadFieldDynamicKey := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsKey)
-	customPayloadFieldDynamicValue := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsValue)
+	customPayloadFieldStaticKey := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsKey)
+	customPayloadFieldStaticValue := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsValue)
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(applicationAlertConfigTerraformTemplate, f.terraformResourceName, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
@@ -302,12 +283,8 @@ func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int, itera
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, thresholdStaticOperator, ">="),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, thresholdStaticValue, "5"),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, timeThresholdViolationsInSequence, "600000"),
-			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldStaticType, "staticString"),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldStaticKey, "test"),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldStaticValue, "test123"),
-			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamicType, "dynamic"),
-			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamicKey, "stage"),
-			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamicValue, "agent.tag=stage"),
 		),
 	}
 }
@@ -684,7 +661,6 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 	return func(t *testing.T) {
 		fullName := "prefix application-alert-config-name suffix"
 		applicationAlertConfigID := "application-alert-config-id"
-		dynamicCustomPayloadFieldValueKey := "dynamic-value-key"
 		applicationConfig := restapi.ApplicationAlertConfig{
 			ID:              applicationAlertConfigID,
 			AlertChannelIDs: []string{"channel-1", "channel-2"},
@@ -718,14 +694,6 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 					Key:   "static-key",
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},
-				{
-					Type: restapi.DynamicCustomPayloadType,
-					Key:  "dynamic-key",
-					Value: restapi.DynamicCustomPayloadFieldValue{
-						TagName: "dynamic-tag-name",
-						Key:     &dynamicCustomPayloadFieldValueKey,
-					},
-				},
 			},
 			Name:                fullName,
 			Rule:                ruleTestPair.input,
@@ -754,8 +722,7 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeInternal).(bool))
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeSynthetic).(bool))
 		require.Equal(t, []interface{}{
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "staticString", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-tag-name=dynamic-value-key"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
 		}, resourceData.Get(ApplicationAlertConfigFieldCustomPayloadFields).(*schema.Set).List())
 		require.Equal(t, ruleTestPair.expected, resourceData.Get(ApplicationAlertConfigFieldRule))
 		require.Equal(t, restapi.SeverityCritical.GetTerraformRepresentation(), resourceData.Get(ApplicationAlertConfigFieldSeverity))
@@ -1092,7 +1059,6 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 	return func(t *testing.T) {
 		fullName := "prefix application-alert-config-name suffix"
 		applicationAlertConfigID := "application-alert-config-id"
-		dynamicCustomPayloadFieldValueKey := "dynamic-value-key"
 		expectedApplicationConfig := restapi.ApplicationAlertConfig{
 			ID:              applicationAlertConfigID,
 			AlertChannelIDs: []string{"channel-2", "channel-1"},
@@ -1125,14 +1091,6 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 					Type:  restapi.StaticCustomPayloadType,
 					Key:   "static-key",
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
-				},
-				{
-					Type: restapi.DynamicCustomPayloadType,
-					Key:  "dynamic-key",
-					Value: restapi.DynamicCustomPayloadFieldValue{
-						TagName: "dynamic-tag-name",
-						Key:     &dynamicCustomPayloadFieldValueKey,
-					},
 				},
 			},
 			Name:                fullName,
@@ -1168,8 +1126,7 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 		})
 		resourceData.Set(ApplicationAlertConfigFieldBoundaryScope, restapi.BoundaryScopeInbound)
 		resourceData.Set(ApplicationAlertConfigFieldCustomPayloadFields, []interface{}{
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "staticString", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
-			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsType: "dynamic", ApplicationAlertConfigFieldCustomPayloadFieldsKey: "dynamic-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "dynamic-tag-name=dynamic-value-key"},
+			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
 		})
 		resourceData.Set(ApplicationAlertConfigFieldDescription, "application-alert-config-description")
 		resourceData.Set(ApplicationAlertConfigFieldEvaluationType, restapi.EvaluationTypePerApplication)

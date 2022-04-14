@@ -7,7 +7,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"strings"
 )
 
 //ResourceInstanaApplicationAlertConfig the name of the terraform-provider-instana resource to manage application alert configs
@@ -38,8 +37,6 @@ const (
 	ApplicationAlertConfigFieldBoundaryScope = "boundary_scope"
 	//ApplicationAlertConfigFieldCustomPayloadFields constant value for field custom_payload_fields of resource instana_application_alert_config
 	ApplicationAlertConfigFieldCustomPayloadFields = "custom_payload_field"
-	//ApplicationAlertConfigFieldCustomPayloadFieldsType constant value for field custom_payload_fields.type of resource instana_application_alert_config
-	ApplicationAlertConfigFieldCustomPayloadFieldsType = "type"
 	//ApplicationAlertConfigFieldCustomPayloadFieldsKey constant value for field custom_payload_fields.key of resource instana_application_alert_config
 	ApplicationAlertConfigFieldCustomPayloadFieldsKey = "key"
 	//ApplicationAlertConfigFieldCustomPayloadFieldsValue constant value for field custom_payload_fields.value of resource instana_application_alert_config
@@ -300,12 +297,14 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 		MaxItems: 20,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				ApplicationAlertConfigFieldCustomPayloadFieldsType: {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice(restapi.SupportedCustomPayloadTypes.ToStringSlice(), false),
-					Description:  "The type of the custom payload field",
-				},
+				/*
+					ApplicationAlertConfigFieldCustomPayloadFieldsType: {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(restapi.SupportedCustomPayloadTypes.ToStringSlice(), false),
+						Description:  "The type of the custom payload field",
+					},
+				*/
 				ApplicationAlertConfigFieldCustomPayloadFieldsKey: {
 					Type:        schema.TypeString,
 					Required:    true,
@@ -774,7 +773,7 @@ func (r *applicationAlertConfigResource) mapCustomPayloadFieldsToSchema(config *
 	result := make([]map[string]string, len(config.CustomerPayloadFields))
 	for i, v := range config.CustomerPayloadFields {
 		field := make(map[string]string)
-		field[ApplicationAlertConfigFieldCustomPayloadFieldsType] = string(v.Type)
+		//field[ApplicationAlertConfigFieldCustomPayloadFieldsType] = string(v.Type)
 		field[ApplicationAlertConfigFieldCustomPayloadFieldsKey] = v.Key
 		if v.Type == restapi.DynamicCustomPayloadType {
 			value := v.Value.(restapi.DynamicCustomPayloadFieldValue)
@@ -1008,29 +1007,32 @@ func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *sch
 		result := make([]restapi.CustomPayloadField[any], len(fields))
 		for i, v := range fields {
 			field := v.(map[string]interface{})
-			customPayloadFieldType := restapi.CustomPayloadType(field[ApplicationAlertConfigFieldCustomPayloadFieldsType].(string))
+			customPayloadFieldType := restapi.StaticCustomPayloadType
 			key := field[ApplicationAlertConfigFieldCustomPayloadFieldsKey].(string)
 			value := field[ApplicationAlertConfigFieldCustomPayloadFieldsValue].(string)
 
-			if customPayloadFieldType == restapi.DynamicCustomPayloadType {
-				parts := strings.Split(value, "=")
-				dynamicValue := restapi.DynamicCustomPayloadFieldValue{TagName: parts[0]}
-				if len(parts) == 2 {
-					valueKey := parts[1]
-					dynamicValue.Key = &valueKey
-				}
-				result[i] = restapi.CustomPayloadField[any]{
-					Type:  customPayloadFieldType,
-					Key:   key,
-					Value: dynamicValue,
-				}
-			} else {
-				result[i] = restapi.CustomPayloadField[any]{
-					Type:  customPayloadFieldType,
-					Key:   key,
-					Value: restapi.StaticStringCustomPayloadFieldValue(value),
-				}
+			/*
+				if customPayloadFieldType == restapi.DynamicCustomPayloadType {
+					parts := strings.Split(value, "=")
+					dynamicValue := restapi.DynamicCustomPayloadFieldValue{TagName: parts[0]}
+					if len(parts) == 2 {
+						valueKey := parts[1]
+						dynamicValue.Key = &valueKey
+					}
+					result[i] = restapi.CustomPayloadField[any]{
+						Type:  customPayloadFieldType,
+						Key:   key,
+						Value: dynamicValue,
+					}
+				} else {
+
+			*/
+			result[i] = restapi.CustomPayloadField[any]{
+				Type:  customPayloadFieldType,
+				Key:   key,
+				Value: restapi.StaticStringCustomPayloadFieldValue(value),
 			}
+			//}
 		}
 		return result
 	}
