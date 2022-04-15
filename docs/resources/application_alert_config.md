@@ -1,6 +1,6 @@
 # Application Alert Configuration Resource
 
-Management of application alert configurations (smart alerts).
+Management of application alert configurations (Application Smart Alerts).
 
 API Documentation: <https://instana.github.io/openapi/#tag/Application-Alert-Configuration>
 

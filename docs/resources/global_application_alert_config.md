@@ -1,6 +1,6 @@
 # Global Application Alert Configuration Resource
 
-Management of global application alert configurations (global smart alerts).
+Management of global application alert configurations (Global Application Smart Alerts).
 
 API Documentation: <https://instana.github.io/openapi/#tag/Global-Application-Alert-Configuration>
 
