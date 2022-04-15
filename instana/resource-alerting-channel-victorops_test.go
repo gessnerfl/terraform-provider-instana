@@ -13,13 +13,6 @@ import (
 )
 
 const resourceAlertingChannelVictorOpsDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_alerting_channel_victor_ops" "example" {
   name  = "name %d"
 	api_key   = "api key"
@@ -47,7 +40,7 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAlertingChannelVictorOpsResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testAlertingChannelVictorOpsDefinition),
@@ -58,7 +51,7 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 }
 
 func createAlertingChannelVictorOpsResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceAlertingChannelVictorOpsDefinitionTemplate, httpPort, iteration)
+	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelVictorOpsDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(

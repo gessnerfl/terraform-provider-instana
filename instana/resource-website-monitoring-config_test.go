@@ -17,13 +17,6 @@ import (
 )
 
 const websiteMonitoringConfigTerraformTemplate = `
-provider "instana" {
-	api_token = "test-token"
-	endpoint = "localhost:%d"
-	default_name_prefix = "prefix"
-	default_name_suffix = "suffix"
-}
-
 resource "instana_website_monitoring_config" "example_website_monitoring_config" {
 	name = "name %d"
 }
@@ -32,8 +25,6 @@ resource "instana_website_monitoring_config" "example_website_monitoring_config"
 const (
 	websiteMonitoringConfigApiPath    = restapi.WebsiteMonitoringConfigResourcePath + "/{id}"
 	websiteMonitoringConfigDefinition = "instana_website_monitoring_config.example_website_monitoring_config"
-	websiteMonitoringConfigID         = "id"
-	websiteMonitoringConfigName       = resourceName
 	websiteMonitoringConfigFullName   = resourceFullName
 )
 
@@ -45,15 +36,15 @@ func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
 	server.Start()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(websiteMonitoringConfigTerraformTemplate, server.GetPort(), 0),
+				Config: appendProviderConfig(fmt.Sprintf(websiteMonitoringConfigTerraformTemplate, 0), server.GetPort()),
 				Check:  resource.ComposeTestCheckFunc(createWebsiteMonitoringConfigTestCheckFunctions(0)...),
 			},
 			testStepImport(websiteMonitoringConfigDefinition),
 			{
-				Config: fmt.Sprintf(websiteMonitoringConfigTerraformTemplate, server.GetPort(), 1),
+				Config: appendProviderConfig(fmt.Sprintf(websiteMonitoringConfigTerraformTemplate, 1), server.GetPort()),
 				Check:  resource.ComposeTestCheckFunc(createWebsiteMonitoringConfigTestCheckFunctions(1)...),
 			},
 			testStepImport(websiteMonitoringConfigDefinition),

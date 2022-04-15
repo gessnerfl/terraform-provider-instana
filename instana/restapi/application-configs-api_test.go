@@ -380,7 +380,7 @@ func TestShouldCreateValidComparisionExpression(t *testing.T) {
 	}
 }
 
-func createTestShouldCreateValidComparisionExpression(operator TagFilterOperator) func(*testing.T) {
+func createTestShouldCreateValidComparisionExpression(operator ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		exp := NewComparisonExpression(keyFieldValue, MatcherExpressionEntityDestination, operator, valueFieldValue)
 
@@ -442,7 +442,7 @@ func TestShouldCreateValidUnaryOperatorExpression(t *testing.T) {
 	}
 }
 
-func createTestShouldCreateValidUnaryOperatorExpression(operator TagFilterOperator) func(*testing.T) {
+func createTestShouldCreateValidUnaryOperatorExpression(operator ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		exp := NewUnaryOperationExpression(keyFieldValue, MatcherExpressionEntityDestination, operator)
 
@@ -516,26 +516,6 @@ func TestShouldReturnfalseWhenApplicationConfigScopeIsNotSupported(t *testing.T)
 
 func TestShouldReturnStringRepresentationOfSupporedApplicationConfigScopes(t *testing.T) {
 	require.Equal(t, []string{"INCLUDE_NO_DOWNSTREAM", "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING", "INCLUDE_ALL_DOWNSTREAM"}, SupportedApplicationConfigScopes.ToStringSlice())
-}
-
-func TestShouldReturnTrueForAllSupportedApplicationConfigBoundaryScopes(t *testing.T) {
-	for _, scope := range SupportedBoundaryScopes {
-		t.Run(fmt.Sprintf("TestShouldReturnTrueForSupportedBoundaryScope%s", string(scope)), createTestCaseToVerifySupportedApplicationConfigBoundaryScope(scope))
-	}
-}
-
-func createTestCaseToVerifySupportedApplicationConfigBoundaryScope(scope BoundaryScope) func(t *testing.T) {
-	return func(t *testing.T) {
-		require.True(t, SupportedBoundaryScopes.IsSupported(scope))
-	}
-}
-
-func TestShouldReturnfalseWhenApplicationConfigBoundaryScopeIsNotSupported(t *testing.T) {
-	require.False(t, SupportedBoundaryScopes.IsSupported(BoundaryScope(valueInvalid)))
-}
-
-func TestShouldReturnStringRepresentationOfSupporedApplicationConfigBoundaryScopes(t *testing.T) {
-	require.Equal(t, []string{"ALL", "INBOUND", "DEFAULT"}, SupportedBoundaryScopes.ToStringSlice())
 }
 
 func TestShouldReturnTrueForAllSupportedMatcherExpressionEntities(t *testing.T) {

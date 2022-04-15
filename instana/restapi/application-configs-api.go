@@ -67,43 +67,6 @@ var SupportedApplicationConfigScopes = ApplicationConfigScopes{
 	ApplicationConfigScopeIncludeAllDownstream,
 }
 
-//BoundaryScope type definition of the application config boundary scope of the Instana Web REST API
-type BoundaryScope string
-
-//BoundaryScopes type definition of slice of BoundaryScopes
-type BoundaryScopes []BoundaryScope
-
-//ToStringSlice returns a slice containing the string representations of the given boundary scopes
-func (scopes BoundaryScopes) ToStringSlice() []string {
-	result := make([]string, len(scopes))
-	for i, s := range scopes {
-		result[i] = string(s)
-	}
-	return result
-}
-
-//IsSupported checks if the given BoundaryScope is defined as a supported BoundaryScope of the underlying slice
-func (scopes BoundaryScopes) IsSupported(s BoundaryScope) bool {
-	for _, scope := range scopes {
-		if s == scope {
-			return true
-		}
-	}
-	return false
-}
-
-const (
-	//BoundaryScopeAll constant value for the boundary scope ALL of an application config of the Instana Web REST API
-	BoundaryScopeAll = BoundaryScope("ALL")
-	//BoundaryScopeInbound constant value for the boundary scope INBOUND of an application config of the Instana Web REST API
-	BoundaryScopeInbound = BoundaryScope("INBOUND")
-	//BoundaryScopeDefault constant value for the boundary scope DEFAULT of an application config of the Instana Web REST API
-	BoundaryScopeDefault = BoundaryScope("DEFAULT")
-)
-
-//SupportedBoundaryScopes supported BoundaryScopes of the Instana Web REST API
-var SupportedBoundaryScopes = BoundaryScopes{BoundaryScopeAll, BoundaryScopeInbound, BoundaryScopeDefault}
-
 //ApplicationConfigResource represents the REST resource of application perspective configuration at Instana
 type ApplicationConfigResource interface {
 	GetOne(id string) (ApplicationConfig, error)
@@ -137,7 +100,7 @@ type BinaryOperator struct {
 }
 
 //NewComparisonExpression creates and new tag matcher expression for a comparision
-func NewComparisonExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator, value string) MatchExpression {
+func NewComparisonExpression(key string, entity MatcherExpressionEntity, operator ExpressionOperator, value string) MatchExpression {
 	return &TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
@@ -148,7 +111,7 @@ func NewComparisonExpression(key string, entity MatcherExpressionEntity, operato
 }
 
 //NewUnaryOperationExpression creates and new tag matcher expression for a unary operation
-func NewUnaryOperationExpression(key string, entity MatcherExpressionEntity, operator TagFilterOperator) MatchExpression {
+func NewUnaryOperationExpression(key string, entity MatcherExpressionEntity, operator ExpressionOperator) MatchExpression {
 	return &TagMatcherExpression{
 		Dtype:    LeafExpressionType,
 		Key:      key,
@@ -199,7 +162,7 @@ type TagMatcherExpression struct {
 	Dtype    MatchExpressionType     `json:"type"`
 	Key      string                  `json:"key"`
 	Entity   MatcherExpressionEntity `json:"entity"`
-	Operator TagFilterOperator       `json:"operator"`
+	Operator ExpressionOperator      `json:"operator"`
 	Value    *string                 `json:"value"`
 }
 
@@ -236,7 +199,7 @@ func (a *ApplicationConfig) Validate() error {
 	if utils.IsBlank(string(a.BoundaryScope)) {
 		return errors.New("boundary scope is missing")
 	}
-	if !SupportedBoundaryScopes.IsSupported(a.BoundaryScope) {
+	if !SupportedApplicationConfigBoundaryScopes.IsSupported(a.BoundaryScope) {
 		return errors.New("boundary scope is not supported")
 	}
 	return a.validateExpression()

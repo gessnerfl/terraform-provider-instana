@@ -10,6 +10,8 @@ resource.
 
 * Application Settings
   * Application Configuration - `instana_application_config`
+  * Application Alert Configuration - `instana_application_alert_config`
+  * Global Application Alert Configuration - `instana_global_application_alert_config`
 * Event Settings
   * Custom Event Specification
     * Entity Verification Rule - `instana_custom_event_spec_entity_verification_rule`
@@ -28,6 +30,7 @@ resource.
   * Alerting Config - `instana_alerting_config`
 * Settings
   * API Tokens - `instana_api_token`
+  * Groups - `instana_rbac_group`
 * SLI Settings
   * SLI Config - `instana_sli_config`
 * Website Monitoring

@@ -33,9 +33,9 @@ func (m *matchExpressionMapperImpl) mapPrimaryExpressionToAPIModel(input *Primar
 }
 
 func (m *matchExpressionMapperImpl) mapUnaryOperatorExpressionToAPIModel(input *UnaryOperationExpression) restapi.MatchExpression {
-	return restapi.NewUnaryOperationExpression(input.Entity.Identifier, input.Entity.Origin.MatcherExpressionEntity(), restapi.TagFilterOperator(input.Operator))
+	return restapi.NewUnaryOperationExpression(input.Entity.Identifier, input.Entity.Origin.MatcherExpressionEntity(), restapi.ExpressionOperator(input.Operator))
 }
 
 func (m *matchExpressionMapperImpl) mapComparisonExpressionToAPIModel(input *ComparisonExpression) restapi.MatchExpression {
-	return restapi.NewComparisonExpression(input.Entity.Identifier, input.Entity.Origin.MatcherExpressionEntity(), restapi.TagFilterOperator(input.Operator), input.Value)
+	return restapi.NewComparisonExpression(input.Entity.Identifier, input.Entity.Origin.MatcherExpressionEntity(), restapi.ExpressionOperator(input.Operator), input.Value)
 }

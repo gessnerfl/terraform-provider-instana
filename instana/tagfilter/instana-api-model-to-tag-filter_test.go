@@ -90,7 +90,7 @@ func TestShouldMapAllSupportedComparisonOperatorsFromInstanaAPI(t *testing.T) {
 	}
 }
 
-func testMappingOfSupportedComparisonOperatorsFromInstanaAPI(operator restapi.TagFilterOperator) func(t *testing.T) {
+func testMappingOfSupportedComparisonOperatorsFromInstanaAPI(operator restapi.ExpressionOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		value := "value"
 		input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, operator, value)
@@ -131,7 +131,7 @@ func TestShouldMapAllSupportedUnaryOperationsFromInstanaAPI(t *testing.T) {
 	}
 }
 
-func testMappingOfSupportedUnaryOperationFromInstanaAPI(operator restapi.TagFilterOperator) func(t *testing.T) {
+func testMappingOfSupportedUnaryOperationFromInstanaAPI(operator restapi.ExpressionOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		input := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, operator)
 

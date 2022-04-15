@@ -238,7 +238,7 @@ func TestShouldParseAllSupportedComparisonOperators(t *testing.T) {
 	}
 }
 
-func createTestCaseForParsingSupportedComparisonOperators(operator restapi.TagFilterOperator) func(*testing.T) {
+func createTestCaseForParsingSupportedComparisonOperators(operator restapi.ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expression := fmt.Sprintf("entity.name %s 'foo'", string(operator))
 
@@ -266,7 +266,7 @@ func TestShouldParseAllSupportedUnaryOperators(t *testing.T) {
 	}
 }
 
-func createTestCaseForParsingSupportedUnaryOperators(operator restapi.TagFilterOperator) func(*testing.T) {
+func createTestCaseForParsingSupportedUnaryOperators(operator restapi.ExpressionOperator) func(*testing.T) {
 	return func(t *testing.T) {
 		expression := fmt.Sprintf("entity.name %s", string(operator))
 

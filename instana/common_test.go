@@ -12,9 +12,24 @@ import (
 )
 
 const contentType = "Content-Type"
+const trueAsString = "true"
+const falseAsString = "false"
 
-var testProviders = map[string]*schema.Provider{
-	"instana": Provider(),
+var providerConfig = `
+provider "instana" {
+	api_token = "test-token"
+	endpoint = "localhost:%d"
+	default_name_prefix = "prefix"
+	default_name_suffix = "suffix"
+}
+`
+
+var testProviderFactory = map[string]func() (*schema.Provider, error){
+	"instana": func() (*schema.Provider, error) { return Provider(), nil },
+}
+
+func appendProviderConfig(resourceConfig string, serverPort int) string {
+	return fmt.Sprintf(providerConfig, serverPort) + " \n\n" + resourceConfig
 }
 
 func createMockHttpServerForResource(resourcePath string, responseTemplate string, templateVars ...interface{}) testutils.TestHTTPServer {
@@ -95,4 +110,10 @@ func copyMap(input map[string]interface{}) map[string]interface{} {
 	}
 
 	return result
+}
+
+type testPair[A any, E any] struct {
+	name     string
+	input    A
+	expected E
 }

@@ -15,13 +15,6 @@ import (
 )
 
 const resourceAlertingConfigTerraformTemplateWithRuleIds = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_alerting_config" "rule_ids" {
   alert_name = "name %d"
   integration_ids = [ "integration_id1", "integration_id2" ]
@@ -43,13 +36,6 @@ const alertingConfigServerResponseTemplateWithRuleIds = `
 `
 
 const resourceAlertingConfigTerraformTemplateWithEventTypes = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_alerting_config" "event_types" {
   alert_name = "name %d"
   integration_ids = [ "integration_id1", "integration_id2" ]
@@ -79,7 +65,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAlertingConfigWithRuleIdResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testAlertingConfigDefinitionWithRuleIds),
@@ -90,7 +76,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 }
 
 func createAlertingConfigWithRuleIdResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithRuleIds, httpPort, iteration)
+	config := appendProviderConfig(fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithRuleIds, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(
@@ -107,7 +93,7 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAlertingConfigWithEventTypesIdResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testAlertingConfigDefinitionWithEventTypes),
@@ -118,7 +104,7 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 }
 
 func createAlertingConfigWithEventTypesIdResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithEventTypes, httpPort, iteration)
+	config := appendProviderConfig(fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithEventTypes, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(

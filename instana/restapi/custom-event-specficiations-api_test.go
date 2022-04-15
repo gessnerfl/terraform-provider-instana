@@ -30,24 +30,13 @@ const (
 	valueInvalid = "invalid"
 
 	messagePartExactlyOneRule        = "exactly one rule"
-	messagePartIntegrationId         = "integration id"
 	messagePartConditionOperator     = "condition operator"
 	messagePartMetricNameOrPattern   = "metric name or metric pattern"
 	messagePartMetricPatternPrefix   = "Metric pattern prefix"
 	messagePartMetricPatternOperator = "Metric pattern operator"
 )
 
-func TestShouldReturnTheProperRespresentationsForSeverityWarning(t *testing.T) {
-	assert.Equal(t, 5, SeverityWarning.GetAPIRepresentation())
-	assert.Equal(t, "warning", SeverityWarning.GetTerraformRepresentation())
-}
-
-func TestShouldReturnTheProperRespresentationsForSeverityCritical(t *testing.T) {
-	assert.Equal(t, 10, SeverityCritical.GetAPIRepresentation())
-	assert.Equal(t, "critical", SeverityCritical.GetTerraformRepresentation())
-}
-
-func TestShouldValidateMinimalCustemEventSpecificationWithSystemRule(t *testing.T) {
+func TestShouldValidateMinimalCustomEventSpecificationWithSystemRule(t *testing.T) {
 	systemRuleId := customEventSystemRuleID
 	spec := CustomEventSpecification{
 		ID:         customEventID,

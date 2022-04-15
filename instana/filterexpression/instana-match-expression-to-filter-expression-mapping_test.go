@@ -22,7 +22,7 @@ func TestShouldMapValidOperatorsOfTagExpression(t *testing.T) {
 	}
 }
 
-func testMappingOfOperatorsOfTagExpression(operator restapi.TagFilterOperator) func(t *testing.T) {
+func testMappingOfOperatorsOfTagExpression(operator restapi.ExpressionOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		key := "key"
 		value := "value"
@@ -65,7 +65,7 @@ func TestShouldMapValidUnaryOperationsOfTagExpression(t *testing.T) {
 	}
 }
 
-func testMappingOfUnaryOperationOfTagExpression(operator restapi.TagFilterOperator) func(t *testing.T) {
+func testMappingOfUnaryOperationOfTagExpression(operator restapi.ExpressionOperator) func(t *testing.T) {
 	return func(t *testing.T) {
 		key := "key"
 		input := restapi.NewUnaryOperationExpression(key, restapi.MatcherExpressionEntityDestination, operator)

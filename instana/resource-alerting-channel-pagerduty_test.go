@@ -13,13 +13,6 @@ import (
 )
 
 const resourceAlertingChannelPagerDutyDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_alerting_channel_pager_duty" "example" {
   name = "name %d"
   service_integration_key = "service integration key"
@@ -43,7 +36,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAlertingChannelPagerDutyResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testAlertingChannelPagerDutyDefinition),
@@ -54,7 +47,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 }
 
 func createAlertingChannelPagerDutyResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceAlertingChannelPagerDutyDefinitionTemplate, httpPort, iteration)
+	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelPagerDutyDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(

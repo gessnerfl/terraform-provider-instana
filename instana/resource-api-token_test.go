@@ -17,13 +17,6 @@ import (
 )
 
 const resourceAPITokenDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_api_token" "example" {
   name = "name %d"
   can_configure_service_mapping = true
@@ -59,7 +52,6 @@ resource "instana_api_token" "example" {
 const (
 	apiTokenApiPath             = restapi.APITokensResourcePath + "/{internal-id}"
 	testAPITokenDefinition      = "instana_api_token.example"
-	valueTrue                   = "true"
 	apiTokenID                  = "api-token-id"
 	viewFilterFieldValue        = "view filter"
 	apiTokenNameFieldValue      = resourceName
@@ -167,7 +159,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAPITokenConfigResourceTestStep(httpServer.GetPort(), 0, id, accessGrantingToken, internalID),
 			testStepImportWithCustomID(testAPITokenDefinition, internalID),
@@ -179,40 +171,40 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 
 func createAPITokenConfigResourceTestStep(httpPort int, iteration int, id string, accessGrantingToken string, internalID string) resource.TestStep {
 	return resource.TestStep{
-		Config: fmt.Sprintf(resourceAPITokenDefinitionTemplate, httpPort, iteration),
+		Config: appendProviderConfig(fmt.Sprintf(resourceAPITokenDefinitionTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testAPITokenDefinition, "id", id),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldAccessGrantingToken, accessGrantingToken),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldInternalID, internalID),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldName, formatResourceName(iteration)),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldFullName, formatResourceFullName(iteration)),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceMapping, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureEumApplications, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureMobileAppMonitoring, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureUsers, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanInstallNewAgents, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeUsageInformation, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureIntegrations, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeOnPremiseLicenseInformation, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureCustomAlerts, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAPITokens, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgentRunMode, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAuditLog, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgents, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAuthenticationMethods, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureApplications, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureTeams, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureReleases, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureLogManagement, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanCreatePublicCustomDashboards, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewLogs, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewTraceDetails, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureSessionSettings, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceLevelIndicators, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertPayload, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertConfigs, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAccountAndBillingInformation, valueTrue),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanEditAllAccessibleCustomDashboards, valueTrue),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceMapping, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureEumApplications, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureMobileAppMonitoring, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureUsers, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanInstallNewAgents, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeUsageInformation, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureIntegrations, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanSeeOnPremiseLicenseInformation, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureCustomAlerts, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAPITokens, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgentRunMode, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAuditLog, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAgents, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureAuthenticationMethods, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureApplications, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureTeams, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureReleases, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureLogManagement, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanCreatePublicCustomDashboards, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewLogs, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewTraceDetails, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureSessionSettings, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceLevelIndicators, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertPayload, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureGlobalAlertConfigs, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanViewAccountAndBillingInformation, trueAsString),
+			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanEditAllAccessibleCustomDashboards, trueAsString),
 		),
 	}
 }

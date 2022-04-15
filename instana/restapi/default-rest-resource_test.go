@@ -92,7 +92,7 @@ func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenUnmarshalledO
 		_, err := sut.GetOne(testObjectID)
 
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Unmarshalled object does not implement InstanaDataObject")
+		assert.Contains(t, err.Error(), "unmarshalled object does not implement InstanaDataObject")
 	})
 }
 

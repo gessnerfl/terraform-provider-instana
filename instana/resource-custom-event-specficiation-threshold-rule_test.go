@@ -17,13 +17,6 @@ import (
 )
 
 const resourceCustomEventSpecificationWithThresholdRuleAndRollupDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_custom_event_spec_threshold_rule" "example" {
   name = "name %d"
   entity_type = "entity_type"
@@ -41,13 +34,6 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 `
 
 const resourceCustomEventSpecificationWithThresholdRuleAndWindowDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_custom_event_spec_threshold_rule" "example" {
   name = "name %d"
   entity_type = "entity_type"
@@ -66,13 +52,6 @@ resource "instana_custom_event_spec_threshold_rule" "example" {
 `
 
 const resourceCustomEventSpecificationWithThresholdRuleAndMetricPatternDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_custom_event_spec_threshold_rule" "example" {
   name = "name %d"
   entity_type = "entity_type"
@@ -188,15 +167,15 @@ func testCRUDOfResourceCustomEventSpecificationThresholdRuleResourceWithMockServ
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(terraformDefinition, httpServer.GetPort(), 0),
+				Config: appendProviderConfig(fmt.Sprintf(terraformDefinition, 0), httpServer.GetPort()),
 				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 0)...),
 			},
 			testStepImport(testCustomEventSpecificationWithThresholdRuleDefinition),
 			{
-				Config: fmt.Sprintf(terraformDefinition, httpServer.GetPort(), 1),
+				Config: appendProviderConfig(fmt.Sprintf(terraformDefinition, 1), httpServer.GetPort()),
 				Check:  resource.ComposeTestCheckFunc(createTestCheckFunctions(ruleTestCheckFunctions, 1)...),
 			},
 			testStepImport(testCustomEventSpecificationWithThresholdRuleDefinition),
@@ -211,10 +190,10 @@ func createTestCheckFunctions(ruleTestCheckFunctions []resource.TestCheckFunc, i
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldFullName, formatResourceFullName(iteration)),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldTriggering, "true"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldTriggering, trueAsString),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldExpirationTime, strconv.Itoa(customEventSpecificationWithThresholdRuleExpirationTime)),
-		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEnabled, "true"),
+		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationFieldEnabled, trueAsString),
 		resource.TestCheckResourceAttr(testCustomEventSpecificationWithThresholdRuleDefinition, CustomEventSpecificationRuleSeverity, CustomEventSpecificationWithThresholdRuleRuleSeverity),
 	}
 	allFunctions := append(defaultCheckFunctions, ruleTestCheckFunctions...)

@@ -16,13 +16,6 @@ import (
 )
 
 const resourceAlertingChannelEmailDefinitionTemplate = `
-provider "instana" {
-  api_token = "test-token"
-  endpoint = "localhost:%d"
-  default_name_prefix = "prefix"
-  default_name_suffix = "suffix"
-}
-
 resource "instana_alerting_channel_email" "example" {
   name = "name %d"
   emails = [ "EMAIL1", "EMAIL2" ]
@@ -46,7 +39,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
-		Providers: testProviders,
+		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
 			createAlertingChannelEmailResourceTestStep(httpServer.GetPort(), 0),
 			testStepImport(testAlertingChannelEmailDefinition),
@@ -57,7 +50,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 }
 
 func createAlertingChannelEmailResourceTestStep(httpPort int, iteration int) resource.TestStep {
-	config := fmt.Sprintf(resourceAlertingChannelEmailDefinitionTemplate, httpPort, iteration)
+	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelEmailDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(
