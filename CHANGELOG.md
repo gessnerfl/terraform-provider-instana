@@ -1,12 +1,38 @@
 # Changelog
 
-## [Unreleased](https://github.com/gessnerfl/terraform-provider-instana/tree/HEAD)
+## [v1.3.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.3.0) (2022-04-15)
 
-[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.5...HEAD)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.2.1...v1.3.0)
 
 **Implemented enhancements:**
 
+- Support Application Alert Configs [\#74](https://github.com/gessnerfl/terraform-provider-instana/issues/74)
+
+**Merged pull requests:**
+
+- Feature/74 application alert config [\#125](https://github.com/gessnerfl/terraform-provider-instana/pull/125) ([gessnerfl](https://github.com/gessnerfl))
+- Fix heading for Alerting Channel Webhook Resource [\#124](https://github.com/gessnerfl/terraform-provider-instana/pull/124) ([ppuschmann](https://github.com/ppuschmann))
+
+## [v1.2.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.2.1) (2022-03-08)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.2.0...v1.2.1)
+
+**Merged pull requests:**
+
+- \#122: trim whitespaces of api token and endpoint url of provider config [\#123](https://github.com/gessnerfl/terraform-provider-instana/pull/123) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v1.2.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.2.0) (2022-01-10)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.1.5...v1.2.0)
+
+**Implemented enhancements:**
+
+- ARM64 support [\#119](https://github.com/gessnerfl/terraform-provider-instana/issues/119)
 - Address vulnerabilities [\#110](https://github.com/gessnerfl/terraform-provider-instana/issues/110)
+
+**Merged pull requests:**
+
+- \#119: add arm64 support [\#120](https://github.com/gessnerfl/terraform-provider-instana/pull/120) ([gessnerfl](https://github.com/gessnerfl))
 
 ## [v1.1.5](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.1.5) (2021-12-28)
 
@@ -76,10 +102,6 @@
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.0.0...v1.1.0)
 
-**Breaking changes:**
-
-- Resource instana\_user\_role not working anymore [\#92](https://github.com/gessnerfl/terraform-provider-instana/issues/92)
-
 **Implemented enhancements:**
 
 - Add support to manage groups [\#93](https://github.com/gessnerfl/terraform-provider-instana/issues/93)
@@ -97,6 +119,10 @@
 ## [v1.0.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.0.0) (2021-04-25)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v0.11.0...v1.0.0)
+
+**Breaking changes:**
+
+- Resource instana\_user\_role not working anymore [\#92](https://github.com/gessnerfl/terraform-provider-instana/issues/92)
 
 **Implemented enhancements:**
 
@@ -194,7 +220,7 @@
 - Allow Instana API Representation for Threshold Rule Matching Operator also in Terraform [\#54](https://github.com/gessnerfl/terraform-provider-instana/issues/54)
 - Add boundary scope to application configuration [\#51](https://github.com/gessnerfl/terraform-provider-instana/issues/51)
 - Add new operators to application config [\#50](https://github.com/gessnerfl/terraform-provider-instana/issues/50)
-- Add Event Type `agent\_monitoring\_issue` [\#49](https://github.com/gessnerfl/terraform-provider-instana/issues/49)
+- Add Event Type `agent_monitoring_issue` [\#49](https://github.com/gessnerfl/terraform-provider-instana/issues/49)
 - Add support for custom event configurations of rule type "Threshold Rule using a dynamic built-in metric by pattern" [\#47](https://github.com/gessnerfl/terraform-provider-instana/issues/47)
 
 **Fixed bugs:**
