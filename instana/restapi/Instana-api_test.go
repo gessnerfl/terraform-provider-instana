@@ -61,6 +61,11 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 
 		require.NotNil(t, resource)
 	})
+	t.Run("Should return WebsiteAlertConfig instance", func(t *testing.T) {
+		resource := api.WebsiteAlertConfig()
+
+		require.NotNil(t, resource)
+	})
 	t.Run("Should return Groups instance", func(t *testing.T) {
 		resource := api.Groups()
 

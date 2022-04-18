@@ -29,6 +29,7 @@ type InstanaAPI interface {
 	AlertingConfigurations() RestResource
 	SliConfigs() RestResource
 	WebsiteMonitoringConfig() RestResource
+	WebsiteAlertConfig() RestResource
 	Groups() RestResource
 }
 
