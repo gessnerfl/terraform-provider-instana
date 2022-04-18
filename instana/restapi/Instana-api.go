@@ -90,6 +90,10 @@ func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource {
 	return NewWebsiteMonitoringConfigRestResource(NewDefaultJSONUnmarshaller(&WebsiteMonitoringConfig{}), api.client)
 }
 
+func (api *baseInstanaAPI) WebsiteAlertConfig() RestResource {
+	return NewCreatePOSTUpdatePOSTRestResource(WebsiteAlertConfigResourcePath, NewDefaultJSONUnmarshaller(&WebsiteMonitoringConfig{}), api.client)
+}
+
 func (api *baseInstanaAPI) Groups() RestResource {
 	return NewCreatePOSTUpdatePUTRestResource(GroupsResourcePath, NewDefaultJSONUnmarshaller(&Group{}), api.client)
 }
