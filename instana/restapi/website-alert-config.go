@@ -1,7 +1,5 @@
 package restapi
 
-import "errors"
-
 //WebsiteAlertConfigResourcePath path to website alert config resource of Instana RESTful API
 const WebsiteAlertConfigResourcePath = EventSettingsBasePath + "/website-alert-configs"
 
@@ -29,8 +27,6 @@ func (r *WebsiteAlertConfig) GetIDForResourcePath() string {
 
 //Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (r *WebsiteAlertConfig) Validate() error {
-	if len(r.Name) == 0 {
-		return errors.New("Name is missing")
-	}
+	//Validation implemented in resource only
 	return nil
 }
