@@ -11,6 +11,7 @@ func TestShouldSuccessfullyUnmarshalWebsiteAlertConfig(t *testing.T) {
 	thresholdValue := 5.0
 	thresholdLastUpdate := int64(0)
 	timeWindow := int64(600000)
+	p90Aggregation := Percentile90Aggregation
 	websiteAlertConfig := WebsiteAlertConfig{
 		ID:              "website-alert-config-id",
 		AlertChannelIDs: []string{"channel-2", "channel-1"},
@@ -27,7 +28,7 @@ func TestShouldSuccessfullyUnmarshalWebsiteAlertConfig(t *testing.T) {
 		},
 		Rule: WebsiteAlertRule{
 			AlertType:   "slowness",
-			Aggregation: Percentile90Aggregation,
+			Aggregation: &p90Aggregation,
 			MetricName:  "onLoadTime",
 		},
 		Severity:            SeverityCritical.GetAPIRepresentation(),

@@ -248,8 +248,8 @@ func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int, itera
 	application1Service1Endpoint1Inclusive := fmt.Sprintf("%s.%d.%s.%d.%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsServices, 0, ApplicationAlertConfigFieldApplicationsServicesEndpoints, 0, ApplicationAlertConfigFieldApplicationsInclusive)
 	ruleSlownessMetricName := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldRule, 0, ApplicationAlertConfigFieldRuleSlowness, 0, ApplicationAlertConfigFieldRuleMetricName)
 	ruleSlownessAggregation := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldRule, 0, ApplicationAlertConfigFieldRuleSlowness, 0, ApplicationAlertConfigFieldRuleAggregation)
-	thresholdStaticOperator := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldThreshold, 0, ApplicationAlertConfigFieldThresholdStatic, 0, ApplicationAlertConfigFieldThresholdOperator)
-	thresholdStaticValue := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldThreshold, 0, ApplicationAlertConfigFieldThresholdStatic, 0, ApplicationAlertConfigFieldThresholdStaticValue)
+	thresholdStaticOperator := fmt.Sprintf("%s.%d.%s.%d.%s", ResourceFieldThreshold, 0, ResourceFieldThresholdStatic, 0, ResourceFieldThresholdOperator)
+	thresholdStaticValue := fmt.Sprintf("%s.%d.%s.%d.%s", ResourceFieldThreshold, 0, ResourceFieldThresholdStatic, 0, ResourceFieldThresholdStaticValue)
 	timeThresholdViolationsInSequence := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldTimeThreshold, 0, ApplicationAlertConfigFieldTimeThresholdViolationsInSequence, 0, ApplicationAlertConfigFieldTimeThresholdTimeWindow)
 	customPayloadFieldStaticKey := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsKey)
 	customPayloadFieldStaticValue := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldCustomPayloadFields, 0, ApplicationAlertConfigFieldCustomPayloadFieldsValue)
@@ -488,12 +488,12 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs: []interface{}{
 						map[string]interface{}{
-							ApplicationAlertConfigFieldRuleAggregation:   string(restapi.MinAggregation),
-							ApplicationAlertConfigFieldRuleMetricName:    metricName,
-							ApplicationAlertConfigFieldRuleStableHash:    int(stableHash),
-							ApplicationAlertConfigFieldRuleLogsLevel:     string(logLevel),
-							ApplicationAlertConfigFieldRuleLogsMessage:   logMessage,
-							ApplicationAlertConfigFieldThresholdOperator: string(logOperator),
+							ApplicationAlertConfigFieldRuleAggregation:  string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:   metricName,
+							ApplicationAlertConfigFieldRuleStableHash:   int(stableHash),
+							ApplicationAlertConfigFieldRuleLogsLevel:    string(logLevel),
+							ApplicationAlertConfigFieldRuleLogsMessage:  logMessage,
+							ApplicationAlertConfigFieldRuleLogsOperator: string(logOperator),
 						},
 					},
 					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
@@ -544,12 +544,12 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					ApplicationAlertConfigFieldThresholdHistoricBaseline: []interface{}{},
-					ApplicationAlertConfigFieldThresholdStatic: []interface{}{
+					ResourceFieldThresholdHistoricBaseline: []interface{}{},
+					ResourceFieldThresholdStatic: []interface{}{
 						map[string]interface{}{
-							ApplicationAlertConfigFieldThresholdLastUpdated: int(thresholdLastUpdate),
-							ApplicationAlertConfigFieldThresholdOperator:    string(restapi.ThresholdOperatorGreaterThan),
-							ApplicationAlertConfigFieldThresholdStaticValue: thresholdValue,
+							ResourceFieldThresholdLastUpdated: int(thresholdLastUpdate),
+							ResourceFieldThresholdOperator:    string(restapi.ThresholdOperatorGreaterThan),
+							ResourceFieldThresholdStaticValue: thresholdValue,
 						},
 					},
 				},
@@ -567,16 +567,16 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 			},
 			expected: []interface{}{
 				map[string]interface{}{
-					ApplicationAlertConfigFieldThresholdHistoricBaseline: []interface{}{
+					ResourceFieldThresholdHistoricBaseline: []interface{}{
 						map[string]interface{}{
-							ApplicationAlertConfigFieldThresholdLastUpdated:                     int(thresholdLastUpdate),
-							ApplicationAlertConfigFieldThresholdOperator:                        string(restapi.ThresholdOperatorGreaterThan),
-							ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality:     string(thresholdSeasonality),
-							ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline:        thresholdBaseline,
-							ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor: float64(thresholdDeviationFactor),
+							ResourceFieldThresholdLastUpdated:                     int(thresholdLastUpdate),
+							ResourceFieldThresholdOperator:                        string(restapi.ThresholdOperatorGreaterThan),
+							ResourceFieldThresholdHistoricBaselineSeasonality:     string(thresholdSeasonality),
+							ResourceFieldThresholdHistoricBaselineBaseline:        thresholdBaseline,
+							ResourceFieldThresholdHistoricBaselineDeviationFactor: float64(thresholdDeviationFactor),
 						},
 					},
-					ApplicationAlertConfigFieldThresholdStatic: []interface{}{},
+					ResourceFieldThresholdStatic: []interface{}{},
 				},
 			},
 		},
@@ -752,14 +752,14 @@ func (f *anyApplicationConfigTest) requireApplicationAlertConfigApplicationSetOn
 }
 
 func (f *anyApplicationConfigTest) requireApplicationAlertConfigThresholdSetOnSchema(t *testing.T, expected []interface{}, resourceData *schema.ResourceData) {
-	actual := resourceData.Get(ApplicationAlertConfigFieldThreshold).([]interface{})
+	actual := resourceData.Get(ResourceFieldThreshold).([]interface{})
 	require.Equal(t, 1, len(expected))
 	require.Equal(t, len(expected), len(actual))
 	expectedEntries := expected[0].(map[string]interface{})
 	actualEntries := actual[0].(map[string]interface{})
 
 	for k, e := range expectedEntries {
-		if k == ApplicationAlertConfigFieldThresholdHistoricBaseline && len(e.([]interface{})) > 0 {
+		if k == ResourceFieldThresholdHistoricBaseline && len(e.([]interface{})) > 0 {
 			expectedHistoricBaselineSlice := e.([]interface{})
 			actualHistoricBaselineSlice := actualEntries[k].([]interface{})
 			require.Equal(t, 1, len(expectedHistoricBaselineSlice))
@@ -767,7 +767,7 @@ func (f *anyApplicationConfigTest) requireApplicationAlertConfigThresholdSetOnSc
 			expectedHistoricBaseline := expectedHistoricBaselineSlice[0].(map[string]interface{})
 			actualHistoricBaseline := actualHistoricBaselineSlice[0].(map[string]interface{})
 			for key, expectedBaselineValue := range expectedHistoricBaseline {
-				if key == ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline {
+				if key == ResourceFieldThresholdHistoricBaselineBaseline {
 					actualBaseline := actualHistoricBaseline[key].(*schema.Set)
 					actualBaselineSlice := make([][]float64, actualBaseline.Len())
 					for i, v := range actualBaseline.List() {
@@ -886,12 +886,12 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs: []interface{}{
 						map[string]interface{}{
-							ApplicationAlertConfigFieldRuleAggregation:   string(restapi.MinAggregation),
-							ApplicationAlertConfigFieldRuleMetricName:    metricName,
-							ApplicationAlertConfigFieldRuleStableHash:    int(stableHash),
-							ApplicationAlertConfigFieldRuleLogsLevel:     string(logLevel),
-							ApplicationAlertConfigFieldRuleLogsMessage:   logMessage,
-							ApplicationAlertConfigFieldThresholdOperator: string(logOperator),
+							ApplicationAlertConfigFieldRuleAggregation:  string(restapi.MinAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:   metricName,
+							ApplicationAlertConfigFieldRuleStableHash:   int(stableHash),
+							ApplicationAlertConfigFieldRuleLogsLevel:    string(logLevel),
+							ApplicationAlertConfigFieldRuleLogsMessage:  logMessage,
+							ApplicationAlertConfigFieldRuleLogsOperator: string(logOperator),
 						},
 					},
 					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
@@ -942,12 +942,12 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 			},
 			input: []map[string]interface{}{
 				{
-					ApplicationAlertConfigFieldThresholdHistoricBaseline: []interface{}{},
-					ApplicationAlertConfigFieldThresholdStatic: []interface{}{
+					ResourceFieldThresholdHistoricBaseline: []interface{}{},
+					ResourceFieldThresholdStatic: []interface{}{
 						map[string]interface{}{
-							ApplicationAlertConfigFieldThresholdLastUpdated: int(thresholdLastUpdate),
-							ApplicationAlertConfigFieldThresholdOperator:    string(restapi.ThresholdOperatorGreaterThan),
-							ApplicationAlertConfigFieldThresholdStaticValue: thresholdValue,
+							ResourceFieldThresholdLastUpdated: int(thresholdLastUpdate),
+							ResourceFieldThresholdOperator:    string(restapi.ThresholdOperatorGreaterThan),
+							ResourceFieldThresholdStaticValue: thresholdValue,
 						},
 					},
 				},
@@ -965,16 +965,16 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 			},
 			input: []map[string]interface{}{
 				{
-					ApplicationAlertConfigFieldThresholdHistoricBaseline: []interface{}{
+					ResourceFieldThresholdHistoricBaseline: []interface{}{
 						map[string]interface{}{
-							ApplicationAlertConfigFieldThresholdLastUpdated:                     int(thresholdLastUpdate),
-							ApplicationAlertConfigFieldThresholdOperator:                        string(restapi.ThresholdOperatorGreaterThan),
-							ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality:     string(thresholdSeasonality),
-							ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline:        thresholdBaseline,
-							ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor: float64(thresholdDeviationFactor),
+							ResourceFieldThresholdLastUpdated:                     int(thresholdLastUpdate),
+							ResourceFieldThresholdOperator:                        string(restapi.ThresholdOperatorGreaterThan),
+							ResourceFieldThresholdHistoricBaselineSeasonality:     string(thresholdSeasonality),
+							ResourceFieldThresholdHistoricBaselineBaseline:        thresholdBaseline,
+							ResourceFieldThresholdHistoricBaselineDeviationFactor: float64(thresholdDeviationFactor),
 						},
 					},
-					ApplicationAlertConfigFieldThresholdStatic: []interface{}{},
+					ResourceFieldThresholdStatic: []interface{}{},
 				},
 			},
 		},
@@ -1138,7 +1138,7 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 		resourceData.Set(ApplicationAlertConfigFieldRule, ruleTestPair.input)
 		resourceData.Set(ApplicationAlertConfigFieldSeverity, restapi.SeverityCritical.GetTerraformRepresentation())
 		resourceData.Set(ApplicationAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
-		resourceData.Set(ApplicationAlertConfigFieldThreshold, thresholdTestPair.input)
+		resourceData.Set(ResourceFieldThreshold, thresholdTestPair.input)
 		resourceData.Set(ApplicationAlertConfigFieldTimeThreshold, timeThresholdTestPair.input)
 		resourceData.Set(ApplicationAlertConfigFieldTriggering, true)
 		resourceData.SetId(applicationAlertConfigID)

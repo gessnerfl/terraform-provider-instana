@@ -87,24 +87,6 @@ const (
 	ApplicationAlertConfigFieldSeverity = "severity"
 	//ApplicationAlertConfigFieldTagFilter constant value for field tag_filter of resource instana_application_alert_config
 	ApplicationAlertConfigFieldTagFilter = "tag_filter"
-	//ApplicationAlertConfigFieldThreshold constant value for field threshold of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThreshold = "threshold"
-	//ApplicationAlertConfigFieldThresholdLastUpdated constant value for field threshold.*.last_updated of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThresholdLastUpdated = "last_updated"
-	//ApplicationAlertConfigFieldThresholdOperator constant value for field threshold.*.operator of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThresholdOperator = "operator"
-	//ApplicationAlertConfigFieldThresholdHistoricBaseline constant value for field threshold.historic_baseline of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThresholdHistoricBaseline = "historic_baseline"
-	//ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline constant value for field threshold.historic_baseline.baseline of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline = "baseline"
-	//ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor constant value for field threshold.historic_baseline.deviation_factor of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor = "deviation_factor"
-	//ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality constant value for field threshold.historic_baseline.seasonality of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality = "seasonality"
-	//ApplicationAlertConfigFieldThresholdStatic constant value for field threshold.static of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThresholdStatic = "static"
-	//ApplicationAlertConfigFieldThresholdStaticValue constant value for field threshold.static.value of resource instana_application_alert_config
-	ApplicationAlertConfigFieldThresholdStaticValue = "value"
 	//ApplicationAlertConfigFieldTimeThreshold constant value for field time_threshold of resource instana_application_alert_config
 	ApplicationAlertConfigFieldTimeThreshold = "time_threshold"
 	//ApplicationAlertConfigFieldTimeThresholdTimeWindow constant value for field time_threshold.time_window of resource instana_application_alert_config
@@ -163,25 +145,6 @@ var (
 		Required:     true,
 		Description:  "The operator which will be applied to evaluate this rule",
 		ValidateFunc: validation.StringInSlice(restapi.SupportedExpressionOperators.ToStringSlice(), true),
-	}
-
-	applicationAlertThresholdTypeKeys = []string{
-		"threshold.0.historic_baseline",
-		"threshold.0.static",
-	}
-
-	applicationAlertSchemaRequiredThresholdOperator = &schema.Schema{
-		Type:         schema.TypeString,
-		Required:     true,
-		Description:  "The operator which will be applied to evaluate the threshold",
-		ValidateFunc: validation.StringInSlice(restapi.SupportedThresholdOperators.ToStringSlice(), true),
-	}
-
-	applicationAlertSchemaOptionalThresholdLastUpdated = &schema.Schema{
-		Type:         schema.TypeInt,
-		Optional:     true,
-		ValidateFunc: validation.IntAtLeast(0),
-		Description:  "The last updated value of the threshold",
 	}
 
 	applicationAlertTimeThresholdTypeKeys = []string{
@@ -504,74 +467,7 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 			return
 		},
 	},
-	ApplicationAlertConfigFieldThreshold: {
-		Type:        schema.TypeList,
-		MinItems:    1,
-		MaxItems:    1,
-		Required:    true,
-		Description: "Indicates the type of threshold this alert rule is evaluated on.",
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				ApplicationAlertConfigFieldThresholdHistoricBaseline: {
-					Type:        schema.TypeList,
-					MinItems:    0,
-					MaxItems:    1,
-					Optional:    true,
-					Description: "Threshold based on a historic baseline.",
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							ApplicationAlertConfigFieldThresholdOperator:    applicationAlertSchemaRequiredThresholdOperator,
-							ApplicationAlertConfigFieldThresholdLastUpdated: applicationAlertSchemaOptionalThresholdLastUpdated,
-							ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline: {
-								Type:     schema.TypeSet,
-								Optional: true,
-								Elem: &schema.Schema{
-									Type:     schema.TypeSet,
-									Optional: false,
-									Elem: &schema.Schema{
-										Type: schema.TypeFloat,
-									},
-								},
-								Description: "The baseline of the historic baseline threshold",
-							},
-							ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor: {
-								Type:         schema.TypeFloat,
-								Optional:     true,
-								ValidateFunc: validation.FloatBetween(0.5, 16),
-								Description:  "The baseline of the historic baseline threshold",
-							},
-							ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality: {
-								Type:         schema.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringInSlice(restapi.SupportedThresholdSeasonalities.ToStringSlice(), false),
-								Description:  "The seasonality of the historic baseline threshold",
-							},
-						},
-					},
-					ExactlyOneOf: applicationAlertThresholdTypeKeys,
-				},
-				ApplicationAlertConfigFieldThresholdStatic: {
-					Type:        schema.TypeList,
-					MinItems:    0,
-					MaxItems:    1,
-					Optional:    true,
-					Description: "Static threshold definition",
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							ApplicationAlertConfigFieldThresholdOperator:    applicationAlertSchemaRequiredThresholdOperator,
-							ApplicationAlertConfigFieldThresholdLastUpdated: applicationAlertSchemaOptionalThresholdLastUpdated,
-							ApplicationAlertConfigFieldThresholdStaticValue: {
-								Type:        schema.TypeFloat,
-								Optional:    true,
-								Description: "The value of the static threshold",
-							},
-						},
-					},
-					ExactlyOneOf: applicationAlertThresholdTypeKeys,
-				},
-			},
-		},
-	},
+	ResourceFieldThreshold: thresholdSchema,
 	ApplicationAlertConfigFieldTimeThreshold: {
 		Type:        schema.TypeList,
 		MinItems:    1,
@@ -646,8 +542,9 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 	return &applicationAlertConfigResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaApplicationAlertConfig,
-			Schema:       applicationAlertConfigResourceSchema,
+			ResourceName:     ResourceInstanaApplicationAlertConfig,
+			Schema:           applicationAlertConfigResourceSchema,
+			SkipIDGeneration: true,
 		},
 		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource { return api.ApplicationAlertConfigs() },
 	}
@@ -715,7 +612,7 @@ func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, obj
 	d.Set(ApplicationAlertConfigFieldRule, r.mapRuleToSchema(config))
 	d.Set(ApplicationAlertConfigFieldSeverity, severity)
 	d.Set(ApplicationAlertConfigFieldTagFilter, normalizedTagFilterString)
-	d.Set(ApplicationAlertConfigFieldThreshold, r.mapThresholdToSchema(config))
+	d.Set(ResourceFieldThreshold, newThresholdMapper().toState(&config.Threshold))
 	d.Set(ApplicationAlertConfigFieldTimeThreshold, r.mapTimeThresholdToSchema(config))
 	d.Set(ApplicationAlertConfigFieldTriggering, config.Triggering)
 	d.SetId(config.ID)
@@ -842,41 +739,6 @@ func (r *applicationAlertConfigResource) mapTagFilterExpressionToSchema(input re
 	return &renderedExpression, nil
 }
 
-func (r *applicationAlertConfigResource) mapThresholdToSchema(config *restapi.ApplicationAlertConfig) []map[string]interface{} {
-	thresholdConfig := make(map[string]interface{})
-	thresholdConfig[ApplicationAlertConfigFieldThresholdOperator] = config.Threshold.Operator
-	thresholdConfig[ApplicationAlertConfigFieldThresholdLastUpdated] = config.Threshold.LastUpdated
-
-	if config.Threshold.Value != nil {
-		thresholdConfig[ApplicationAlertConfigFieldThresholdStaticValue] = *config.Threshold.Value
-	}
-	if config.Threshold.Baseline != nil {
-		thresholdConfig[ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline] = *config.Threshold.Baseline
-	}
-	if config.Threshold.DeviationFactor != nil {
-		thresholdConfig[ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor] = float64(*config.Threshold.DeviationFactor)
-	}
-	if config.Threshold.Seasonality != nil {
-		thresholdConfig[ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality] = *config.Threshold.Seasonality
-	}
-
-	thresholdType := r.mapThresholdTypeToSchema(config.Threshold.Type)
-	threshold := make(map[string]interface{})
-	threshold[thresholdType] = []interface{}{thresholdConfig}
-	result := make([]map[string]interface{}, 1)
-	result[0] = threshold
-	return result
-}
-
-func (r *applicationAlertConfigResource) mapThresholdTypeToSchema(input string) string {
-	if input == "historicBaseline" {
-		return ApplicationAlertConfigFieldThresholdHistoricBaseline
-	} else if input == "staticThreshold" {
-		return ApplicationAlertConfigFieldThresholdStatic
-	}
-	return input
-}
-
 func (r *applicationAlertConfigResource) mapTimeThresholdToSchema(config *restapi.ApplicationAlertConfig) []map[string]interface{} {
 	timeThresholdConfig := make(map[string]interface{})
 	timeThresholdConfig[ApplicationAlertConfigFieldTimeThresholdTimeWindow] = config.TimeThreshold.TimeWindow
@@ -923,6 +785,8 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 		}
 	}
 
+	threshold := newThresholdMapper().fromState(d)
+
 	return &restapi.ApplicationAlertConfig{
 		ID:                    d.Id(),
 		AlertChannelIDs:       ReadStringSetParameterFromResource(d, ApplicationAlertConfigFieldAlertChannelIDs),
@@ -938,7 +802,7 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 		Rule:                  r.mapRuleFromSchema(d),
 		Severity:              severity,
 		TagFilterExpression:   tagFilter,
-		Threshold:             r.mapThresholdFromSchema(d),
+		Threshold:             *threshold,
 		TimeThreshold:         r.mapTimeThresholdFromSchema(d),
 		Triggering:            d.Get(ApplicationAlertConfigFieldTriggering).(bool),
 	}, nil
@@ -1114,72 +978,6 @@ func (r *applicationAlertConfigResource) mapTagFilterExpressionFromSchema(input 
 
 	mapper := tagfilter.NewMapper()
 	return mapper.ToAPIModel(expr), nil
-
-}
-
-func (r *applicationAlertConfigResource) mapThresholdFromSchema(d *schema.ResourceData) restapi.Threshold {
-	thresholdSlice := d.Get(ApplicationAlertConfigFieldThreshold).([]interface{})
-	threshold := thresholdSlice[0].(map[string]interface{})
-	for thresholdType, v := range threshold {
-		configSlice := v.([]interface{})
-		if len(configSlice) == 1 {
-			config := configSlice[0].(map[string]interface{})
-			return r.mapThresholdConfigFromSchema(config, thresholdType)
-		}
-	}
-	return restapi.Threshold{}
-}
-
-func (r *applicationAlertConfigResource) mapThresholdConfigFromSchema(config map[string]interface{}, thresholdType string) restapi.Threshold {
-	var seasonalityPtr *restapi.ThresholdSeasonality
-	if v, ok := config[ApplicationAlertConfigFieldThresholdHistoricBaselineSeasonality]; ok {
-		seasonality := restapi.ThresholdSeasonality(v.(string))
-		seasonalityPtr = &seasonality
-	}
-	var lastUpdatePtr *int64
-	if v, ok := config[ApplicationAlertConfigFieldThresholdLastUpdated]; ok {
-		lastUpdate := int64(v.(int))
-		lastUpdatePtr = &lastUpdate
-	}
-	var valuePtr *float64
-	if v, ok := config[ApplicationAlertConfigFieldThresholdStaticValue]; ok {
-		value := v.(float64)
-		valuePtr = &value
-	}
-	var deviationFactorPtr *float32
-	if v, ok := config[ApplicationAlertConfigFieldThresholdHistoricBaselineDeviationFactor]; ok {
-		deviationFactor := float32(v.(float64))
-		deviationFactorPtr = &deviationFactor
-	}
-	var baselinePtr *[][]float64
-	if v, ok := config[ApplicationAlertConfigFieldThresholdHistoricBaselineBaseline]; ok {
-		baselineSet := v.(*schema.Set)
-		if baselineSet.Len() > 0 {
-			baseline := make([][]float64, baselineSet.Len())
-			for i, val := range baselineSet.List() {
-				baseline[i] = ConvertInterfaceSlice[float64](val.(*schema.Set).List())
-			}
-			baselinePtr = &baseline
-		}
-	}
-	return restapi.Threshold{
-		Type:            r.mapThresholdTypeFromSchema(thresholdType),
-		Operator:        restapi.ThresholdOperator(config[ApplicationAlertConfigFieldThresholdOperator].(string)),
-		LastUpdated:     lastUpdatePtr,
-		Value:           valuePtr,
-		DeviationFactor: deviationFactorPtr,
-		Baseline:        baselinePtr,
-		Seasonality:     seasonalityPtr,
-	}
-}
-
-func (r *applicationAlertConfigResource) mapThresholdTypeFromSchema(input string) string {
-	if input == ApplicationAlertConfigFieldThresholdHistoricBaseline {
-		return "historicBaseline"
-	} else if input == ApplicationAlertConfigFieldThresholdStatic {
-		return "staticThreshold"
-	}
-	return input
 }
 
 func (r *applicationAlertConfigResource) mapTimeThresholdFromSchema(d *schema.ResourceData) restapi.TimeThreshold {
