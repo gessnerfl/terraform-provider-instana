@@ -31,7 +31,7 @@ type websiteAlertConfigTest struct {
 }
 
 var websiteAlertConfigTerraformTemplate = `
-resource "%s" "example" {
+resource "instana_website_alert_config" "example" {
 	name              = "name %d"
     description       = "test-alert-description"
     severity          = "warning"
@@ -133,7 +133,11 @@ func (test *websiteAlertConfigTest) run(t *testing.T) {
 	t.Run(fmt.Sprintf("%s should have no state upgrader", ResourceInstanaWebsiteAlertConfig), test.createTetResourceShouldHaveNoStateUpgrader())
 	t.Run(fmt.Sprintf("%s should have correct resouce name", ResourceInstanaWebsiteAlertConfig), test.createTetResourceShouldHaveCorrectResourceName())
 	test.createTestCasesForUpdatesOfTerraformResourceStateFromModel(t)
+	t.Run(fmt.Sprintf("%s should fail to update state from model when severity is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCasesShouldFailToUpdateTerraformResourceStateFromModeWhenSeverityIsNotValid())
+	t.Run(fmt.Sprintf("%s should fail to update state from model when tag filter expression is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCasesShouldFailToUpdateTerraformResourceStateFromModeWhenTagFilterExpressionIsNotValid())
 	test.createTestCasesForMappingOfTerraformResourceStateToModel(t)
+	t.Run(fmt.Sprintf("%s should fail to map state to model when severity is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCaseShouldFailToMapTerraformResourceStateToModelWhenSeverityIsNotValid())
+	t.Run(fmt.Sprintf("%s should fail to map state to model when tag filter expression is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCaseShouldFailToMapTerraformResourceStateToModelWhenTagFilterIsNotValid())
 }
 
 func (test *websiteAlertConfigTest) createIntegrationTest() func(t *testing.T) {
@@ -193,7 +197,7 @@ func (test *websiteAlertConfigTest) createIntegrationTestStep(httpPort int, iter
 	customPayloadFieldStaticKey := fmt.Sprintf("%s.%d.%s", WebsiteAlertConfigFieldCustomPayloadFields, 0, WebsiteAlertConfigFieldCustomPayloadFieldsKey)
 	customPayloadFieldStaticValue := fmt.Sprintf("%s.%d.%s", WebsiteAlertConfigFieldCustomPayloadFields, 0, WebsiteAlertConfigFieldCustomPayloadFieldsValue)
 	return resource.TestStep{
-		Config: appendProviderConfig(fmt.Sprintf(websiteAlertConfigTerraformTemplate, ResourceInstanaWebsiteAlertConfig, iteration), httpPort),
+		Config: appendProviderConfig(fmt.Sprintf(websiteAlertConfigTerraformTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, "id", id),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, WebsiteAlertConfigFieldName, formatResourceName(iteration)),
@@ -637,6 +641,51 @@ func (test *websiteAlertConfigTest) requireWebsiteAlertConfigThresholdSetOnSchem
 	}
 }
 
+func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformResourceStateFromModeWhenSeverityIsNotValid() func(t *testing.T) {
+	return func(t *testing.T) {
+		websiteConfig := restapi.WebsiteAlertConfig{
+			Name:     "prefix test suffix",
+			Severity: -1,
+		}
+
+		testHelper := NewTestHelper(t)
+		sut := test.resourceHandle
+		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+		err := sut.UpdateState(resourceData, &websiteConfig, testHelper.ResourceFormatter())
+
+		require.Error(t, err)
+		require.Equal(t, "-1 is not a valid severity", err.Error())
+	}
+}
+
+func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformResourceStateFromModeWhenTagFilterExpressionIsNotValid() func(t *testing.T) {
+	return func(t *testing.T) {
+		value := "test"
+		websiteConfig := restapi.WebsiteAlertConfig{
+			Name:     "prefix test suffix",
+			Severity: restapi.SeverityWarning.GetAPIRepresentation(),
+			TagFilterExpression: &restapi.TagFilter{
+				Entity:      restapi.TagFilterEntitySource,
+				Name:        "service.name",
+				Operator:    restapi.EqualsOperator,
+				StringValue: &value,
+				Value:       value,
+				Type:        restapi.TagFilterExpressionElementType("invalid"),
+			},
+		}
+
+		testHelper := NewTestHelper(t)
+		sut := test.resourceHandle
+		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+		err := sut.UpdateState(resourceData, &websiteConfig, testHelper.ResourceFormatter())
+
+		require.Error(t, err)
+		require.Equal(t, "unsupported tag filter expression of type invalid", err.Error())
+	}
+}
+
 func (test *websiteAlertConfigTest) createTestCasesForMappingOfTerraformResourceStateToModel(t *testing.T) {
 	metricName := "test-metric"
 	equalsOperator := restapi.EqualsOperator
@@ -924,5 +973,36 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 
 		require.NoError(t, err)
 		require.Equal(t, &expectedWebsiteConfig, result)
+	}
+}
+
+func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResourceStateToModelWhenSeverityIsNotValid() func(t *testing.T) {
+	return func(t *testing.T) {
+		testHelper := NewTestHelper(t)
+		sut := test.resourceHandle
+		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+		resourceData.Set(WebsiteAlertConfigFieldName, "website-alert-config-name")
+		resourceData.Set(WebsiteAlertConfigFieldSeverity, "invalid")
+
+		_, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+
+		require.Error(t, err)
+		require.Equal(t, "invalid is not a valid severity", err.Error())
+	}
+}
+
+func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResourceStateToModelWhenTagFilterIsNotValid() func(t *testing.T) {
+	return func(t *testing.T) {
+		testHelper := NewTestHelper(t)
+		sut := test.resourceHandle
+		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+		resourceData.Set(WebsiteAlertConfigFieldName, "website-alert-config-name")
+		resourceData.Set(WebsiteAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
+		resourceData.Set(WebsiteAlertConfigFieldTagFilter, "invalid invalid invalid")
+
+		_, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "unexpected token")
 	}
 }

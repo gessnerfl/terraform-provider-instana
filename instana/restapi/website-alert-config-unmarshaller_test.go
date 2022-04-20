@@ -77,3 +77,44 @@ func TestShouldFailToUnmarshalWebsiteAlertConfigWhenResponseIsNotAValidJson(t *t
 
 	require.Error(t, err)
 }
+
+func TestShouldFailToUnmarshalWebsiteAlertConfigWhenTagFilterIsNotValid(t *testing.T) {
+	response := `
+{
+    "id": "12345",
+    "name": "name",
+    "description": "test-alert-description",
+    "websiteId": "website-id",
+    "severity": 5,
+    "triggering": false,
+    "tagFilterExpression": [ "foo", "bar"],
+    "rule": {
+      "alertType": "slowness",
+      "aggregation": "P90",
+      "metricName": "latency"
+    },
+    "threshold": {
+      "type": "staticThreshold",
+      "operator": ">=",
+      "value": 5.0,
+      "lastUpdated": 0
+    },
+    "alertChannelIds": [ "alert-channel-id-1", "alert-channel-id-2" ],
+    "granularity": 600000,
+    "timeThreshold": {
+      "type": "violationsInSequence",
+      "timeWindow": 600000
+    },
+    "customPayloadFields": [
+		{
+			"type": "staticString",
+			"key": "test",
+			"value": "test123"
+      	}
+	]
+  }
+`
+	_, err := NewWebsiteAlertConfigUnmarshaller().Unmarshal([]byte(response))
+
+	require.Error(t, err)
+}
