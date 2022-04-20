@@ -3,5 +3,6 @@ output/
 *.test
 vendor/
 .idea
+.DS_Store
 
 rest-playground.http
