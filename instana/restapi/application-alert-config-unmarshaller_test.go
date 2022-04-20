@@ -105,3 +105,55 @@ func TestShouldFailToUnmarshalApplicationAlertConfigWhenResponseIsNotAValidJson(
 
 	require.Error(t, err)
 }
+
+func TestShouldFailToUnmarshalApplicationAlertConfigWhenTagFilterIsNotValid(t *testing.T) {
+	response := `
+{
+    "id": "1234",
+    "name": "test-alert",
+    "description": "test-alert-description",
+    "boundaryScope": "ALL",
+    "applicationId": "app-id",
+    "applications": {
+      "app-id": {
+        "applicationId": "app-id",
+        "inclusive": true
+      }
+    },
+    "severity": 5,
+    "triggering": false,
+    "tagFilters": [],
+    "tagFilterExpression": [ "foo", "bar"],
+    "includeInternal": false,
+    "includeSynthetic": false,
+    "rule": {
+      "alertType": "slowness",
+      "aggregation": "P90",
+      "metricName": "latency"
+    },
+    "threshold": {
+      "type": "staticThreshold",
+      "operator": ">=",
+      "value": 5.0,
+      "lastUpdated": 0
+    },
+    "alertChannelIds": [ "alert-channel-id-1", "alert-channel-id-2" ],
+    "granularity": 600000,
+    "timeThreshold": {
+      "type": "violationsInSequence",
+      "timeWindow": 600000
+    },
+    "evaluationType": "PER_AP",
+    "customPayloadFields": [
+		{
+			"type": "staticString",
+			"key": "test",
+			"value": "test123"
+      	}
+	]
+  }
+`
+	_, err := NewApplicationAlertConfigUnmarshaller().Unmarshal([]byte(response))
+
+	require.Error(t, err)
+}

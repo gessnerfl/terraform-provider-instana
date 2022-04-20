@@ -35,6 +35,7 @@ resource.
   * SLI Config - `instana_sli_config`
 * Website Monitoring
   * Website Monitoring Config - `instana_website_monitoring_config`
+  * Website Alert Config - `instana_website_alert_config`
 
 ## Supported Data Source:
 

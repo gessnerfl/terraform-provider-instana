@@ -29,6 +29,7 @@ type InstanaAPI interface {
 	AlertingConfigurations() RestResource
 	SliConfigs() RestResource
 	WebsiteMonitoringConfig() RestResource
+	WebsiteAlertConfig() RestResource
 	Groups() RestResource
 }
 
@@ -88,6 +89,10 @@ func (api *baseInstanaAPI) SliConfigs() RestResource {
 
 func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource {
 	return NewWebsiteMonitoringConfigRestResource(NewDefaultJSONUnmarshaller(&WebsiteMonitoringConfig{}), api.client)
+}
+
+func (api *baseInstanaAPI) WebsiteAlertConfig() RestResource {
+	return NewCreatePOSTUpdatePOSTRestResource(WebsiteAlertConfigResourcePath, NewWebsiteAlertConfigUnmarshaller(), api.client)
 }
 
 func (api *baseInstanaAPI) Groups() RestResource {
