@@ -1,5 +1,17 @@
 # Changelog
 
+## [v1.4.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.4.0) (2022-04-20)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.3.0...v1.4.0)
+
+**Implemented enhancements:**
+
+- Support for website alert config [\#126](https://github.com/gessnerfl/terraform-provider-instana/issues/126)
+
+**Merged pull requests:**
+
+- Feature/126 website alert config [\#127](https://github.com/gessnerfl/terraform-provider-instana/pull/127) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v1.3.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.3.0) (2022-04-15)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.2.1...v1.3.0)
