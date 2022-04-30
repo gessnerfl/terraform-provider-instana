@@ -1,2 +1,2 @@
 output:
-  format: checkstyle:golangci-lint-report.json
+  format: github-actions,checkstyle:golangci-lint-report.json
