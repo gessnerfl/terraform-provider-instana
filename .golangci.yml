@@ -7,4 +7,4 @@ output:
   # Example: "checkstyle:report.json,colored-line-number"
   #
   # Default: colored-line-number
-  format: github-actions,checkstyle:output/golangci-lint-report.json
+  format: github-actions,checkstyle:golangci-lint-report.json

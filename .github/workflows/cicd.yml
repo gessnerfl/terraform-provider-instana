@@ -32,7 +32,7 @@ jobs:
         skip-cache: true
     
     - name: Run testing
-      run: go test ./... -cover -coverprofile=output/coverage.out -json | tee output/unit-test-report.json
+      run: go test ./... -cover -coverprofile=coverage.out -json | tee unit-test-report.json
 
     - name: Run sonar
       uses: sonarsource/sonarcloud-github-action@master
