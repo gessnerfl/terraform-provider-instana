@@ -27,6 +27,7 @@ jobs:
 
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3
+      continue-on-error: true
       with:
         skip-cache: true
     
