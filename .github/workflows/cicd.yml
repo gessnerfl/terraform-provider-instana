@@ -27,6 +27,8 @@ jobs:
 
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3
+      with:
+        skip-cache: true
     
     - name: Run testing
       run: go test ./... -cover -coverprofile=output/coverage.out -json | tee output/unit-test-report.json
