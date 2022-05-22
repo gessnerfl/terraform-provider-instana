@@ -28,11 +28,11 @@ jobs:
       run: go build . 
 
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: gessnerfl/golangci-lint-action@master
       continue-on-error: true
       with:
         skip-cache: true
-        args: --out-format=github-actions,checkstyle:golangci-lint-report.json
+        output-file: checkstyle:golangci-lint-report.xml
     
     - name: Run testing
       run: go test ./... -cover -coverprofile=coverage.out -json | tee unit-test-report.json
