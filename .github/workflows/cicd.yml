@@ -1,20 +1,24 @@
-name: CICD
+name: CI/CD
 
 on:
   - push
   - pull_request
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
     - name: Setup Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: '1.18.0'
 
@@ -22,24 +26,18 @@ jobs:
       id: get_version
       run: echo ::set-output name=VERSION::$(git describe --tags --match "v*" --always --dirty)
 
-    - name: Install dependencies
-      run: |
-        go version
-        go get -u golang.org/x/lint/golint
-        go install golang.org/x/lint/golint
-
     - name: Run build
       run: go build . 
-      
-    - name: Run vet & lint & sec
-      run: |
-        mkdir -p output
-        go vet -all ./... 2> output/govet-report.out
-        golint -set_exit_status `go list ./...` > output/golint-report.out
-#        gosec -fmt=sonarqube -out output/gosec-report.json ./...  
+
+    - name: golangci-lint
+      uses: gessnerfl/golangci-lint-action@master
+      continue-on-error: true
+      with:
+        skip-cache: true
+        output-file: checkstyle:golangci-lint-report.xml
     
     - name: Run testing
-      run: go test ./... -cover -coverprofile=output/coverage.out -json | tee output/unit-test-report.json
+      run: go test ./... -cover -coverprofile=coverage.out -json | tee unit-test-report.json
 
     - name: Run sonar
       uses: sonarsource/sonarcloud-github-action@master
@@ -56,13 +54,13 @@ jobs:
     if: ${{ contains(github.ref, 'refs/tags/v') && github.event_name == 'push' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Unshallow
         run: git fetch --prune --unshallow
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: 1.18.0
 
