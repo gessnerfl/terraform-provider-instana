@@ -7,7 +7,7 @@ type CustomDashboard struct {
 	ID          string       `json:"id"`
 	Title       string       `json:"title"`
 	AccessRules []AccessRule `json:"accessRules"`
-	Widgets     string       `json:"widgets"`
+	Widgets     interface{}  `json:"widgets"`
 }
 
 //GetIDForResourcePath implementation of the interface InstanaDataObject for CustomDashboard

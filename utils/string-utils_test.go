@@ -28,3 +28,11 @@ func TestShouldCreateStringPointerFromString(t *testing.T) {
 
 	require.Equal(t, &value, StringPtr(value))
 }
+
+func TestShouldProperlyConvertMultilineStringToSingleLineIncludingFormatting(t *testing.T) {
+	input := `This
+	is a test
+of multiline strings`
+
+	require.Equal(t, "This is a test of multiline strings", RemoveNewLinesAndTabs(input))
+}

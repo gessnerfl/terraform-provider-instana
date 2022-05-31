@@ -1,6 +1,7 @@
 package instana
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -136,4 +137,17 @@ func ConvertInterfaceSlice[T any](input []interface{}) []T {
 		result[i] = v.(T)
 	}
 	return result
+}
+
+func NormalizeJSONString(jsonString string) string {
+	var raw []map[string]interface{}
+	err := json.Unmarshal([]byte(jsonString), &raw)
+	if err != nil {
+		return jsonString
+	}
+	bytes, err := json.Marshal(raw)
+	if err != nil {
+		return jsonString
+	}
+	return string(bytes)
 }

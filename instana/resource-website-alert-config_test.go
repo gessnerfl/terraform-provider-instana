@@ -120,7 +120,7 @@ var websiteAlertConfigServerResponseTemplate = `
 `
 
 func (test *websiteAlertConfigTest) run(t *testing.T) {
-	t.Run(fmt.Sprintf("CRUDD integration test of %s", ResourceInstanaWebsiteAlertConfig), test.createIntegrationTest())
+	t.Run(fmt.Sprintf("CRUD integration test of %s", ResourceInstanaWebsiteAlertConfig), test.createIntegrationTest())
 	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return true when value can be normalized and old and new normalized value are equal", ResourceInstanaWebsiteAlertConfig), test.createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual())
 	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return false when value can be normalized and old and new normalized value are not equal", ResourceInstanaWebsiteAlertConfig), test.createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual())
 	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return true when value can be normalized and old and new value are equal", ResourceInstanaWebsiteAlertConfig), test.createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCannotBeNormalizedAndOldAndNewValueAreEqual())

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math/rand"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -14,6 +15,7 @@ func IsBlank(input string) bool {
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+var multiSpacesRegexp = regexp.MustCompile("( ){2,}")
 
 //RandomString creates a random string of the given length
 func RandomString(length int) string {
@@ -27,4 +29,10 @@ func RandomString(length int) string {
 //StringPtr converts a string to a string pointer
 func StringPtr(input string) *string {
 	return &input
+}
+
+//RemoveNewLinesAndTabs removes all new lines and tabs from a string
+func RemoveNewLinesAndTabs(input string) string {
+	spacesOnly := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(input, "\n\r", " "), "\n", " "), "\t", " ")
+	return multiSpacesRegexp.ReplaceAllString(spacesOnly, " ")
 }
