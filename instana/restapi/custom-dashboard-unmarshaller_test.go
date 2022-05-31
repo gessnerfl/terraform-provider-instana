@@ -105,10 +105,12 @@ func TestShouldSuccessfullyUnmarshalCustomDashboardIntoStruct(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "dashboard-id-1234", result.(*CustomDashboard).ID)
 	require.Equal(t, "My Dashboard", result.(*CustomDashboard).Title)
+	userId1 := "user-id-1"
+	userId2 := "user-id-2"
 	require.Equal(t, []AccessRule{
-		{AccessType: AccessTypeReadWrite, RelationType: RelationTypeUser, RelatedID: "user-id-1"},
+		{AccessType: AccessTypeReadWrite, RelationType: RelationTypeUser, RelatedID: &userId1},
 		{AccessType: AccessTypeRead, RelationType: RelationTypeGlobal},
-		{AccessType: AccessTypeReadWrite, RelationType: RelationTypeUser, RelatedID: "user-id-2"},
+		{AccessType: AccessTypeReadWrite, RelationType: RelationTypeUser, RelatedID: &userId2},
 	}, result.(*CustomDashboard).AccessRules)
 	require.Equal(t, widgetJson, result.(*CustomDashboard).Widgets)
 }
