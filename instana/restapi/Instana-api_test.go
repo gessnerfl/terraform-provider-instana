@@ -71,4 +71,9 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 
 		require.NotNil(t, resource)
 	})
+	t.Run("Should return Custom Dashboard instance", func(t *testing.T) {
+		resource := api.CustomDashboards()
+
+		require.NotNil(t, resource)
+	})
 }

@@ -1,5 +1,8 @@
 package restapi
 
+//CustomDashboardsResourcePath the API resource path for Custom Dashboards
+const CustomDashboardsResourcePath = InstanaAPIBasePath + "/custom-dashboard"
+
 type CustomDashboard struct {
 	ID          string       `json:"id"`
 	Title       string       `json:"title"`

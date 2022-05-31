@@ -31,6 +31,7 @@ type InstanaAPI interface {
 	WebsiteMonitoringConfig() RestResource
 	WebsiteAlertConfig() RestResource
 	Groups() RestResource
+	CustomDashboards() RestResource
 }
 
 //NewInstanaAPI creates a new instance of the instana API
@@ -97,4 +98,8 @@ func (api *baseInstanaAPI) WebsiteAlertConfig() RestResource {
 
 func (api *baseInstanaAPI) Groups() RestResource {
 	return NewCreatePOSTUpdatePUTRestResource(GroupsResourcePath, NewDefaultJSONUnmarshaller(&Group{}), api.client)
+}
+
+func (api *baseInstanaAPI) CustomDashboards() RestResource {
+	return NewCreatePOSTUpdatePUTRestResource(CustomDashboardsResourcePath, NewCustomDashboardUnmarshaller(), api.client)
 }
