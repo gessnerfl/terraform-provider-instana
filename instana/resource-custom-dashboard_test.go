@@ -1,7 +1,6 @@
 package instana_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -169,12 +168,18 @@ func (test *customDashboardResourceTest) createIntegrationTest() func(t *testing
 			err := json.NewDecoder(r.Body).Decode(dashboard)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				r.Write(bytes.NewBufferString("Failed to get request"))
+				_, err = w.Write([]byte("Failed to get request"))
+				if err != nil {
+					fmt.Println("failed to write response")
+				}
 			} else {
 				dashboard.ID = id
 				w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 				w.WriteHeader(http.StatusOK)
-				json.NewEncoder(w).Encode(dashboard)
+				err = json.NewEncoder(w).Encode(dashboard)
+				if err != nil {
+					fmt.Println("failed to write json response")
+				}
 			}
 		})
 		httpServer.AddRoute(http.MethodPut, resourceInstanceRestAPIPath, testutils.EchoHandlerFunc)
@@ -184,7 +189,10 @@ func (test *customDashboardResourceTest) createIntegrationTest() func(t *testing
 			json := fmt.Sprintf(serverResponseTemplate, id, modCount)
 			w.Header().Set(contentType, r.Header.Get(contentType))
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(json))
+			_, err := w.Write([]byte(json))
+			if err != nil {
+				fmt.Println("failed to write json response")
+			}
 		})
 		httpServer.Start()
 		defer httpServer.Close()
