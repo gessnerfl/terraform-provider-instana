@@ -101,5 +101,5 @@ func (api *baseInstanaAPI) Groups() RestResource {
 }
 
 func (api *baseInstanaAPI) CustomDashboards() RestResource {
-	return NewCreatePOSTUpdatePUTRestResource(CustomDashboardsResourcePath, NewCustomDashboardUnmarshaller(), api.client)
+	return NewCreatePOSTUpdatePUTRestResource(CustomDashboardsResourcePath, NewDefaultJSONUnmarshaller(&CustomDashboard{}), api.client)
 }

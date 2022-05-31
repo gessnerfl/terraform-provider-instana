@@ -257,7 +257,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyUpdateTerra
 		dashboard := restapi.CustomDashboard{
 			ID:      "dashboard-id",
 			Title:   "prefix dashboard-title suffix",
-			Widgets: "dashboard-widgets",
+			Widgets: json.RawMessage("dashboard-widgets"),
 			AccessRules: []restapi.AccessRule{
 				{AccessType: restapi.AccessTypeReadWrite, RelationType: restapi.RelationTypeUser, RelatedID: &userID},
 				{AccessType: restapi.AccessTypeRead, RelationType: restapi.RelationTypeGlobal},

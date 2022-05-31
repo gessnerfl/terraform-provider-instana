@@ -113,9 +113,11 @@ func (r *customDashboardResource) SetComputedFields(d *schema.ResourceData) {
 func (r *customDashboardResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	dashboard := obj.(*restapi.CustomDashboard)
 
+	widgetsBytes, _ := dashboard.Widgets.MarshalJSON()
+	widgets := NormalizeJSONString(string(widgetsBytes))
+
 	d.Set(CustomDashboardFieldTitle, formatter.UndoFormat(dashboard.Title))
 	d.Set(CustomDashboardFieldFullTitle, dashboard.Title)
-	widgets := NormalizeJSONString(dashboard.Widgets.(string))
 	d.Set(CustomDashboardFieldWidgets, widgets)
 	d.Set(CustomDashboardFieldAccessRule, r.mapAccessRuleToState(dashboard))
 	d.SetId(dashboard.ID)
