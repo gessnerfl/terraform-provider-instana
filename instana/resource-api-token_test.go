@@ -53,7 +53,6 @@ const (
 	apiTokenApiPath             = restapi.APITokensResourcePath + "/{internal-id}"
 	testAPITokenDefinition      = "instana_api_token.example"
 	apiTokenID                  = "api-token-id"
-	viewFilterFieldValue        = "view filter"
 	apiTokenNameFieldValue      = resourceName
 	apiTokenFullNameFieldValue  = resourceFullName
 	apiTokenAccessGrantingToken = "api-token-access-granting-token"
