@@ -36,6 +36,7 @@ resource.
 * Website Monitoring
   * Website Monitoring Config - `instana_website_monitoring_config`
   * Website Alert Config - `instana_website_alert_config`
+* Custom Dashboard - `instana_custom_dashboard`
 
 ## Supported Data Source:
 
