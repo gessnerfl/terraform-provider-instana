@@ -1,5 +1,23 @@
 # Changelog
 
+## [v1.5.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.5.0) (2022-06-01)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.4.0...v1.5.0)
+
+**Implemented enhancements:**
+
+- Support for WebSite and Application smart alerts [\#102](https://github.com/gessnerfl/terraform-provider-instana/issues/102)
+
+**Closed issues:**
+
+- switch to golangci-lint [\#128](https://github.com/gessnerfl/terraform-provider-instana/issues/128)
+- Dashboard resource  [\#106](https://github.com/gessnerfl/terraform-provider-instana/issues/106)
+
+**Merged pull requests:**
+
+- Feature/106 dashboards [\#130](https://github.com/gessnerfl/terraform-provider-instana/pull/130) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/128 switch to golangci lint [\#129](https://github.com/gessnerfl/terraform-provider-instana/pull/129) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v1.4.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.4.0) (2022-04-20)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.3.0...v1.4.0)
