@@ -120,7 +120,7 @@ var websiteAlertConfigServerResponseTemplate = `
 `
 
 func (test *websiteAlertConfigTest) run(t *testing.T) {
-	t.Run(fmt.Sprintf("CRUDD integration test of %s", ResourceInstanaWebsiteAlertConfig), test.createIntegrationTest())
+	t.Run(fmt.Sprintf("CRUD integration test of %s", ResourceInstanaWebsiteAlertConfig), test.createIntegrationTest())
 	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return true when value can be normalized and old and new normalized value are equal", ResourceInstanaWebsiteAlertConfig), test.createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual())
 	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return false when value can be normalized and old and new normalized value are not equal", ResourceInstanaWebsiteAlertConfig), test.createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual())
 	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return true when value can be normalized and old and new value are equal", ResourceInstanaWebsiteAlertConfig), test.createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCannotBeNormalizedAndOldAndNewValueAreEqual())
@@ -129,9 +129,9 @@ func (test *websiteAlertConfigTest) run(t *testing.T) {
 	t.Run(fmt.Sprintf("StateFunc of TagFilter of %s should return provided value when value cannot be normalized", ResourceInstanaWebsiteAlertConfig), test.createTestOfStateFuncOfTagFilterShouldReturnProvidedValueWhenValueCannotBeNormalized())
 	t.Run(fmt.Sprintf("ValidateFunc of TagFilter of %s should return no errors and warnings when value can be parsed", ResourceInstanaWebsiteAlertConfig), test.createTestOfValidateFuncOfTagFilterShouldReturnNoErrorsAndWarningsWhenValueCanBeParsed())
 	t.Run(fmt.Sprintf("ValidateFunc of TagFilter of %s should return one error and no warnings when value can be parsed", ResourceInstanaWebsiteAlertConfig), test.createTestOfValidateFuncOfTagFilterShouldReturnOneErrorAndNoWarningsWhenValueCannotBeParsed())
-	t.Run(fmt.Sprintf("%s should have schema version zero", ResourceInstanaWebsiteAlertConfig), test.createTetResourceShouldHaveSchemaVersionZero())
-	t.Run(fmt.Sprintf("%s should have no state upgrader", ResourceInstanaWebsiteAlertConfig), test.createTetResourceShouldHaveNoStateUpgrader())
-	t.Run(fmt.Sprintf("%s should have correct resouce name", ResourceInstanaWebsiteAlertConfig), test.createTetResourceShouldHaveCorrectResourceName())
+	t.Run(fmt.Sprintf("%s should have schema version zero", ResourceInstanaWebsiteAlertConfig), test.createTestResourceShouldHaveSchemaVersionZero())
+	t.Run(fmt.Sprintf("%s should have no state upgrader", ResourceInstanaWebsiteAlertConfig), test.createTestResourceShouldHaveNoStateUpgrader())
+	t.Run(fmt.Sprintf("%s should have correct resouce name", ResourceInstanaWebsiteAlertConfig), test.createTestResourceShouldHaveCorrectResourceName())
 	test.createTestCasesForUpdatesOfTerraformResourceStateFromModel(t)
 	t.Run(fmt.Sprintf("%s should fail to update state from model when severity is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCasesShouldFailToUpdateTerraformResourceStateFromModeWhenSeverityIsNotValid())
 	t.Run(fmt.Sprintf("%s should fail to update state from model when tag filter expression is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCasesShouldFailToUpdateTerraformResourceStateFromModeWhenTagFilterExpressionIsNotValid())
@@ -301,19 +301,19 @@ func (test *websiteAlertConfigTest) createTestOfValidateFuncOfTagFilterShouldRet
 	}
 }
 
-func (test *websiteAlertConfigTest) createTetResourceShouldHaveSchemaVersionZero() func(t *testing.T) {
+func (test *websiteAlertConfigTest) createTestResourceShouldHaveSchemaVersionZero() func(t *testing.T) {
 	return func(t *testing.T) {
 		require.Equal(t, 0, test.resourceHandle.MetaData().SchemaVersion)
 	}
 }
 
-func (test *websiteAlertConfigTest) createTetResourceShouldHaveNoStateUpgrader() func(t *testing.T) {
+func (test *websiteAlertConfigTest) createTestResourceShouldHaveNoStateUpgrader() func(t *testing.T) {
 	return func(t *testing.T) {
 		require.Empty(t, test.resourceHandle.StateUpgraders())
 	}
 }
 
-func (test *websiteAlertConfigTest) createTetResourceShouldHaveCorrectResourceName() func(t *testing.T) {
+func (test *websiteAlertConfigTest) createTestResourceShouldHaveCorrectResourceName() func(t *testing.T) {
 	return func(t *testing.T) {
 		require.Equal(t, test.resourceHandle.MetaData().ResourceName, "instana_website_alert_config")
 	}

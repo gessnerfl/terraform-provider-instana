@@ -7,14 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	messageExpectedToBeNotRequired = "Expected %s to be not required"
-	messageExpectedToBeRequired    = "Expected %s to be required"
-	messageExpectedToBeComputed    = "Expected %s to be required"
-	messageExpectedToBeOptional    = "Expected %s to be optional"
-	messageExpectedDefaultValue    = "Expected default value %t"
-)
-
 //NewTerraformSchemaAssert creates a new instance of TerraformSchemaAssert
 func NewTerraformSchemaAssert(schemaMap map[string]*schema.Schema, t *testing.T) TerraformSchemaAssert {
 	return &terraformSchemaAssertImpl{schemaMap: schemaMap, t: t}
@@ -24,7 +16,7 @@ func NewTerraformSchemaAssert(schemaMap map[string]*schema.Schema, t *testing.T)
 type TerraformSchemaAssert interface {
 	//AssertSchemaIsRequiredAndOfTypeString checks if the given schema field is required and of type string
 	AssertSchemaIsRequiredAndOfTypeString(fieldName string)
-	//AssertSchemaIsRequiredAndTypeInt checks if the given schema field is required and of type int
+	//AssertSchemaIsRequiredAndOfTypeInt checks if the given schema field is required and of type int
 	AssertSchemaIsRequiredAndOfTypeInt(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeFloat checks if the given schema field is required and of type float
 	AssertSchemaIsRequiredAndOfTypeFloat(fieldName string)
@@ -40,7 +32,7 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsOfTypeBooleanWithDefault(fieldName string, defaultValue bool)
 	//AssertSchemaIsRequiredAndOfTypeListOfStrings checks if the given schema field is required and of type list of string
 	AssertSchemaIsRequiredAndOfTypeListOfStrings(fieldName string)
-	//AssertSchemaIsRequiredAndOfTypeListOfStrings checks if the given schema field is required and of type list of string
+	//AssertSchemaIsOptionalAndOfTypeListOfStrings checks if the given schema field is optional and of type list of string
 	AssertSchemaIsOptionalAndOfTypeListOfStrings(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeSetOfStrings checks if the given schema field is required and of type set of string
 	AssertSchemaIsRequiredAndOfTypeSetOfStrings(fieldName string)

@@ -37,7 +37,10 @@ jobs:
         output-file: checkstyle:golangci-lint-report.xml
     
     - name: Run testing
-      run: go test ./... -cover -coverprofile=coverage.out -json | tee unit-test-report.json
+      run: |
+        set -o pipefail
+        go test ./... -cover -coverprofile=coverage.out -json | tee unit-test-report.json
+        set +o pipefail
 
     - name: Run sonar
       uses: sonarsource/sonarcloud-github-action@master

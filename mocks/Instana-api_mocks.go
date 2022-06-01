@@ -118,6 +118,20 @@ func (mr *MockInstanaAPIMockRecorder) BuiltinEventSpecifications() *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuiltinEventSpecifications", reflect.TypeOf((*MockInstanaAPI)(nil).BuiltinEventSpecifications))
 }
 
+// CustomDashboards mocks base method.
+func (m *MockInstanaAPI) CustomDashboards() restapi.RestResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CustomDashboards")
+	ret0, _ := ret[0].(restapi.RestResource)
+	return ret0
+}
+
+// CustomDashboards indicates an expected call of CustomDashboards.
+func (mr *MockInstanaAPIMockRecorder) CustomDashboards() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CustomDashboards", reflect.TypeOf((*MockInstanaAPI)(nil).CustomDashboards))
+}
+
 // CustomEventSpecifications mocks base method.
 func (m *MockInstanaAPI) CustomEventSpecifications() restapi.RestResource {
 	m.ctrl.T.Helper()

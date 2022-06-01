@@ -33,7 +33,7 @@ vet:
 .PHONY: lint
 lint:
 	@echo "+++++++++++  Run GO Lint +++++++++++ "
-	@golint -set_exit_status `go list ./...`
+	@golangci-lint run
 
 .PHONY: fmt
 fmt:
