@@ -22,7 +22,7 @@ func (m *tagFilterMapper) FromAPIModel(input restapi.TagFilterExpressionElement)
 	return &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: expr.primary,
+				Left: &BracketExpression{Primary: expr.primary},
 			},
 		},
 	}, nil
@@ -100,9 +100,7 @@ func (m *tagFilterMapper) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAnd
 	if left.and != nil {
 		return left.and
 	}
-	return &LogicalAndExpression{
-		Left: left.primary,
-	}
+	return &LogicalAndExpression{Left: &BracketExpression{Primary: left.primary}}
 }
 
 func (m *tagFilterMapper) mapRightOfLogicalOr(right *expressionHandle) *LogicalOrExpression {
@@ -111,7 +109,7 @@ func (m *tagFilterMapper) mapRightOfLogicalOr(right *expressionHandle) *LogicalO
 	} else if right.and != nil {
 		return &LogicalOrExpression{Left: right.and}
 	} else {
-		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: right.primary}}
+		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: &BracketExpression{Primary: right.primary}}}
 	}
 }
 
@@ -135,13 +133,13 @@ func (m *tagFilterMapper) mapLogicalAndFromAPIModel(elements []*expressionHandle
 	for i := total - 2; i >= 0; i-- {
 		if expression == nil {
 			expression = &LogicalAndExpression{
-				Left:     elements[i].primary,
+				Left:     &BracketExpression{Primary: elements[i].primary},
 				Operator: &operator,
 				Right:    m.mapRightOfLogicalAnd(elements[i+1]),
 			}
 		} else {
 			expression = &LogicalAndExpression{
-				Left:     elements[i].primary,
+				Left:     &BracketExpression{Primary: elements[i].primary},
 				Operator: &operator,
 				Right:    expression,
 			}
@@ -154,7 +152,9 @@ func (m *tagFilterMapper) mapRightOfLogicalAnd(right *expressionHandle) *Logical
 	if right.and != nil {
 		return right.and
 	}
-	return &LogicalAndExpression{Left: right.primary}
+	return &LogicalAndExpression{
+		Left: &BracketExpression{Primary: right.primary},
+	}
 }
 
 func (m *tagFilterMapper) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryExpression, error) {

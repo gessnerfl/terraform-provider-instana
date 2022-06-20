@@ -135,7 +135,7 @@ func (e *LogicalOrExpression) Render() string {
 
 //LogicalAndExpression representation of a logical AND, or as a wrapper for a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalAndExpression struct {
-	Left     *PrimaryExpression    `parser:"  @@"`
+	Left     *BracketExpression    `parser:"  @@"`
 	Operator *Operator             `parser:"( @\"AND\""`
 	Right    *LogicalAndExpression `parser:"  @@ )?"`
 }
@@ -146,6 +146,20 @@ func (e *LogicalAndExpression) Render() string {
 		return fmt.Sprintf("%s AND %s", e.Left.Render(), e.Right.Render())
 	}
 	return e.Left.Render()
+}
+
+//BracketExpression representation of a bracket expression
+type BracketExpression struct {
+	Bracket *LogicalOrExpression `parser:"\"(\" @@ \")\""`
+	Primary *PrimaryExpression   `parser:"| @@"`
+}
+
+//Render implementation of ExpressionRenderer.Render
+func (e *BracketExpression) Render() string {
+	if e.Bracket != nil {
+		return "(" + e.Bracket.Render() + ")"
+	}
+	return e.Primary.Render()
 }
 
 //PrimaryExpression wrapper for either a comparison or a unary expression

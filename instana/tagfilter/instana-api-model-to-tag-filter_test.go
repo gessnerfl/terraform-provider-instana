@@ -74,8 +74,8 @@ func testMappingOfTagFilterFromInstanaApi(tagFilter *restapi.TagFilter, comparis
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: comparison,
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{Comparison: comparison},
 				},
 			},
 		},
@@ -98,11 +98,13 @@ func testMappingOfSupportedComparisonOperatorsFromInstanaAPI(operator restapi.Ex
 		expectedResult := &FilterExpression{
 			Expression: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						Comparison: &ComparisonExpression{
-							Entity:      &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator:    Operator(operator),
-							StringValue: &value,
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator:    Operator(operator),
+								StringValue: &value,
+							},
 						},
 					},
 				},
@@ -138,10 +140,12 @@ func testMappingOfSupportedUnaryOperationFromInstanaAPI(operator restapi.Express
 		expectedResult := &FilterExpression{
 			Expression: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator: Operator(operator),
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator: Operator(operator),
+							},
 						},
 					},
 				},
@@ -159,10 +163,12 @@ func TestShouldMapUnaryTagFilterWithTagKeyFromInstanaAPI(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: tagFilterName, TagKey: &key, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: Operator(restapi.NotEmptyOperator),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: tagFilterName, TagKey: &key, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: Operator(restapi.NotEmptyOperator),
+						},
 					},
 				},
 			},
@@ -206,18 +212,22 @@ func TestShouldMapLogicalAndWithTwoPrimaryExpressionsFromInstanaAPI(t *testing.T
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: "name1", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: operator,
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: "name1", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: operator,
+						},
 					},
 				},
 				Operator: &and,
 				Right: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: "name2", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator: operator,
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: "name2", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator: operator,
+							},
 						},
 					},
 				},
@@ -239,26 +249,32 @@ func TestShouldMapLogicalAndWithThreePrimaryExpressionsFromInstanaAPI(t *testing
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: "name1", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: operator,
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: "name1", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: operator,
+						},
 					},
 				},
 				Operator: &and,
 				Right: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: "name2", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator: operator,
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: "name2", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator: operator,
+							},
 						},
 					},
 					Operator: &and,
 					Right: &LogicalAndExpression{
-						Left: &PrimaryExpression{
-							UnaryOperation: &UnaryOperationExpression{
-								Entity:   &EntitySpec{Identifier: "name3", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-								Operator: operator,
+						Left: &BracketExpression{
+							Primary: &PrimaryExpression{
+								UnaryOperation: &UnaryOperationExpression{
+									Entity:   &EntitySpec{Identifier: "name3", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+									Operator: operator,
+								},
 							},
 						},
 					},
@@ -280,26 +296,32 @@ func TestShouldMapLogicalAndWithTwoElementsFromInstanaAPIWhereTheFirstElementIsA
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: operator,
-					},
-				},
-				Operator: &and,
-				Right: &LogicalAndExpression{
-					Left: &PrimaryExpression{
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
 							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
 							Operator: operator,
 						},
 					},
-					Operator: &and,
-					Right: &LogicalAndExpression{
-						Left: &PrimaryExpression{
+				},
+				Operator: &and,
+				Right: &LogicalAndExpression{
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
 							UnaryOperation: &UnaryOperationExpression{
 								Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
 								Operator: operator,
+							},
+						},
+					},
+					Operator: &and,
+					Right: &LogicalAndExpression{
+						Left: &BracketExpression{
+							Primary: &PrimaryExpression{
+								UnaryOperation: &UnaryOperationExpression{
+									Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+									Operator: operator,
+								},
 							},
 						},
 					},
@@ -368,20 +390,24 @@ func TestShouldMapLogicalOrWithTwoPrimaryExpressionsFromInstanaAPI(t *testing.T)
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: "name1", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: operator,
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: "name1", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: operator,
+						},
 					},
 				},
 			},
 			Operator: &or,
 			Right: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: "name2", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator: operator,
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: "name2", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator: operator,
+							},
 						},
 					},
 				},
@@ -403,30 +429,36 @@ func TestShouldMapLogicalOrWithThreePrimaryExpressionsFromInstanaAPI(t *testing.
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: "name1", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: operator,
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: "name1", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: operator,
+						},
 					},
 				},
 			},
 			Operator: &or,
 			Right: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: "name2", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator: operator,
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: "name2", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator: operator,
+							},
 						},
 					},
 				},
 				Operator: &or,
 				Right: &LogicalOrExpression{
 					Left: &LogicalAndExpression{
-						Left: &PrimaryExpression{
-							UnaryOperation: &UnaryOperationExpression{
-								Entity:   &EntitySpec{Identifier: "name3", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-								Operator: operator,
+						Left: &BracketExpression{
+							Primary: &PrimaryExpression{
+								UnaryOperation: &UnaryOperationExpression{
+									Entity:   &EntitySpec{Identifier: "name3", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+									Operator: operator,
+								},
 							},
 						},
 					},
@@ -449,18 +481,22 @@ func TestShouldMapLogicalOrWithTwoElementsFromInstanaAPIWhereFirstElementIsALogi
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: operator,
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: operator,
+						},
 					},
 				},
 				Operator: &and,
 				Right: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator: operator,
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator: operator,
+							},
 						},
 					},
 				},
@@ -468,10 +504,12 @@ func TestShouldMapLogicalOrWithTwoElementsFromInstanaAPIWhereFirstElementIsALogi
 			Operator: &or,
 			Right: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator: operator,
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator: operator,
+							},
 						},
 					},
 				},
@@ -492,30 +530,36 @@ func TestShouldMapLogicalOrWithTwoElementsFromInstanaAPIWhereFirstElementIsAPrim
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: operator,
-					},
-				},
-			},
-			Operator: &or,
-			Right: &LogicalOrExpression{
-				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
 						UnaryOperation: &UnaryOperationExpression{
 							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
 							Operator: operator,
 						},
 					},
 				},
-				Operator: &or,
-				Right: &LogicalOrExpression{
-					Left: &LogicalAndExpression{
-						Left: &PrimaryExpression{
+			},
+			Operator: &or,
+			Right: &LogicalOrExpression{
+				Left: &LogicalAndExpression{
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
 							UnaryOperation: &UnaryOperationExpression{
 								Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
 								Operator: operator,
+							},
+						},
+					},
+				},
+				Operator: &or,
+				Right: &LogicalOrExpression{
+					Left: &LogicalAndExpression{
+						Left: &BracketExpression{
+							Primary: &PrimaryExpression{
+								UnaryOperation: &UnaryOperationExpression{
+									Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+									Operator: operator,
+								},
 							},
 						},
 					},
@@ -538,28 +582,34 @@ func TestShouldMapLogicalOrWithTwoElementsWhereFirstElementIsAPrimaryExpressionA
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: operator,
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: operator,
+						},
 					},
 				},
 			},
 			Operator: &or,
 			Right: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator: operator,
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator: operator,
+							},
 						},
 					},
 					Operator: &and,
 					Right: &LogicalAndExpression{
-						Left: &PrimaryExpression{
-							UnaryOperation: &UnaryOperationExpression{
-								Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-								Operator: operator,
+						Left: &BracketExpression{
+							Primary: &PrimaryExpression{
+								UnaryOperation: &UnaryOperationExpression{
+									Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+									Operator: operator,
+								},
 							},
 						},
 					},
