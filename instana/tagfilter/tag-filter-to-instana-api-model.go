@@ -22,7 +22,7 @@ func (m *tagFilterMapper) mapLogicalOrToAPIModel(input *LogicalOrExpression) res
 }
 
 func (m *tagFilterMapper) mapLogicalAndToAPIModel(input *LogicalAndExpression) restapi.TagFilterExpressionElement {
-	left := m.mapPrimaryExpressionToAPIModel(input.Left)
+	left := m.mapBracketExpressionToAPIModel(input.Left)
 	if input.Operator != nil {
 		right := m.mapLogicalAndToAPIModel(input.Right)
 		leftElements := m.unwrapExpressionElements(left, restapi.LogicalAnd)
@@ -37,6 +37,13 @@ func (m *tagFilterMapper) unwrapExpressionElements(element restapi.TagFilterExpr
 		return element.(*restapi.TagFilterExpression).Elements
 	}
 	return []restapi.TagFilterExpressionElement{element}
+}
+
+func (m *tagFilterMapper) mapBracketExpressionToAPIModel(input *BracketExpression) restapi.TagFilterExpressionElement {
+	if input.Bracket != nil {
+		return m.mapLogicalOrToAPIModel(input.Bracket)
+	}
+	return m.mapPrimaryExpressionToAPIModel(input.Primary)
 }
 
 func (m *tagFilterMapper) mapPrimaryExpressionToAPIModel(input *PrimaryExpression) restapi.TagFilterExpressionElement {

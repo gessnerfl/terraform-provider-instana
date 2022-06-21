@@ -27,11 +27,13 @@ func TestShouldParseStringComparisonExpression(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("foo"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("foo"),
+						},
 					},
 				},
 			},
@@ -46,11 +48,13 @@ func TestShouldParseNumberComparisonExpression(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName},
-						Operator:    Operator(restapi.EqualsOperator),
-						NumberValue: utils.Int64Ptr(int64(123)),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName},
+							Operator:    Operator(restapi.EqualsOperator),
+							NumberValue: utils.Int64Ptr(int64(123)),
+						},
 					},
 				},
 			},
@@ -65,11 +69,13 @@ func TestShouldParseBoolComparisonExpression(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:       &EntitySpec{Identifier: keyEntityName},
-						Operator:     Operator(restapi.EqualsOperator),
-						BooleanValue: utils.BoolPtr(true),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:       &EntitySpec{Identifier: keyEntityName},
+							Operator:     Operator(restapi.EqualsOperator),
+							BooleanValue: utils.BoolPtr(true),
+						},
 					},
 				},
 			},
@@ -84,11 +90,13 @@ func TestShouldParseStringTagComparisonExpression(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("value"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("value"),
+						},
 					},
 				},
 			},
@@ -103,11 +111,13 @@ func TestShouldParseNumberTagComparisonExpression(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
-						Operator:    Operator(restapi.EqualsOperator),
-						NumberValue: utils.Int64Ptr(1234),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
+							Operator:    Operator(restapi.EqualsOperator),
+							NumberValue: utils.Int64Ptr(1234),
+						},
 					},
 				},
 			},
@@ -122,11 +132,172 @@ func TestShouldParseBooleanTagComparisonExpression(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:       &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
-						Operator:     Operator(restapi.EqualsOperator),
-						BooleanValue: utils.BoolPtr(true),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:       &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
+							Operator:     Operator(restapi.EqualsOperator),
+							BooleanValue: utils.BoolPtr(true),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
+func TestShouldHandlePrecedenceWhenParseExpressions(t *testing.T) {
+	logicalAnd := Operator(restapi.LogicalAnd)
+	logicalOr := Operator(restapi.LogicalOr)
+	expression := "entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' AND agent.tag:key EQUALS 'value'"
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("foo"),
+						},
+					},
+				},
+			},
+			Operator: &logicalOr,
+			Right: &LogicalOrExpression{
+				Left: &LogicalAndExpression{
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: keyEntityName},
+								Operator:    Operator(restapi.EqualsOperator),
+								StringValue: utils.StringPtr("bar"),
+							},
+						},
+					},
+					Operator: &logicalAnd,
+					Right: &LogicalAndExpression{
+						Left: &BracketExpression{
+							Primary: &PrimaryExpression{
+								Comparison: &ComparisonExpression{
+									Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
+									Operator:    Operator(restapi.EqualsOperator),
+									StringValue: utils.StringPtr("value"),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
+func TestShouldParseExpressionStartingWithABracketExpression(t *testing.T) {
+	logicalAnd := Operator(restapi.LogicalAnd)
+	logicalOr := Operator(restapi.LogicalOr)
+	expression := "( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' ) AND agent.tag:key EQUALS 'value'"
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &BracketExpression{
+					Bracket: &LogicalOrExpression{
+						Left: &LogicalAndExpression{
+							Left: &BracketExpression{
+								Primary: &PrimaryExpression{
+									Comparison: &ComparisonExpression{
+										Entity:      &EntitySpec{Identifier: keyEntityName},
+										Operator:    Operator(restapi.EqualsOperator),
+										StringValue: utils.StringPtr("foo"),
+									},
+								},
+							},
+						},
+						Operator: &logicalOr,
+						Right: &LogicalOrExpression{
+							Left: &LogicalAndExpression{
+								Left: &BracketExpression{
+									Primary: &PrimaryExpression{
+										Comparison: &ComparisonExpression{
+											Entity:      &EntitySpec{Identifier: keyEntityName},
+											Operator:    Operator(restapi.EqualsOperator),
+											StringValue: utils.StringPtr("bar"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Operator: &logicalAnd,
+				Right: &LogicalAndExpression{
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
+								Operator:    Operator(restapi.EqualsOperator),
+								StringValue: utils.StringPtr("value"),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
+func TestShouldParseExpressionEndingWithABracketExpression(t *testing.T) {
+	logicalAnd := Operator(restapi.LogicalAnd)
+	logicalOr := Operator(restapi.LogicalOr)
+	expression := "agent.tag:key EQUALS 'value' AND ( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' )"
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("key")},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("value"),
+						},
+					},
+				},
+				Operator: &logicalAnd,
+				Right: &LogicalAndExpression{
+					Left: &BracketExpression{
+						Bracket: &LogicalOrExpression{
+							Left: &LogicalAndExpression{
+								Left: &BracketExpression{
+									Primary: &PrimaryExpression{
+										Comparison: &ComparisonExpression{
+											Entity:      &EntitySpec{Identifier: keyEntityName},
+											Operator:    Operator(restapi.EqualsOperator),
+											StringValue: utils.StringPtr("foo"),
+										},
+									},
+								},
+							},
+							Operator: &logicalOr,
+							Right: &LogicalOrExpression{
+								Left: &LogicalAndExpression{
+									Left: &BracketExpression{
+										Primary: &PrimaryExpression{
+											Comparison: &ComparisonExpression{
+												Entity:      &EntitySpec{Identifier: keyEntityName},
+												Operator:    Operator(restapi.EqualsOperator),
+												StringValue: utils.StringPtr("bar"),
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -137,59 +308,75 @@ func TestShouldParseBooleanTagComparisonExpression(t *testing.T) {
 }
 
 func TestShouldSuccessfullyParseComplexExpression(t *testing.T) {
-	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS 234 AND entity.type EQUALS true AND span.name NOT_EMPTY OR span.id@src NOT_EQUAL  '1234'"
+	expression := "entity.name CONTAINS 'foo bar' OR entity.kind EQUALS 234 AND entity.type EQUALS true AND ( span.name NOT_EMPTY OR span.id@src NOT_EQUAL  '1234' )"
 
 	logicalAnd := Operator(restapi.LogicalAnd)
 	logicalOr := Operator(restapi.LogicalOr)
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName},
-						Operator:    Operator(restapi.ContainsOperator),
-						StringValue: utils.StringPtr("foo bar"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName},
+							Operator:    Operator(restapi.ContainsOperator),
+							StringValue: utils.StringPtr("foo bar"),
+						},
 					},
 				},
 			},
 			Operator: &logicalOr,
 			Right: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						Comparison: &ComparisonExpression{
-							Entity:      &EntitySpec{Identifier: keyEntityKind},
-							Operator:    Operator(restapi.EqualsOperator),
-							NumberValue: utils.Int64Ptr(int64(234)),
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: keyEntityKind},
+								Operator:    Operator(restapi.EqualsOperator),
+								NumberValue: utils.Int64Ptr(int64(234)),
+							},
 						},
 					},
 					Operator: &logicalAnd,
 					Right: &LogicalAndExpression{
-						Left: &PrimaryExpression{
-							Comparison: &ComparisonExpression{
-								Entity:       &EntitySpec{Identifier: keyEntityType},
-								Operator:     Operator(restapi.EqualsOperator),
-								BooleanValue: utils.BoolPtr(true),
+						Left: &BracketExpression{
+							Primary: &PrimaryExpression{
+								Comparison: &ComparisonExpression{
+									Entity:       &EntitySpec{Identifier: keyEntityType},
+									Operator:     Operator(restapi.EqualsOperator),
+									BooleanValue: utils.BoolPtr(true),
+								},
 							},
 						},
 						Operator: &logicalAnd,
 						Right: &LogicalAndExpression{
-							Left: &PrimaryExpression{
-								UnaryOperation: &UnaryOperationExpression{
-									Entity:   &EntitySpec{Identifier: "span.name"},
-									Operator: Operator(restapi.NotEmptyOperator),
+							Left: &BracketExpression{
+								Bracket: &LogicalOrExpression{
+									Left: &LogicalAndExpression{
+										Left: &BracketExpression{
+											Primary: &PrimaryExpression{
+												UnaryOperation: &UnaryOperationExpression{
+													Entity:   &EntitySpec{Identifier: "span.name"},
+													Operator: Operator(restapi.NotEmptyOperator),
+												},
+											},
+										},
+									},
+									Operator: &logicalOr,
+									Right: &LogicalOrExpression{
+										Left: &LogicalAndExpression{
+											Left: &BracketExpression{
+												Primary: &PrimaryExpression{
+													Comparison: &ComparisonExpression{
+														Entity:      &EntitySpec{Identifier: "span.id", Origin: utils.StringPtr(EntityOriginSource.Key())},
+														Operator:    Operator(restapi.NotEqualOperator),
+														StringValue: utils.StringPtr("1234"),
+													},
+												},
+											},
+										},
+									},
 								},
-							},
-						},
-					},
-				},
-				Operator: &logicalOr,
-				Right: &LogicalOrExpression{
-					Left: &LogicalAndExpression{
-						Left: &PrimaryExpression{
-							Comparison: &ComparisonExpression{
-								Entity:      &EntitySpec{Identifier: "span.id", Origin: utils.StringPtr(EntityOriginSource.Key())},
-								Operator:    Operator(restapi.NotEqualOperator),
-								StringValue: utils.StringPtr("1234"),
 							},
 						},
 					},
@@ -208,20 +395,24 @@ func TestShouldParseKeywordsCaseInsensitive(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName},
-						Operator:    Operator(restapi.ContainsOperator),
-						StringValue: utils.StringPtr("foo"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName},
+							Operator:    Operator(restapi.ContainsOperator),
+							StringValue: utils.StringPtr("foo"),
+						},
 					},
 				},
 				Operator: &logicalAnd,
 				Right: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						Comparison: &ComparisonExpression{
-							Entity:      &EntitySpec{Identifier: keyEntityType},
-							Operator:    Operator(restapi.EqualsOperator),
-							StringValue: utils.StringPtr("bar"),
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: keyEntityType},
+								Operator:    Operator(restapi.EqualsOperator),
+								StringValue: utils.StringPtr("bar"),
+							},
 						},
 					},
 				},
@@ -245,11 +436,13 @@ func createTestCaseForParsingSupportedComparisonOperators(operator restapi.Expre
 		expectedResult := &FilterExpression{
 			Expression: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						Comparison: &ComparisonExpression{
-							Entity:      &EntitySpec{Identifier: keyEntityName},
-							Operator:    Operator(operator),
-							StringValue: utils.StringPtr("foo"),
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: keyEntityName},
+								Operator:    Operator(operator),
+								StringValue: utils.StringPtr("foo"),
+							},
 						},
 					},
 				},
@@ -273,10 +466,12 @@ func createTestCaseForParsingSupportedUnaryOperators(operator restapi.Expression
 		expectedResult := &FilterExpression{
 			Expression: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						UnaryOperation: &UnaryOperationExpression{
-							Entity:   &EntitySpec{Identifier: keyEntityName},
-							Operator: Operator(operator),
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							UnaryOperation: &UnaryOperationExpression{
+								Entity:   &EntitySpec{Identifier: keyEntityName},
+								Operator: Operator(operator),
+							},
 						},
 					},
 				},
@@ -294,10 +489,12 @@ func TestShouldParseFullySpecifiedUnaryTagFilter(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("stage"), Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: Operator(restapi.NotEmptyOperator),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("stage"), Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: Operator(restapi.NotEmptyOperator),
+						},
 					},
 				},
 			},
@@ -313,11 +510,13 @@ func TestShouldParseComparisonOperationsCaseInsensitive(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("foo"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("foo"),
+						},
 					},
 				},
 			},
@@ -333,10 +532,12 @@ func TestShouldParseUnaryOperationsCaseInsensitive(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: keyEntityName},
-						Operator: Operator(restapi.NotEmptyOperator),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: keyEntityName},
+							Operator: Operator(restapi.NotEmptyOperator),
+						},
 					},
 				},
 			},
@@ -352,11 +553,13 @@ func TestShouldParseIdentifiersWithDashes(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: "call.http.header.x-example-foo"},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("test"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: "call.http.header.x-example-foo"},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("test"),
+						},
 					},
 				},
 			},
@@ -372,11 +575,13 @@ func TestShouldParseIdentifierWithSlashes(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: "kubernetes.pod.label.foo/bar"},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("test"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: "kubernetes.pod.label.foo/bar"},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("test"),
+						},
 					},
 				},
 			},
@@ -392,11 +597,13 @@ func TestShouldParseEntityOriginFromComparisonExpression(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginSource.Key())},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("test"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginSource.Key())},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("test"),
+						},
 					},
 				},
 			},
@@ -412,10 +619,12 @@ func TestShouldParseEntityOriginFromUnaryExpression(t *testing.T) {
 	expectedResult := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginSource.Key())},
-						Operator: Operator(restapi.NotEmptyOperator),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginSource.Key())},
+							Operator: Operator(restapi.NotEmptyOperator),
+						},
 					},
 				},
 			},
@@ -443,8 +652,8 @@ func TestShouldFailToParseInvalidExpression(t *testing.T) {
 }
 
 func TestShouldRenderComplexExpressionInNormalizedForm(t *testing.T) {
-	expression := "entity.name CONTAINS 'foo' OR entity.kind EQUALS '2.34'    and  entity.type EQUALS 'true'  AND span.name  NOT_EMPTY   OR span.id  NOT_EQUAL  '1234'"
-	normalizedExpression := "entity.name@dest CONTAINS 'foo' OR entity.kind@dest EQUALS '2.34' AND entity.type@dest EQUALS 'true' AND span.name@dest NOT_EMPTY OR span.id@dest NOT_EQUAL '1234'"
+	expression := "entity.name CONTAINS 'foo' OR entity.kind EQUALS '2.34'    and  entity.type EQUALS 'true'  AND ( span.name  NOT_EMPTY   OR span.id  NOT_EQUAL  '1234' )"
+	normalizedExpression := "entity.name@dest CONTAINS 'foo' OR entity.kind@dest EQUALS '2.34' AND entity.type@dest EQUALS 'true' AND ( span.name@dest NOT_EMPTY OR span.id@dest NOT_EQUAL '1234' )"
 
 	sut := NewParser()
 	result, err := sut.Parse(expression)
@@ -461,22 +670,26 @@ func TestShouldRenderLogicalOrExpression(t *testing.T) {
 	sut := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("bar"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("bar"),
+						},
 					},
 				},
 			},
 			Operator: &logicalOr,
 			Right: &LogicalOrExpression{
 				Left: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						Comparison: &ComparisonExpression{
-							Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator:    Operator(restapi.ContainsOperator),
-							StringValue: utils.StringPtr("bar"),
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator:    Operator(restapi.ContainsOperator),
+								StringValue: utils.StringPtr("bar"),
+							},
 						},
 					},
 				},
@@ -496,20 +709,81 @@ func TestShouldRenderLogicalAndExpression(t *testing.T) {
 	sut := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("bar"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("bar"),
+						},
 					},
 				},
 				Operator: &logicalAnd,
 				Right: &LogicalAndExpression{
-					Left: &PrimaryExpression{
-						Comparison: &ComparisonExpression{
-							Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-							Operator:    Operator(restapi.ContainsOperator),
-							StringValue: utils.StringPtr("bar"),
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator:    Operator(restapi.ContainsOperator),
+								StringValue: utils.StringPtr("bar"),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	rendered := sut.Render()
+	require.Equal(t, expectedResult, rendered)
+}
+
+func TestShouldRenderBracketExpression(t *testing.T) {
+	expectedResult := "( foo@dest EQUALS 'bar' OR foo@dest CONTAINS 'bar' ) AND bar@dest EQUALS 'value'"
+
+	logicalOr := Operator(restapi.LogicalAnd)
+	logicalAnd := Operator(restapi.LogicalAnd)
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &BracketExpression{
+					Bracket: &LogicalOrExpression{
+						Left: &LogicalAndExpression{
+							Left: &BracketExpression{
+								Primary: &PrimaryExpression{
+									Comparison: &ComparisonExpression{
+										Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+										Operator:    Operator(restapi.EqualsOperator),
+										StringValue: utils.StringPtr("bar"),
+									},
+								},
+							},
+						},
+						Operator: &logicalOr,
+						Right: &LogicalOrExpression{
+							Left: &LogicalAndExpression{
+								Left: &BracketExpression{
+									Primary: &PrimaryExpression{
+										Comparison: &ComparisonExpression{
+											Entity:      &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+											Operator:    Operator(restapi.ContainsOperator),
+											StringValue: utils.StringPtr("bar"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Operator: &logicalAnd,
+				Right: &LogicalAndExpression{
+					Left: &BracketExpression{
+						Primary: &PrimaryExpression{
+							Comparison: &ComparisonExpression{
+								Entity:      &EntitySpec{Identifier: "bar", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+								Operator:    Operator(restapi.EqualsOperator),
+								StringValue: utils.StringPtr("value"),
+							},
 						},
 					},
 				},
@@ -525,11 +799,13 @@ func TestShouldRenderPrimaryStringComparisonExpression(t *testing.T) {
 	sut := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr(valueMyValue),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr(valueMyValue),
+						},
 					},
 				},
 			},
@@ -545,11 +821,13 @@ func TestShouldRenderPrimaryNumberComparisonExpression(t *testing.T) {
 	sut := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator:    Operator(restapi.EqualsOperator),
-						NumberValue: utils.Int64Ptr(int64(1234)),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator:    Operator(restapi.EqualsOperator),
+							NumberValue: utils.Int64Ptr(int64(1234)),
+						},
 					},
 				},
 			},
@@ -565,11 +843,13 @@ func TestShouldRenderPrimaryBooleanComparisonExpression(t *testing.T) {
 	sut := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:       &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator:     Operator(restapi.EqualsOperator),
-						BooleanValue: utils.BoolPtr(true),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:       &EntitySpec{Identifier: keyEntityName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator:     Operator(restapi.EqualsOperator),
+							BooleanValue: utils.BoolPtr(true),
+						},
 					},
 				},
 			},
@@ -585,11 +865,13 @@ func TestShouldRenderPrimaryTagComparisonExpression(t *testing.T) {
 	sut := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					Comparison: &ComparisonExpression{
-						Entity:      &EntitySpec{Identifier: keyEntityName, TagKey: utils.StringPtr("key"), Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator:    Operator(restapi.EqualsOperator),
-						StringValue: utils.StringPtr("value"),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName, TagKey: utils.StringPtr("key"), Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("value"),
+						},
 					},
 				},
 			},
@@ -607,10 +889,12 @@ func TestShouldRenderUnaryOperationExpression(t *testing.T) {
 	sut := &FilterExpression{
 		Expression: &LogicalOrExpression{
 			Left: &LogicalAndExpression{
-				Left: &PrimaryExpression{
-					UnaryOperation: &UnaryOperationExpression{
-						Entity:   &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
-						Operator: Operator(restapi.IsEmptyOperator),
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: "foo", Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: Operator(restapi.IsEmptyOperator),
+						},
 					},
 				},
 			},

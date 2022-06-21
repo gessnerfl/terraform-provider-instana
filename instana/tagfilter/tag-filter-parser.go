@@ -135,7 +135,7 @@ func (e *LogicalOrExpression) Render() string {
 
 //LogicalAndExpression representation of a logical AND, or as a wrapper for a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalAndExpression struct {
-	Left     *PrimaryExpression    `parser:"  @@"`
+	Left     *BracketExpression    `parser:"  @@"`
 	Operator *Operator             `parser:"( @\"AND\""`
 	Right    *LogicalAndExpression `parser:"  @@ )?"`
 }
@@ -146,6 +146,20 @@ func (e *LogicalAndExpression) Render() string {
 		return fmt.Sprintf("%s AND %s", e.Left.Render(), e.Right.Render())
 	}
 	return e.Left.Render()
+}
+
+//BracketExpression representation of a bracket expression
+type BracketExpression struct {
+	Bracket *LogicalOrExpression `parser:"\"(\" @@ \")\""`
+	Primary *PrimaryExpression   `parser:"| @@"`
+}
+
+//Render implementation of ExpressionRenderer.Render
+func (e *BracketExpression) Render() string {
+	if e.Bracket != nil {
+		return "( " + e.Bracket.Render() + " )"
+	}
+	return e.Primary.Render()
 }
 
 //PrimaryExpression wrapper for either a comparison or a unary expression
@@ -197,6 +211,7 @@ var (
 		`|(?P<Keyword>(?i)OR|AND|TRUE|FALSE|IS_EMPTY|NOT_EMPTY|IS_BLANK|NOT_BLANK|EQUALS|NOT_EQUAL|CONTAINS|NOT_CONTAIN|STARTS_WITH|ENDS_WITH|NOT_STARTS_WITH|NOT_ENDS_WITH|GREATER_OR_EQUAL_THAN|LESS_OR_EQUAL_THAN|LESS_THAN|GREATER_THAN)` +
 		`|(?P<EntityOrigin>(?i)src|dest|na)` +
 		`|(?P<EntityOriginOperator>(?i)@)` +
+		`|(?P<Bracket>[\(\)])` +
 		`|(?P<TagKeySeparator>(?i):)` +
 		`|(?P<Ident>[a-zA-Z_][\.a-zA-Z0-9_\-/]*)` +
 		`|(?P<Number>[-+]?\d+)` +
@@ -214,11 +229,20 @@ var (
 //Normalize parses the input and returns the normalized representation of the input string
 func Normalize(input string) (string, error) {
 	parser := NewParser()
-	expr, err := parser.Parse(input)
+	mapper := NewMapper()
+
+	parsed, err := parser.Parse(input)
 	if err != nil {
 		return input, err
 	}
-	return expr.Render(), nil
+
+	apiModel := mapper.ToAPIModel(parsed)
+	mapped, err := mapper.FromAPIModel(apiModel)
+	if err != nil {
+		return input, err
+	}
+
+	return mapped.Render(), nil
 }
 
 //NewParser creates a new instance of a Parser
