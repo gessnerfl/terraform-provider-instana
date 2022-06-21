@@ -88,7 +88,8 @@ The **tag_filter** is defined by the following eBNF:
 ```plain
 tag_filter                := logical_or
 logical_or                := logical_and OR logical_or | logical_and
-logical_and               := primary_expression AND logical_and | primary_expression
+logical_and               := primary_expression AND logical_and | bracket_expression
+bracket_expression        := ( logical_or ) | primary_expression
 primary_expression        := comparison | unary_operator_expression
 comparison                := identifier comparison_operator value | identifier@entity_origin comparison_operator value | identifier:tag_key comparison_operator value | identifier:tag_key@entity_origin comparison_operator value
 comparison_operator       := EQUALS | NOT_EQUAL | CONTAINS | NOT_CONTAIN | STARTS_WITH | ENDS_WITH | NOT_STARTS_WITH | NOT_ENDS_WITH | GREATER_OR_EQUAL_THAN | LESS_OR_EQUAL_THAN | LESS_THAN | GREATER_THAN

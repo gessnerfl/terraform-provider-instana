@@ -14,10 +14,10 @@ func (m *tagFilterMapper) FromAPIModel(input restapi.TagFilterExpressionElement)
 		return nil, err
 	}
 	if expr.or != nil {
-		return &FilterExpression{Expression: expr.or}, nil
+		return &FilterExpression{Expression: &LogicalOrExpression{Left: &LogicalAndExpression{Left: expr.or}}}, nil
 	}
 	if expr.and != nil {
-		return &FilterExpression{Expression: &LogicalOrExpression{Left: expr.and}}, nil
+		return &FilterExpression{Expression: &LogicalOrExpression{Left: &LogicalAndExpression{Left: expr.and}}}, nil
 	}
 	return &FilterExpression{
 		Expression: &LogicalOrExpression{
@@ -93,21 +93,21 @@ func (m *tagFilterMapper) mapLogicalOr(elements []*expressionHandle) (*expressio
 		}
 	}
 
-	return &expressionHandle{or: expression}, nil
+	return &expressionHandle{or: &BracketExpression{Bracket: expression}}, nil
 }
 
 func (m *tagFilterMapper) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAndExpression {
 	if left.and != nil {
-		return left.and
+		return &LogicalAndExpression{Left: left.and}
 	}
 	return &LogicalAndExpression{Left: &BracketExpression{Primary: left.primary}}
 }
 
 func (m *tagFilterMapper) mapRightOfLogicalOr(right *expressionHandle) *LogicalOrExpression {
 	if right.or != nil {
-		return right.or
+		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: right.or}}
 	} else if right.and != nil {
-		return &LogicalOrExpression{Left: right.and}
+		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: right.and}}
 	} else {
 		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: &BracketExpression{Primary: right.primary}}}
 	}
@@ -145,16 +145,14 @@ func (m *tagFilterMapper) mapLogicalAndFromAPIModel(elements []*expressionHandle
 			}
 		}
 	}
-	return &expressionHandle{and: expression}, nil
+	return &expressionHandle{and: &BracketExpression{Bracket: &LogicalOrExpression{Left: expression}}}, nil
 }
 
 func (m *tagFilterMapper) mapRightOfLogicalAnd(right *expressionHandle) *LogicalAndExpression {
 	if right.and != nil {
-		return right.and
+		return &LogicalAndExpression{Left: right.and}
 	}
-	return &LogicalAndExpression{
-		Left: &BracketExpression{Primary: right.primary},
-	}
+	return &LogicalAndExpression{Left: &BracketExpression{Primary: right.primary}}
 }
 
 func (m *tagFilterMapper) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryExpression, error) {
@@ -190,7 +188,7 @@ func (m *tagFilterMapper) mapStringOrTagValue(tagFilter *restapi.TagFilter) *str
 }
 
 type expressionHandle struct {
-	or      *LogicalOrExpression
-	and     *LogicalAndExpression
+	or      *BracketExpression
+	and     *BracketExpression
 	primary *PrimaryExpression
 }
