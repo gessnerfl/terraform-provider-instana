@@ -157,7 +157,7 @@ type BracketExpression struct {
 //Render implementation of ExpressionRenderer.Render
 func (e *BracketExpression) Render() string {
 	if e.Bracket != nil {
-		return "( " + e.Bracket.Render() + " )"
+		return "(" + e.Bracket.Render() + ")"
 	}
 	return e.Primary.Render()
 }
