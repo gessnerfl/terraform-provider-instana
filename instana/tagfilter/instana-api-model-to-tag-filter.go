@@ -56,7 +56,7 @@ func (m *tagFilterMapper) mapExpression(operator *restapi.TagFilterExpression) (
 	}
 
 	if operator.LogicalOperator == restapi.LogicalAnd {
-		return m.mapLogicalAndFromAPIModel(elements)
+		return m.mapLogicalAnd(elements)
 	}
 	if operator.LogicalOperator == restapi.LogicalOr {
 		return m.mapLogicalOr(elements)
@@ -97,6 +97,9 @@ func (m *tagFilterMapper) mapLogicalOr(elements []*expressionHandle) (*expressio
 }
 
 func (m *tagFilterMapper) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAndExpression {
+	if left.or != nil {
+		return &LogicalAndExpression{Left: left.or}
+	}
 	if left.and != nil {
 		return &LogicalAndExpression{Left: left.and}
 	}
@@ -106,22 +109,17 @@ func (m *tagFilterMapper) mapLeftOfLogicalOr(left *expressionHandle) *LogicalAnd
 func (m *tagFilterMapper) mapRightOfLogicalOr(right *expressionHandle) *LogicalOrExpression {
 	if right.or != nil {
 		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: right.or}}
-	} else if right.and != nil {
-		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: right.and}}
-	} else {
-		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: &BracketExpression{Primary: right.primary}}}
 	}
+	if right.and != nil {
+		return &LogicalOrExpression{Left: &LogicalAndExpression{Left: right.and}}
+	}
+	return &LogicalOrExpression{Left: &LogicalAndExpression{Left: &BracketExpression{Primary: right.primary}}}
 }
 
-func (m *tagFilterMapper) mapLogicalAndFromAPIModel(elements []*expressionHandle) (*expressionHandle, error) {
+func (m *tagFilterMapper) mapLogicalAnd(elements []*expressionHandle) (*expressionHandle, error) {
 	total := len(elements)
 	if total < 2 {
 		return nil, fmt.Errorf("at least two elements are expected for logical and")
-	}
-	for _, e := range elements {
-		if e.or != nil {
-			return nil, fmt.Errorf("invalid logical and expression: logical or is not allowed")
-		}
 	}
 	if elements[0].and != nil {
 		return nil, fmt.Errorf("invalid logical and expression: logical and is not allowed for first element")
@@ -133,13 +131,13 @@ func (m *tagFilterMapper) mapLogicalAndFromAPIModel(elements []*expressionHandle
 	for i := total - 2; i >= 0; i-- {
 		if expression == nil {
 			expression = &LogicalAndExpression{
-				Left:     &BracketExpression{Primary: elements[i].primary},
+				Left:     m.mapLeftOfLogicalAnd(elements[i]),
 				Operator: &operator,
 				Right:    m.mapRightOfLogicalAnd(elements[i+1]),
 			}
 		} else {
 			expression = &LogicalAndExpression{
-				Left:     &BracketExpression{Primary: elements[i].primary},
+				Left:     m.mapLeftOfLogicalAnd(elements[i]),
 				Operator: &operator,
 				Right:    expression,
 			}
@@ -148,7 +146,20 @@ func (m *tagFilterMapper) mapLogicalAndFromAPIModel(elements []*expressionHandle
 	return &expressionHandle{and: &BracketExpression{Bracket: &LogicalOrExpression{Left: expression}}}, nil
 }
 
+func (m *tagFilterMapper) mapLeftOfLogicalAnd(left *expressionHandle) *BracketExpression {
+	if left.or != nil {
+		return left.or
+	}
+	if left.and != nil {
+		return left.and
+	}
+	return &BracketExpression{Primary: left.primary}
+}
+
 func (m *tagFilterMapper) mapRightOfLogicalAnd(right *expressionHandle) *LogicalAndExpression {
+	if right.or != nil {
+		return &LogicalAndExpression{Left: right.or}
+	}
 	if right.and != nil {
 		return &LogicalAndExpression{Left: right.and}
 	}

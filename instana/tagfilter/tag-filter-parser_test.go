@@ -930,13 +930,67 @@ func TestShouldReturnEntityOriginDestinationAsFallbackValueWhenMatcherExpression
 	require.Equal(t, EntityOriginDestination, SupportedEntityOrigins.ForInstanaAPIEntity("invalid"))
 }
 
-func TestShouldNormalizeExpression(t *testing.T) {
-	input := "entity.name    NOT_EMPTY"
-	expectedResult := "entity.name@dest NOT_EMPTY"
+func TestShouldNormalizeExpressionAndProduceTheSameResultWhenPerformedMultipleTimesOnOutput(t *testing.T) {
+	testSets := []normalizationTestSet{
+		{
+			name:     "BasicComparison",
+			input:    "entity.name    NOT_EMPTY",
+			expected: "entity.name@dest NOT_EMPTY",
+		},
+		{
+			name:     "AndWithBracketedOr",
+			input:    "agent.tag:key EQUALS 'value' AND ( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' )",
+			expected: "( agent.tag:key@dest EQUALS 'value' AND ( entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar' ) )"},
+		{
+			name:     "BracketedOrWithAnd",
+			input:    "( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' ) AND agent.tag:key EQUALS 'value'",
+			expected: "( ( entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar' ) AND agent.tag:key@dest EQUALS 'value' )",
+		},
+		{
+			name:     "OrWithBracketedAnd",
+			input:    "agent.tag:key EQUALS 'value' OR ( entity.name EQUALS 'foo' AND entity.name EQUALS 'bar' )",
+			expected: "( agent.tag:key@dest EQUALS 'value' OR ( entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar' ) )",
+		},
+		{
+			name:     "BracketedAndWithOr",
+			input:    "( entity.name EQUALS 'foo' AND entity.name EQUALS 'bar' ) OR agent.tag:key EQUALS 'value'",
+			expected: "( ( entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar' ) OR agent.tag:key@dest EQUALS 'value' )",
+		},
+		{
+			name:     "AndWithBracketedAnd",
+			input:    "agent.tag:key EQUALS 'value' AND ( entity.name EQUALS 'foo' AND entity.name EQUALS 'bar' )",
+			expected: "( agent.tag:key@dest EQUALS 'value' AND entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar' )",
+		},
+		{
+			name:     "BracketedAndWithAnd",
+			input:    "( entity.name EQUALS 'foo' AND entity.name EQUALS 'bar' ) AND agent.tag:key EQUALS 'value'",
+			expected: "( entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar' AND agent.tag:key@dest EQUALS 'value' )",
+		},
+		{
+			name:     "OrWithBracketedOr",
+			input:    "agent.tag:key EQUALS 'value' OR ( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' )",
+			expected: "( agent.tag:key@dest EQUALS 'value' OR entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar' )",
+		},
+		{
+			name:     "BracketedOrWithOr",
+			input:    "( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' ) OR agent.tag:key EQUALS 'value'",
+			expected: "( entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar' OR agent.tag:key@dest EQUALS 'value' )",
+		},
+	}
 
-	result, err := Normalize(input)
-	require.NoError(t, err)
-	require.Equal(t, expectedResult, result)
+	for _, s := range testSets {
+		input := s.input
+		for i := 0; i < 3; i++ {
+			t.Run(fmt.Sprintf("TestShouldNormalizeExpression%s%d", s.name, i), func(t *testing.T) {
+
+				result, err := Normalize(input)
+				require.NoError(t, err)
+				require.Equal(t, s.expected, result)
+
+				input = result
+			})
+		}
+	}
 }
 
 func TestShouldFailToNormalizeExpressionWhenExpressionIsNotValid(t *testing.T) {
@@ -945,4 +999,10 @@ func TestShouldFailToNormalizeExpressionWhenExpressionIsNotValid(t *testing.T) {
 	result, err := Normalize(input)
 	require.Error(t, err)
 	require.Equal(t, input, result)
+}
+
+type normalizationTestSet struct {
+	name     string
+	input    string
+	expected string
 }
