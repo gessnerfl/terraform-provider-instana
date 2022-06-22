@@ -1,5 +1,18 @@
 # Changelog
 
+## [v1.5.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.5.1) (2022-06-22)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.5.0...v1.5.1)
+
+**Implemented enhancements:**
+
+- Tag filters does not support bracketing [\#131](https://github.com/gessnerfl/terraform-provider-instana/issues/131)
+
+**Merged pull requests:**
+
+- \#131: Fix mapping of nested bracketed expressions from instana model … [\#133](https://github.com/gessnerfl/terraform-provider-instana/pull/133) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/131 bracketing in tagfilters [\#132](https://github.com/gessnerfl/terraform-provider-instana/pull/132) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v1.5.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.5.0) (2022-06-01)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.4.0...v1.5.0)
