@@ -1,2 +1,14 @@
 output:
   format: github-actions,checkstyle:golangci-lint-report.json
+linters:
+  enable:
+    - deadcode
+    - errcheck
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - varcheck
