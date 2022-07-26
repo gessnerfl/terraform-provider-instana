@@ -17,10 +17,11 @@ const falseAsString = "false"
 
 var providerConfig = `
 provider "instana" {
-	api_token = "test-token"
-	endpoint = "localhost:%d"
+	api_token 			= "test-token"
+	endpoint 			= "localhost:%d"
 	default_name_prefix = "prefix"
 	default_name_suffix = "suffix"
+    tls_skip_verify     = true
 }
 `
 
@@ -34,7 +35,6 @@ func appendProviderConfig(resourceConfig string, serverPort int) string {
 
 func createMockHttpServerForResource(resourcePath string, responseTemplate string, templateVars ...interface{}) testutils.TestHTTPServer {
 	pathTemplate := resourcePath + "/{id}"
-	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	responseHandler := func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

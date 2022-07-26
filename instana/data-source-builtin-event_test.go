@@ -30,7 +30,6 @@ data "instana_builtin_event_spec" "test" {
 `
 
 func TestDatasourceBuiltInEventsEndToEnd(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodGet, restapi.BuiltinEventSpecificationResourcePath, func(w http.ResponseWriter, r *http.Request) {
 		wd, err := os.Getwd()

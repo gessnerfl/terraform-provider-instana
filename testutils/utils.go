@@ -1,19 +1,11 @@
 package testutils
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 )
-
-//DeactivateTLSServerCertificateVerification deactivates the server certificate validation for the
-//default http client
-func DeactivateTLSServerCertificateVerification() {
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-}
 
 //GetRootFolder determines the root folder of the project
 func GetRootFolder() (string, error) {

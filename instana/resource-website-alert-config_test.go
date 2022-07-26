@@ -143,8 +143,6 @@ func (test *websiteAlertConfigTest) run(t *testing.T) {
 func (test *websiteAlertConfigTest) createIntegrationTest() func(t *testing.T) {
 	return func(t *testing.T) {
 		id := RandomID()
-		testutils.DeactivateTLSServerCertificateVerification()
-
 		resourceRestAPIPath := restapi.WebsiteAlertConfigResourcePath
 		resourceInstanceRestAPIPath := resourceRestAPIPath + "/{internal-id}"
 

@@ -161,7 +161,6 @@ func (test *customDashboardResourceTest) createIntegrationTest() func(t *testing
 
 		id := RandomID()
 		resourceInstanceRestAPIPath := restapi.CustomDashboardsResourcePath + "/{internal-id}"
-		testutils.DeactivateTLSServerCertificateVerification()
 		httpServer := testutils.NewTestHTTPServer()
 		httpServer.AddRoute(http.MethodPost, restapi.CustomDashboardsResourcePath, func(w http.ResponseWriter, r *http.Request) {
 			dashboard := &restapi.CustomDashboard{}

@@ -93,7 +93,6 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	id := RandomID()
 	accessGrantingToken := RandomID()
 	internalID := RandomID()
-	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPost, restapi.APITokensResourcePath, func(w http.ResponseWriter, r *http.Request) {
 		apiToken := &restapi.APIToken{}

@@ -1,18 +1,18 @@
 package testutils_test
 
 import (
+	"crypto/tls"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/testutils"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
 
-	testutils "github.com/gessnerfl/terraform-provider-instana/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
 	path := "/test"
 	server := testutils.NewTestHTTPServer()
 	server.AddRoute(http.MethodPost, path, testutils.EchoHandlerFunc)
@@ -22,7 +22,10 @@ func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing
 	url := fmt.Sprintf("https://localhost:%d%s", server.GetPort(), path)
 	testString := "test string"
 
-	resp, err := http.Post(url, "test/plain", strings.NewReader(testString))
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	defer tr.CloseIdleConnections()
+	client := &http.Client{Transport: tr}
+	resp, err := client.Post(url, "test/plain", strings.NewReader(testString))
 
 	assert.Nil(t, err)
 	assert.Equal(t, 200, resp.StatusCode)

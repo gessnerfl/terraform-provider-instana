@@ -224,7 +224,6 @@ type rbacGroupTestStepsFactory func(httpServerPort int, resourceID string) []res
 
 func executeRBACGroupIntegrationTest(t *testing.T, serverResponseTemplate string, testStepsFactory rbacGroupTestStepsFactory) {
 	id := RandomID()
-	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(http.MethodPost, restapi.GroupsResourcePath, func(w http.ResponseWriter, r *http.Request) {
 		group := &restapi.Group{}
