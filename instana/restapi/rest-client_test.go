@@ -257,7 +257,6 @@ func (tdo testDataObject) Validate() error {
 }
 
 func TestShouldReturnNothingForSuccessfulDeleteRequest(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodDelete, testPathWithID)
 	defer httpServer.Close()
 
@@ -299,7 +298,6 @@ func setupAndStartHttpServerWithQueryParamerterCheck(httpMethod string, fullPath
 }
 
 func doSetupAndStartHttpServer(httpMethod string, fullPath string, statusCode int, additionalChecks func(r *http.Request) error) testutils.TestHTTPServer {
-	testutils.DeactivateTLSServerCertificateVerification()
 	httpServer := testutils.NewTestHTTPServer()
 	httpServer.AddRoute(httpMethod, fullPath, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
@@ -318,7 +316,7 @@ func doSetupAndStartHttpServer(httpMethod string, fullPath string, statusCode in
 }
 
 func createSut(httpServer testutils.TestHTTPServer) RestClient {
-	return NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	return NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()), true)
 }
 
 func verifyNotFoundResponse(data []byte, err error, t *testing.T) {

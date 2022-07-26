@@ -29,8 +29,6 @@ const (
 )
 
 func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
-	testutils.DeactivateTLSServerCertificateVerification()
-
 	server := newWebsiteMonitoringConfigTestServer()
 	defer server.Close()
 	server.Start()

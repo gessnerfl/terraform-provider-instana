@@ -19,6 +19,9 @@ const SchemaFieldDefaultNamePrefix = "default_name_prefix"
 //SchemaFieldDefaultNameSuffix the default prefix which should be added to all resource names/labels
 const SchemaFieldDefaultNameSuffix = "default_name_suffix"
 
+//SchemaFieldTlsSkipVerify flag to deactivate skip tls verification
+const SchemaFieldTlsSkipVerify = "tls_skip_verify"
+
 //ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
@@ -60,6 +63,12 @@ func providerSchema() map[string]*schema.Schema {
 			Default:     "(TF managed)",
 			Description: "The default suffix which should be added to all resource names/labels - default '(TF managed)'",
 		},
+		SchemaFieldTlsSkipVerify: {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "If set to true, TLS verification will be skipped when calling Instana API",
+		},
 	}
 }
 
@@ -99,7 +108,8 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	endpoint := strings.TrimSpace(d.Get(SchemaFieldEndpoint).(string))
 	defaultNamePrefix := d.Get(SchemaFieldDefaultNamePrefix).(string)
 	defaultNameSuffix := d.Get(SchemaFieldDefaultNameSuffix).(string)
-	instanaAPI := restapi.NewInstanaAPI(apiToken, endpoint)
+	skipTlsVerify := d.Get(SchemaFieldTlsSkipVerify).(bool)
+	instanaAPI := restapi.NewInstanaAPI(apiToken, endpoint, skipTlsVerify)
 	formatter := utils.NewResourceNameFormatter(defaultNamePrefix, defaultNameSuffix)
 	return &ProviderMeta{
 		InstanaAPI:            instanaAPI,

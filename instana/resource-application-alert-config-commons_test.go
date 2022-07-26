@@ -196,7 +196,6 @@ func (f *anyApplicationConfigTest) run(t *testing.T) {
 func (f *anyApplicationConfigTest) createIntegrationTest() func(t *testing.T) {
 	return func(t *testing.T) {
 		id := RandomID()
-		testutils.DeactivateTLSServerCertificateVerification()
 		httpServer := testutils.NewTestHTTPServer()
 		httpServer.AddRoute(http.MethodPost, f.resourceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
 			config := &restapi.ApplicationAlertConfig{}

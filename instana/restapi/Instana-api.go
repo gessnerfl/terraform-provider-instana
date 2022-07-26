@@ -35,8 +35,8 @@ type InstanaAPI interface {
 }
 
 //NewInstanaAPI creates a new instance of the instana API
-func NewInstanaAPI(apiToken string, endpoint string) InstanaAPI {
-	client := NewClient(apiToken, endpoint)
+func NewInstanaAPI(apiToken string, endpoint string, skipTlsVerification bool) InstanaAPI {
+	client := NewClient(apiToken, endpoint, skipTlsVerification)
 	return &baseInstanaAPI{client: client}
 }
 
