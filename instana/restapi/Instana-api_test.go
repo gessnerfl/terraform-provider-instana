@@ -8,7 +8,7 @@ import (
 )
 
 func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
-	api := NewInstanaAPI("api-token", "endpoint")
+	api := NewInstanaAPI("api-token", "endpoint", false)
 
 	t.Run("Should return CustomEventSpecification instance", func(t *testing.T) {
 		resource := api.CustomEventSpecifications()

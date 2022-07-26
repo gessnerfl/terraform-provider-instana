@@ -51,6 +51,8 @@ provider "instana" {
   endpoint = "<tenant>-<org>.instana.io"
   default_name_prefix = ""
   default_name_suffix = "(TF managed)"
+  default_name_suffix = "(TF managed)"
+  tls_skip_verify     = flase
 }
 ```
 
@@ -67,6 +69,7 @@ then the permission 'Access role configuration' must be activated
 * `default_name_suffix` - `Optional` - Default value " (TF managed)" - string will be appended to the resource UI name or 
 label by default (not supported by all resources). For existing resources the string will only be appended when the 
 name/label is changed.
+* `tls_skip_verify` - `Òptional` - Default `false` - If set to true, TLS verification will be skipped when calling Instana API
 
 ## Import support
 

@@ -2,6 +2,7 @@ package restapi
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -12,7 +13,7 @@ import (
 )
 
 //ErrEntityNotFound error message which is returned when the entity cannot be found at the server
-var ErrEntityNotFound = errors.New("Failed to get resource from Instana API. 404 - Resource not found")
+var ErrEntityNotFound = errors.New("failed to get resource from Instana API. 404 - Resource not found")
 
 const contentTypeHeader = "Content-Type"
 const encodingApplicationJSON = "application/json; charset=utf-8"
@@ -43,8 +44,11 @@ type apiResponse struct {
 }
 
 //NewClient creates a new instance of the Instana REST API client
-func NewClient(apiToken string, host string) RestClient {
+func NewClient(apiToken string, host string, skipTlsVerification bool) RestClient {
 	restyClient := resty.New()
+	if skipTlsVerification {
+		restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	}
 
 	throttleRate := time.Second / 5 //5 write requests per second
 	throttledRequests := make(chan *apiRequest, 1000)

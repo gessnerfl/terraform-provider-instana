@@ -318,7 +318,7 @@ func doSetupAndStartHttpServer(httpMethod string, fullPath string, statusCode in
 }
 
 func createSut(httpServer testutils.TestHTTPServer) RestClient {
-	return NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()))
+	return NewClient("api-token", fmt.Sprintf("localhost:%d", httpServer.GetPort()), false)
 }
 
 func verifyNotFoundResponse(data []byte, err error, t *testing.T) {
