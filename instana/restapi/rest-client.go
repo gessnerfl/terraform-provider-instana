@@ -47,7 +47,7 @@ type apiResponse struct {
 func NewClient(apiToken string, host string, skipTlsVerification bool) RestClient {
 	restyClient := resty.New()
 	if skipTlsVerification {
-		restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		restyClient.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}) //nolint:gosec G402
 	}
 
 	throttleRate := time.Second / 5 //5 write requests per second
