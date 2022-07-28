@@ -22,7 +22,7 @@ func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing
 	url := fmt.Sprintf("https://localhost:%d%s", server.GetPort(), path)
 	testString := "test string"
 
-	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}} //nolint:gosec G402
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}} //nolint:gosec
 	defer tr.CloseIdleConnections()
 	client := &http.Client{Transport: tr}
 	resp, err := client.Post(url, "test/plain", strings.NewReader(testString))
