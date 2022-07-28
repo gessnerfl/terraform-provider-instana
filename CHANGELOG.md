@@ -1,5 +1,20 @@
 # Changelog
 
+## [v1.5.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.5.2) (2022-07-26)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.5.1...v1.5.2)
+
+**Implemented enhancements:**
+
+- allow to skip certificate validation [\#134](https://github.com/gessnerfl/terraform-provider-instana/issues/134)
+- Add gosec to project [\#67](https://github.com/gessnerfl/terraform-provider-instana/issues/67)
+- Maintenance configuration [\#31](https://github.com/gessnerfl/terraform-provider-instana/issues/31)
+
+**Merged pull requests:**
+
+- \#67: activate gosec via golangci-lint [\#136](https://github.com/gessnerfl/terraform-provider-instana/pull/136) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/134 skip tls verify [\#135](https://github.com/gessnerfl/terraform-provider-instana/pull/135) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v1.5.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.5.1) (2022-06-22)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.5.0...v1.5.1)
