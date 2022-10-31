@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaApplicationAlertConfig the name of the terraform-provider-instana resource to manage application alert configs
+// ResourceInstanaApplicationAlertConfig the name of the terraform-provider-instana resource to manage application alert configs
 const ResourceInstanaApplicationAlertConfig = "instana_application_alert_config"
 
-//ResourceInstanaGlobalApplicationAlertConfig the name of the terraform-provider-instana resource to manage global application alert configs
+// ResourceInstanaGlobalApplicationAlertConfig the name of the terraform-provider-instana resource to manage global application alert configs
 const ResourceInstanaGlobalApplicationAlertConfig = "instana_global_application_alert_config"
 
 const (
@@ -538,7 +538,7 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 	},
 }
 
-//NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
+// NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
 func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 	return &applicationAlertConfigResource{
 		metaData: ResourceMetaData{
@@ -550,7 +550,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle {
 	}
 }
 
-//NewGlobalApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for global application alert configs
+// NewGlobalApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for global application alert configs
 func NewGlobalApplicationAlertConfigResourceHandle() ResourceHandle {
 	return &applicationAlertConfigResource{
 		metaData: ResourceMetaData{
@@ -592,7 +592,7 @@ func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, obj
 	}
 	var normalizedTagFilterString *string
 	if config.TagFilterExpression != nil {
-		normalizedTagFilterString, err = r.mapTagFilterExpressionToSchema(config.TagFilterExpression.(restapi.TagFilterExpressionElement))
+		normalizedTagFilterString, err = tagfilter.MapTagFilterToNormalizedString(config.TagFilterExpression.(restapi.TagFilterExpressionElement))
 		if err != nil {
 			return err
 		}
@@ -727,16 +727,6 @@ func (r *applicationAlertConfigResource) mapAlertTypeToSchema(alertType string) 
 		return ApplicationAlertConfigFieldRuleStatusCode
 	}
 	return alertType
-}
-
-func (r *applicationAlertConfigResource) mapTagFilterExpressionToSchema(input restapi.TagFilterExpressionElement) (*string, error) {
-	mapper := tagfilter.NewMapper()
-	expr, err := mapper.FromAPIModel(input)
-	if err != nil {
-		return nil, err
-	}
-	renderedExpression := expr.Render()
-	return &renderedExpression, nil
 }
 
 func (r *applicationAlertConfigResource) mapTimeThresholdToSchema(config *restapi.ApplicationAlertConfig) []map[string]interface{} {

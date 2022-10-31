@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaWebsiteAlertConfig the name of the terraform-provider-instana resource to manage website alert configs
+// ResourceInstanaWebsiteAlertConfig the name of the terraform-provider-instana resource to manage website alert configs
 const ResourceInstanaWebsiteAlertConfig = "instana_website_alert_config"
 
 const (
@@ -386,7 +386,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 	},
 }
 
-//NewWebsiteAlertConfigResourceHandle creates the resource handle for Website Alert Configs
+// NewWebsiteAlertConfigResourceHandle creates the resource handle for Website Alert Configs
 func NewWebsiteAlertConfigResourceHandle() ResourceHandle {
 	return &websiteAlertConfigResource{
 		metaData: ResourceMetaData{
@@ -427,7 +427,7 @@ func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, obj res
 	}
 	var normalizedTagFilterString *string
 	if config.TagFilterExpression != nil {
-		normalizedTagFilterString, err = r.mapTagFilterExpressionToSchema(config.TagFilterExpression.(restapi.TagFilterExpressionElement))
+		normalizedTagFilterString, err = tagfilter.MapTagFilterToNormalizedString(config.TagFilterExpression.(restapi.TagFilterExpressionElement))
 		if err != nil {
 			return err
 		}
@@ -448,16 +448,6 @@ func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, obj res
 	d.Set(WebsiteAlertConfigFieldWebsiteID, config.WebsiteID)
 	d.SetId(config.ID)
 	return nil
-}
-
-func (r *websiteAlertConfigResource) mapTagFilterExpressionToSchema(input restapi.TagFilterExpressionElement) (*string, error) {
-	mapper := tagfilter.NewMapper()
-	expr, err := mapper.FromAPIModel(input)
-	if err != nil {
-		return nil, err
-	}
-	renderedExpression := expr.Render()
-	return &renderedExpression, nil
 }
 
 func (r *websiteAlertConfigResource) mapCustomPayloadFieldsToSchema(config *restapi.WebsiteAlertConfig) []map[string]string {

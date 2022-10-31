@@ -7,8 +7,11 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//FromAPIModel Implementation of the mapping from the Instana API model to the filter expression model
+// FromAPIModel Implementation of the mapping from the Instana API model to the filter expression model
 func (m *tagFilterMapper) FromAPIModel(input restapi.TagFilterExpressionElement) (*FilterExpression, error) {
+	if m.isEmptyExpression(input) {
+		return nil, nil
+	}
 	expr, err := m.mapExpressionElement(input)
 	if err != nil {
 		return nil, err
@@ -26,6 +29,10 @@ func (m *tagFilterMapper) FromAPIModel(input restapi.TagFilterExpressionElement)
 			},
 		},
 	}, nil
+}
+
+func (m *tagFilterMapper) isEmptyExpression(input restapi.TagFilterExpressionElement) bool {
+	return input.GetType() == restapi.TagFilterExpressionType && len(input.(*restapi.TagFilterExpression).Elements) == 0
 }
 
 func (m *tagFilterMapper) mapExpressionElement(input restapi.TagFilterExpressionElement) (*expressionHandle, error) {

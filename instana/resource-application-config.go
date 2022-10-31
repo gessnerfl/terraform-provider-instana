@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaApplicationConfig the name of the terraform-provider-instana resource to manage application config
+// ResourceInstanaApplicationConfig the name of the terraform-provider-instana resource to manage application config
 const ResourceInstanaApplicationConfig = "instana_application_config"
 
 const (
@@ -132,7 +132,7 @@ var (
 	}
 )
 
-//NewApplicationConfigResourceHandle creates a new instance of the ResourceHandle for application configs
+// NewApplicationConfigResourceHandle creates a new instance of the ResourceHandle for application configs
 func NewApplicationConfigResourceHandle() ResourceHandle {
 	return &applicationConfigResource{
 		metaData: ResourceMetaData{
@@ -195,7 +195,7 @@ func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj rest
 		}
 		d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
 	} else if applicationConfig.TagFilterExpression != nil {
-		normalizedTagFilterString, err := r.mapTagFilterToNormalizedStringRepresentation(applicationConfig.TagFilterExpression.(restapi.TagFilterExpressionElement))
+		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(applicationConfig.TagFilterExpression.(restapi.TagFilterExpressionElement))
 		if err != nil {
 			return err
 		}
@@ -213,16 +213,6 @@ func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj rest
 
 func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepresentation(input restapi.MatchExpression) (*string, error) {
 	mapper := filterexpression.NewMatchExpressionMapper()
-	expr, err := mapper.FromAPIModel(input)
-	if err != nil {
-		return nil, err
-	}
-	renderedExpression := expr.Render()
-	return &renderedExpression, nil
-}
-
-func (r *applicationConfigResource) mapTagFilterToNormalizedStringRepresentation(input restapi.TagFilterExpressionElement) (*string, error) {
-	mapper := tagfilter.NewMapper()
 	expr, err := mapper.FromAPIModel(input)
 	if err != nil {
 		return nil, err
