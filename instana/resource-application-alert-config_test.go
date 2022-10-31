@@ -125,7 +125,11 @@ func TestIssue141(t *testing.T) {
 			config.ID = id
 			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(config)
+			err := json.NewEncoder(w).Encode(config)
+			if err == nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				r.Write(bytes.NewBufferString("Failed to map JSON"))
+			}
 		}
 	})
 	httpServer.AddRoute(http.MethodPost, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
