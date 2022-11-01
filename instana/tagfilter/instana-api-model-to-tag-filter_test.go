@@ -17,6 +17,19 @@ const (
 	tagFilterName     = "name"
 )
 
+func TestShouldMapEmptyTagFilterExpressionFromInstanaAPI(t *testing.T) {
+	for _, operator := range restapi.SupportedLogicalOperatorTypes {
+		t.Run(fmt.Sprintf("TestShouldMapEmpty%sTagFilterExpressionFromInstnaAPI", string(operator)), func(t *testing.T) {
+			expression := &restapi.TagFilterExpression{
+				Type:            restapi.TagFilterExpressionType,
+				LogicalOperator: operator,
+			}
+
+			runTestCaseForMappingFromAPI(expression, nil, t)
+		})
+	}
+}
+
 func TestShouldMapStringTagFilterFromInstanaAPI(t *testing.T) {
 	value := "value"
 	input := restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.EqualsOperator, value)
