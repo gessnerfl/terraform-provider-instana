@@ -1,5 +1,22 @@
 # Changelog
 
+## [v1.5.3](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.5.3) (2022-11-01)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.5.2...v1.5.3)
+
+**Fixed bugs:**
+
+-  Application\_alert\_configuration Resource is duplicated each time terraform code is applied [\#141](https://github.com/gessnerfl/terraform-provider-instana/issues/141)
+
+**Closed issues:**
+
+- Updating deleted event config ID [\#140](https://github.com/gessnerfl/terraform-provider-instana/issues/140)
+- Make id not auto generated so I can pass it to instana\_alerting\_config [\#138](https://github.com/gessnerfl/terraform-provider-instana/issues/138)
+
+**Merged pull requests:**
+
+- \#141: Fix mapping of empty TagFilterExpression [\#142](https://github.com/gessnerfl/terraform-provider-instana/pull/142) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v1.5.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.5.2) (2022-07-26)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.5.1...v1.5.2)
