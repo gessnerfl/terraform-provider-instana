@@ -51,8 +51,7 @@ provider "instana" {
   endpoint = "<tenant>-<org>.instana.io"
   default_name_prefix = ""
   default_name_suffix = "(TF managed)"
-  default_name_suffix = "(TF managed)"
-  tls_skip_verify     = flase
+  tls_skip_verify     = false
 }
 ```
 
