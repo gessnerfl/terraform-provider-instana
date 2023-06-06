@@ -1,34 +1,35 @@
 package instana
 
 import (
+	"strings"
+
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"strings"
 )
 
-//SchemaFieldAPIToken the name of the provider configuration option for the api token
+// SchemaFieldAPIToken the name of the provider configuration option for the api token
 const SchemaFieldAPIToken = "api_token"
 
-//SchemaFieldEndpoint the name of the provider configuration option for the instana endpoint
+// SchemaFieldEndpoint the name of the provider configuration option for the instana endpoint
 const SchemaFieldEndpoint = "endpoint"
 
-//SchemaFieldDefaultNamePrefix the default prefix which should be added to all resource names/labels
+// SchemaFieldDefaultNamePrefix the default prefix which should be added to all resource names/labels
 const SchemaFieldDefaultNamePrefix = "default_name_prefix"
 
-//SchemaFieldDefaultNameSuffix the default prefix which should be added to all resource names/labels
+// SchemaFieldDefaultNameSuffix the default prefix which should be added to all resource names/labels
 const SchemaFieldDefaultNameSuffix = "default_name_suffix"
 
-//SchemaFieldTlsSkipVerify flag to deactivate skip tls verification
+// SchemaFieldTlsSkipVerify flag to deactivate skip tls verification
 const SchemaFieldTlsSkipVerify = "tls_skip_verify"
 
-//ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
+// ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
 	ResourceNameFormatter utils.ResourceNameFormatter
 }
 
-//Provider interface implementation of hashicorp terraform provider
+// Provider interface implementation of hashicorp terraform provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema:         providerSchema(),
@@ -96,6 +97,7 @@ func providerResources() map[string]*schema.Resource {
 	bindResourceHandle(resources, NewWebsiteAlertConfigResourceHandle())
 	bindResourceHandle(resources, NewGroupResourceHandle())
 	bindResourceHandle(resources, NewCustomDashboardResourceHandle())
+	bindResourceHandle(resources, NewSyntheticTestResourceHandle())
 	return resources
 }
 
