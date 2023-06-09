@@ -29,12 +29,12 @@ type SyntheticMonitor struct {
 	TestFrequency    int32                  `json:"testFrequency"`
 }
 
-// GetIDForResourcePath implementation of the interface InstanaDataObject for SyntheticTest
+// GetIDForResourcePath implementation of the interface InstanaDataObject for SyntheticMonitor
 func (s *SyntheticMonitor) GetIDForResourcePath() string {
 	return s.ID
 }
 
-// Validate implementation of the interface InstanaDataObject for SyntheticTest
+// Validate implementation of the interface InstanaDataObject for SyntheticMonitor
 func (s *SyntheticMonitor) Validate() error {
 	if utils.IsBlank(s.ID) {
 		return errors.New("id is missing")

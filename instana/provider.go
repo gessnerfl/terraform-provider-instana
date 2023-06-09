@@ -122,5 +122,6 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 func providerDataSources() map[string]*schema.Resource {
 	dataSources := make(map[string]*schema.Resource)
 	dataSources[DataSourceBuiltinEvent] = NewBuiltinEventDataSource().CreateResource()
+	dataSources[DataSourceSyntheticLocation] = NewSyntheticLocationDataSource().CreateResource()
 	return dataSources
 }

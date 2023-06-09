@@ -19,6 +19,8 @@ const (
 	SyntheticSettingsBasePath = InstanaAPIBasePath + "/synthetics" + settingsPathElement
 	//SyntheticMonitoringTestPath path to synthetic monitoring tests
 	SyntheticMonitorResourcePath = SyntheticSettingsBasePath + "/tests"
+	//SyntheticMonitoringTestPath path to synthetic monitoring tests
+	SyntheticLocationResourcePath = SyntheticSettingsBasePath + "/locations"
 )
 
 // InstanaAPI is the interface to all resources of the Instana Rest API
@@ -37,6 +39,7 @@ type InstanaAPI interface {
 	Groups() RestResource
 	CustomDashboards() RestResource
 	SyntheticMonitorConfig() RestResource
+	SyntheticLocationConfig() ReadOnlyRestResource
 }
 
 // NewInstanaAPI creates a new instance of the instana API
@@ -111,4 +114,9 @@ func (api *baseInstanaAPI) CustomDashboards() RestResource {
 
 func (api *baseInstanaAPI) SyntheticMonitorConfig() RestResource {
 	return NewSyntheticMonitorRestResource(NewDefaultJSONUnmarshaller(&SyntheticMonitor{}), api.client)
+}
+
+// BuiltinEventSpecifications implementation of InstanaAPI interface
+func (api *baseInstanaAPI) SyntheticLocationConfig() ReadOnlyRestResource {
+	return NewReadOnlyRestResource(SyntheticLocationResourcePath, NewDefaultJSONUnmarshaller(&SyntheticLocation{}), NewDefaultJSONUnmarshaller(&[]SyntheticLocation{}), api.client)
 }
