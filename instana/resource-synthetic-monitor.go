@@ -8,75 +8,75 @@ import (
 )
 
 // ResourceInstanaSyntheticTest the name of the terraform-provider-instana resource to manage synthetic tests
-const ResourceInstanaSyntheticTest = "instana_synthetic_test"
+const ResourceInstanaSyntheticMonitor = "instana_synthetic_monitor"
 
 const (
-	//SyntheticTestFieldLabel constant value for the schema field label
-	SyntheticTestFieldLabel = "label"
-	//SyntheticTestFieldDescription constant value for the computed schema field description
-	SyntheticTestFieldDescription = "description"
-	//SyntheticTestFieldActive constant value for the schema field active
-	SyntheticTestFieldActive = "active"
-	//SyntheticTestFieldApplicationID constant value for the schema field application_id
-	SyntheticTestFieldApplicationID = "application_id"
-	//SyntheticTestFieldConfiguration constant value for the schema field configuration
-	SyntheticTestFieldConfiguration = "configuration"
-	//SyntheticTestFieldCustomProperties constant value for the schema field custom_properties
-	SyntheticTestFieldCustomProperties = "custom_properties"
-	//SyntheticTestFieldLocations constant value for the schema field locations
-	SyntheticTestFieldLocations = "locations"
-	//SyntheticTestFieldPlaybackMode constant value for the schema field playback_mode
-	SyntheticTestFieldPlaybackMode = "playback_mode"
-	//SyntheticTestFieldTestFrequency constant value for the schema field test_frequency
-	SyntheticTestFieldTestFrequency = "test_frequency"
-	//SyntheticTestFieldConfigMarkSyntheticCall constant value for the schema field configuration.mark_synthetic_call
-	SyntheticTestFieldConfigMarkSyntheticCall = "mark_synthetic_call"
-	//SyntheticTestFieldConfigRetries constant value for the schema field configuration.retries
-	SyntheticTestFieldConfigRetries = "retries"
-	//SyntheticTestFieldConfigRetryInterval constant value for the schema field configuration.retry_interval
-	SyntheticTestFieldConfigRetryInterval = "retry_interval"
-	//SyntheticTestFieldConfigSyntheticType constant value for the schema field configuration.synthetic_type
-	SyntheticTestFieldConfigSyntheticType = "synthetic_type"
-	//SyntheticTestFieldConfigTimeout constant value for the schema field configuration.timeout
-	SyntheticTestFieldConfigTimeout = "timeout"
-	//SyntheticTestFieldConfigUrl constant value for the schema field configuration.url
-	SyntheticTestFieldConfigUrl = "url"
-	//SyntheticTestFieldConfigOperation constant value for the schema field configuration.operation
-	SyntheticTestFieldConfigOperation = "operation"
-	//SyntheticTestFieldConfigScript constant value for the schema field configuration.script
-	SyntheticTestFieldConfigScript = "script"
+	//SyntheticMonitorFieldLabel constant value for the schema field label
+	SyntheticMonitorFieldLabel = "label"
+	//SyntheticMonitorFieldDescription constant value for the computed schema field description
+	SyntheticMonitorFieldDescription = "description"
+	//SyntheticMonitorFieldActive constant value for the schema field active
+	SyntheticMonitorFieldActive = "active"
+	//SyntheticMonitorFieldApplicationID constant value for the schema field application_id
+	SyntheticMonitorFieldApplicationID = "application_id"
+	//SyntheticMonitorFieldConfiguration constant value for the schema field configuration
+	SyntheticMonitorFieldConfiguration = "configuration"
+	//SyntheticMonitorFieldCustomProperties constant value for the schema field custom_properties
+	SyntheticMonitorFieldCustomProperties = "custom_properties"
+	//SyntheticMonitorFieldLocations constant value for the schema field locations
+	SyntheticMonitorFieldLocations = "locations"
+	//SyntheticMonitorFieldPlaybackMode constant value for the schema field playback_mode
+	SyntheticMonitorFieldPlaybackMode = "playback_mode"
+	//SyntheticMonitorFieldTestFrequency constant value for the schema field test_frequency
+	SyntheticMonitorFieldTestFrequency = "test_frequency"
+	//SyntheticMonitorFieldConfigMarkSyntheticCall constant value for the schema field configuration.mark_synthetic_call
+	SyntheticMonitorFieldConfigMarkSyntheticCall = "mark_synthetic_call"
+	//SyntheticMonitorFieldConfigRetries constant value for the schema field configuration.retries
+	SyntheticMonitorFieldConfigRetries = "retries"
+	//SyntheticMonitorFieldConfigRetryInterval constant value for the schema field configuration.retry_interval
+	SyntheticMonitorFieldConfigRetryInterval = "retry_interval"
+	//SyntheticMonitorFieldConfigSyntheticType constant value for the schema field configuration.synthetic_type
+	SyntheticMonitorFieldConfigSyntheticType = "synthetic_type"
+	//SyntheticMonitorFieldConfigTimeout constant value for the schema field configuration.timeout
+	SyntheticMonitorFieldConfigTimeout = "timeout"
+	//SyntheticMonitorFieldConfigUrl constant value for the schema field configuration.url
+	SyntheticMonitorFieldConfigUrl = "url"
+	//SyntheticMonitorFieldConfigOperation constant value for the schema field configuration.operation
+	SyntheticMonitorFieldConfigOperation = "operation"
+	//SyntheticMonitorFieldConfigScript constant value for the schema field configuration.script
+	SyntheticMonitorFieldConfigScript = "script"
 )
 
 // NewSyntheticTestResourceHandle creates the resource handle Synthetic Tests
 func NewSyntheticTestResourceHandle() ResourceHandle {
-	return &syntheticTestResource{
+	return &syntheticMonitorResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaSyntheticTest,
+			ResourceName: ResourceInstanaSyntheticMonitor,
 			Schema: map[string]*schema.Schema{
-				SyntheticTestFieldLabel: {
+				SyntheticMonitorFieldLabel: {
 					Type:         schema.TypeString,
 					Required:     true,
 					Description:  "Friendly name of the Synthetic test",
 					ValidateFunc: validation.StringLenBetween(0, 512),
 				},
-				SyntheticTestFieldDescription: {
+				SyntheticMonitorFieldDescription: {
 					Type:         schema.TypeString,
 					Optional:     true,
 					Description:  "The description of the Synthetic test",
 					ValidateFunc: validation.StringLenBetween(0, 512),
 				},
-				SyntheticTestFieldActive: {
+				SyntheticMonitorFieldActive: {
 					Type:        schema.TypeBool,
 					Optional:    true,
 					Default:     true,
 					Description: "Indicates if the Synthetic test is started or not",
 				},
-				SyntheticTestFieldApplicationID: {
+				SyntheticMonitorFieldApplicationID: {
 					Type:        schema.TypeString,
 					Computed:    true,
 					Description: "Unique identifier of the Application Perspective",
 				},
-				SyntheticTestFieldConfiguration: {
+				SyntheticMonitorFieldConfiguration: {
 					Type:        schema.TypeList,
 					MinItems:    1,
 					MaxItems:    1,
@@ -84,48 +84,48 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 					Description: "The configuration of the synthetic alert",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							SyntheticTestFieldConfigMarkSyntheticCall: {
+							SyntheticMonitorFieldConfigMarkSyntheticCall: {
 								Type:        schema.TypeBool,
 								Required:    true,
 								Description: "Flag used to control if HTTP calls will be marked as synthetic calls",
 							},
-							SyntheticTestFieldConfigRetries: {
+							SyntheticMonitorFieldConfigRetries: {
 								Type:         schema.TypeInt,
 								Optional:     true,
 								Description:  "Indicates how many attempts will be allowed to get a successful connection",
 								ValidateFunc: validation.IntBetween(0, 2),
 							},
-							SyntheticTestFieldConfigRetryInterval: {
+							SyntheticMonitorFieldConfigRetryInterval: {
 								Type:         schema.TypeInt,
 								Optional:     true,
 								Description:  "The time interval between retries in seconds",
 								ValidateFunc: validation.IntBetween(1, 10),
 							},
-							SyntheticTestFieldConfigSyntheticType: {
+							SyntheticMonitorFieldConfigSyntheticType: {
 								Type:         schema.TypeString,
 								Required:     true,
 								Description:  "The type of the Synthetic test",
 								ValidateFunc: validation.StringInSlice([]string{"HTTPAction", "HTTPScript", "BrowserScript", "WebpageAction", "WebpageScript", "DNSAction"}, true),
 							},
-							SyntheticTestFieldConfigTimeout: {
+							SyntheticMonitorFieldConfigTimeout: {
 								Type:        schema.TypeString,
 								Optional:    true,
 								Description: "The timeout to be used by the PoP playback engines running the test",
 							},
-							SyntheticTestFieldConfigUrl: {
+							SyntheticMonitorFieldConfigUrl: {
 								Type:         schema.TypeString,
 								Optional:     true,
 								Description:  "The URL is being tested",
 								ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 							},
-							SyntheticTestFieldConfigOperation: {
+							SyntheticMonitorFieldConfigOperation: {
 								Type:         schema.TypeString,
 								Optional:     true,
 								Default:      "GET",
 								Description:  "The HTTP operation",
 								ValidateFunc: validation.StringInSlice([]string{"GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "DELETE"}, true),
 							},
-							SyntheticTestFieldConfigScript: {
+							SyntheticMonitorFieldConfigScript: {
 								Type:        schema.TypeString,
 								Optional:    true,
 								Description: " The Javascript content in plain text",
@@ -133,7 +133,7 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 						},
 					},
 				},
-				SyntheticTestFieldCustomProperties: {
+				SyntheticMonitorFieldCustomProperties: {
 					Type:        schema.TypeMap,
 					Optional:    true,
 					Description: "Name/value pairs to provide additional information of the Synthetic test",
@@ -141,7 +141,7 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 						Type: schema.TypeString,
 					},
 				},
-				SyntheticTestFieldLocations: {
+				SyntheticMonitorFieldLocations: {
 					Type:        schema.TypeSet,
 					Required:    true,
 					Description: "Array of the PoP location IDs",
@@ -149,14 +149,14 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 						Type: schema.TypeString,
 					},
 				},
-				SyntheticTestFieldPlaybackMode: {
+				SyntheticMonitorFieldPlaybackMode: {
 					Type:         schema.TypeString,
 					Optional:     true,
 					Default:      "Simultaneous",
 					Description:  "Defines how the Synthetic test should be executed across multiple PoPs",
 					ValidateFunc: validation.StringInSlice([]string{"Simultaneous", "Staggered"}, true),
 				},
-				SyntheticTestFieldTestFrequency: {
+				SyntheticMonitorFieldTestFrequency: {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Default:      15,
@@ -169,74 +169,74 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 	}
 }
 
-type syntheticTestResource struct {
+type syntheticMonitorResource struct {
 	metaData ResourceMetaData
 }
 
-func (r *syntheticTestResource) MetaData() *ResourceMetaData {
+func (r *syntheticMonitorResource) MetaData() *ResourceMetaData {
 	return &r.metaData
 }
 
-func (r *syntheticTestResource) StateUpgraders() []schema.StateUpgrader {
+func (r *syntheticMonitorResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *syntheticTestResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *syntheticMonitorResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
 	return api.SyntheticMonitorConfig()
 }
 
-func (r *syntheticTestResource) SetComputedFields(d *schema.ResourceData) {
+func (r *syntheticMonitorResource) SetComputedFields(d *schema.ResourceData) {
 	// d.Set(SyntheticTestFieldApplicationID, RandomID())
 }
 
-func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
+func (r *syntheticMonitorResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	syntheticTest := obj.(*restapi.SyntheticMonitor)
 	d.SetId(syntheticTest.ID)
-	d.Set(SyntheticTestFieldConfiguration, r.mapConfigurationToSchema(syntheticTest))
+	d.Set(SyntheticMonitorFieldConfiguration, r.mapConfigurationToSchema(syntheticTest))
 	return nil
 }
 
-func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *syntheticMonitorResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
 	return &restapi.SyntheticMonitor{
 		ID:               d.Id(),
-		Label:            d.Get(SyntheticTestFieldLabel).(string),
-		Description:      d.Get(SyntheticTestFieldDescription).(string),
-		Active:           d.Get(SyntheticTestFieldActive).(bool),
+		Label:            d.Get(SyntheticMonitorFieldLabel).(string),
+		Description:      d.Get(SyntheticMonitorFieldDescription).(string),
+		Active:           d.Get(SyntheticMonitorFieldActive).(bool),
 		Configuration:    r.mapConfigurationFromSchema(d),
-		CustomProperties: d.Get(SyntheticTestFieldCustomProperties).(map[string]interface{}),
-		Locations:        ReadStringSetParameterFromResource(d, SyntheticTestFieldLocations),
-		PlaybackMode:     d.Get(SyntheticTestFieldPlaybackMode).(string),
-		TestFrequency:    int32(d.Get(SyntheticTestFieldTestFrequency).(int)),
+		CustomProperties: d.Get(SyntheticMonitorFieldCustomProperties).(map[string]interface{}),
+		Locations:        ReadStringSetParameterFromResource(d, SyntheticMonitorFieldLocations),
+		PlaybackMode:     d.Get(SyntheticMonitorFieldPlaybackMode).(string),
+		TestFrequency:    int32(d.Get(SyntheticMonitorFieldTestFrequency).(int)),
 	}, nil
 }
 
-func (r *syntheticTestResource) mapConfigurationToSchema(config *restapi.SyntheticMonitor) []map[string]interface{} {
+func (r *syntheticMonitorResource) mapConfigurationToSchema(config *restapi.SyntheticMonitor) []map[string]interface{} {
 	configuration := make(map[string]interface{})
-	configuration[SyntheticTestFieldConfigMarkSyntheticCall] = config.Configuration.MarkSyntheticCall
-	configuration[SyntheticTestFieldConfigSyntheticType] = config.Configuration.SyntheticType
-	configuration[SyntheticTestFieldConfigTimeout] = config.Configuration.Timeout
-	configuration[SyntheticTestFieldConfigRetries] = config.Configuration.Retries
-	configuration[SyntheticTestFieldConfigRetryInterval] = config.Configuration.RetryInterval
-	configuration[SyntheticTestFieldConfigUrl] = config.Configuration.URL
-	configuration[SyntheticTestFieldConfigScript] = config.Configuration.Script
-	configuration[SyntheticTestFieldConfigOperation] = config.Configuration.Operation
+	configuration[SyntheticMonitorFieldConfigMarkSyntheticCall] = config.Configuration.MarkSyntheticCall
+	configuration[SyntheticMonitorFieldConfigSyntheticType] = config.Configuration.SyntheticType
+	configuration[SyntheticMonitorFieldConfigTimeout] = config.Configuration.Timeout
+	configuration[SyntheticMonitorFieldConfigRetries] = config.Configuration.Retries
+	configuration[SyntheticMonitorFieldConfigRetryInterval] = config.Configuration.RetryInterval
+	configuration[SyntheticMonitorFieldConfigUrl] = config.Configuration.URL
+	configuration[SyntheticMonitorFieldConfigScript] = config.Configuration.Script
+	configuration[SyntheticMonitorFieldConfigOperation] = config.Configuration.Operation
 	result := make([]map[string]interface{}, 1)
 	result[0] = configuration
 	return result
 }
 
-func (r *syntheticTestResource) mapConfigurationFromSchema(d *schema.ResourceData) restapi.SyntheticTestConfig {
-	syntheticTestConfigurationSlice := d.Get(SyntheticTestFieldConfiguration).([]interface{})
+func (r *syntheticMonitorResource) mapConfigurationFromSchema(d *schema.ResourceData) restapi.SyntheticTestConfig {
+	syntheticTestConfigurationSlice := d.Get(SyntheticMonitorFieldConfiguration).([]interface{})
 	syntheticTestConfig := syntheticTestConfigurationSlice[0].(map[string]interface{})
 
 	return restapi.SyntheticTestConfig{
-		MarkSyntheticCall: syntheticTestConfig[SyntheticTestFieldConfigMarkSyntheticCall].(bool),
-		Retries:           int32(syntheticTestConfig[SyntheticTestFieldConfigRetries].(int)),
-		RetryInterval:     int32(syntheticTestConfig[SyntheticTestFieldConfigRetryInterval].(int)),
-		SyntheticType:     syntheticTestConfig[SyntheticTestFieldConfigSyntheticType].(string),
-		Timeout:           syntheticTestConfig[SyntheticTestFieldConfigTimeout].(string),
-		URL:               syntheticTestConfig[SyntheticTestFieldConfigUrl].(string),
-		Operation:         syntheticTestConfig[SyntheticTestFieldConfigOperation].(string),
-		Script:            syntheticTestConfig[SyntheticTestFieldConfigScript].(string),
+		MarkSyntheticCall: syntheticTestConfig[SyntheticMonitorFieldConfigMarkSyntheticCall].(bool),
+		Retries:           int32(syntheticTestConfig[SyntheticMonitorFieldConfigRetries].(int)),
+		RetryInterval:     int32(syntheticTestConfig[SyntheticMonitorFieldConfigRetryInterval].(int)),
+		SyntheticType:     syntheticTestConfig[SyntheticMonitorFieldConfigSyntheticType].(string),
+		Timeout:           syntheticTestConfig[SyntheticMonitorFieldConfigTimeout].(string),
+		URL:               syntheticTestConfig[SyntheticMonitorFieldConfigUrl].(string),
+		Operation:         syntheticTestConfig[SyntheticMonitorFieldConfigOperation].(string),
+		Script:            syntheticTestConfig[SyntheticMonitorFieldConfigScript].(string),
 	}
 }

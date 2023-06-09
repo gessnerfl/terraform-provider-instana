@@ -110,5 +110,5 @@ func (api *baseInstanaAPI) CustomDashboards() RestResource {
 }
 
 func (api *baseInstanaAPI) SyntheticMonitorConfig() RestResource {
-	return NewCreatePOSTUpdatePUTRestResource(SyntheticMonitorResourcePath, NewDefaultJSONUnmarshaller(&SyntheticMonitor{}), api.client)
+	return NewSyntheticMonitorRestResource(NewDefaultJSONUnmarshaller(&SyntheticMonitor{}), api.client)
 }
