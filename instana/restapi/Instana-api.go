@@ -38,8 +38,8 @@ type InstanaAPI interface {
 	WebsiteAlertConfig() RestResource
 	Groups() RestResource
 	CustomDashboards() RestResource
-	SyntheticMonitorConfig() RestResource
-	SyntheticLocationConfig() ReadOnlyRestResource
+	SyntheticMonitor() RestResource
+	SyntheticLocation() ReadOnlyRestResource
 }
 
 // NewInstanaAPI creates a new instance of the instana API
@@ -112,11 +112,11 @@ func (api *baseInstanaAPI) CustomDashboards() RestResource {
 	return NewCreatePOSTUpdatePUTRestResource(CustomDashboardsResourcePath, NewDefaultJSONUnmarshaller(&CustomDashboard{}), api.client)
 }
 
-func (api *baseInstanaAPI) SyntheticMonitorConfig() RestResource {
+func (api *baseInstanaAPI) SyntheticMonitor() RestResource {
 	return NewSyntheticMonitorRestResource(NewDefaultJSONUnmarshaller(&SyntheticMonitor{}), api.client)
 }
 
 // BuiltinEventSpecifications implementation of InstanaAPI interface
-func (api *baseInstanaAPI) SyntheticLocationConfig() ReadOnlyRestResource {
+func (api *baseInstanaAPI) SyntheticLocation() ReadOnlyRestResource {
 	return NewReadOnlyRestResource(SyntheticLocationResourcePath, NewDefaultJSONUnmarshaller(&SyntheticLocation{}), NewDefaultJSONUnmarshaller(&[]SyntheticLocation{}), api.client)
 }

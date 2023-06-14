@@ -22,6 +22,7 @@ type SyntheticMonitor struct {
 	Label            string                 `json:"label"`
 	Description      string                 `json:"description"`
 	Active           bool                   `json:"active"`
+	ApplicationID    string                 `json:"applicationId"`
 	Configuration    SyntheticTestConfig    `json:"configuration"`
 	CustomProperties map[string]interface{} `json:"customProperties"`
 	Locations        []string               `json:"locations"`
@@ -42,11 +43,9 @@ func (s *SyntheticMonitor) Validate() error {
 	if utils.IsBlank(s.Label) {
 		return errors.New("label is missing")
 	}
-	if utils.IsBlank(s.Configuration.SyntheticType) {
-		return errors.New("configuration.synthetic_type is missing")
-	}
+
 	if len(s.Locations) == 0 {
-		return errors.New("locations cannot be emtpy")
+		return errors.New("locations cannot be empty")
 	}
 
 	switch s.Configuration.SyntheticType {

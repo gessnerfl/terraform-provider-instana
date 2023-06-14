@@ -2,7 +2,6 @@ package instana
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -63,8 +62,7 @@ func (ds *syntheticLocationDataSource) read(d *schema.ResourceData, meta interfa
 	label := d.Get(SyntheticLocationFieldLabel).(string)
 	locationType := d.Get(SyntheticLocationFieldLocationType).(string)
 
-	data, err := instanaAPI.SyntheticLocationConfig().GetAll()
-	log.Printf("DEBUG: All locations: %v", data)
+	data, err := instanaAPI.SyntheticLocation().GetAll()
 	if err != nil {
 		return err
 	}

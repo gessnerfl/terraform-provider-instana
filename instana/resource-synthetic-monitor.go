@@ -47,8 +47,8 @@ const (
 	SyntheticMonitorFieldConfigScript = "script"
 )
 
-// NewSyntheticTestResourceHandle creates the resource handle Synthetic Tests
-func NewSyntheticTestResourceHandle() ResourceHandle {
+// NewSyntheticMonitorResourceHandle creates the resource handle Synthetic Tests
+func NewSyntheticMonitorResourceHandle() ResourceHandle {
 	return &syntheticMonitorResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaSyntheticMonitor,
@@ -86,7 +86,8 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 						Schema: map[string]*schema.Schema{
 							SyntheticMonitorFieldConfigMarkSyntheticCall: {
 								Type:        schema.TypeBool,
-								Required:    true,
+								Optional:    true,
+								Default:     false,
 								Description: "Flag used to control if HTTP calls will be marked as synthetic calls",
 							},
 							SyntheticMonitorFieldConfigRetries: {
@@ -182,16 +183,23 @@ func (r *syntheticMonitorResource) StateUpgraders() []schema.StateUpgrader {
 }
 
 func (r *syntheticMonitorResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
-	return api.SyntheticMonitorConfig()
+	return api.SyntheticMonitor()
 }
 
 func (r *syntheticMonitorResource) SetComputedFields(d *schema.ResourceData) {
-	// d.Set(SyntheticTestFieldApplicationID, RandomID())
+	d.Set(SyntheticMonitorFieldApplicationID, RandomID())
 }
 
 func (r *syntheticMonitorResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
 	syntheticTest := obj.(*restapi.SyntheticMonitor)
 	d.SetId(syntheticTest.ID)
+	d.Set(SyntheticMonitorFieldLabel, syntheticTest.Label)
+	d.Set(SyntheticMonitorFieldActive, syntheticTest.Active)
+	d.Set(SyntheticMonitorFieldApplicationID, syntheticTest.ApplicationID)
+	d.Set(SyntheticMonitorFieldCustomProperties, syntheticTest.CustomProperties)
+	d.Set(SyntheticMonitorFieldLocations, syntheticTest.Locations)
+	d.Set(SyntheticMonitorFieldPlaybackMode, syntheticTest.PlaybackMode)
+	d.Set(SyntheticMonitorFieldTestFrequency, syntheticTest.TestFrequency)
 	d.Set(SyntheticMonitorFieldConfiguration, r.mapConfigurationToSchema(syntheticTest))
 	return nil
 }
