@@ -62,7 +62,6 @@ const (
 	syntheticMonitorActive        = true
 	syntheticMonitorUrl           = "https://example.com"
 	syntheticMonitorOperation     = "GET"
-	syntheticMonitorScript        = "synthetic-script"
 	syntheticMonitorSyntheticCall = true
 	syntheticMonitorSyntheticType = "HTTPAction"
 )
@@ -139,7 +138,6 @@ func TestResourceSyntheticMonitorDefinition(t *testing.T) {
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SyntheticMonitorFieldLabel)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeSetOfStrings(SyntheticMonitorFieldLocations)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(SyntheticMonitorFieldApplicationID)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticMonitorFieldDescription)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(SyntheticMonitorFieldActive, true)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticMonitorFieldPlaybackMode)

@@ -22,7 +22,6 @@ type SyntheticMonitor struct {
 	Label            string                 `json:"label"`
 	Description      string                 `json:"description"`
 	Active           bool                   `json:"active"`
-	ApplicationID    string                 `json:"applicationId"`
 	Configuration    SyntheticTestConfig    `json:"configuration"`
 	CustomProperties map[string]interface{} `json:"customProperties"`
 	Locations        []string               `json:"locations"`

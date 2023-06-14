@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// ResourceInstanaSyntheticTest the name of the terraform-provider-instana resource to manage synthetic tests
+// ResourceInstanaSyntheticMonitor the name of the terraform-provider-instana resource to manage synthetic monitors
 const ResourceInstanaSyntheticMonitor = "instana_synthetic_monitor"
 
 const (
@@ -17,8 +17,6 @@ const (
 	SyntheticMonitorFieldDescription = "description"
 	//SyntheticMonitorFieldActive constant value for the schema field active
 	SyntheticMonitorFieldActive = "active"
-	//SyntheticMonitorFieldApplicationID constant value for the schema field application_id
-	SyntheticMonitorFieldApplicationID = "application_id"
 	//SyntheticMonitorFieldConfiguration constant value for the schema field configuration
 	SyntheticMonitorFieldConfiguration = "configuration"
 	//SyntheticMonitorFieldCustomProperties constant value for the schema field custom_properties
@@ -47,7 +45,7 @@ const (
 	SyntheticMonitorFieldConfigScript = "script"
 )
 
-// NewSyntheticMonitorResourceHandle creates the resource handle Synthetic Tests
+// NewSyntheticMonitorResourceHandle creates the resource handle Synthetic Monitors
 func NewSyntheticMonitorResourceHandle() ResourceHandle {
 	return &syntheticMonitorResource{
 		metaData: ResourceMetaData{
@@ -71,11 +69,6 @@ func NewSyntheticMonitorResourceHandle() ResourceHandle {
 					Default:     true,
 					Description: "Indicates if the Synthetic test is started or not",
 				},
-				SyntheticMonitorFieldApplicationID: {
-					Type:        schema.TypeString,
-					Computed:    true,
-					Description: "Unique identifier of the Application Perspective",
-				},
 				SyntheticMonitorFieldConfiguration: {
 					Type:        schema.TypeList,
 					MinItems:    1,
@@ -93,12 +86,14 @@ func NewSyntheticMonitorResourceHandle() ResourceHandle {
 							SyntheticMonitorFieldConfigRetries: {
 								Type:         schema.TypeInt,
 								Optional:     true,
+								Default:      0,
 								Description:  "Indicates how many attempts will be allowed to get a successful connection",
 								ValidateFunc: validation.IntBetween(0, 2),
 							},
 							SyntheticMonitorFieldConfigRetryInterval: {
 								Type:         schema.TypeInt,
 								Optional:     true,
+								Default:      1,
 								Description:  "The time interval between retries in seconds",
 								ValidateFunc: validation.IntBetween(1, 10),
 							},
@@ -116,7 +111,7 @@ func NewSyntheticMonitorResourceHandle() ResourceHandle {
 							SyntheticMonitorFieldConfigUrl: {
 								Type:         schema.TypeString,
 								Optional:     true,
-								Description:  "The URL is being tested",
+								Description:  "The URL which is being tested",
 								ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 							},
 							SyntheticMonitorFieldConfigOperation: {
@@ -187,7 +182,7 @@ func (r *syntheticMonitorResource) GetRestResource(api restapi.InstanaAPI) resta
 }
 
 func (r *syntheticMonitorResource) SetComputedFields(d *schema.ResourceData) {
-	d.Set(SyntheticMonitorFieldApplicationID, RandomID())
+	// No computed fields
 }
 
 func (r *syntheticMonitorResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
@@ -195,7 +190,6 @@ func (r *syntheticMonitorResource) UpdateState(d *schema.ResourceData, obj resta
 	d.SetId(syntheticTest.ID)
 	d.Set(SyntheticMonitorFieldLabel, syntheticTest.Label)
 	d.Set(SyntheticMonitorFieldActive, syntheticTest.Active)
-	d.Set(SyntheticMonitorFieldApplicationID, syntheticTest.ApplicationID)
 	d.Set(SyntheticMonitorFieldCustomProperties, syntheticTest.CustomProperties)
 	d.Set(SyntheticMonitorFieldLocations, syntheticTest.Locations)
 	d.Set(SyntheticMonitorFieldPlaybackMode, syntheticTest.PlaybackMode)

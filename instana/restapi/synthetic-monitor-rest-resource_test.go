@@ -13,7 +13,6 @@ import (
 const (
 	syntheticMonitorID                  = "id"
 	syntheticMonitorLabel               = "label"
-	syntheticMonitorAppName             = "appName"
 	syntheticMonitorActive              = true
 	syntheticMonitorConfigSyntheticType = "HTTPAction"
 	syntheticMonitorLocation            = "location"

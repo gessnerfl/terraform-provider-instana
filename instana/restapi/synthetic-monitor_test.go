@@ -7,11 +7,9 @@ import (
 )
 
 const (
-	syntheticID        = "synthetic-id"
-	syntheticLabel     = "synthetic-label"
-	syntheticUrl       = "https://localhost"
-	syntheticOperation = "GET"
-	syntheticScript    = "synthetic-script"
+	syntheticID    = "synthetic-id"
+	syntheticLabel = "synthetic-label"
+	syntheticUrl   = "https://localhost"
 )
 
 func TestInvalidSyntheticBecauseOfMissingID(t *testing.T) {

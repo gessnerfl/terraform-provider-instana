@@ -13,7 +13,7 @@ func NewSyntheticLocationDataSource() DataSource {
 	return &syntheticLocationDataSource{}
 }
 
-// ResourceInstanaSyntheticTest the name of the terraform-provider-instana resource to manage synthetic tests
+// ResourceInstanaSyntheticLocation the name of the terraform-provider-instana resource to manage synthetic locations
 const ResourceInstanaSyntheticLocation = "instana_synthetic_location"
 
 const (
@@ -29,7 +29,7 @@ const (
 
 type syntheticLocationDataSource struct{}
 
-// NewSyntheticTestResourceHandle creates the resource handle Synthetic Tests
+// CreateResource creates the resource handle Synthetic Locations
 func (ds *syntheticLocationDataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
 		Read: ds.read,

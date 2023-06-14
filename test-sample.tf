@@ -133,7 +133,7 @@ data "instana_synthetic_location" "monitor" {
   location_type = "Private"
 }
 
-resource "instana_synthetic_monitor" "name" {
+resource "instana_synthetic_monitor" "uptime_check" {
   label          = "test"
   active         = true
   locations      = [data.instana_synthetic_location.monitor.id]
@@ -150,5 +150,26 @@ resource "instana_synthetic_monitor" "name" {
   }
   custom_properties = {
     "foo" = "bar"
+  }
+}
+
+resource "instana_synthetic_monitor" "http_action" {
+  label     = "test"
+  active    = true
+  locations = [data.instana_synthetic_location.monitor.id]
+  configuration {
+    synthetic_type = "HTTPScript"
+    script         = <<EOF
+      const assert = require('assert');
+
+      $http.get('https://terraform.io',
+      function(err, response, body) {
+          if (err) {
+              console.error(err);
+              return;
+          }
+          assert.equal(response.statusCode, 200, 'Expected a 200 OK response');
+      });
+    EOF
   }
 }
