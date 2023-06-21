@@ -1,18 +1,18 @@
-# Synthetic Monitor Resource
+# Synthetic Test Resource
 
-Synthetic monitor configuration used to manage synthetic monitors in Instana API.
+Synthetic test configuration used to manage synthetic tests in Instana API.
 
 API Documentation: <https://instana.github.io/openapi/#operation/getSyntheticTests>
 
 ## Example Usage
 
 
-### Create a HTTPAction monitor
+### Create a HTTPAction test
 ```hcl
-resource "instana_synthetic_monitor" "uptime_check" {
+resource "instana_synthetic_test" "uptime_check" {
   label          = "test"
   active         = true
-  locations      = [data.instana_synthetic_location.monitor.id]
+  locations      = [data.instana_synthetic_location.loc1.id]
   test_frequency = 10
   playback_mode  = "Staggered"
   configuration {
@@ -30,12 +30,12 @@ resource "instana_synthetic_monitor" "uptime_check" {
 }
 ```
 
-### Create a HTTPScript monitor
+### Create a HTTPScript test
 ```hcl
-resource "instana_synthetic_monitor" "http_action" {
+resource "instana_synthetic_test" "http_action" {
   label     = "test"
   active    = true
-  locations = [data.instana_synthetic_location.monitor.id]
+  locations = [data.instana_synthetic_location.loc1.id]
   configuration {
     synthetic_type = "HTTPScript"
     script         = <<EOF
@@ -81,5 +81,5 @@ resource "instana_synthetic_monitor" "http_action" {
 Synthetic monitors can be imported using the `id`, e.g.:
 
 ```
-$ terraform import instana_synthetic_monitor.http_action cl1g4qrmo26x930s17i2
+$ terraform import instana_synthetic_test.http_action cl1g4qrmo26x930s17i2
 ```

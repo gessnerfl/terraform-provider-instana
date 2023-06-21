@@ -13,7 +13,7 @@ const (
 )
 
 func TestInvalidSyntheticBecauseOfMissingID(t *testing.T) {
-	synthetic := SyntheticMonitor{
+	synthetic := SyntheticTest{
 		Label:     syntheticLabel,
 		Locations: []string{""},
 		Configuration: SyntheticTestConfig{
@@ -27,7 +27,7 @@ func TestInvalidSyntheticBecauseOfMissingID(t *testing.T) {
 }
 
 func TestInvalidSyntheticBecauseOfMissingLabel(t *testing.T) {
-	synthetic := SyntheticMonitor{
+	synthetic := SyntheticTest{
 		ID:        syntheticID,
 		Locations: []string{""},
 		Configuration: SyntheticTestConfig{
@@ -41,7 +41,7 @@ func TestInvalidSyntheticBecauseOfMissingLabel(t *testing.T) {
 }
 
 func TestInvalidSyntheticBecauseOfMissingLocations(t *testing.T) {
-	synthetic := SyntheticMonitor{
+	synthetic := SyntheticTest{
 		ID:    syntheticID,
 		Label: syntheticLabel,
 		Configuration: SyntheticTestConfig{
@@ -55,7 +55,7 @@ func TestInvalidSyntheticBecauseOfMissingLocations(t *testing.T) {
 }
 
 func TestInvalidHTTPActionBecauseOfMissingUrl(t *testing.T) {
-	synthetic := SyntheticMonitor{
+	synthetic := SyntheticTest{
 		ID:        syntheticID,
 		Label:     syntheticLabel,
 		Locations: []string{""},
@@ -69,7 +69,7 @@ func TestInvalidHTTPActionBecauseOfMissingUrl(t *testing.T) {
 }
 
 func TestInvalidHTTPScriptBecauseOfMissingScript(t *testing.T) {
-	synthetic := SyntheticMonitor{
+	synthetic := SyntheticTest{
 		ID:        syntheticID,
 		Label:     syntheticLabel,
 		Locations: []string{""},

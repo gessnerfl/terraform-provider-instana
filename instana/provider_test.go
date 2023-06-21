@@ -43,7 +43,7 @@ func TestProviderShouldContainValidResourceDefinitions(t *testing.T) {
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaWebsiteAlertConfig])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaGroup])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaCustomDashboard])
-	assert.NotNil(t, config.ResourcesMap[ResourceInstanaSyntheticMonitor])
+	assert.NotNil(t, config.ResourcesMap[ResourceInstanaSyntheticTest])
 
 	validateResourcesMapForCustomEvents(config.ResourcesMap, t)
 	validateResourcesMapForAlerting(config.ResourcesMap, t)

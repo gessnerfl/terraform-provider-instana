@@ -17,9 +17,9 @@ const (
 	WebsiteMonitoringResourcePath = InstanaAPIBasePath + "/website-monitoring"
 	//SyntheticSettingsBasePath path to synthetic monitoring
 	SyntheticSettingsBasePath = InstanaAPIBasePath + "/synthetics" + settingsPathElement
-	//SyntheticMonitoringTestPath path to synthetic monitoring tests
-	SyntheticMonitorResourcePath = SyntheticSettingsBasePath + "/tests"
-	//SyntheticMonitoringTestPath path to synthetic monitoring tests
+	//SyntheticTestResourcePath path to synthetic monitoring tests
+	SyntheticTestResourcePath = SyntheticSettingsBasePath + "/tests"
+	//SyntheticLocationResourcePath path to synthetic monitoring tests
 	SyntheticLocationResourcePath = SyntheticSettingsBasePath + "/locations"
 )
 
@@ -38,7 +38,7 @@ type InstanaAPI interface {
 	WebsiteAlertConfig() RestResource
 	Groups() RestResource
 	CustomDashboards() RestResource
-	SyntheticMonitor() RestResource
+	SyntheticTest() RestResource
 	SyntheticLocation() ReadOnlyRestResource
 }
 
@@ -112,8 +112,8 @@ func (api *baseInstanaAPI) CustomDashboards() RestResource {
 	return NewCreatePOSTUpdatePUTRestResource(CustomDashboardsResourcePath, NewDefaultJSONUnmarshaller(&CustomDashboard{}), api.client)
 }
 
-func (api *baseInstanaAPI) SyntheticMonitor() RestResource {
-	return NewSyntheticMonitorRestResource(NewDefaultJSONUnmarshaller(&SyntheticMonitor{}), api.client)
+func (api *baseInstanaAPI) SyntheticTest() RestResource {
+	return NewSyntheticTestRestResource(NewDefaultJSONUnmarshaller(&SyntheticTest{}), api.client)
 }
 
 // BuiltinEventSpecifications implementation of InstanaAPI interface

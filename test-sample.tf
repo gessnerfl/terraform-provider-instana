@@ -133,7 +133,7 @@ data "instana_synthetic_location" "monitor" {
   location_type = "Private"
 }
 
-resource "instana_synthetic_monitor" "uptime_check" {
+resource "instana_synthetic_test" "uptime_check" {
   label          = "test"
   active         = true
   locations      = [data.instana_synthetic_location.monitor.id]
@@ -153,7 +153,7 @@ resource "instana_synthetic_monitor" "uptime_check" {
   }
 }
 
-resource "instana_synthetic_monitor" "http_action" {
+resource "instana_synthetic_test" "http_action" {
   label     = "test"
   active    = true
   locations = [data.instana_synthetic_location.monitor.id]

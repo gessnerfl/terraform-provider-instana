@@ -17,7 +17,7 @@ type SyntheticTestConfig struct {
 	Script            string `json:"script"`
 }
 
-type SyntheticMonitor struct {
+type SyntheticTest struct {
 	ID               string                 `json:"id"`
 	Label            string                 `json:"label"`
 	Description      string                 `json:"description"`
@@ -29,13 +29,13 @@ type SyntheticMonitor struct {
 	TestFrequency    int32                  `json:"testFrequency"`
 }
 
-// GetIDForResourcePath implementation of the interface InstanaDataObject for SyntheticMonitor
-func (s *SyntheticMonitor) GetIDForResourcePath() string {
+// GetIDForResourcePath implementation of the interface InstanaDataObject for SyntheticTest
+func (s *SyntheticTest) GetIDForResourcePath() string {
 	return s.ID
 }
 
-// Validate implementation of the interface InstanaDataObject for SyntheticMonitor
-func (s *SyntheticMonitor) Validate() error {
+// Validate implementation of the interface InstanaDataObject for SyntheticTest
+func (s *SyntheticTest) Validate() error {
 	if utils.IsBlank(s.ID) {
 		return errors.New("id is missing")
 	}

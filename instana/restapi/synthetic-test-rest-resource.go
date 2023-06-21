@@ -2,22 +2,22 @@ package restapi
 
 import "errors"
 
-// NewSyntheticMonitorRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using PUT as operation for create and update
-func NewSyntheticMonitorRestResource(unmarshaller JSONUnmarshaller, client RestClient) RestResource {
-	return &syntheticMonitorRestResource{
-		resourcePath: SyntheticMonitorResourcePath,
+// NewSyntheticTestRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using PUT as operation for create and update
+func NewSyntheticTestRestResource(unmarshaller JSONUnmarshaller, client RestClient) RestResource {
+	return &SyntheticTestRestResource{
+		resourcePath: SyntheticTestResourcePath,
 		unmarshaller: unmarshaller,
 		client:       client,
 	}
 }
 
-type syntheticMonitorRestResource struct {
+type SyntheticTestRestResource struct {
 	resourcePath string
 	unmarshaller JSONUnmarshaller
 	client       RestClient
 }
 
-func (r *syntheticMonitorRestResource) GetOne(id string) (InstanaDataObject, error) {
+func (r *SyntheticTestRestResource) GetOne(id string) (InstanaDataObject, error) {
 	data, err := r.client.GetOne(id, r.resourcePath)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (r *syntheticMonitorRestResource) GetOne(id string) (InstanaDataObject, err
 	return r.validateResponseAndConvertToStruct(data)
 }
 
-func (r *syntheticMonitorRestResource) Create(data InstanaDataObject) (InstanaDataObject, error) {
+func (r *SyntheticTestRestResource) Create(data InstanaDataObject) (InstanaDataObject, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
@@ -36,7 +36,7 @@ func (r *syntheticMonitorRestResource) Create(data InstanaDataObject) (InstanaDa
 	return r.validateResponseAndConvertToStruct(response)
 }
 
-func (r *syntheticMonitorRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
+func (r *SyntheticTestRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
@@ -47,7 +47,7 @@ func (r *syntheticMonitorRestResource) Update(data InstanaDataObject) (InstanaDa
 	return r.GetOne(data.GetIDForResourcePath())
 }
 
-func (r *syntheticMonitorRestResource) validateResponseAndConvertToStruct(data []byte) (InstanaDataObject, error) {
+func (r *SyntheticTestRestResource) validateResponseAndConvertToStruct(data []byte) (InstanaDataObject, error) {
 	object, err := r.unmarshaller.Unmarshal(data)
 	if err != nil {
 		return nil, err
@@ -63,10 +63,10 @@ func (r *syntheticMonitorRestResource) validateResponseAndConvertToStruct(data [
 	return dataObject, nil
 }
 
-func (r *syntheticMonitorRestResource) Delete(data InstanaDataObject) error {
+func (r *SyntheticTestRestResource) Delete(data InstanaDataObject) error {
 	return r.DeleteByID(data.GetIDForResourcePath())
 }
 
-func (r *syntheticMonitorRestResource) DeleteByID(id string) error {
+func (r *SyntheticTestRestResource) DeleteByID(id string) error {
 	return r.client.Delete(id, r.resourcePath)
 }
