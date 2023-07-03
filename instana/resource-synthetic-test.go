@@ -101,7 +101,7 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 								Type:         schema.TypeString,
 								Required:     true,
 								Description:  "The type of the Synthetic test",
-								ValidateFunc: validation.StringInSlice([]string{"HTTPAction", "HTTPScript", "BrowserScript", "WebpageAction", "WebpageScript", "DNSAction"}, true),
+								ValidateFunc: validation.StringInSlice([]string{"HTTPAction", "HTTPScript"}, true),
 							},
 							SyntheticTestFieldConfigTimeout: {
 								Type:        schema.TypeString,
@@ -117,7 +117,6 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 							SyntheticTestFieldConfigOperation: {
 								Type:         schema.TypeString,
 								Optional:     true,
-								Default:      "GET",
 								Description:  "The HTTP operation",
 								ValidateFunc: validation.StringInSlice([]string{"GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "DELETE"}, true),
 							},
@@ -219,9 +218,15 @@ func (r *syntheticTestResource) mapConfigurationToSchema(config *restapi.Synthet
 	configuration[SyntheticTestFieldConfigTimeout] = config.Configuration.Timeout
 	configuration[SyntheticTestFieldConfigRetries] = config.Configuration.Retries
 	configuration[SyntheticTestFieldConfigRetryInterval] = config.Configuration.RetryInterval
-	configuration[SyntheticTestFieldConfigUrl] = config.Configuration.URL
-	configuration[SyntheticTestFieldConfigScript] = config.Configuration.Script
-	configuration[SyntheticTestFieldConfigOperation] = config.Configuration.Operation
+
+	switch config.Configuration.SyntheticType {
+	case "HTTPAction":
+		configuration[SyntheticTestFieldConfigUrl] = config.Configuration.URL
+		configuration[SyntheticTestFieldConfigOperation] = config.Configuration.Operation
+	case "HTTPScript":
+		configuration[SyntheticTestFieldConfigScript] = config.Configuration.Script
+	}
+
 	result := make([]map[string]interface{}, 1)
 	result[0] = configuration
 	return result

@@ -32,6 +32,10 @@ resource "instana_synthetic_test" "example" {
 		url                 = "https://example.com"
 		operation           = "GET"
 	}
+	custom_properties = {
+		"key1" = "val1"
+		"key2" = "val2"
+	}
 }
 `
 
@@ -50,7 +54,11 @@ const syntheticTestServerResponseTemplate = `
 		"operation": "GET",
 		"retryInterval": 1,
 		"timeout": "3m"
-    }
+    },
+	"customProperties": {
+		"key1": "val1",
+		"key2": "val2"
+	}
 }
 `
 
@@ -125,6 +133,7 @@ func createSyntheticTestTestCheckFunctions(httpPort int, iteration int) resource
 			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigSyntheticType), syntheticTestSyntheticType),
 			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigTimeout), "3m"),
 			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigOperation), syntheticTestOperation),
+			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigUrl), syntheticTestUrl),
 			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigUrl), syntheticTestUrl),
 		),
 	}

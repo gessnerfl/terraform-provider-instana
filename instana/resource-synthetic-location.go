@@ -36,7 +36,7 @@ func (ds *syntheticLocationDataSource) CreateResource() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			SyntheticLocationFieldLabel: {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				Description:  "Friendly name of the Synthetic Location",
 				ValidateFunc: validation.StringLenBetween(0, 512),
 			},
@@ -47,9 +47,10 @@ func (ds *syntheticLocationDataSource) CreateResource() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(0, 512),
 			},
 			SyntheticLocationFieldLocationType: {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Indicates if the Synthetic test is started or not",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "Indicates if the location is public or private",
+				ValidateFunc: validation.StringInSlice([]string{"Public", "Private"}, true),
 			},
 		},
 	}
@@ -67,7 +68,7 @@ func (ds *syntheticLocationDataSource) read(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	syntheticLocation, err := ds.findSyntheticLocationByLabelAndType(label, locationType, data)
+	syntheticLocation, err := ds.findSyntheticLocations(label, locationType, data)
 
 	if err != nil {
 		return err
@@ -76,14 +77,14 @@ func (ds *syntheticLocationDataSource) read(d *schema.ResourceData, meta interfa
 	return ds.updateState(d, syntheticLocation)
 }
 
-func (ds *syntheticLocationDataSource) findSyntheticLocationByLabelAndType(label string, locationType string, data *[]restapi.InstanaDataObject) (*restapi.SyntheticLocation, error) {
+func (ds *syntheticLocationDataSource) findSyntheticLocations(label string, locationType string, data *[]restapi.InstanaDataObject) (*restapi.SyntheticLocation, error) {
 	for _, e := range *data {
 		syntheticLocation, ok := e.(restapi.SyntheticLocation)
-		if ok && syntheticLocation.Label == label && syntheticLocation.LocationType == locationType {
+		if ok {
 			return &syntheticLocation, nil
 		}
 	}
-	return nil, fmt.Errorf("no synthetic location found for label '%s' and location_type '%s'", label, locationType)
+	return nil, fmt.Errorf("no synthetic location found")
 }
 
 func (ds *syntheticLocationDataSource) updateState(d *schema.ResourceData, syntheticLocation *restapi.SyntheticLocation) error {

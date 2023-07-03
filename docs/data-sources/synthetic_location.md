@@ -8,10 +8,7 @@ API Documentation: <https://instana.github.io/openapi/#operation/getSyntheticLoc
 ## Example Usage
 
 ```hcl
-data "instana_synthetic_location" "monitor" {
-  label         = "label-name"
-  location_type = "Private"
-}
+data "instana_synthetic_location" "locations" {}
 ```
 
 ## Argument Reference

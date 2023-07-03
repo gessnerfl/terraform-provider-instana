@@ -1,6 +1,6 @@
 # Synthetic Test Resource
 
-Synthetic test configuration used to manage synthetic tests in Instana API.
+Synthetic test configuration used to manage synthetic tests in Instana API. Right now, only `HTTPActionConfiguration` and `HTTPScriptConfiguration` are supported.
 
 API Documentation: <https://instana.github.io/openapi/#operation/getSyntheticTests>
 
@@ -71,9 +71,15 @@ resource "instana_synthetic_test" "http_action" {
 * `retries` - Optional - Indicates how many attempts will be allowed to get a successful connection (defaults to 0)
 * `retry_interval` - Optional - The time interval between retries in seconds (defaults to 1)
 * `synthetic_type` - Required - The type of the Synthetic test (currently supports HTTPAction or HTTPScript)
-* `timeout` - Optional - The timeout to be used by the PoP playback engines running the test 
+* `timeout` - Optional - The timeout to be used by the PoP playback engines running the test
+
+### HTTPAction configuration (extends configuration)
+
 * `url` - Required when synthetic_type is set to HTTPAction - The URL which is being tested
 * `operation` - Optional - The HTTP operation (defaults to GET)
+
+### HTTPScript configuration (extends configuration)
+
 * `script` - Required  when synthetic_type is set to HTTPScript - The Javascript content in plain text
 
 ## Import
