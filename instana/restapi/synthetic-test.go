@@ -12,9 +12,18 @@ type SyntheticTestConfig struct {
 	RetryInterval     int32  `json:"retryInterval"`
 	SyntheticType     string `json:"syntheticType"`
 	Timeout           string `json:"timeout"`
-	URL               string `json:"url"`
-	Operation         string `json:"operation"`
-	Script            string `json:"script"`
+	// HttpAction
+	URL              string                 `json:"url"`
+	Operation        string                 `json:"operation"`
+	Headers          map[string]interface{} `json:"headers"`
+	Body             string                 `json:"body"`
+	ValidationString string                 `json:"validationString"`
+	FollowRedirect   bool                   `json:"followRedirect"`
+	AllowInsecure    bool                   `json:"allowInsecure"`
+	ExpectStatus     int32                  `json:"expectStatus"`
+	ExpectMatch      string                 `json:"expectMatch"`
+	// HttpScript
+	Script string `json:"script"`
 }
 
 type SyntheticTest struct {

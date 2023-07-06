@@ -76,7 +76,14 @@ resource "instana_synthetic_test" "http_action" {
 ### HTTPAction configuration (extends configuration)
 
 * `url` - Required when synthetic_type is set to HTTPAction - The URL which is being tested
-* `operation` - Optional - The HTTP operation (defaults to GET)
+* `operation` - Optional - The HTTP operation
+* `headers` - Optional - An object with header/value pairs
+* `body` - Optional - The body content to send with the operation
+* `validation_string` - Optional - An expression to be evaluated
+* `follow_redirect` - Optional - A boolean type, true by default; to allow redirect
+* `allow_insecure` - Optional - A boolean type, if set to true then allow insecure certificates
+* `expect_status` - Optional - An integer type, by default, the Synthetic passes for any 2XX status code
+* `expect_match` - Optional - An optional regular expression string to be used to check the test response
 
 ### HTTPScript configuration (extends configuration)
 

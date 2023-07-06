@@ -41,6 +41,24 @@ const (
 	SyntheticTestFieldConfigUrl = "url"
 	//SyntheticTestFieldConfigOperation constant value for the schema field configuration.operation
 	SyntheticTestFieldConfigOperation = "operation"
+	//SyntheticTestFieldConfigHeaders constant value for the schema field configuration.headers
+	SyntheticTestFieldConfigHeaders = "headers"
+	//SyntheticTestFieldConfigBody constant value for the schema field configuration.body
+	SyntheticTestFieldConfigBody = "body"
+	//SyntheticTestFieldConfigValidationString constant value for the schema field configuration.validation_string
+	SyntheticTestFieldConfigValidationString = "validation_string"
+	//SyntheticTestFieldConfigFollowRedirect constant value for the schema field configuration.follow_redirect
+	SyntheticTestFieldConfigFollowRedirect = "follow_redirect"
+	//SyntheticTestFieldConfigAllowInsecure constant value for the schema field configuration.allow_insecure
+	SyntheticTestFieldConfigAllowInsecure = "allow_insecure"
+	//SyntheticTestFieldConfigExpectStatus constant value for the schema field configuration.expect_status
+	SyntheticTestFieldConfigExpectStatus = "expect_status"
+	//SyntheticTestFieldConfigExpectMatch constant value for the schema field configuration.expect_match
+	SyntheticTestFieldConfigExpectMatch = "expect_match"
+	//SyntheticTestFieldConfigExpectExists constant value for the schema field configuration.expect_exists
+	SyntheticTestFieldConfigExpectExists = "expect_exists"
+	//SyntheticTestFieldConfigExpectNotEmpty constant value for the schema field configuration.expect_not_empty
+	SyntheticTestFieldConfigExpectNotEmpty = "expect_not_empty"
 	//SyntheticTestFieldConfigScript constant value for the schema field configuration.script
 	SyntheticTestFieldConfigScript = "script"
 )
@@ -108,6 +126,7 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 								Optional:    true,
 								Description: "The timeout to be used by the PoP playback engines running the test",
 							},
+							// HTTPScript
 							SyntheticTestFieldConfigUrl: {
 								Type:         schema.TypeString,
 								Optional:     true,
@@ -120,10 +139,49 @@ func NewSyntheticTestResourceHandle() ResourceHandle {
 								Description:  "The HTTP operation",
 								ValidateFunc: validation.StringInSlice([]string{"GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "DELETE"}, true),
 							},
+							SyntheticTestFieldConfigHeaders: {
+								Type:        schema.TypeMap,
+								Optional:    true,
+								Description: "An object with header/value pairs",
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+							},
+							SyntheticTestFieldConfigBody: {
+								Type:        schema.TypeString,
+								Optional:    true,
+								Description: " The body content to send with the operation",
+							},
+							SyntheticTestFieldConfigValidationString: {
+								Type:        schema.TypeString,
+								Optional:    true,
+								Description: "An expression to be evaluated",
+							},
+							SyntheticTestFieldConfigFollowRedirect: {
+								Type:        schema.TypeBool,
+								Optional:    true,
+								Description: "A boolean type, true by default; to allow redirect",
+							},
+							SyntheticTestFieldConfigAllowInsecure: {
+								Type:        schema.TypeBool,
+								Optional:    true,
+								Description: "A boolean type, if set to true then allow insecure certificates",
+							},
+							SyntheticTestFieldConfigExpectStatus: {
+								Type:        schema.TypeInt,
+								Optional:    true,
+								Description: "An integer type, by default, the Synthetic passes for any 2XX status code",
+							},
+							SyntheticTestFieldConfigExpectMatch: {
+								Type:        schema.TypeString,
+								Optional:    true,
+								Description: "An optional regular expression string to be used to check the test response",
+							},
+							// HTTPAction
 							SyntheticTestFieldConfigScript: {
 								Type:        schema.TypeString,
 								Optional:    true,
-								Description: " The Javascript content in plain text",
+								Description: "The Javascript content in plain text",
 							},
 						},
 					},
@@ -223,6 +281,13 @@ func (r *syntheticTestResource) mapConfigurationToSchema(config *restapi.Synthet
 	case "HTTPAction":
 		configuration[SyntheticTestFieldConfigUrl] = config.Configuration.URL
 		configuration[SyntheticTestFieldConfigOperation] = config.Configuration.Operation
+		configuration[SyntheticTestFieldConfigHeaders] = config.Configuration.Headers
+		configuration[SyntheticTestFieldConfigBody] = config.Configuration.Body
+		configuration[SyntheticTestFieldConfigValidationString] = config.Configuration.ValidationString
+		configuration[SyntheticTestFieldConfigFollowRedirect] = config.Configuration.FollowRedirect
+		configuration[SyntheticTestFieldConfigAllowInsecure] = config.Configuration.AllowInsecure
+		configuration[SyntheticTestFieldConfigExpectStatus] = config.Configuration.ExpectStatus
+		configuration[SyntheticTestFieldConfigExpectMatch] = config.Configuration.ExpectMatch
 	case "HTTPScript":
 		configuration[SyntheticTestFieldConfigScript] = config.Configuration.Script
 	}
@@ -235,6 +300,7 @@ func (r *syntheticTestResource) mapConfigurationToSchema(config *restapi.Synthet
 func (r *syntheticTestResource) mapConfigurationFromSchema(d *schema.ResourceData) restapi.SyntheticTestConfig {
 	syntheticTestConfigurationSlice := d.Get(SyntheticTestFieldConfiguration).([]interface{})
 	syntheticTestConfig := syntheticTestConfigurationSlice[0].(map[string]interface{})
+	// headerSlice := d.Get(SyntheticTestFieldConfigHeaders).(map[string]interface{})
 
 	return restapi.SyntheticTestConfig{
 		MarkSyntheticCall: syntheticTestConfig[SyntheticTestFieldConfigMarkSyntheticCall].(bool),
@@ -244,6 +310,13 @@ func (r *syntheticTestResource) mapConfigurationFromSchema(d *schema.ResourceDat
 		Timeout:           syntheticTestConfig[SyntheticTestFieldConfigTimeout].(string),
 		URL:               syntheticTestConfig[SyntheticTestFieldConfigUrl].(string),
 		Operation:         syntheticTestConfig[SyntheticTestFieldConfigOperation].(string),
+		Headers:           syntheticTestConfig[SyntheticTestFieldConfigHeaders].(map[string]interface{}),
+		Body:              syntheticTestConfig[SyntheticTestFieldConfigBody].(string),
+		ValidationString:  syntheticTestConfig[SyntheticTestFieldConfigValidationString].(string),
+		FollowRedirect:    syntheticTestConfig[SyntheticTestFieldConfigFollowRedirect].(bool),
+		AllowInsecure:     syntheticTestConfig[SyntheticTestFieldConfigAllowInsecure].(bool),
+		ExpectStatus:      int32(syntheticTestConfig[SyntheticTestFieldConfigExpectStatus].(int)),
+		ExpectMatch:       syntheticTestConfig[SyntheticTestFieldConfigExpectMatch].(string),
 		Script:            syntheticTestConfig[SyntheticTestFieldConfigScript].(string),
 	}
 }

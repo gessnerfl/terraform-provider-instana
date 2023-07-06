@@ -31,6 +31,12 @@ resource "instana_synthetic_test" "example" {
 		timeout             = "3m"
 		url                 = "https://example.com"
 		operation           = "GET"
+		body 				= "expected_body"
+		validation_string   = "expected_body"
+		follow_redirect     = false
+		allow_insecure      = true
+		expect_status       = 201
+		expect_match        = "[a-zA-Z]"
 	}
 	custom_properties = {
 		"key1" = "val1"
@@ -53,7 +59,13 @@ const syntheticTestServerResponseTemplate = `
         "url": "https://example.com",
 		"operation": "GET",
 		"retryInterval": 1,
-		"timeout": "3m"
+		"timeout": "3m",
+		"body": "expected_body",
+		"validationString": "expected_body",
+		"followRedirect": false,
+		"allowInsecure": true,
+		"expectStatus": 201,
+		"expectMatch": "[a-zA-Z]"
     },
 	"customProperties": {
 		"key1": "val1",
@@ -133,7 +145,6 @@ func createSyntheticTestTestCheckFunctions(httpPort int, iteration int) resource
 			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigSyntheticType), syntheticTestSyntheticType),
 			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigTimeout), "3m"),
 			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigOperation), syntheticTestOperation),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigUrl), syntheticTestUrl),
 			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigUrl), syntheticTestUrl),
 		),
 	}
