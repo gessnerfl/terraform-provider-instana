@@ -1,5 +1,29 @@
 # Changelog
 
+## [Unreleased](https://github.com/gessnerfl/terraform-provider-instana/tree/HEAD)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.6.0...HEAD)
+
+**Closed issues:**
+
+- Support to manage Synthetic endpoints [\#78](https://github.com/gessnerfl/terraform-provider-instana/issues/78)
+
+## [v1.6.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.6.0) (2023-07-12)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.5.3...v1.6.0)
+
+**Closed issues:**
+
+- Removing the instana terraform code, resulted in an error when removing the resources [\#139](https://github.com/gessnerfl/terraform-provider-instana/issues/139)
+- Tag call.http.header is independent of source or destination [\#137](https://github.com/gessnerfl/terraform-provider-instana/issues/137)
+
+**Merged pull requests:**
+
+- Feature/147 syntetic test and location [\#148](https://github.com/gessnerfl/terraform-provider-instana/pull/148) ([gessnerfl](https://github.com/gessnerfl))
+- Add Synthetic monitors Resource & Synthetic Location Datasource [\#147](https://github.com/gessnerfl/terraform-provider-instana/pull/147) ([mzwennes](https://github.com/mzwennes))
+- Update OpenAPI specification to latest version [\#146](https://github.com/gessnerfl/terraform-provider-instana/pull/146) ([mzwennes](https://github.com/mzwennes))
+- fixed typos [\#144](https://github.com/gessnerfl/terraform-provider-instana/pull/144) ([CayoM](https://github.com/CayoM))
+
 ## [v1.5.3](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.5.3) (2022-11-01)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.5.2...v1.5.3)
