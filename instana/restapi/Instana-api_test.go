@@ -76,4 +76,15 @@ func TestShouldReturnResourcesFromInstanaAPI(t *testing.T) {
 
 		require.NotNil(t, resource)
 	})
+	t.Run("Should return Synthetic test instance", func(t *testing.T) {
+		resource := api.SyntheticTest()
+
+		require.NotNil(t, resource)
+	})
+	t.Run("Should return Synthetic location instance", func(t *testing.T) {
+		resource := api.SyntheticLocation()
+
+		require.NotNil(t, resource)
+	})
+
 }

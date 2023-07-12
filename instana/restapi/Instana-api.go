@@ -15,9 +15,15 @@ const (
 	RBACSettingsBasePath = SettingsBasePath + "/rbac"
 	//WebsiteMonitoringResourcePath path to website monitoring
 	WebsiteMonitoringResourcePath = InstanaAPIBasePath + "/website-monitoring"
+	//SyntheticSettingsBasePath path to synthetic monitoring
+	SyntheticSettingsBasePath = InstanaAPIBasePath + "/synthetics" + settingsPathElement
+	//SyntheticTestResourcePath path to synthetic monitoring tests
+	SyntheticTestResourcePath = SyntheticSettingsBasePath + "/tests"
+	//SyntheticLocationResourcePath path to synthetic monitoring tests
+	SyntheticLocationResourcePath = SyntheticSettingsBasePath + "/locations"
 )
 
-//InstanaAPI is the interface to all resources of the Instana Rest API
+// InstanaAPI is the interface to all resources of the Instana Rest API
 type InstanaAPI interface {
 	CustomEventSpecifications() RestResource
 	BuiltinEventSpecifications() ReadOnlyRestResource
@@ -32,9 +38,11 @@ type InstanaAPI interface {
 	WebsiteAlertConfig() RestResource
 	Groups() RestResource
 	CustomDashboards() RestResource
+	SyntheticTest() RestResource
+	SyntheticLocation() ReadOnlyRestResource
 }
 
-//NewInstanaAPI creates a new instance of the instana API
+// NewInstanaAPI creates a new instance of the instana API
 func NewInstanaAPI(apiToken string, endpoint string, skipTlsVerification bool) InstanaAPI {
 	client := NewClient(apiToken, endpoint, skipTlsVerification)
 	return &baseInstanaAPI{client: client}
@@ -44,42 +52,42 @@ type baseInstanaAPI struct {
 	client RestClient
 }
 
-//CustomEventSpecifications implementation of InstanaAPI interface
+// CustomEventSpecifications implementation of InstanaAPI interface
 func (api *baseInstanaAPI) CustomEventSpecifications() RestResource {
 	return NewCreatePUTUpdatePUTRestResource(CustomEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&CustomEventSpecification{}), api.client)
 }
 
-//BuiltinEventSpecifications implementation of InstanaAPI interface
+// BuiltinEventSpecifications implementation of InstanaAPI interface
 func (api *baseInstanaAPI) BuiltinEventSpecifications() ReadOnlyRestResource {
 	return NewReadOnlyRestResource(BuiltinEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&BuiltinEventSpecification{}), NewDefaultJSONUnmarshaller(&[]BuiltinEventSpecification{}), api.client)
 }
 
-//APITokens implementation of InstanaAPI interface
+// APITokens implementation of InstanaAPI interface
 func (api *baseInstanaAPI) APITokens() RestResource {
 	return NewCreatePOSTUpdatePUTRestResource(APITokensResourcePath, NewDefaultJSONUnmarshaller(&APIToken{}), api.client)
 }
 
-//ApplicationConfigs implementation of InstanaAPI interface
+// ApplicationConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) ApplicationConfigs() RestResource {
 	return NewCreatePUTUpdatePUTRestResource(ApplicationConfigsResourcePath, NewApplicationConfigUnmarshaller(), api.client)
 }
 
-//ApplicationAlertConfigs implementation of InstanaAPI interface
+// ApplicationAlertConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) ApplicationAlertConfigs() RestResource {
 	return NewCreatePOSTUpdatePOSTRestResource(ApplicationAlertConfigsResourcePath, NewApplicationAlertConfigUnmarshaller(), api.client)
 }
 
-//GlobalApplicationAlertConfigs implementation of InstanaAPI interface
+// GlobalApplicationAlertConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) GlobalApplicationAlertConfigs() RestResource {
 	return NewCreatePOSTUpdatePOSTRestResource(GlobalApplicationAlertConfigsResourcePath, NewApplicationAlertConfigUnmarshaller(), api.client)
 }
 
-//AlertingChannels implementation of InstanaAPI interface
+// AlertingChannels implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingChannels() RestResource {
 	return NewCreatePUTUpdatePUTRestResource(AlertingChannelsResourcePath, NewDefaultJSONUnmarshaller(&AlertingChannel{}), api.client)
 }
 
-//AlertingConfigurations implementation of InstanaAPI interface
+// AlertingConfigurations implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingConfigurations() RestResource {
 	return NewCreatePUTUpdatePUTRestResource(AlertsResourcePath, NewDefaultJSONUnmarshaller(&AlertingConfiguration{}), api.client)
 }
@@ -102,4 +110,13 @@ func (api *baseInstanaAPI) Groups() RestResource {
 
 func (api *baseInstanaAPI) CustomDashboards() RestResource {
 	return NewCreatePOSTUpdatePUTRestResource(CustomDashboardsResourcePath, NewDefaultJSONUnmarshaller(&CustomDashboard{}), api.client)
+}
+
+func (api *baseInstanaAPI) SyntheticTest() RestResource {
+	return NewSyntheticTestRestResource(NewDefaultJSONUnmarshaller(&SyntheticTest{}), api.client)
+}
+
+// BuiltinEventSpecifications implementation of InstanaAPI interface
+func (api *baseInstanaAPI) SyntheticLocation() ReadOnlyRestResource {
+	return NewReadOnlyRestResource(SyntheticLocationResourcePath, NewDefaultJSONUnmarshaller(&SyntheticLocation{}), NewDefaultJSONUnmarshaller(&[]SyntheticLocation{}), api.client)
 }
