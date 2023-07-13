@@ -19,6 +19,9 @@ func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing
 	server.Start()
 	defer server.Close()
 
+	assert.LessOrEqual(t, server.GetPort(), testutils.MaxPortNumber)
+	assert.GreaterOrEqual(t, server.GetPort(), testutils.MinPortNumber)
+
 	url := fmt.Sprintf("https://localhost:%d%s", server.GetPort(), path)
 	testString := "test string"
 
@@ -36,11 +39,4 @@ func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing
 	responseString := string(responseBytes)
 
 	assert.Equal(t, testString, responseString)
-}
-
-func TestShouldCreateRandomPortNumber(t *testing.T) {
-	result := testutils.RandomPort()
-
-	assert.LessOrEqual(t, result, testutils.MaxPortNumber)
-	assert.GreaterOrEqual(t, result, testutils.MinPortNumber)
 }

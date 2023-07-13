@@ -2,10 +2,13 @@ package testutils
 
 import (
 	"bytes"
+	crand "crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
+	rand "math/rand"
+	"net"
 	"net/http"
 	"time"
 
@@ -15,8 +18,8 @@ import (
 const contentTypeHeaderName = "Content-Type"
 const healthPath = "/health"
 
-//EchoHandlerFunc is a handler function for the TestHTTPServer which echos the request
-//with a http status code 200
+// EchoHandlerFunc is a handler function for the TestHTTPServer which echos the request
+// with a http status code 200
 func EchoHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -29,38 +32,30 @@ func EchoHandlerFunc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//healthFunc is a handler function which is registered on path /health to check if server
-//is running
+// healthFunc is a handler function which is registered on path /health to check if server
+// is running
 func healthFunc(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	r.Write(bytes.NewBufferString("OK"))
 }
 
-//NewTestHTTPServer create and starts a new TestHTTPServer on random port
+// NewTestHTTPServer create and starts a new TestHTTPServer on random port
 func NewTestHTTPServer() TestHTTPServer {
 	router := mux.NewRouter()
 	router.HandleFunc(healthPath, healthFunc)
 	return &testHTTPServerImpl{
 		router:      router,
-		port:        RandomPort(),
 		callCounter: make(map[string]int),
 	}
 }
 
-//MinPortNumber the minimum port number used by the http test server
+// MinPortNumber the minimum port number used by the http test server
 const MinPortNumber = 50000
 
-//MaxPortNumber the maximum port number used by the http test server
+// MaxPortNumber the maximum port number used by the http test server
 const MaxPortNumber = 59000
 
-//RandomPort creates a random port between 50000 and 59000
-func RandomPort() int {
-	randomSource := rand.NewSource(time.Now().UnixNano())
-	random := rand.New(randomSource)
-	return random.Intn(MaxPortNumber-MinPortNumber) + MinPortNumber
-}
-
-//TestHTTPServer simple helper to mock an http server for testing.
+// TestHTTPServer simple helper to mock an http server for testing.
 type TestHTTPServer interface {
 	GetPort() int
 	GetCallCount(method string, path string) int
@@ -73,17 +68,21 @@ type TestHTTPServer interface {
 
 type testHTTPServerImpl struct {
 	router      *mux.Router
-	port        int
+	port        *int
 	httpServer  *http.Server
 	callCounter map[string]int
 }
 
-//GetPort returns the dynamic server port
+// GetPort returns the dynamic server port
 func (server *testHTTPServerImpl) GetPort() int {
-	return server.port
+	if server.port == nil {
+		port := server.randomFreePort()
+		server.port = &port
+	}
+	return *server.port
 }
 
-//GetCallCount returns the call counter for the given method and path
+// GetCallCount returns the call counter for the given method and path
 func (server *testHTTPServerImpl) GetCallCount(method string, path string) int {
 	key := method + "_" + path
 	val, ok := server.callCounter[key]
@@ -93,7 +92,7 @@ func (server *testHTTPServerImpl) GetCallCount(method string, path string) int {
 	return val
 }
 
-//AddRoute adds a new route. Routes can only be added before the server was started
+// AddRoute adds a new route. Routes can only be added before the server was started
 func (server *testHTTPServerImpl) AddRoute(method string, path string, handlerFunc http.HandlerFunc) {
 	server.router.HandleFunc(path, server.wrapHandlerFunc(handlerFunc)).Methods(method)
 }
@@ -110,9 +109,9 @@ func (server *testHTTPServerImpl) wrapHandlerFunc(handlerFunc http.HandlerFunc) 
 	}
 }
 
-//Start starts the http service with the configured routes
+// Start starts the http service with the configured routes
 func (server *testHTTPServerImpl) Start() {
-	binding := fmt.Sprintf(":%d", server.port)
+	binding := fmt.Sprintf(":%d", server.GetPort())
 	srv := &http.Server{
 		Addr:    binding,
 		Handler: server.router,
@@ -126,13 +125,45 @@ func (server *testHTTPServerImpl) Start() {
 		certFile := fmt.Sprintf("%s/testutils/test-server.pem", rootFolder)
 		keyFile := fmt.Sprintf("%s/testutils/test-server.key", rootFolder)
 		if err := srv.ListenAndServeTLS(certFile, keyFile); err != http.ErrServerClosed {
-			log.Fatalf("ListenAndServeTLS(): %s", err)
+			log.Fatalf("Failed to start http server using binding %s: %s", binding, err)
 		}
 
 	}()
 	server.httpServer = srv
 
 	server.waitForServerAlive()
+}
+
+// RandomPort creates a random port between 50000 and 59000
+func (server *testHTTPServerImpl) randomFreePort() int {
+	maxAttempts := 5
+	attempt := 0
+	randomPort := server.randomPort()
+	for attempt < maxAttempts && server.isPortInUse(randomPort) {
+		attempt++
+		randomPort = server.randomPort()
+	}
+	return randomPort
+}
+
+func (server *testHTTPServerImpl) randomPort() int {
+	source := cryptoSource{}
+	random := rand.New(source)
+	return random.Intn(MaxPortNumber-MinPortNumber) + MinPortNumber
+}
+
+func (server *testHTTPServerImpl) isPortInUse(port int) bool {
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Printf("failed to bind port %d; %s", port, err)
+		return false
+	}
+	err = l.Close()
+	if err != nil {
+		log.Fatalf("Failed to close listener for port  %d; %s", port, err)
+		return false
+	}
+	return true
 }
 
 func (server *testHTTPServerImpl) waitForServerAlive() {
@@ -146,23 +177,39 @@ func (server *testHTTPServerImpl) waitForServerAlive() {
 	}
 }
 
-//Close stops the http listener
+// Close stops the http listener
 func (server *testHTTPServerImpl) Close() {
 	if server.httpServer != nil {
 		server.httpServer.Close()
 	}
 }
 
-//WriteInternalServerError Writes the provided error message as a response message and sets status code 501 - Internal Server Error with content type text/plain
+// WriteInternalServerError Writes the provided error message as a response message and sets status code 501 - Internal Server Error with content type text/plain
 func (server *testHTTPServerImpl) WriteInternalServerError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Header().Set(contentTypeHeaderName, "text/plain; charset=utf-8")
 	w.Write([]byte(err.Error()))
 }
 
-//WriteJSONResponse Writes the provided data with content type application/json and status code 200 OK to the ResponseWriter
+// WriteJSONResponse Writes the provided data with content type application/json and status code 200 OK to the ResponseWriter
 func (server *testHTTPServerImpl) WriteJSONResponse(w http.ResponseWriter, jsonData []byte) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set(contentTypeHeaderName, "application/json; charset=utf-8")
 	w.Write(jsonData)
+}
+
+type cryptoSource struct{}
+
+func (s cryptoSource) Seed(seed int64) {}
+
+func (s cryptoSource) Int63() int64 {
+	return int64(s.Uint64() & ^uint64(1<<63))
+}
+
+func (s cryptoSource) Uint64() (v uint64) {
+	err := binary.Read(crand.Reader, binary.BigEndian, &v)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return v
 }
