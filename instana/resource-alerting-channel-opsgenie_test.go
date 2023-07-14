@@ -51,7 +51,7 @@ func TestCRUDOfAlertingChannelOpsGenieResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createAlertingChannelOpsGenielResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingChannelOpsGenielResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelOpsGenieDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

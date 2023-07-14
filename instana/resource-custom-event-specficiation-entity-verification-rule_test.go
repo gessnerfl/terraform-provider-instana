@@ -80,7 +80,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 	})
 }
 
-func createCustomEventSpecificationWithEntityVerificationRuleResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createCustomEventSpecificationWithEntityVerificationRuleResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

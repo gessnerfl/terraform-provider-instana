@@ -2,12 +2,11 @@ package testutils
 
 import (
 	"bytes"
-	crand "crypto/rand"
-	"encoding/binary"
+	"crypto/rand"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
-	rand "math/rand"
+	"math/big"
 	"net"
 	"net/http"
 	"time"
@@ -21,14 +20,20 @@ const healthPath = "/health"
 // EchoHandlerFunc is a handler function for the TestHTTPServer which echos the request
 // with a http status code 200
 func EchoHandlerFunc(w http.ResponseWriter, r *http.Request) {
-	requestBody, err := ioutil.ReadAll(r.Body)
+	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		r.Write(bytes.NewBufferString("Failed to get request"))
+		err2 := r.Write(bytes.NewBufferString("Failed to get request"))
+		if err2 != nil {
+			log.Fatalf("failed to write error response; %s", err2)
+		}
 	} else {
 		w.Header().Set(contentTypeHeaderName, r.Header.Get(contentTypeHeaderName))
 		w.WriteHeader(http.StatusOK)
-		w.Write(requestBody)
+		_, err := w.Write(requestBody)
+		if err != nil {
+			log.Fatalf("failed to write response body; %s", err)
+		}
 	}
 }
 
@@ -36,7 +41,10 @@ func EchoHandlerFunc(w http.ResponseWriter, r *http.Request) {
 // is running
 func healthFunc(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	r.Write(bytes.NewBufferString("OK"))
+	err := r.Write(bytes.NewBufferString("OK"))
+	if err != nil {
+		log.Fatalf("failed to write health response; %s", err)
+	}
 }
 
 // NewTestHTTPServer create and starts a new TestHTTPServer on random port
@@ -50,14 +58,14 @@ func NewTestHTTPServer() TestHTTPServer {
 }
 
 // MinPortNumber the minimum port number used by the http test server
-const MinPortNumber = 50000
+const MinPortNumber = int64(10000)
 
 // MaxPortNumber the maximum port number used by the http test server
-const MaxPortNumber = 59000
+const MaxPortNumber = int64(50000)
 
 // TestHTTPServer simple helper to mock an http server for testing.
 type TestHTTPServer interface {
-	GetPort() int
+	GetPort() int64
 	GetCallCount(method string, path string) int
 	AddRoute(method string, path string, handlerFunc http.HandlerFunc)
 	Start()
@@ -68,13 +76,13 @@ type TestHTTPServer interface {
 
 type testHTTPServerImpl struct {
 	router      *mux.Router
-	port        *int
+	port        *int64
 	httpServer  *http.Server
 	callCounter map[string]int
 }
 
 // GetPort returns the dynamic server port
-func (server *testHTTPServerImpl) GetPort() int {
+func (server *testHTTPServerImpl) GetPort() int64 {
 	if server.port == nil {
 		port := server.randomFreePort()
 		server.port = &port
@@ -113,8 +121,9 @@ func (server *testHTTPServerImpl) wrapHandlerFunc(handlerFunc http.HandlerFunc) 
 func (server *testHTTPServerImpl) Start() {
 	binding := fmt.Sprintf(":%d", server.GetPort())
 	srv := &http.Server{
-		Addr:    binding,
-		Handler: server.router,
+		Addr:              binding,
+		Handler:           server.router,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 	go func() {
 		rootFolder, err := GetRootFolder()
@@ -135,7 +144,7 @@ func (server *testHTTPServerImpl) Start() {
 }
 
 // RandomPort creates a random port between 50000 and 59000
-func (server *testHTTPServerImpl) randomFreePort() int {
+func (server *testHTTPServerImpl) randomFreePort() int64 {
 	maxAttempts := 5
 	attempt := 0
 	randomPort := server.randomPort()
@@ -146,13 +155,17 @@ func (server *testHTTPServerImpl) randomFreePort() int {
 	return randomPort
 }
 
-func (server *testHTTPServerImpl) randomPort() int {
-	source := cryptoSource{}
-	random := rand.New(source)
-	return random.Intn(MaxPortNumber-MinPortNumber) + MinPortNumber
+func (server *testHTTPServerImpl) randomPort() int64 {
+	random, err := rand.Int(rand.Reader, big.NewInt(MaxPortNumber-MinPortNumber))
+	if err != nil {
+		log.Fatalf("Failed to generate random number; %s", err)
+		return MaxPortNumber - 100
+	}
+
+	return random.Int64() + MinPortNumber
 }
 
-func (server *testHTTPServerImpl) isPortInUse(port int) bool {
+func (server *testHTTPServerImpl) isPortInUse(port int64) bool {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Printf("failed to bind port %d; %s", port, err)
@@ -180,7 +193,10 @@ func (server *testHTTPServerImpl) waitForServerAlive() {
 // Close stops the http listener
 func (server *testHTTPServerImpl) Close() {
 	if server.httpServer != nil {
-		server.httpServer.Close()
+		err := server.httpServer.Close()
+		if err != nil {
+			log.Fatalf("failed to close http server; %s", err)
+		}
 	}
 }
 
@@ -188,28 +204,18 @@ func (server *testHTTPServerImpl) Close() {
 func (server *testHTTPServerImpl) WriteInternalServerError(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
 	w.Header().Set(contentTypeHeaderName, "text/plain; charset=utf-8")
-	w.Write([]byte(err.Error()))
+	_, err2 := w.Write([]byte(err.Error()))
+	if err2 != nil {
+		log.Fatalf("failed to write internal server error; %s", err2)
+	}
 }
 
 // WriteJSONResponse Writes the provided data with content type application/json and status code 200 OK to the ResponseWriter
 func (server *testHTTPServerImpl) WriteJSONResponse(w http.ResponseWriter, jsonData []byte) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set(contentTypeHeaderName, "application/json; charset=utf-8")
-	w.Write(jsonData)
-}
-
-type cryptoSource struct{}
-
-func (s cryptoSource) Seed(seed int64) {}
-
-func (s cryptoSource) Int63() int64 {
-	return int64(s.Uint64() & ^uint64(1<<63))
-}
-
-func (s cryptoSource) Uint64() (v uint64) {
-	err := binary.Read(crand.Reader, binary.BigEndian, &v)
+	_, err := w.Write(jsonData)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to json repsonse; %s", err)
 	}
-	return v
 }

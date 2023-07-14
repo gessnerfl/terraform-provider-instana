@@ -48,7 +48,7 @@ func TestCRUDOfAlertingChannelSplunkResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createAlertingChannelSplunkResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingChannelSplunkResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelSplunkDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

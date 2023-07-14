@@ -46,7 +46,7 @@ func TestCRUDOfAlertingChannelPagerDutyResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createAlertingChannelPagerDutyResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingChannelPagerDutyResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelPagerDutyDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

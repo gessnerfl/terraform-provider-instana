@@ -78,14 +78,14 @@ func (s *websiteMonitoringConfigTestServer) Start() {
 	s.httpServer.Start()
 }
 
-func (s *websiteMonitoringConfigTestServer) GetPort() int {
+func (s *websiteMonitoringConfigTestServer) GetPort() int64 {
 	if s.httpServer != nil {
 		return s.httpServer.GetPort()
 	}
 	return -1
 }
 
-//GetCallCount returns the call counter for the given method and path
+// GetCallCount returns the call counter for the given method and path
 func (s *websiteMonitoringConfigTestServer) GetCallCount(method string, path string) int {
 	if s.httpServer != nil {
 		return s.httpServer.GetCallCount(method, path)

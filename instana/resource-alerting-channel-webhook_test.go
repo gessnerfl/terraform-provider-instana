@@ -53,7 +53,7 @@ func TestCRUDOfAlertingChannelWebhookResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createAlertingChannelWebhookResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingChannelWebhookResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelWebhookDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

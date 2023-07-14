@@ -53,7 +53,7 @@ func TestCRUDOfAlertingChannelSlackResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createAlertingChannelSlackResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingChannelSlackResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelSlackDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

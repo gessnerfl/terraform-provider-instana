@@ -55,7 +55,7 @@ func TestCRUDOfAlertingChannelWebhookBasedResourceWithMockServer(t *testing.T) {
 	}
 }
 
-func createAlertingChannelWebhookBasedResourceTestStep(resourceDefinition string, httpPort int, iteration int, channelType restapi.AlertingChannelType) resource.TestStep {
+func createAlertingChannelWebhookBasedResourceTestStep(resourceDefinition string, httpPort int64, iteration int, channelType restapi.AlertingChannelType) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelWebhookBasedDefinitionTemplate, strings.ToLower(string(channelType)), iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

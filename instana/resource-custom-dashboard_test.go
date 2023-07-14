@@ -208,7 +208,7 @@ func (test *customDashboardResourceTest) createIntegrationTest() func(t *testing
 	}
 }
 
-func (test *customDashboardResourceTest) createIntegrationTestStep(httpPort int, iteration int, id string) resource.TestStep {
+func (test *customDashboardResourceTest) createIntegrationTestStep(httpPort int64, iteration int, id string) resource.TestStep {
 	widgetsDefinition := utils.RemoveNewLinesAndTabs(customDashboardWidgetsJson)
 	resourceConfig := fmt.Sprintf(strings.ReplaceAll(customDashboardResourceTemplate, "__WIDGETS__", strings.ReplaceAll(widgetsDefinition, "\"", "\\\"")), iteration)
 	normalizedWidgetsDefinition := NormalizeJSONString(widgetsDefinition)

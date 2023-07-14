@@ -70,7 +70,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 	})
 }
 
-func createCustomEventSpecificationWithSystemRuleResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createCustomEventSpecificationWithSystemRuleResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceCustomEventSpecificationWithSystemRuleDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

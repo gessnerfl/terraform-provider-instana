@@ -87,7 +87,7 @@ func TestCRUDOfSliConfiguration(t *testing.T) {
 	})
 }
 
-func createSliConfigTestCheckFunctions(httpPort int, iteration int) resource.TestStep {
+func createSliConfigTestCheckFunctions(httpPort int64, iteration int) resource.TestStep {
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(sliConfigTerraformTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(

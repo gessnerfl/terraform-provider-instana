@@ -22,7 +22,7 @@ resource "instana_application_config" "example" {
 }
 `
 
-//Important if a match specification is provided the corresponding tag filter is also available.
+// Important if a match specification is provided the corresponding tag filter is also available.
 const serverResponseWithMatchSpecificationTemplate = `
 {
 	"id" : "%s",
@@ -107,7 +107,7 @@ resource "instana_application_config" "example" {
 }
 `
 
-//Important if a match specification is not provided only the tag filter will be available.
+// Important if a match specification is not provided only the tag filter will be available.
 const serverResponseWithTagFilterTemplate = `
 {
 	"id" : "%s",
@@ -205,7 +205,7 @@ func TestCRUDOfApplicationConfigWithMatchSpecificationResourceWithMockServer(t *
 	})
 }
 
-func createApplicationConfigWithMatchSpecificationResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createApplicationConfigWithMatchSpecificationResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceApplicationConfigWithMatchSpecificationDefinitionTemplate, iteration, defaultMatchSpecification), httpPort)
 	return resource.TestStep{
 		Config: config,
@@ -237,7 +237,7 @@ func TestCRUDOfApplicationConfigWithTagFilterResourceWithMockServer(t *testing.T
 	})
 }
 
-func createApplicationConfigWithTagFilterResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createApplicationConfigWithTagFilterResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceApplicationConfigWithTagFilterDefinitionTemplate, iteration, defaultTagFilter), httpPort)
 	return resource.TestStep{
 		Config: config,

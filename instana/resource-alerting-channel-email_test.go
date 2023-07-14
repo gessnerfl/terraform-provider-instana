@@ -49,7 +49,7 @@ func TestCRUDOfAlertingChannelEmailResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createAlertingChannelEmailResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingChannelEmailResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelEmailDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

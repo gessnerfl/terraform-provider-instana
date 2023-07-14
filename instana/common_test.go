@@ -2,6 +2,7 @@ package instana_test
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
@@ -29,7 +30,7 @@ var testProviderFactory = map[string]func() (*schema.Provider, error){
 	"instana": func() (*schema.Provider, error) { return Provider(), nil },
 }
 
-func appendProviderConfig(resourceConfig string, serverPort int) string {
+func appendProviderConfig(resourceConfig string, serverPort int64) string {
 	return fmt.Sprintf(providerConfig, serverPort) + " \n\n" + resourceConfig
 }
 
@@ -48,7 +49,10 @@ func createMockHttpServerForResource(resourcePath string, responseTemplate strin
 		}
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
+		_, err := w.Write([]byte(json))
+		if err != nil {
+			log.Fatalf("failed to write response: %s", err)
+		}
 	}
 	httpServer.AddRoute(http.MethodPut, pathTemplate, responseHandler)
 	httpServer.AddRoute(http.MethodDelete, pathTemplate, responseHandler)

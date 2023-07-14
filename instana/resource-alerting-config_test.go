@@ -75,7 +75,7 @@ func TestCRUDOfAlertingConfigurationWithRuleIds(t *testing.T) {
 	})
 }
 
-func createAlertingConfigWithRuleIdResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingConfigWithRuleIdResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithRuleIds, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
@@ -103,7 +103,7 @@ func TestCRUDOfAlertingConfigurationWithEventTypes(t *testing.T) {
 	})
 }
 
-func createAlertingConfigWithEventTypesIdResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingConfigWithEventTypesIdResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingConfigTerraformTemplateWithEventTypes, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,

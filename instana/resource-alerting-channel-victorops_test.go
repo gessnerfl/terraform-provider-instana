@@ -50,7 +50,7 @@ func TestCRUDOfAlertingChannelVictorOpsResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createAlertingChannelVictorOpsResourceTestStep(httpPort int, iteration int) resource.TestStep {
+func createAlertingChannelVictorOpsResourceTestStep(httpPort int64, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceAlertingChannelVictorOpsDefinitionTemplate, iteration), httpPort)
 	return resource.TestStep{
 		Config: config,
