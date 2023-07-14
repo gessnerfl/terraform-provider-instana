@@ -21,6 +21,11 @@ jobs:
       with:
         go-version: '1.18.0'
 
+    - name: Set up gotestfmt
+      uses: gotesttools/gotestfmt-action@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Get version number
       id: get_version
       run: echo ::set-output name=VERSION::$(git describe --tags --match "v*" --always --dirty)
@@ -38,7 +43,7 @@ jobs:
     - name: Run testing
       run: |
         set -o pipefail
-        go test ./... -cover -coverprofile=coverage.out -json | tee unit-test-report.json
+        go test ./... -cover -coverprofile=coverage.out -json -v | tee unit-test-report.json | gotestfmt
         set +o pipefail
 
     - name: Run sonar
