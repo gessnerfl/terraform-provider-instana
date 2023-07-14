@@ -58,10 +58,10 @@ func NewTestHTTPServer() TestHTTPServer {
 }
 
 // MinPortNumber the minimum port number used by the http test server
-const MinPortNumber = int64(10000)
+const MinPortNumber = int64(50000)
 
 // MaxPortNumber the maximum port number used by the http test server
-const MaxPortNumber = int64(50000)
+const MaxPortNumber = int64(59000)
 
 // TestHTTPServer simple helper to mock an http server for testing.
 type TestHTTPServer interface {
