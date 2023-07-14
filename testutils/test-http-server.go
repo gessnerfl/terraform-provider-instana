@@ -58,10 +58,10 @@ func NewTestHTTPServer() TestHTTPServer {
 }
 
 // MinPortNumber the minimum port number used by the http test server
-const MinPortNumber = int64(50000)
+const MinPortNumber = int64(20000)
 
 // MaxPortNumber the maximum port number used by the http test server
-const MaxPortNumber = int64(59000)
+const MaxPortNumber = int64(50000)
 
 // TestHTTPServer simple helper to mock an http server for testing.
 type TestHTTPServer interface {
@@ -149,6 +149,7 @@ func (server *testHTTPServerImpl) randomFreePort() int64 {
 	attempt := 0
 	randomPort := server.randomPort()
 	for attempt < maxAttempts && server.isPortInUse(randomPort) {
+		log.Printf("Port %d already in use, try with new port number", randomPort)
 		attempt++
 		randomPort = server.randomPort()
 	}
