@@ -60,9 +60,9 @@ provider "instana" {
 * `api_token` - Required - The API token which is created in the Settings area of Instana for remote access through 
 the REST API. You have to make sure that you assign the proper permissions for this token to configure the desired 
 resources with this provider. E.g. when User Roles should be provisioned by terraform using this provider implementation 
-then the permission 'Access role configuration' must be activated
-* `endpoint` - Required - The endpoint of the instana backend. For SaaS the endpoint URL has the pattern 
-`<tenant>-<organization>.instana.io`. For onPremise installation the endpoint URL depends on your local setup.
+then the permission 'Access role configuration' must be activated. (Defaults to the environment variable `INSTANA_API_TOKEN`).
+* `endpoint` - Required - The endpoint of the instana backend. For SaaS the endpoint URL has the pattern
+`<tenant>-<organization>.instana.io`. For onPremise installation the endpoint URL depends on your local setup. (Defaults to the environment variable `INSTANA_ENDPOINT`).
 * `default_name_prefix` - Optional - string will be added in front the resource UI name or label by default
 (not supported by all resources). For existing resources the string will only be added when the name/label is changed.
 * `default_name_suffix` - `Optional` - Default value " (TF managed)" - string will be appended to the resource UI name or 

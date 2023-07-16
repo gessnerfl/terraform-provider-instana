@@ -45,11 +45,13 @@ func providerSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Sensitive:   true,
 			Required:    true,
+			DefaultFunc: schema.EnvDefaultFunc("INSTANA_API_TOKEN", nil),
 			Description: "API token used to authenticate with the Instana Backend",
 		},
 		SchemaFieldEndpoint: {
 			Type:        schema.TypeString,
 			Required:    true,
+			DefaultFunc: schema.EnvDefaultFunc("INSTANA_ENDPOINT", nil),
 			Description: "The DNS Name of the Instana Endpoint (eg. saas-eu-west-1.instana.io)",
 		},
 		SchemaFieldDefaultNamePrefix: {
