@@ -43,7 +43,7 @@ jobs:
     - name: Run testing
       run: |
         set -o pipefail
-        go test ./... -cover -coverprofile=coverage.out -json -v | tee unit-test-report.json | gotestfmt
+        go test -json -v ./... -cover -coverprofile=coverage.out 2>&1 | tee unit-test-report.json | gotestfmt
         set +o pipefail
 
     - name: Run sonar
