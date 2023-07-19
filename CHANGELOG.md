@@ -1,12 +1,16 @@
 # Changelog
 
-## [Unreleased](https://github.com/gessnerfl/terraform-provider-instana/tree/HEAD)
+## [v1.6.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.6.1) (2023-07-19)
 
-[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.6.0...HEAD)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.6.0...v1.6.1)
 
 **Closed issues:**
 
 - Support to manage Synthetic endpoints [\#78](https://github.com/gessnerfl/terraform-provider-instana/issues/78)
+
+**Merged pull requests:**
+
+- Support env vars in provider [\#149](https://github.com/gessnerfl/terraform-provider-instana/pull/149) ([mzwennes](https://github.com/mzwennes))
 
 ## [v1.6.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.6.0) (2023-07-12)
 
