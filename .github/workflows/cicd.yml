@@ -42,9 +42,17 @@ jobs:
     
     - name: Run testing
       run: |
-        set -o pipefail
+        set -euo pipefail
         go test -json -v ./... -cover -coverprofile=coverage.out 2>&1 | tee unit-test-report.json | gotestfmt
-        set +o pipefail
+        set +euo pipefail
+
+    - name: Upload test log
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: unit-test-report
+        path: unit-test-report.json
+        if-no-files-found: error
 
     - name: Run sonar
       uses: sonarsource/sonarcloud-github-action@master
