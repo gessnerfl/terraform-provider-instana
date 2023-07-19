@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-//NewApplicationConfigUnmarshaller creates a new Unmarshaller instance for application configs
+// NewApplicationConfigUnmarshaller creates a new Unmarshaller instance for application configs
 func NewApplicationConfigUnmarshaller() JSONUnmarshaller {
 	return &applicationConfigUnmarshaller{
 		tagFilterUnmarshaller: NewTagFilterUnmarshaller(),
@@ -16,7 +16,7 @@ type applicationConfigUnmarshaller struct {
 	tagFilterUnmarshaller TagFilterUnmarshaller
 }
 
-//Unmarshal Unmarshaller interface implementation
+// Unmarshal Unmarshaller interface implementation
 func (u *applicationConfigUnmarshaller) Unmarshal(data []byte) (interface{}, error) {
 	var rawMatchSpecification json.RawMessage
 	var rawTagFilterExpression json.RawMessage
@@ -74,7 +74,7 @@ func (u *applicationConfigUnmarshaller) unmarshalBinaryOperator(raw json.RawMess
 		Right: &rightRaw,
 	}
 
-	json.Unmarshal(raw, &temp) //cannot fail as already successfully unmarshalled in unmarshalMatchSpecification
+	json.Unmarshal(raw, &temp) // NOSONAR: cannot fail as already successfully unmarshalled in unmarshalMatchSpecification
 	left, err := u.unmarshalMatchSpecification(leftRaw)
 	if err != nil {
 		return &BinaryOperator{}, err
@@ -94,6 +94,6 @@ func (u *applicationConfigUnmarshaller) unmarshalBinaryOperator(raw json.RawMess
 
 func (u *applicationConfigUnmarshaller) unmarshalTagMatcherExpression(raw json.RawMessage) (*TagMatcherExpression, error) {
 	data := TagMatcherExpression{}
-	json.Unmarshal(raw, &data) //cannot fail as already successfully unmarshalled in unmarshalMatchSpecification
+	json.Unmarshal(raw, &data) // NOSONAR: cannot fail as already successfully unmarshalled in unmarshalMatchSpecification
 	return &data, nil
 }

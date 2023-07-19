@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//ResourceMetaData the meta data of a terraform ResourceHandle
+// ResourceMetaData the meta data of a terraform ResourceHandle
 type ResourceMetaData struct {
 	ResourceName     string
 	Schema           map[string]*schema.Schema
@@ -18,7 +18,7 @@ type ResourceMetaData struct {
 	ResourceIDField  *string
 }
 
-//ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
+// ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
 type ResourceHandle interface {
 	//MetaData returns the meta data of this ResourceHandle
 	MetaData() *ResourceMetaData
@@ -35,14 +35,14 @@ type ResourceHandle interface {
 	SetComputedFields(d *schema.ResourceData)
 }
 
-//NewTerraformResource creates a new terraform resource for the given handle
+// NewTerraformResource creates a new terraform resource for the given handle
 func NewTerraformResource(handle ResourceHandle) TerraformResource {
 	return &terraformResourceImpl{
 		resourceHandle: handle,
 	}
 }
 
-//TerraformResource internal simplified representation of a Terraform resource
+// TerraformResource internal simplified representation of a Terraform resource
 type TerraformResource interface {
 	Create(d *schema.ResourceData, meta interface{}) error
 	Read(d *schema.ResourceData, meta interface{}) error
@@ -55,7 +55,7 @@ type terraformResourceImpl struct {
 	resourceHandle ResourceHandle
 }
 
-//Create defines the create operation for the terraform resource
+// Create defines the create operation for the terraform resource
 func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
@@ -73,11 +73,14 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	r.resourceHandle.UpdateState(d, createdObject, providerMeta.ResourceNameFormatter)
+	err = r.resourceHandle.UpdateState(d, createdObject, providerMeta.ResourceNameFormatter)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-//Read defines the read operation for the terraform resource
+// Read defines the read operation for the terraform resource
 func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
@@ -103,7 +106,7 @@ func (r *terraformResourceImpl) getResourceID(d *schema.ResourceData) string {
 	return d.Id()
 }
 
-//Update defines the update operation for the terraform resource
+// Update defines the update operation for the terraform resource
 func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
@@ -119,7 +122,7 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	return r.resourceHandle.UpdateState(d, updatedObject, providerMeta.ResourceNameFormatter)
 }
 
-//Delete defines the delete operation for the terraform resource
+// Delete defines the delete operation for the terraform resource
 func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//NewBuiltinEventDataSource creates a new DataSource for Builtin Events
+// NewBuiltinEventDataSource creates a new DataSource for Builtin Events
 func NewBuiltinEventDataSource() DataSource {
 	return &builtInEventDataSource{}
 }
@@ -34,7 +34,7 @@ const (
 
 type builtInEventDataSource struct{}
 
-//CreateResource creates the terraform Resource for the data source for Instana builtin events
+// CreateResource creates the terraform Resource for the data source for Instana builtin events
 func (ds *builtInEventDataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
 		Read: ds.read,
@@ -115,10 +115,10 @@ func (ds *builtInEventDataSource) updateState(d *schema.ResourceData, builtInEve
 		return err
 	}
 	d.SetId(builtInEvent.ID)
-	d.Set(BuiltinEventSpecificationFieldDescription, builtInEvent.Description)
-	d.Set(BuiltinEventSpecificationFieldSeverity, severity)
-	d.Set(BuiltinEventSpecificationFieldSeverityCode, builtInEvent.Severity)
-	d.Set(BuiltinEventSpecificationFieldTriggering, builtInEvent.Triggering)
-	d.Set(BuiltinEventSpecificationFieldEnabled, builtInEvent.Enabled)
+	_ = d.Set(BuiltinEventSpecificationFieldDescription, builtInEvent.Description)
+	_ = d.Set(BuiltinEventSpecificationFieldSeverity, severity)
+	_ = d.Set(BuiltinEventSpecificationFieldSeverityCode, builtInEvent.Severity)
+	_ = d.Set(BuiltinEventSpecificationFieldTriggering, builtInEvent.Triggering)
+	_ = d.Set(BuiltinEventSpecificationFieldEnabled, builtInEvent.Enabled)
 	return nil
 }

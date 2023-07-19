@@ -5,12 +5,12 @@ import (
 	"fmt"
 )
 
-//TagFilterUnmarshaller interface for the unmarshaller for TagFilterExpressions
+// TagFilterUnmarshaller interface for the unmarshaller for TagFilterExpressions
 type TagFilterUnmarshaller interface {
 	Unmarshal(raw json.RawMessage) (TagFilterExpressionElement, error)
 }
 
-//NewTagFilterUnmarshaller creates a new instance of TagFilterUnmarshaller
+// NewTagFilterUnmarshaller creates a new instance of TagFilterUnmarshaller
 func NewTagFilterUnmarshaller() TagFilterUnmarshaller {
 	return &tagFilterUnmarshaller{}
 }
@@ -44,7 +44,7 @@ func (u *tagFilterUnmarshaller) unmarshalTagFilterExpressionElement(raw json.Raw
 
 func (u *tagFilterUnmarshaller) unmarshalTagFilterExpression(raw json.RawMessage) (TagFilterExpressionElement, error) {
 	temp := tempTagFilterExpression{}
-	json.Unmarshal(raw, &temp) //cannot fail as already successfully unmarshalled in unmarshalTagFilterExpressionElement
+	json.Unmarshal(raw, &temp) // NOSONAR: cannot fail as already successfully unmarshalled in unmarshalTagFilterExpressionElement
 
 	elements := make([]TagFilterExpressionElement, len(temp.Elements))
 	for i, e := range temp.Elements {
@@ -63,7 +63,7 @@ func (u *tagFilterUnmarshaller) unmarshalTagFilterExpression(raw json.RawMessage
 
 func (u *tagFilterUnmarshaller) unmarshalTagFilter(raw json.RawMessage) TagFilterExpressionElement {
 	data := TagFilter{}
-	json.Unmarshal(raw, &data) //cannot fail as already successfully unmarshalled in unmarshalTagFilterExpressionElement
+	json.Unmarshal(raw, &data) // NOSONAR: cannot fail as already successfully unmarshalled in unmarshalTagFilterExpressionElement
 	return &data
 }
 
