@@ -167,17 +167,23 @@ func (server *testHTTPServerImpl) randomPort() int64 {
 }
 
 func (server *testHTTPServerImpl) isPortInUse(port int64) bool {
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	timeout := 5 * time.Second
+	target := fmt.Sprintf("localhost:%d", port)
+
+	conn, err := net.DialTimeout("tcp", target, timeout)
 	if err != nil {
-		log.Printf("failed to bind port %d; %s", port, err)
 		return false
 	}
-	err = l.Close()
-	if err != nil {
-		log.Fatalf("Failed to close listener for port  %d; %s", port, err)
-		return false
+
+	if conn != nil {
+		err = conn.Close()
+		if err != nil {
+			log.Fatalf("failed to connection to tcp port %d; %s", port, err)
+		}
+		return true
 	}
-	return true
+
+	return false
 }
 
 func (server *testHTTPServerImpl) waitForServerAlive() {
