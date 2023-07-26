@@ -32,6 +32,7 @@ type InstanaAPI interface {
 	ApplicationAlertConfigs() RestResource
 	GlobalApplicationAlertConfigs() RestResource
 	AlertingChannels() RestResource
+	AlertingChannelsDS() ReadOnlyRestResource
 	AlertingConfigurations() RestResource
 	SliConfigs() RestResource
 	WebsiteMonitoringConfig() RestResource
@@ -85,6 +86,11 @@ func (api *baseInstanaAPI) GlobalApplicationAlertConfigs() RestResource {
 // AlertingChannels implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingChannels() RestResource {
 	return NewCreatePUTUpdatePUTRestResource(AlertingChannelsResourcePath, NewDefaultJSONUnmarshaller(&AlertingChannel{}), api.client)
+}
+
+// AlertingChannelsDS read-only implementation of InstanaAPI interface
+func (api *baseInstanaAPI) AlertingChannelsDS() ReadOnlyRestResource {
+	return NewReadOnlyRestResource(AlertingChannelsResourcePath, NewDefaultJSONUnmarshaller(&AlertingChannel{}), NewDefaultJSONUnmarshaller(&[]AlertingChannel{}), api.client)
 }
 
 // AlertingConfigurations implementation of InstanaAPI interface
