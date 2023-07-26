@@ -132,65 +132,35 @@ func (r *AlertingChannel) Validate() error {
 }
 
 func (r *AlertingChannel) validateEmailIntegration() error {
-	if len(r.Emails) == 0 {
-		return errors.New("Email addresses are missing")
-	}
-	return nil
+	return acValidateList(r.Emails, "Email addresses are missing")
 }
 
 func (r *AlertingChannel) validateWebHookBasedIntegrations() error {
-	if r.WebhookURL == nil || utils.IsBlank(*r.WebhookURL) {
-		return errors.New("Webhook URL is missing")
-	}
-	return nil
+	return acValidateOpt(r.WebhookURL, "Webhook URL is missing")
 }
 
 func (r *AlertingChannel) validateOpsGenieIntegration() error {
-	if r.APIKey == nil || utils.IsBlank(*r.APIKey) {
-		return errors.New("API key is missing")
-	}
-	if r.Tags == nil || utils.IsBlank(*r.Tags) {
-		return errors.New("Tags are missing")
-	}
-	if r.Region == nil {
-		return errors.New("Region is missing")
-	}
-	if !IsSupportedOpsGenieRegionType(*r.Region) {
-		return fmt.Errorf("Region %s is not valid", *r.Region)
-	}
-	return nil
+	return acValidateOpsGenieIntegration(r.APIKey, r.Tags, r.Region)
 }
 
 func (r *AlertingChannel) validatePagerDutyIntegration() error {
-	if r.ServiceIntegrationKey == nil || utils.IsBlank(*r.ServiceIntegrationKey) {
-		return errors.New("Service integration key is missing")
-	}
-	return nil
+	return acValidateOpt(r.ServiceIntegrationKey, "Service integration key is missing")
 }
 
 func (r *AlertingChannel) validateSplunkIntegration() error {
-	if r.URL == nil || utils.IsBlank(*r.URL) {
-		return errors.New("URL is missing")
-	}
-	if r.Token == nil || utils.IsBlank(*r.Token) {
-		return errors.New("Token is missing")
-	}
-	return nil
+	m := make(map[string]*string)
+	m["URL is missing"] = r.URL
+	m["Token is missing"] = r.Token
+	return acValidateOpts(m)
 }
 
 func (r *AlertingChannel) validateVictorOpsIntegration() error {
-	if r.APIKey == nil || utils.IsBlank(*r.APIKey) {
-		return errors.New("API Key is missing")
-	}
-	if r.RoutingKey == nil || utils.IsBlank(*r.RoutingKey) {
-		return errors.New("Routing Key is missing")
-	}
-	return nil
+	m := make(map[string]*string)
+	m["API Key is missing"] = r.APIKey
+	m["Routing Key is missing"] = r.RoutingKey
+	return acValidateOpts(m)
 }
 
 func (r *AlertingChannel) validateGenericWebHookIntegration() error {
-	if len(r.WebhookURLs) == 0 {
-		return errors.New("Webhook URLs are missing")
-	}
-	return nil
+	return acValidateList(r.WebhookURLs, "Webhook URLs are missing")
 }
