@@ -9,22 +9,26 @@ import (
 )
 
 func TestShouldReturnIDOfAlteringChannelDS(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   EmailChannelType,
-		Emails: []string{email1FieldValue, email2FieldValue},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   EmailChannelType,
+			Emails: []string{email1FieldValue, email2FieldValue},
+		},
 	}
 
 	assert.Equal(t, idFieldValue, alertingChannel.GetIDForResourcePath())
 }
 
 func TestShouldSuccussullyValidateConsistentEmailAlteringChannelDS(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   EmailChannelType,
-		Emails: []string{email1FieldValue, email2FieldValue},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   EmailChannelType,
+			Emails: []string{email1FieldValue, email2FieldValue},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -32,10 +36,12 @@ func TestShouldSuccussullyValidateConsistentEmailAlteringChannelDS(t *testing.T)
 }
 
 func TestShouldFailToValidateAlteringChannelDSWhenIdIsMissing(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		Name:   nameFieldValue,
-		Kind:   EmailChannelType,
-		Emails: []string{email1FieldValue, email2FieldValue},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			Name:   nameFieldValue,
+			Kind:   EmailChannelType,
+			Emails: []string{email1FieldValue, email2FieldValue},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -45,11 +51,13 @@ func TestShouldFailToValidateAlteringChannelDSWhenIdIsMissing(t *testing.T) {
 }
 
 func TestShouldFailToValidateAlteringChannelDSWhenIdIsBlank(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:     " ",
-		Name:   nameFieldValue,
-		Kind:   EmailChannelType,
-		Emails: []string{email1FieldValue, email2FieldValue},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     " ",
+			Name:   nameFieldValue,
+			Kind:   EmailChannelType,
+			Emails: []string{email1FieldValue, email2FieldValue},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -59,10 +67,12 @@ func TestShouldFailToValidateAlteringChannelDSWhenIdIsBlank(t *testing.T) {
 }
 
 func TestShouldFailToValidateAlteringChannelDSWhenNameIsMissing(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Kind:   EmailChannelType,
-		Emails: []string{email1FieldValue, email2FieldValue},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Kind:   EmailChannelType,
+			Emails: []string{email1FieldValue, email2FieldValue},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -73,11 +83,13 @@ func TestShouldFailToValidateAlteringChannelDSWhenNameIsMissing(t *testing.T) {
 
 func TestShouldFailToValidateAlteringChannelDSWhenNameIsBlank(t *testing.T) {
 	name := " "
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Kind:   EmailChannelType,
-		Name:   name,
-		Emails: []string{email1FieldValue, email2FieldValue},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Kind:   EmailChannelType,
+			Name:   name,
+			Emails: []string{email1FieldValue, email2FieldValue},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -87,10 +99,12 @@ func TestShouldFailToValidateAlteringChannelDSWhenNameIsBlank(t *testing.T) {
 }
 
 func TestShouldFailToValidateAlteringChannelDSWhenKindIsMissing(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Emails: []string{email1FieldValue, email2FieldValue},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Emails: []string{email1FieldValue, email2FieldValue},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -100,11 +114,13 @@ func TestShouldFailToValidateAlteringChannelDSWhenKindIsMissing(t *testing.T) {
 }
 
 func TestShouldFailToValidateAlteringChannelDSWhenKindIsNotValid(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   AlertingChannelType("invalid"),
-		Emails: []string{email1FieldValue, email2FieldValue},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   AlertingChannelType("invalid"),
+			Emails: []string{email1FieldValue, email2FieldValue},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -113,11 +129,13 @@ func TestShouldFailToValidateAlteringChannelDSWhenKindIsNotValid(t *testing.T) {
 	assert.Contains(t, err.Error(), "unsupported alerting channel type")
 }
 func TestShouldFailToValidateEmailAlteringChannelDSWhenNoEmailIsProvided(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   EmailChannelType,
-		Emails: []string{},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   EmailChannelType,
+			Emails: []string{},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -130,11 +148,13 @@ func TestShouldSuccussullyValidateConsistentWebhhokBasedAlteringChannelDS(t *tes
 	for _, channelType := range []AlertingChannelType{GoogleChatChannelType, Office365ChannelType, SlackChannelType} {
 		t.Run(fmt.Sprintf("TestShouldSuccussullyValidateConsistentWebhhokBasedAlteringChannelDS%s", channelType), func(t *testing.T) {
 			webhookURL := "https://my-webhook.example.com"
-			alertingChannel := AlertingChannel{
-				ID:         idFieldValue,
-				Name:       nameFieldValue,
-				Kind:       channelType,
-				WebhookURL: &webhookURL,
+			alertingChannel := AlertingChannelDS{
+				AlertingChannel{
+					ID:         idFieldValue,
+					Name:       nameFieldValue,
+					Kind:       channelType,
+					WebhookURL: &webhookURL,
+				},
 			}
 
 			err := alertingChannel.Validate()
@@ -147,10 +167,12 @@ func TestShouldSuccussullyValidateConsistentWebhhokBasedAlteringChannelDS(t *tes
 func TestShouldFailToValidateWebhhokBasedAlteringChannelDSWhenWebhookUrlIsMissing(t *testing.T) {
 	for _, channelType := range []AlertingChannelType{GoogleChatChannelType, Office365ChannelType, SlackChannelType} {
 		t.Run(fmt.Sprintf("TestShouldFailToValidateWebhhokBasedAlteringChannelDS%sWhenWebhookUrlIsMissing", channelType), func(t *testing.T) {
-			alertingChannel := AlertingChannel{
-				ID:   idFieldValue,
-				Name: nameFieldValue,
-				Kind: channelType,
+			alertingChannel := AlertingChannelDS{
+				AlertingChannel{
+					ID:   idFieldValue,
+					Name: nameFieldValue,
+					Kind: channelType,
+				},
 			}
 
 			err := alertingChannel.Validate()
@@ -165,11 +187,13 @@ func TestShouldFailToValidateWebhhokBasedAlteringChannelDSWhenWebhookUrlIsBlank(
 	for _, channelType := range []AlertingChannelType{GoogleChatChannelType, Office365ChannelType, SlackChannelType} {
 		t.Run(fmt.Sprintf("TestShouldFailToValidateWebhhokBasedAlteringChannelDS%sWhenWebhookUrlIsBlank", channelType), func(t *testing.T) {
 			webhookURL := " "
-			alertingChannel := AlertingChannel{
-				ID:         idFieldValue,
-				Name:       nameFieldValue,
-				Kind:       channelType,
-				WebhookURL: &webhookURL,
+			alertingChannel := AlertingChannelDS{
+				AlertingChannel{
+					ID:         idFieldValue,
+					Name:       nameFieldValue,
+					Kind:       channelType,
+					WebhookURL: &webhookURL,
+				},
 			}
 
 			err := alertingChannel.Validate()
@@ -185,13 +209,15 @@ func TestShouldSuccussullyValidateConsistentOpsGenieAlteringChannelDS(t *testing
 	region := EuOpsGenieRegion
 	tags := tagsFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   OpsGenieChannelType,
-		APIKey: &apiKey,
-		Region: &region,
-		Tags:   &tags,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   OpsGenieChannelType,
+			APIKey: &apiKey,
+			Region: &region,
+			Tags:   &tags,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -203,12 +229,14 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenApiKeyIsMissing(t *tes
 	region := EuOpsGenieRegion
 	tags := tagsFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   OpsGenieChannelType,
-		Region: &region,
-		Tags:   &tags,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   OpsGenieChannelType,
+			Region: &region,
+			Tags:   &tags,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -222,13 +250,15 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenApiKeyIsBlank(t *testi
 	tags := tagsFieldValue
 	apiKey := " "
 
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   OpsGenieChannelType,
-		APIKey: &apiKey,
-		Region: &region,
-		Tags:   &tags,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   OpsGenieChannelType,
+			APIKey: &apiKey,
+			Region: &region,
+			Tags:   &tags,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -241,12 +271,14 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenRegionIsMissing(t *tes
 	apiKey := apiKeyFieldValue
 	tags := tagsFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   OpsGenieChannelType,
-		APIKey: &apiKey,
-		Tags:   &tags,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   OpsGenieChannelType,
+			APIKey: &apiKey,
+			Tags:   &tags,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -260,13 +292,15 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenRegionIsNotValid(t *te
 	region := OpsGenieRegionType("Invalid")
 	tags := tagsFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   OpsGenieChannelType,
-		APIKey: &apiKey,
-		Region: &region,
-		Tags:   &tags,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   OpsGenieChannelType,
+			APIKey: &apiKey,
+			Region: &region,
+			Tags:   &tags,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -279,12 +313,14 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenTagsAreMissing(t *test
 	apiKey := apiKeyFieldValue
 	region := EuOpsGenieRegion
 
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   OpsGenieChannelType,
-		APIKey: &apiKey,
-		Region: &region,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   OpsGenieChannelType,
+			APIKey: &apiKey,
+			Region: &region,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -298,13 +334,15 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenTagsAreBlank(t *testin
 	region := EuOpsGenieRegion
 	tags := " "
 
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   OpsGenieChannelType,
-		APIKey: &apiKey,
-		Region: &region,
-		Tags:   &tags,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   OpsGenieChannelType,
+			APIKey: &apiKey,
+			Region: &region,
+			Tags:   &tags,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -316,11 +354,13 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenTagsAreBlank(t *testin
 func TestShouldSuccussullyValidateConsistentPagerDutyAlteringChannelDS(t *testing.T) {
 	integrationId := serviceIntegrationKeyFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:                    idFieldValue,
-		Name:                  nameFieldValue,
-		Kind:                  PagerDutyChannelType,
-		ServiceIntegrationKey: &integrationId,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:                    idFieldValue,
+			Name:                  nameFieldValue,
+			Kind:                  PagerDutyChannelType,
+			ServiceIntegrationKey: &integrationId,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -329,10 +369,12 @@ func TestShouldSuccussullyValidateConsistentPagerDutyAlteringChannelDS(t *testin
 }
 
 func TestShouldFailToValidatePagerDutyAlteringChannelDSWhenServiceIntegrationKeyIsMissing(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:   idFieldValue,
-		Name: nameFieldValue,
-		Kind: PagerDutyChannelType,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:   idFieldValue,
+			Name: nameFieldValue,
+			Kind: PagerDutyChannelType,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -344,11 +386,13 @@ func TestShouldFailToValidatePagerDutyAlteringChannelDSWhenServiceIntegrationKey
 func TestShouldFailToValidatePagerdutyAlteringChannelDSWhenServiceIntegrationKeyIsBlank(t *testing.T) {
 	integrationId := "  "
 
-	alertingChannel := AlertingChannel{
-		ID:                    idFieldValue,
-		Name:                  nameFieldValue,
-		Kind:                  PagerDutyChannelType,
-		ServiceIntegrationKey: &integrationId,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:                    idFieldValue,
+			Name:                  nameFieldValue,
+			Kind:                  PagerDutyChannelType,
+			ServiceIntegrationKey: &integrationId,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -361,12 +405,14 @@ func TestShouldSuccussullyValidateConsistentSplunkAlteringChannelDS(t *testing.T
 	url := urlFieldValue
 	token := tokenFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:    idFieldValue,
-		Name:  nameFieldValue,
-		Kind:  SplunkChannelType,
-		URL:   &url,
-		Token: &token,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:    idFieldValue,
+			Name:  nameFieldValue,
+			Kind:  SplunkChannelType,
+			URL:   &url,
+			Token: &token,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -377,11 +423,13 @@ func TestShouldSuccussullyValidateConsistentSplunkAlteringChannelDS(t *testing.T
 func TestShouldFailToValidateSplunkAlteringChannelDSWhenUrlIsMissing(t *testing.T) {
 	token := tokenFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:    idFieldValue,
-		Name:  nameFieldValue,
-		Kind:  SplunkChannelType,
-		Token: &token,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:    idFieldValue,
+			Name:  nameFieldValue,
+			Kind:  SplunkChannelType,
+			Token: &token,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -394,12 +442,14 @@ func TestShouldFailToValidateSplunkAlteringChannelDSWhenUrlIsBlank(t *testing.T)
 	url := " "
 	token := tokenFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:    idFieldValue,
-		Name:  nameFieldValue,
-		Kind:  SplunkChannelType,
-		URL:   &url,
-		Token: &token,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:    idFieldValue,
+			Name:  nameFieldValue,
+			Kind:  SplunkChannelType,
+			URL:   &url,
+			Token: &token,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -411,11 +461,13 @@ func TestShouldFailToValidateSplunkAlteringChannelDSWhenUrlIsBlank(t *testing.T)
 func TestShouldFailToValidateSplunkAlteringChannelDSWhenTokenIsMissing(t *testing.T) {
 	url := urlFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:   idFieldValue,
-		Name: nameFieldValue,
-		Kind: SplunkChannelType,
-		URL:  &url,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:   idFieldValue,
+			Name: nameFieldValue,
+			Kind: SplunkChannelType,
+			URL:  &url,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -428,12 +480,14 @@ func TestShouldFailToValidateSplunkAlteringChannelDSWhenTokenIsBlank(t *testing.
 	url := urlFieldValue
 	token := " "
 
-	alertingChannel := AlertingChannel{
-		ID:    idFieldValue,
-		Name:  nameFieldValue,
-		Kind:  SplunkChannelType,
-		URL:   &url,
-		Token: &token,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:    idFieldValue,
+			Name:  nameFieldValue,
+			Kind:  SplunkChannelType,
+			URL:   &url,
+			Token: &token,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -446,12 +500,14 @@ func TestShouldSuccussullyValidateConsistentVictorOpsAlteringChannelDS(t *testin
 	apiKey := apiKeyFieldValue
 	routingKey := routingKeyFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:         idFieldValue,
-		Name:       nameFieldValue,
-		Kind:       VictorOpsChannelType,
-		APIKey:     &apiKey,
-		RoutingKey: &routingKey,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:         idFieldValue,
+			Name:       nameFieldValue,
+			Kind:       VictorOpsChannelType,
+			APIKey:     &apiKey,
+			RoutingKey: &routingKey,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -462,11 +518,13 @@ func TestShouldSuccussullyValidateConsistentVictorOpsAlteringChannelDS(t *testin
 func TestShouldFailToValidateVictorOpsAlteringChannelDSWhenApiKeyIsMissing(t *testing.T) {
 	routingKey := routingKeyFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:         idFieldValue,
-		Name:       nameFieldValue,
-		Kind:       VictorOpsChannelType,
-		RoutingKey: &routingKey,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:         idFieldValue,
+			Name:       nameFieldValue,
+			Kind:       VictorOpsChannelType,
+			RoutingKey: &routingKey,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -479,12 +537,14 @@ func TestShouldFailToValidateVictorOpsAlteringChannelDSWhenApiKeyIsBlank(t *test
 	apiKey := " "
 	routingKey := routingKeyFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:         idFieldValue,
-		Name:       nameFieldValue,
-		Kind:       VictorOpsChannelType,
-		APIKey:     &apiKey,
-		RoutingKey: &routingKey,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:         idFieldValue,
+			Name:       nameFieldValue,
+			Kind:       VictorOpsChannelType,
+			APIKey:     &apiKey,
+			RoutingKey: &routingKey,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -496,11 +556,13 @@ func TestShouldFailToValidateVictorOpsAlteringChannelDSWhenApiKeyIsBlank(t *test
 func TestShouldFailToValidateVictorOpsAlteringChannelDSWhenRoutingKeyIsMissing(t *testing.T) {
 	apiKey := apiKeyFieldValue
 
-	alertingChannel := AlertingChannel{
-		ID:     idFieldValue,
-		Name:   nameFieldValue,
-		Kind:   VictorOpsChannelType,
-		APIKey: &apiKey,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:     idFieldValue,
+			Name:   nameFieldValue,
+			Kind:   VictorOpsChannelType,
+			APIKey: &apiKey,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -513,12 +575,14 @@ func TestShouldFailToValidateVictorOpsAlteringChannelDSWhenRoutingKeyIsBlank(t *
 	apiKey := apiKeyFieldValue
 	routingKey := " "
 
-	alertingChannel := AlertingChannel{
-		ID:         idFieldValue,
-		Name:       nameFieldValue,
-		Kind:       VictorOpsChannelType,
-		APIKey:     &apiKey,
-		RoutingKey: &routingKey,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:         idFieldValue,
+			Name:       nameFieldValue,
+			Kind:       VictorOpsChannelType,
+			APIKey:     &apiKey,
+			RoutingKey: &routingKey,
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -528,11 +592,13 @@ func TestShouldFailToValidateVictorOpsAlteringChannelDSWhenRoutingKeyIsBlank(t *
 }
 
 func TestShouldSuccussullyValidateConsistentMinimalGenericWebhookAlteringChannelDS(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:          idFieldValue,
-		Name:        nameFieldValue,
-		Kind:        WebhookChannelType,
-		WebhookURLs: []string{"url"},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:          idFieldValue,
+			Name:        nameFieldValue,
+			Kind:        WebhookChannelType,
+			WebhookURLs: []string{"url"},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -541,12 +607,14 @@ func TestShouldSuccussullyValidateConsistentMinimalGenericWebhookAlteringChannel
 }
 
 func TestShouldSuccussullyValidateConsistentFullGenericWebhookAlteringChannelDS(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:          idFieldValue,
-		Name:        nameFieldValue,
-		Kind:        WebhookChannelType,
-		WebhookURLs: []string{"url1", "url2"},
-		Headers:     []string{"key1: value1", "key2: value2"},
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:          idFieldValue,
+			Name:        nameFieldValue,
+			Kind:        WebhookChannelType,
+			WebhookURLs: []string{"url1", "url2"},
+			Headers:     []string{"key1: value1", "key2: value2"},
+		},
 	}
 
 	err := alertingChannel.Validate()
@@ -555,10 +623,12 @@ func TestShouldSuccussullyValidateConsistentFullGenericWebhookAlteringChannelDS(
 }
 
 func TestShouldFailToValidateGenericWebhookAlteringChannelDSWhenNoWebhookUrlIsProvided(t *testing.T) {
-	alertingChannel := AlertingChannel{
-		ID:   idFieldValue,
-		Name: nameFieldValue,
-		Kind: WebhookChannelType,
+	alertingChannel := AlertingChannelDS{
+		AlertingChannel{
+			ID:   idFieldValue,
+			Name: nameFieldValue,
+			Kind: WebhookChannelType,
+		},
 	}
 
 	err := alertingChannel.Validate()
