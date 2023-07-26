@@ -7,10 +7,10 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
-//AlertingChannelsResourcePath path to Alerting channels resource of Instana RESTful API
+// AlertingChannelsResourcePath path to Alerting channels resource of Instana RESTful API
 const AlertingChannelsResourcePath = EventSettingsBasePath + "/alertingChannels"
 
-//AlertingChannelType type of the alerting channel
+// AlertingChannelType type of the alerting channel
 type AlertingChannelType string
 
 const (
@@ -34,7 +34,7 @@ const (
 	WebhookChannelType = AlertingChannelType("WEB_HOOK")
 )
 
-//SupportedAlertingChannels list of supported calerting channels of Instana API
+// SupportedAlertingChannels list of supported calerting channels of Instana API
 var SupportedAlertingChannels = []AlertingChannelType{
 	EmailChannelType,
 	GoogleChatChannelType,
@@ -47,7 +47,7 @@ var SupportedAlertingChannels = []AlertingChannelType{
 	WebhookChannelType,
 }
 
-//OpsGenieRegionType type of the OpsGenie region
+// OpsGenieRegionType type of the OpsGenie region
 type OpsGenieRegionType string
 
 const (
@@ -57,10 +57,10 @@ const (
 	UsOpsGenieRegion = OpsGenieRegionType("US")
 )
 
-//SupportedOpsGenieRegions list of supported OpsGenie regions of Instana API
+// SupportedOpsGenieRegions list of supported OpsGenie regions of Instana API
 var SupportedOpsGenieRegions = []OpsGenieRegionType{EuOpsGenieRegion, UsOpsGenieRegion}
 
-//IsSupportedOpsGenieRegionType checks if the given OpsGenie region is supported by Instana
+// IsSupportedOpsGenieRegionType checks if the given OpsGenie region is supported by Instana
 func IsSupportedOpsGenieRegionType(regionType OpsGenieRegionType) bool {
 	return isInOpsGenieRegionTypeSlice(SupportedOpsGenieRegions, regionType)
 }
@@ -74,7 +74,7 @@ func isInOpsGenieRegionTypeSlice(allRegionTypes []OpsGenieRegionType, regionType
 	return false
 }
 
-//AlertingChannel is the representation of an alerting channel in Instana
+// AlertingChannel is the representation of an alerting channel in Instana
 type AlertingChannel struct {
 	ID                    string              `json:"id"`
 	Name                  string              `json:"name"`
@@ -94,12 +94,12 @@ type AlertingChannel struct {
 	Headers               []string            `json:"headers"`
 }
 
-//GetIDForResourcePath implemention of the interface InstanaDataObject
+// GetIDForResourcePath implemention of the interface InstanaDataObject
 func (r *AlertingChannel) GetIDForResourcePath() string {
 	return r.ID
 }
 
-//Validate implementation of the interface InstanaDataObject to verify if data object is correct
+// Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (r *AlertingChannel) Validate() error {
 	if utils.IsBlank(r.ID) {
 		return errors.New("ID is missing")

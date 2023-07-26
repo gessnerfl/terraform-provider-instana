@@ -90,7 +90,7 @@ func (api *baseInstanaAPI) AlertingChannels() RestResource {
 
 // AlertingChannelsDS read-only implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingChannelsDS() ReadOnlyRestResource {
-	return NewReadOnlyRestResource(AlertingChannelsResourcePath, NewDefaultJSONUnmarshaller(&AlertingChannel{}), NewDefaultJSONUnmarshaller(&[]AlertingChannel{}), api.client)
+	return NewReadOnlyRestResource(AlertingChannelsResourcePath, NewDefaultJSONUnmarshaller(&AlertingChannelDS{}), NewDefaultJSONUnmarshaller(&[]AlertingChannelDS{}), api.client)
 }
 
 // AlertingConfigurations implementation of InstanaAPI interface
