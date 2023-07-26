@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// NewSyntheticLocationDataSource creates a new DataSource for Synthetic Locations
+// NewAlertingChannelGoogleChatDataSource creates a new DataSource for Google Chat alerting channel
 func NewAlertingChannelGoogleChatDataSource() DataSource {
 	return &alertingChannelGoogleChatDataSource{}
 }
@@ -16,7 +16,7 @@ const (
 
 type alertingChannelGoogleChatDataSource struct{}
 
-// CreateResource creates the resource handle Synthetic Locations
+// CreateResource creates the resource handle for Google Chat alerting channel
 func (ds *alertingChannelGoogleChatDataSource) CreateResource() *schema.Resource {
 	// unimplemented
 	return nil

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// NewSyntheticLocationDataSource creates a new DataSource for Synthetic Locations
+// NewAlertingChannelOffice365DataSource creates a new DataSource for Office 365 alerting channel
 func NewAlertingChannelOffice365DataSource() DataSource {
 	return &alertingChannelOffice365DataSource{}
 }
@@ -19,7 +19,7 @@ const (
 
 type alertingChannelOffice365DataSource struct{}
 
-// CreateResource creates the resource handle Synthetic Locations
+// CreateResource creates the resource handle for Office 365 alerting channel
 func (ds *alertingChannelOffice365DataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
 		Read: ds.read,
