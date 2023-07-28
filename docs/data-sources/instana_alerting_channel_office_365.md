@@ -14,7 +14,7 @@ data "instana_alerting_channel_office_365" "example" {
 
 ## Argument Reference
 
-* `name` - Required - the name of the alerting channel
+* `name` - Required - the name of the alerting channel. This is an exact string match and not a regex. Therefore it is case-sensitive.
 
 ## Attribute Reference
 
