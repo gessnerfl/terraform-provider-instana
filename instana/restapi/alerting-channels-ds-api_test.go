@@ -284,7 +284,7 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenRegionIsMissing(t *tes
 	err := alertingChannel.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Region")
+	assert.Contains(t, err.Error(), "region")
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenRegionIsNotValid(t *testing.T) {
@@ -306,7 +306,7 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenRegionIsNotValid(t *te
 	err := alertingChannel.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Region")
+	assert.Contains(t, err.Error(), "region")
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenTagsAreMissing(t *testing.T) {
@@ -326,7 +326,7 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenTagsAreMissing(t *test
 	err := alertingChannel.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Tags")
+	assert.Contains(t, err.Error(), "tags")
 }
 
 func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenTagsAreBlank(t *testing.T) {
@@ -348,7 +348,7 @@ func TestShouldFailToValidateOpsGenieAlteringChannelDSWhenTagsAreBlank(t *testin
 	err := alertingChannel.Validate()
 
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "Tags")
+	assert.Contains(t, err.Error(), "tags")
 }
 
 func TestShouldSuccussullyValidateConsistentPagerDutyAlteringChannelDS(t *testing.T) {
