@@ -83,7 +83,10 @@ func acValidateOpt(opt *string, err string) error {
 
 func acValidateOpts(opts map[string]*string) error {
 	for k, v := range opts {
-		return acValidateOpt(v, k)
+		err := acValidateOpt(v, k)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
