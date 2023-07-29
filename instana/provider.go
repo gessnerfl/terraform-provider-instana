@@ -125,8 +125,6 @@ func providerDataSources() map[string]*schema.Resource {
 	dataSources := make(map[string]*schema.Resource)
 	dataSources[DataSourceBuiltinEvent] = NewBuiltinEventDataSource().CreateResource()
 	dataSources[DataSourceSyntheticLocation] = NewSyntheticLocationDataSource().CreateResource()
-	// dataSources[DataSourceAlertingChannelWebhookBasedFieldWebhookURL] = NewAlertingChannelWebhookBasedFieldDataSource().CreateResource()
 	dataSources[DataSourceAlertingChannelOffice365] = NewAlertingChannelOffice365DataSource().CreateResource()
-	// dataSources[DataSourceAlertingChannelGoogleChat] = NewAlertingChannelGoogleChatDataSource().CreateResource()
 	return dataSources
 }

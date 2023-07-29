@@ -54,6 +54,21 @@ func createMockHttpServerForResource(resourcePath string, responseTemplate strin
 			log.Fatalf("failed to write response: %s", err)
 		}
 	}
+	httpServer.AddRoute(http.MethodGet, resourcePath, func(w http.ResponseWriter, r *http.Request) {
+		//var json string
+		//if templateVars != nil && len(templateVars) > 0 {
+		//	json = fmt.Sprintf(responseTemplate, templateVars...)
+		//} else {
+		//	json = responseTemplate
+		//}
+		json := responseTemplate
+		w.Header().Set(contentType, r.Header.Get(contentType))
+		w.WriteHeader(http.StatusOK)
+		_, err := w.Write([]byte(json))
+		if err != nil {
+			log.Fatalf("failed to write response: %s", err)
+		}
+	})
 	httpServer.AddRoute(http.MethodPut, pathTemplate, responseHandler)
 	httpServer.AddRoute(http.MethodDelete, pathTemplate, responseHandler)
 	httpServer.AddRoute(http.MethodGet, pathTemplate, responseHandler)

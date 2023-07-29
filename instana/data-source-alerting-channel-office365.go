@@ -2,7 +2,6 @@ package instana
 
 import (
 	"fmt"
-
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -28,8 +27,6 @@ func (ds *alertingChannelOffice365DataSource) CreateResource() *schema.Resource 
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the alerting channel",
-				// TODO: What is the max length here?
-				// ValidateFunc: validation.StringLenBetween(0, 512),
 			},
 		},
 	}
