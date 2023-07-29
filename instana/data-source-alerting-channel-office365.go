@@ -66,6 +66,5 @@ func (ds *alertingChannelOffice365DataSource) findAlertChannel(name string, data
 
 func (ds *alertingChannelOffice365DataSource) updateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannelDS) error {
 	d.SetId(alertingChannel.ID)
-	d.Set(AlertingChannelFieldName, alertingChannel.Name)
-	return nil
+	return d.Set(AlertingChannelFieldName, alertingChannel.Name)
 }
