@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//NewBuiltinEventDataSource creates a new DataSource for Builtin Events
+// NewBuiltinEventDataSource creates a new DataSource for Builtin Events
 func NewBuiltinEventDataSource() DataSource {
 	return &builtInEventDataSource{}
 }
@@ -30,11 +30,12 @@ const (
 
 	//DataSourceBuiltinEvent the name of the terraform-provider-instana data sourcefor builtin event specifications
 	DataSourceBuiltinEvent = "instana_builtin_event_spec"
+	//
 )
 
 type builtInEventDataSource struct{}
 
-//CreateResource creates the terraform Resource for the data source for Instana builtin events
+// CreateResource creates the terraform Resource for the data source for Instana builtin events
 func (ds *builtInEventDataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
 		Read: ds.read,
