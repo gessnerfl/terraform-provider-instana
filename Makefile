@@ -18,7 +18,7 @@ bin/terraform-provider-instana:
 .PHONY: test
 test:
 	@echo "+++++++++++  Run GO Test +++++++++++ "
-	@go test ./... -cover
+	@go test -v ./... -cover
 
 .PHONY: gosec
 gosec:

@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-//NewReadOnlyRestResource creates a new instance of ReadOnlyRestResource
+// NewReadOnlyRestResource creates a new instance of ReadOnlyRestResource
 func NewReadOnlyRestResource(resourcePath string, objectUnmarshaller JSONUnmarshaller, arrayUnmarshaller JSONUnmarshaller, client RestClient) ReadOnlyRestResource {
 	return &readOnlyRestResource{
 		resourcePath:       resourcePath,
@@ -21,12 +21,12 @@ type readOnlyRestResource struct {
 	client             RestClient
 }
 
-func (i *readOnlyRestResource) GetAll() (*[]InstanaDataObject, error) {
-	data, err := i.client.Get(i.resourcePath)
+func (r *readOnlyRestResource) GetAll() (*[]InstanaDataObject, error) {
+	data, err := r.client.Get(r.resourcePath)
 	if err != nil {
 		return nil, err
 	}
-	objects, err := i.arrayUnmarshaller.Unmarshal(data)
+	objects, err := r.arrayUnmarshaller.Unmarshal(data)
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +41,12 @@ func (i *readOnlyRestResource) GetAll() (*[]InstanaDataObject, error) {
 	return &result, nil
 }
 
-func (i *readOnlyRestResource) GetOne(id string) (InstanaDataObject, error) {
-	data, err := i.client.GetOne(id, i.resourcePath)
+func (r *readOnlyRestResource) GetOne(id string) (InstanaDataObject, error) {
+	data, err := r.client.GetOne(id, r.resourcePath)
 	if err != nil {
 		return nil, err
 	}
-	object, err := i.objectUnmarshaller.Unmarshal(data)
+	object, err := r.objectUnmarshaller.Unmarshal(data)
 	if err != nil {
 		return nil, err
 	}

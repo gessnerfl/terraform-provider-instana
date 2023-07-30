@@ -71,9 +71,10 @@ func validateResourcesMapForAlerting(resourceMap map[string]*schema.Resource, t 
 func TestProviderShouldContainValidDataSourceDefinitions(t *testing.T) {
 	config := Provider()
 
-	assert.Equal(t, 2, len(config.DataSourcesMap))
+	assert.Equal(t, 3, len(config.DataSourcesMap))
 
 	assert.NotNil(t, config.DataSourcesMap[DataSourceBuiltinEvent])
 	assert.NotNil(t, config.DataSourcesMap[DataSourceSyntheticLocation])
+	assert.NotNil(t, config.DataSourcesMap[DataSourceAlertingChannelOffice365])
 
 }

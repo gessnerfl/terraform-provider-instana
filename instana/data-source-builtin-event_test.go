@@ -3,8 +3,6 @@ package instana_test
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"strconv"
 	"testing"
@@ -30,21 +28,9 @@ data "instana_builtin_event_spec" "test" {
 `
 
 func TestDatasourceBuiltInEventsEndToEnd(t *testing.T) {
-	httpServer := testutils.NewTestHTTPServer()
-	httpServer.AddRoute(http.MethodGet, restapi.BuiltinEventSpecificationResourcePath, func(w http.ResponseWriter, r *http.Request) {
-		wd, err := os.Getwd()
-		if err != nil {
-			httpServer.WriteInternalServerError(w, err)
-		} else {
-			json, err := ioutil.ReadFile(fmt.Sprintf("%s/data-source-builtin-event_test.http-response.json", wd))
-			if err != nil {
-				httpServer.WriteInternalServerError(w, err)
-			} else {
-				httpServer.WriteJSONResponse(w, json)
-			}
-		}
-
-	})
+	wd, err := os.Getwd()
+	require.NoError(t, err)
+	httpServer := createMockHttpServerForDataSource(restapi.BuiltinEventSpecificationResourcePath, newFileContentResponseProvider(fmt.Sprintf("%s/data-source-builtin-event_test.http-response.json", wd)))
 	httpServer.Start()
 	defer httpServer.Close()
 

@@ -56,6 +56,14 @@ func (m *MockInstanaAPI) AlertingChannels() restapi.RestResource {
 	return ret0
 }
 
+// AlertingChannelsDS mocks base method.
+func (m *MockInstanaAPI) AlertingChannelsDS() restapi.ReadOnlyRestResource {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AlertingChannelsDS")
+	ret0, _ := ret[0].(restapi.ReadOnlyRestResource)
+	return ret0
+}
+
 // AlertingChannels indicates an expected call of AlertingChannels.
 func (mr *MockInstanaAPIMockRecorder) AlertingChannels() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
