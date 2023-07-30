@@ -1,5 +1,14 @@
 # Changelog
 
+## [v1.7.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.7.0) (2023-07-30)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.6.1...v1.7.0)
+
+**Merged pull requests:**
+
+- Feature/datasource alert config o365 [\#152](https://github.com/gessnerfl/terraform-provider-instana/pull/152) ([gessnerfl](https://github.com/gessnerfl))
+- add data source alerting channel office365 [\#151](https://github.com/gessnerfl/terraform-provider-instana/pull/151) ([rumenvasilev](https://github.com/rumenvasilev))
+
 ## [v1.6.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.6.1) (2023-07-19)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.6.0...v1.6.1)
