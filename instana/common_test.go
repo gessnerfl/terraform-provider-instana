@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
@@ -54,24 +55,52 @@ func createMockHttpServerForResource(resourcePath string, responseTemplate strin
 			log.Fatalf("failed to write response: %s", err)
 		}
 	}
-	httpServer.AddRoute(http.MethodGet, resourcePath, func(w http.ResponseWriter, r *http.Request) {
-		//var json string
-		//if templateVars != nil && len(templateVars) > 0 {
-		//	json = fmt.Sprintf(responseTemplate, templateVars...)
-		//} else {
-		//	json = responseTemplate
-		//}
-		json := responseTemplate
-		w.Header().Set(contentType, r.Header.Get(contentType))
-		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte(json))
-		if err != nil {
-			log.Fatalf("failed to write response: %s", err)
-		}
-	})
 	httpServer.AddRoute(http.MethodPut, pathTemplate, responseHandler)
 	httpServer.AddRoute(http.MethodDelete, pathTemplate, responseHandler)
 	httpServer.AddRoute(http.MethodGet, pathTemplate, responseHandler)
+	return httpServer
+}
+
+type responseContentProvider interface {
+	provide() ([]byte, error)
+}
+
+func newFileContentResponseProvider(filePath string) responseContentProvider {
+	return &fileContentResponseProvider{filePath: filePath}
+}
+
+type fileContentResponseProvider struct {
+	filePath string
+}
+
+func (p *fileContentResponseProvider) provide() ([]byte, error) {
+	return os.ReadFile(p.filePath)
+}
+
+func newStringContentResponseProvider(content string) responseContentProvider {
+	return &stringContentResponseProvider{content: content}
+}
+
+type stringContentResponseProvider struct {
+	content string
+}
+
+func (p *stringContentResponseProvider) provide() ([]byte, error) {
+	return []byte(p.content), nil
+}
+
+func createMockHttpServerForDataSource(resourcePath string, responseContent responseContentProvider) testutils.TestHTTPServer {
+	httpServer := testutils.NewTestHTTPServer()
+	httpServer.AddRoute(http.MethodGet, resourcePath, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set(contentType, r.Header.Get(contentType))
+		json, err := responseContent.provide()
+		if err != nil {
+			httpServer.WriteInternalServerError(w, err)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			httpServer.WriteJSONResponse(w, json)
+		}
+	})
 	return httpServer
 }
 

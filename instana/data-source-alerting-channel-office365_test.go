@@ -34,7 +34,7 @@ const alertingChannelOffice365ServerResponseTemplate = `
 `
 
 func TestReadOfAlertingChannelOffice365DataSourceWithMockServer(t *testing.T) {
-	httpServer := createMockHttpServerForResource(restapi.AlertingChannelsResourcePath, alertingChannelOffice365ServerResponseTemplate)
+	httpServer := createMockHttpServerForDataSource(restapi.AlertingChannelsResourcePath, newStringContentResponseProvider(alertingChannelOffice365ServerResponseTemplate))
 	httpServer.Start()
 	defer httpServer.Close()
 
