@@ -128,6 +128,21 @@ func (mr *MockRestResourceMockRecorder[T]) DeleteByID(id interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockRestResource[T])(nil).DeleteByID), id)
 }
 
+// GetAll mocks base method.
+func (m *MockRestResource[T]) GetAll() (*[]T, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll")
+	ret0, _ := ret[0].(*[]T)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockRestResourceMockRecorder[T]) GetAll() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockRestResource[T])(nil).GetAll))
+}
+
 // GetOne mocks base method.
 func (m *MockRestResource[T]) GetOne(id string) (T, error) {
 	m.ctrl.T.Helper()

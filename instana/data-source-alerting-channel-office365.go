@@ -38,7 +38,7 @@ func (ds *alertingChannelOffice365DataSource) read(d *schema.ResourceData, meta 
 
 	name := d.Get(AlertingChannelFieldName).(string)
 
-	data, err := instanaAPI.AlertingChannelsDS().GetAll()
+	data, err := instanaAPI.AlertingChannels().GetAll()
 	if err != nil {
 		return err
 	}
