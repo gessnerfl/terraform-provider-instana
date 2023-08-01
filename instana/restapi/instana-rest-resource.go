@@ -27,6 +27,6 @@ type ReadOnlyRestResource[T InstanaDataObject] interface {
 
 // JSONUnmarshaller interface definition for unmarshalling that unmarshalls JSON to go data structures
 type JSONUnmarshaller[T any] interface {
-	//Unmarshal converts the provided json bytes into the go data data structure as provided in the target
+	//Unmarshal converts the provided json bytes into the go data structure as provided in the target
 	Unmarshal(data []byte) (T, error)
 }

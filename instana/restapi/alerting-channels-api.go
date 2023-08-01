@@ -99,16 +99,30 @@ func (r *AlertingChannel) GetIDForResourcePath() string {
 	return r.ID
 }
 
+const alertingChannelMessageIdMissing = "id is missing"
+const alertingChannelMessageNameMissing = "name is missing"
+const alertingChannelMessageKindMissing = "kind is missing"
+const alertingChannelMessageAPIKeyMissing = "api key is missing"
+const alertingChannelMessageWebhookURLMissing = "webhook URL is missing"
+const alertingChannelMessageWebhookURLsMissing = "webhook URLs are missing"
+const alertingChannelMessageEmailsMissing = "email addresses are missing"
+const alertingChannelMessageTagsMissing = "tags are missing"
+const alertingChannelMessageRegionMissing = "region is missing"
+const alertingChannelMessageRoutingKeyMissing = "routing key is missing"
+const alertingChannelMessageTokenMissing = "token is missing"
+const alertingChannelMessageUrlMissing = "url is missing"
+const alertingChannelMessageServiceIntegrationKeyMissing = "service integration key is missing"
+
 // Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (r *AlertingChannel) Validate() error {
 	if utils.IsBlank(r.ID) {
-		return errors.New("id is missing")
+		return errors.New(alertingChannelMessageIdMissing)
 	}
 	if utils.IsBlank(r.Name) {
-		return errors.New("name is missing")
+		return errors.New(alertingChannelMessageNameMissing)
 	}
 	if len(r.Kind) == 0 {
-		return errors.New("kind is missing")
+		return errors.New(alertingChannelMessageKindMissing)
 	}
 
 	switch r.Kind {
@@ -132,29 +146,23 @@ func (r *AlertingChannel) Validate() error {
 }
 
 func (r *AlertingChannel) validateEmailIntegration() error {
-	return r.validateList(r.Emails, "email addresses are missing")
+	return r.validateList(r.Emails, alertingChannelMessageEmailsMissing)
 }
 
 func (r *AlertingChannel) validateWebHookBasedIntegrations() error {
-	return r.validateStringAttribute(r.WebhookURL, "webhook URL is missing")
+	return r.validateStringAttribute(r.WebhookURL, alertingChannelMessageWebhookURLMissing)
 }
 
 func (r *AlertingChannel) validateOpsGenieIntegration() error {
-	if r.APIKey == nil || utils.IsBlank(*r.APIKey) {
-		return errors.New("api key is missing")
-	}
-	if r.Tags == nil || utils.IsBlank(*r.Tags) {
-		return errors.New("tags are missing")
-	}
 	m := make(map[string]*string)
-	m["api key is missing"] = r.APIKey
-	m["tags are missing"] = r.Tags
+	m[alertingChannelMessageAPIKeyMissing] = r.APIKey
+	m[alertingChannelMessageTagsMissing] = r.Tags
 	err := r.validateStringAttributes(m)
 	if err != nil {
 		return err
 	}
 	if r.Region == nil {
-		return errors.New("region is missing")
+		return errors.New(alertingChannelMessageRegionMissing)
 	}
 	if !IsSupportedOpsGenieRegionType(*r.Region) {
 		return fmt.Errorf("region %s is not valid", *r.Region)
@@ -163,25 +171,25 @@ func (r *AlertingChannel) validateOpsGenieIntegration() error {
 }
 
 func (r *AlertingChannel) validatePagerDutyIntegration() error {
-	return r.validateStringAttribute(r.ServiceIntegrationKey, "service integration key is missing")
+	return r.validateStringAttribute(r.ServiceIntegrationKey, alertingChannelMessageServiceIntegrationKeyMissing)
 }
 
 func (r *AlertingChannel) validateSplunkIntegration() error {
 	m := make(map[string]*string)
-	m["url is missing"] = r.URL
-	m["token is missing"] = r.Token
+	m[alertingChannelMessageUrlMissing] = r.URL
+	m[alertingChannelMessageTokenMissing] = r.Token
 	return r.validateStringAttributes(m)
 }
 
 func (r *AlertingChannel) validateVictorOpsIntegration() error {
 	m := make(map[string]*string)
-	m["api key is missing"] = r.APIKey
-	m["routing key is missing"] = r.RoutingKey
+	m[alertingChannelMessageAPIKeyMissing] = r.APIKey
+	m[alertingChannelMessageRoutingKeyMissing] = r.RoutingKey
 	return r.validateStringAttributes(m)
 }
 
 func (r *AlertingChannel) validateGenericWebHookIntegration() error {
-	return r.validateList(r.WebhookURLs, "webhook URLs are missing")
+	return r.validateList(r.WebhookURLs, alertingChannelMessageWebhookURLsMissing)
 }
 
 func (r *AlertingChannel) validateList(opts []string, err string) error {
