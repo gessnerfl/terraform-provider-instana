@@ -7,9 +7,9 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 const alertingChannelEmailID = "id"
@@ -17,11 +17,11 @@ const resourceNameWithoutPrefixAndSuffix = "name"
 
 func TestShouldSuccessfullyReadTestObjectFromInstanaAPIWhenBaseDataIsReturned(t *testing.T) {
 	expectedModel := createTestAlertingChannelEmailObject()
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := createEmptyAlertingChannelEmailResourceData(t)
 		resourceData.SetId(alertingChannelEmailID)
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(expectedModel, nil).Times(1)
@@ -36,7 +36,7 @@ func TestShouldSuccessfullyReadTestObjectFromInstanaAPIWhenBaseDataIsReturned(t 
 }
 
 func TestShouldFailToReadTestObjectFromInstanaAPIWhenResourceIDIsMissing(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := createEmptyAlertingChannelEmailResourceData(t)
 
@@ -49,11 +49,11 @@ func TestShouldFailToReadTestObjectFromInstanaAPIWhenResourceIDIsMissing(t *test
 }
 
 func TestShouldFailToReadTestObjectFromInstanaAPIAndDeleteResourceWhenRoleDoesNotExist(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := createEmptyAlertingChannelEmailResourceData(t)
 		resourceData.SetId(alertingChannelEmailID)
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(&restapi.AlertingChannel{}, restapi.ErrEntityNotFound).Times(1)
@@ -67,12 +67,12 @@ func TestShouldFailToReadTestObjectFromInstanaAPIAndDeleteResourceWhenRoleDoesNo
 }
 
 func TestShouldFailToReadTestObjectFromInstanaAPIAndReturnErrorWhenAPICallFails(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		resourceData := createEmptyAlertingChannelEmailResourceData(t)
 		resourceData.SetId(alertingChannelEmailID)
 		expectedError := errors.New("test")
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(&restapi.AlertingChannel{}, expectedError).Times(1)
@@ -86,12 +86,12 @@ func TestShouldFailToReadTestObjectFromInstanaAPIAndReturnErrorWhenAPICallFails(
 }
 
 func TestShouldCreateTestObjectThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		data := createTestAlertingChannelEmailData()
 		resourceData := createAlertingChannelEmailResourceData(data, t)
 		expectedModel := createTestAlertingChannelEmailObject()
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
@@ -107,12 +107,12 @@ func TestShouldCreateTestObjectThroughInstanaAPI(t *testing.T) {
 }
 
 func TestShouldReturnErrorWhenCreateTestObjectFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		data := createTestAlertingChannelEmailData()
 		resourceData := createAlertingChannelEmailResourceData(data, t)
 		expectedError := errors.New("test")
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
@@ -126,12 +126,12 @@ func TestShouldReturnErrorWhenCreateTestObjectFailsThroughInstanaAPI(t *testing.
 }
 
 func TestShouldUpdateTestObjectThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		data := createTestAlertingChannelEmailData()
 		resourceData := createAlertingChannelEmailResourceData(data, t)
 		expectedModel := createTestAlertingChannelEmailObject()
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
@@ -147,12 +147,12 @@ func TestShouldUpdateTestObjectThroughInstanaAPI(t *testing.T) {
 }
 
 func TestShouldReturnErrorWhenUpdateTestObjectFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		data := createTestAlertingChannelEmailData()
 		resourceData := createAlertingChannelEmailResourceData(data, t)
 		expectedError := errors.New("test")
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
@@ -166,13 +166,13 @@ func TestShouldReturnErrorWhenUpdateTestObjectFailsThroughInstanaAPI(t *testing.
 }
 
 func TestShouldDeleteTestObjectThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		id := "test-id"
 		data := createTestAlertingChannelEmailData()
 		resourceData := createAlertingChannelEmailResourceData(data, t)
 		resourceData.SetId(id)
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)
@@ -187,14 +187,14 @@ func TestShouldDeleteTestObjectThroughInstanaAPI(t *testing.T) {
 }
 
 func TestShouldReturnErrorWhenDeleteTestObjectFailsThroughInstanaAPI(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	testHelper.WithMocking(t, func(ctrl *gomock.Controller, providerMeta *ProviderMeta, mockInstanaAPI *mocks.MockInstanaAPI, mockResourceNameFormatter *mocks.MockResourceNameFormatter) {
 		id := "test-id"
 		data := createTestAlertingChannelEmailData()
 		resourceData := createAlertingChannelEmailResourceData(data, t)
 		resourceData.SetId(id)
 		expectedError := errors.New("test")
-		mockTestObjectApi := mocks.NewMockRestResource(ctrl)
+		mockTestObjectApi := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
 
 		mockInstanaAPI.EXPECT().AlertingChannels().Return(mockTestObjectApi).Times(1)
 		mockResourceNameFormatter.EXPECT().Format(data[AlertingChannelFieldName]).Return(data[AlertingChannelFieldName]).Times(1)

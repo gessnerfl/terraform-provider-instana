@@ -539,31 +539,35 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 }
 
 // NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
-func NewApplicationAlertConfigResourceHandle() ResourceHandle {
+func NewApplicationAlertConfigResourceHandle() ResourceHandle[*restapi.ApplicationAlertConfig] {
 	return &applicationAlertConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName:     ResourceInstanaApplicationAlertConfig,
 			Schema:           applicationAlertConfigResourceSchema,
 			SkipIDGeneration: true,
 		},
-		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource { return api.ApplicationAlertConfigs() },
+		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationAlertConfig] {
+			return api.ApplicationAlertConfigs()
+		},
 	}
 }
 
 // NewGlobalApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for global application alert configs
-func NewGlobalApplicationAlertConfigResourceHandle() ResourceHandle {
+func NewGlobalApplicationAlertConfigResourceHandle() ResourceHandle[*restapi.ApplicationAlertConfig] {
 	return &applicationAlertConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaGlobalApplicationAlertConfig,
 			Schema:       applicationAlertConfigResourceSchema,
 		},
-		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource { return api.GlobalApplicationAlertConfigs() },
+		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationAlertConfig] {
+			return api.GlobalApplicationAlertConfigs()
+		},
 	}
 }
 
 type applicationAlertConfigResource struct {
 	metaData         ResourceMetaData
-	resourceProvider func(api restapi.InstanaAPI) restapi.RestResource
+	resourceProvider func(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationAlertConfig]
 }
 
 func (r *applicationAlertConfigResource) MetaData() *ResourceMetaData {
@@ -574,7 +578,7 @@ func (r *applicationAlertConfigResource) StateUpgraders() []schema.StateUpgrader
 	return []schema.StateUpgrader{}
 }
 
-func (r *applicationAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *applicationAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationAlertConfig] {
 	return r.resourceProvider(api)
 }
 
@@ -582,9 +586,7 @@ func (r *applicationAlertConfigResource) SetComputedFields(d *schema.ResourceDat
 	//No computed fields defined
 }
 
-func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	config := obj.(*restapi.ApplicationAlertConfig)
-
+func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.ApplicationAlertConfig, formatter utils.ResourceNameFormatter) error {
 	name := formatter.UndoFormat(config.Name)
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(config.Severity)
 	if err != nil {
@@ -759,7 +761,7 @@ func (r *applicationAlertConfigResource) mapTimeThresholdTypeToSchema(input stri
 	return input
 }
 
-func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.ApplicationAlertConfig, error) {
 	fullName := r.mapFullNameStringFromSchema(d, formatter)
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(ApplicationAlertConfigFieldSeverity).(string))
 	if err != nil {
@@ -771,7 +773,7 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 	if ok {
 		tagFilter, err = r.mapTagFilterExpressionFromSchema(tagFilterStr.(string))
 		if err != nil {
-			return &restapi.ApplicationConfig{}, err
+			return &restapi.ApplicationAlertConfig{}, err
 		}
 	}
 

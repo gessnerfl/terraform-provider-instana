@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 )
 
-//NewApplicationAlertConfigUnmarshaller creates a new Unmarshaller instance for ApplicationAlertConfigs
-func NewApplicationAlertConfigUnmarshaller() JSONUnmarshaller {
+// NewApplicationAlertConfigUnmarshaller creates a new Unmarshaller instance for ApplicationAlertConfigs
+func NewApplicationAlertConfigUnmarshaller() JSONUnmarshaller[*ApplicationAlertConfig] {
 	return &applicationAlertConfigUnmarshaller{
 		tagFilterUnmarshaller: NewTagFilterUnmarshaller(),
 	}
@@ -15,8 +15,8 @@ type applicationAlertConfigUnmarshaller struct {
 	tagFilterUnmarshaller TagFilterUnmarshaller
 }
 
-//Unmarshal Unmarshaller interface implementation
-func (u *applicationAlertConfigUnmarshaller) Unmarshal(data []byte) (interface{}, error) {
+// Unmarshal Unmarshaller interface implementation
+func (u *applicationAlertConfigUnmarshaller) Unmarshal(data []byte) (*ApplicationAlertConfig, error) {
 	var rawTagFilterExpression json.RawMessage
 	temp := &ApplicationAlertConfig{
 		TagFilterExpression: &rawTagFilterExpression,

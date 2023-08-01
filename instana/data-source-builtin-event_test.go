@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -106,7 +106,7 @@ func executeReadWithTenGeneratedObjectsAsResponse(requestedName string, requeste
 	sut := NewBuiltinEventDataSource().CreateResource()
 
 	response := createBuiltinEventSpecifications(10)
-	builtInEventSpecificationAPI := mocks.NewMockReadOnlyRestResource(ctrl)
+	builtInEventSpecificationAPI := mocks.NewMockReadOnlyRestResource[*restapi.BuiltinEventSpecification](ctrl)
 	builtInEventSpecificationAPI.EXPECT().GetAll().Times(1).Return(response, nil)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
 	mockInstanaAPI.EXPECT().BuiltinEventSpecifications().Times(1).Return(builtInEventSpecificationAPI)
@@ -131,7 +131,7 @@ func TestShouldFailtToReadBuiltInEventWhenAPIRequestFails(t *testing.T) {
 	requestedName := "name-1"
 	requestedPluginId := "plugin-id-1"
 
-	builtInEventSpecificationAPI := mocks.NewMockReadOnlyRestResource(ctrl)
+	builtInEventSpecificationAPI := mocks.NewMockReadOnlyRestResource[*restapi.BuiltinEventSpecification](ctrl)
 	builtInEventSpecificationAPI.EXPECT().GetAll().Times(1).Return(nil, expectedError)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
 	mockInstanaAPI.EXPECT().BuiltinEventSpecifications().Times(1).Return(builtInEventSpecificationAPI)
@@ -156,8 +156,8 @@ func TestShouldFailtToReadBuiltInEventWhenSeverityCannotBeConvertedFromItsCodeRe
 
 	builtinEvent := createBuiltinEventSpecification(1)
 	builtinEvent.Severity = 100
-	response := []restapi.InstanaDataObject{builtinEvent}
-	builtInEventSpecificationAPI := mocks.NewMockReadOnlyRestResource(ctrl)
+	response := []*restapi.BuiltinEventSpecification{builtinEvent}
+	builtInEventSpecificationAPI := mocks.NewMockReadOnlyRestResource[*restapi.BuiltinEventSpecification](ctrl)
 	builtInEventSpecificationAPI.EXPECT().GetAll().Times(1).Return(&response, nil)
 	mockInstanaAPI := mocks.NewMockInstanaAPI(ctrl)
 	mockInstanaAPI.EXPECT().BuiltinEventSpecifications().Times(1).Return(builtInEventSpecificationAPI)
@@ -171,17 +171,17 @@ func TestShouldFailtToReadBuiltInEventWhenSeverityCannotBeConvertedFromItsCodeRe
 	require.Contains(t, err.Error(), "100 is not a valid severity")
 }
 
-func createBuiltinEventSpecifications(count int) *[]restapi.InstanaDataObject {
-	result := make([]restapi.InstanaDataObject, count)
+func createBuiltinEventSpecifications(count int) *[]*restapi.BuiltinEventSpecification {
+	result := make([]*restapi.BuiltinEventSpecification, count)
 	for i := 0; i < count; i++ {
 		result[i] = createBuiltinEventSpecification(i)
 	}
 	return &result
 }
 
-func createBuiltinEventSpecification(id int) restapi.BuiltinEventSpecification {
+func createBuiltinEventSpecification(id int) *restapi.BuiltinEventSpecification {
 	description := fmt.Sprintf("description-%d", id)
-	return restapi.BuiltinEventSpecification{
+	return &restapi.BuiltinEventSpecification{
 		ID:            fmt.Sprintf("id-%d", id),
 		Name:          fmt.Sprintf("name-%d", id),
 		Description:   &description,

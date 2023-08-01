@@ -6,8 +6,8 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 const (
@@ -45,7 +45,7 @@ func TestShouldSuccessfullyExecuteGetOperationOfSyntheticTestRestResource(t *tes
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	syntheticTest := makeSyntheticTest()
 
 	client.EXPECT().GetOne(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(syntheticTestSerialized, nil)
@@ -63,7 +63,7 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfSyntheticTestRestResourceAn
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	expectedError := errors.New("Error")
 
 	client.EXPECT().GetOne(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(syntheticTestSerialized, expectedError)
@@ -81,11 +81,11 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfSyntheticTestRestResourceAn
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	expectedError := errors.New("Error")
 
 	client.EXPECT().GetOne(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(syntheticTestSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(1).Return(SyntheticTest{}, expectedError)
+	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(1).Return(&SyntheticTest{}, expectedError)
 
 	sut := NewSyntheticTestRestResource(unmarshaller, client)
 
@@ -95,30 +95,11 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfSyntheticTestRestResourceAn
 	require.Equal(t, expectedError, err)
 }
 
-type InvalidSyntheticTest struct{}
-
-func TestShouldReturnErrorWhenExecutingGetOperationOfSyntheticTestConfigRestResourceAndUnmarshallingDoesNotProvideAInstanaDataObject(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
-
-	client.EXPECT().GetOne(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(syntheticTestSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(1).Return(&InvalidSyntheticTest{}, nil)
-
-	sut := NewSyntheticTestRestResource(unmarshaller, client)
-
-	_, err := sut.GetOne(syntheticTestID)
-
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unmarshalled object does not implement InstanaDataObject")
-}
-
 func TestShouldReturnErrorWhenExecutingGetOperationOfSyntheticTestRestResourceAndReceivedObjectIsNotValid(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 
 	client.EXPECT().GetOne(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(syntheticTestSerialized, nil)
 	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(1).Return(&SyntheticTest{}, nil)
@@ -139,7 +120,7 @@ func TestShouldSuccessfullyExecuteCreateOperationOfSyntheticTestRestResource(t *
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	syntheticTest := makeSyntheticTest()
 
 	client.EXPECT().Post(gomock.Eq(syntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(1).Return(syntheticTestSerialized, nil)
@@ -157,7 +138,7 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfSyntheticTestRestResourc
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	SyntheticTest := &SyntheticTest{}
 
 	client.EXPECT().Post(gomock.Eq(SyntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(0)
@@ -175,7 +156,7 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfSyntheticTestRestResourc
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	expectedError := errors.New("Error")
 	syntheticTest := makeSyntheticTest()
 
@@ -194,7 +175,7 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfSyntheticTestRestResourc
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	expectedError := errors.New("Error")
 	syntheticTest := makeSyntheticTest()
 
@@ -213,7 +194,7 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfSyntheticTestRestResourc
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	syntheticTest := makeSyntheticTest()
 
 	client.EXPECT().Post(gomock.Eq(syntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(1).Return(syntheticTestSerialized, nil)
@@ -235,7 +216,7 @@ func TestShouldSuccessfullyExecuteUpdateOperationOfSyntheticTestRestResource(t *
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	syntheticTest := makeSyntheticTest()
 
 	client.EXPECT().Put(gomock.Eq(syntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(1)
@@ -254,7 +235,7 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfSyntheticTestRestResourc
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	syntheticTest := &SyntheticTest{}
 
 	client.EXPECT().Put(gomock.Eq(syntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(0)
@@ -272,7 +253,7 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfSyntheticTestRestResourc
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	expectedError := errors.New("Error")
 	syntheticTest := makeSyntheticTest()
 
@@ -291,7 +272,7 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfSyntheticTestRestResourc
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	expectedError := errors.New("Error")
 	syntheticTest := makeSyntheticTest()
 
@@ -311,7 +292,7 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfSyntheticTestRestResourc
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	syntheticTest := makeSyntheticTest()
 
 	client.EXPECT().Put(gomock.Eq(syntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(1)
@@ -334,7 +315,7 @@ func TestShouldSuccessfullyExecuteDeleteByObjectOperationOfSyntheticTestRestReso
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	syntheticTest := makeSyntheticTest()
 
 	client.EXPECT().Delete(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(nil)
@@ -350,7 +331,7 @@ func TestShouldReturnErrorWhenExecutingDeleteByObjectOperationOfSyntheticTestRes
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	expectedError := errors.New("Error")
 	syntheticTest := makeSyntheticTest()
 
@@ -367,7 +348,7 @@ func TestShouldSuccessfullyExecuteDeleteByIdOperationOfSyntheticTestRestResource
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 
 	client.EXPECT().Delete(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(nil)
 
@@ -382,7 +363,7 @@ func TestShouldReturnErrorWhenExecutingDeleteByIdOperationOfSyntheticTestRestRes
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
 	expectedError := errors.New("Error")
 
 	client.EXPECT().Delete(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(expectedError)

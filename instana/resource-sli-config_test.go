@@ -145,7 +145,7 @@ func TestSliConfigResourceShouldHaveSchemaVersionZero(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.SliConfig](t)
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.SliConfig{
@@ -164,7 +164,7 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 }
 
 func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.SliConfig](t)
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(sliConfigID)
@@ -197,20 +197,20 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.SliConfig{}, model, "Model should be an sli config")
 	require.Equal(t, sliConfigID, model.GetIDForResourcePath())
-	require.Equal(t, sliConfigFullName, model.(*restapi.SliConfig).Name, "name should be equal to full name")
-	require.Equal(t, sliConfigInitialEvaluationTimestamp, model.(*restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
-	require.Equal(t, sliConfigMetricName, model.(*restapi.SliConfig).MetricConfiguration.Name)
-	require.Equal(t, sliConfigMetricAggregation, model.(*restapi.SliConfig).MetricConfiguration.Aggregation)
-	require.Equal(t, sliConfigMetricThreshold, model.(*restapi.SliConfig).MetricConfiguration.Threshold)
-	require.Equal(t, sliConfigEntityType, model.(*restapi.SliConfig).SliEntity.Type)
-	require.Equal(t, sliConfigEntityApplicationID, model.(*restapi.SliConfig).SliEntity.ApplicationID)
-	require.Equal(t, sliConfigEntityServiceID, model.(*restapi.SliConfig).SliEntity.ServiceID)
-	require.Equal(t, sliConfigEntityEndpointID, model.(*restapi.SliConfig).SliEntity.EndpointID)
-	require.Equal(t, sliConfigEntityBoundaryScope, model.(*restapi.SliConfig).SliEntity.BoundaryScope)
+	require.Equal(t, sliConfigFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, sliConfigInitialEvaluationTimestamp, model.InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
+	require.Equal(t, sliConfigMetricName, model.MetricConfiguration.Name)
+	require.Equal(t, sliConfigMetricAggregation, model.MetricConfiguration.Aggregation)
+	require.Equal(t, sliConfigMetricThreshold, model.MetricConfiguration.Threshold)
+	require.Equal(t, sliConfigEntityType, model.SliEntity.Type)
+	require.Equal(t, sliConfigEntityApplicationID, model.SliEntity.ApplicationID)
+	require.Equal(t, sliConfigEntityServiceID, model.SliEntity.ServiceID)
+	require.Equal(t, sliConfigEntityEndpointID, model.SliEntity.EndpointID)
+	require.Equal(t, sliConfigEntityBoundaryScope, model.SliEntity.BoundaryScope)
 }
 
 func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.SliConfig](t)
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(sliConfigID)

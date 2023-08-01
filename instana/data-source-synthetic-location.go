@@ -77,11 +77,10 @@ func (ds *syntheticLocationDataSource) read(d *schema.ResourceData, meta interfa
 	return ds.updateState(d, syntheticLocation)
 }
 
-func (ds *syntheticLocationDataSource) findSyntheticLocations(label string, locationType string, data *[]restapi.InstanaDataObject) (*restapi.SyntheticLocation, error) {
+func (ds *syntheticLocationDataSource) findSyntheticLocations(label string, locationType string, data *[]*restapi.SyntheticLocation) (*restapi.SyntheticLocation, error) {
 	for _, e := range *data {
-		syntheticLocation, ok := e.(restapi.SyntheticLocation)
-		if ok {
-			return &syntheticLocation, nil
+		if e.Label == label && e.LocationType == locationType {
+			return e, nil
 		}
 	}
 	return nil, fmt.Errorf("no synthetic location found")

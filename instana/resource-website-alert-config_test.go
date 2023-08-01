@@ -27,7 +27,7 @@ func TestWebsiteAlertConfig(t *testing.T) {
 
 type websiteAlertConfigTest struct {
 	terraformResourceInstanceName string
-	resourceHandle                ResourceHandle
+	resourceHandle                ResourceHandle[*restapi.WebsiteAlertConfig]
 }
 
 var websiteAlertConfigTerraformTemplate = `
@@ -580,7 +580,7 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 			Triggering:          true,
 		}
 
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -646,7 +646,7 @@ func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformRe
 			Severity: -1,
 		}
 
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -673,7 +673,7 @@ func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformRe
 			},
 		}
 
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -947,7 +947,7 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 			Triggering:          true,
 		}
 
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 		resourceData.Set(WebsiteAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})
@@ -976,7 +976,7 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 
 func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResourceStateToModelWhenSeverityIsNotValid() func(t *testing.T) {
 	return func(t *testing.T) {
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 		resourceData.Set(WebsiteAlertConfigFieldName, "website-alert-config-name")
@@ -991,7 +991,7 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 
 func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResourceStateToModelWhenTagFilterIsNotValid() func(t *testing.T) {
 	return func(t *testing.T) {
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 		resourceData.Set(WebsiteAlertConfigFieldName, "website-alert-config-name")

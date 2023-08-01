@@ -387,7 +387,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 }
 
 // NewWebsiteAlertConfigResourceHandle creates the resource handle for Website Alert Configs
-func NewWebsiteAlertConfigResourceHandle() ResourceHandle {
+func NewWebsiteAlertConfigResourceHandle() ResourceHandle[*restapi.WebsiteAlertConfig] {
 	return &websiteAlertConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName:     ResourceInstanaWebsiteAlertConfig,
@@ -409,7 +409,7 @@ func (r *websiteAlertConfigResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *websiteAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *websiteAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.WebsiteAlertConfig] {
 	return api.WebsiteAlertConfig()
 }
 
@@ -417,9 +417,7 @@ func (r *websiteAlertConfigResource) SetComputedFields(d *schema.ResourceData) {
 	//No computed fields defined
 }
 
-func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	config := obj.(*restapi.WebsiteAlertConfig)
-
+func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteAlertConfig, formatter utils.ResourceNameFormatter) error {
 	name := formatter.UndoFormat(config.Name)
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(config.Severity)
 	if err != nil {
@@ -530,7 +528,7 @@ func (r *websiteAlertConfigResource) mapTimeThresholdTypeToSchema(input string) 
 	return input
 }
 
-func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.WebsiteAlertConfig, error) {
 	fullName := r.mapFullNameStringFromSchema(d, formatter)
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(WebsiteAlertConfigFieldSeverity).(string))
 	if err != nil {

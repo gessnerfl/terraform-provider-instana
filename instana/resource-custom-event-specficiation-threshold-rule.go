@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
+// ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
 const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_event_spec_threshold_rule"
 
 const (
@@ -110,8 +110,8 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
-func NewCustomEventSpecificationWithThresholdRuleResourceHandle() ResourceHandle {
+// NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
+func NewCustomEventSpecificationWithThresholdRuleResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
 	commons := &customEventSpecificationCommons{}
 	return &customEventSpecificationWithThresholdRuleResource{
 		metaData: ResourceMetaData{
@@ -152,7 +152,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) StateUpgraders() []s
 	}
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *customEventSpecificationWithThresholdRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomEventSpecification] {
 	return api.CustomEventSpecifications()
 }
 
@@ -160,8 +160,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(d 
 	//No computed fields defined
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	customEventSpecification := obj.(*restapi.CustomEventSpecification)
+func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
 	ruleSpec := customEventSpecification.Rules[0]
 
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
@@ -191,7 +190,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schem
 	return nil
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err

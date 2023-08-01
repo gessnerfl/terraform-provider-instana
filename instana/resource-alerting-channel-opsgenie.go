@@ -21,8 +21,8 @@ const (
 	ResourceInstanaAlertingChannelOpsGenie = "instana_alerting_channel_ops_genie"
 )
 
-//NewAlertingChannelOpsGenieResourceHandle creates the resource handle for Alerting Channels of type OpsGenie
-func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle {
+// NewAlertingChannelOpsGenieResourceHandle creates the resource handle for Alerting Channels of type OpsGenie
+func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	opsGenieRegions := make([]string, len(restapi.SupportedOpsGenieRegions))
 	for i, r := range restapi.SupportedOpsGenieRegions {
 		opsGenieRegions[i] = string(r)
@@ -71,7 +71,7 @@ func (r *alertingChannelOpsGenieResource) StateUpgraders() []schema.StateUpgrade
 	return []schema.StateUpgrader{}
 }
 
-func (r *alertingChannelOpsGenieResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingChannelOpsGenieResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
 	return api.AlertingChannels()
 }
 
@@ -79,8 +79,7 @@ func (r *alertingChannelOpsGenieResource) SetComputedFields(d *schema.ResourceDa
 	//No computed fields defined
 }
 
-func (r *alertingChannelOpsGenieResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	alertingChannel := obj.(*restapi.AlertingChannel)
+func (r *alertingChannelOpsGenieResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
 	tags := r.convertCommaSeparatedListToSlice(*alertingChannel.Tags)
 	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
@@ -91,7 +90,7 @@ func (r *alertingChannelOpsGenieResource) UpdateState(d *schema.ResourceData, ob
 	return nil
 }
 
-func (r *alertingChannelOpsGenieResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelOpsGenieResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	apiKey := d.Get(AlertingChannelOpsGenieFieldAPIKey).(string)
 	region := restapi.OpsGenieRegionType(d.Get(AlertingChannelOpsGenieFieldRegion).(string))

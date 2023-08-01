@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/golang/mock/gomock"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 )
 
 func TestSuccessfulCreateOfTestObjectThroughCreatePOSTUpdatePUTRestResource(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 		serializedJSON, _ := json.Marshal(testObject)
 
@@ -31,10 +31,10 @@ func TestSuccessfulCreateOfTestObjectThroughCreatePOSTUpdatePUTRestResource(t *t
 }
 
 func TestShouldFailToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenErrorIsReturnedFromRestClient(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 
-		client.EXPECT().Post(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("Error during test"))
+		client.EXPECT().Post(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("error during test"))
 		client.EXPECT().Put(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
 		unmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
 
@@ -45,7 +45,7 @@ func TestShouldFailToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenE
 }
 
 func TestShouldFailToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenResponseCannotBeUnmarshalled(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 		expectedError := errors.New("test")
 
@@ -60,24 +60,8 @@ func TestShouldFailToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenR
 	})
 }
 
-func TestShouldFailToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenTheUnmarshalledResponseIsNotImplementingInstanaDataObject(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
-		testObject := makeTestObject()
-		response := []byte("{ \"invalid\" : \"testObject\" }")
-
-		client.EXPECT().Post(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(response, nil)
-		client.EXPECT().Put(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(&InvalidInstanaDataObject{}, nil)
-
-		_, err := sut.Create(testObject)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "unmarshalled object does not implement InstanaDataObject")
-	})
-}
-
 func TestShouldFailedToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenAnInvalidTestObjectIsProvided(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := &testObject{
 			ID:   "some id",
 			Name: "invalid name",
@@ -94,7 +78,7 @@ func TestShouldFailedToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhe
 }
 
 func TestShouldFailedToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenAnInvalidTestObjectIsReceived(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		object := makeTestObject()
 
 		client.EXPECT().Post(gomock.Eq(object), gomock.Eq(testObjectResourcePath)).Times(1).Return(invalidResponse, nil)
@@ -108,7 +92,7 @@ func TestShouldFailedToCreateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhe
 }
 
 func TestSuccessfulUpdateOfTestObjectThroughCreatePOSTUpdatePUTRestResource(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 		serializedJSON, _ := json.Marshal(testObject)
 
@@ -124,10 +108,10 @@ func TestSuccessfulUpdateOfTestObjectThroughCreatePOSTUpdatePUTRestResource(t *t
 }
 
 func TestShouldFailToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenErrorIsReturnedFromRestClient(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 
-		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("Error during test"))
+		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("error during test"))
 		client.EXPECT().Post(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
 		unmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
 
@@ -138,7 +122,7 @@ func TestShouldFailToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenE
 }
 
 func TestShouldFailToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenResponseCannotBeUnmarshalled(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 		expectedError := errors.New("test")
 
@@ -153,24 +137,8 @@ func TestShouldFailToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenR
 	})
 }
 
-func TestShouldFailToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenTheUnmarshalledResponseIsNotImplementingInstanaDataObject(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
-		testObject := makeTestObject()
-		response := []byte("{ \"invalid\" : \"testObject\" }")
-
-		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(response, nil)
-		client.EXPECT().Post(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(&InvalidInstanaDataObject{}, nil)
-
-		_, err := sut.Update(testObject)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "unmarshalled object does not implement InstanaDataObject")
-	})
-}
-
 func TestShouldFailedToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenAnInvalidTestObjectIsProvided(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := &testObject{
 			ID:   "some id",
 			Name: "invalid name",
@@ -187,7 +155,7 @@ func TestShouldFailedToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhe
 }
 
 func TestShouldFailedToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhenAnInvalidTestObjectIsReceived(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		object := makeTestObject()
 
 		client.EXPECT().Put(gomock.Eq(object), gomock.Eq(testObjectResourcePath)).Times(1).Return(invalidResponse, nil)
@@ -200,13 +168,13 @@ func TestShouldFailedToUpdateTestObjectThroughCreatePOSTUpdatePUTRestResourceWhe
 	})
 }
 
-func executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t *testing.T, testFunction func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller)) {
+func executeCreateOrUpdateOperationThroughCreatePOSTUpdatePUTRestResourceTest(t *testing.T, testFunction func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject])) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
 
-	sut := NewCreatePOSTUpdatePUTRestResource(testObjectResourcePath, unmarshaller, client)
+	sut := NewCreatePOSTUpdatePUTRestResource[*testObject](testObjectResourcePath, unmarshaller, client)
 
 	testFunction(t, sut, client, unmarshaller)
 }

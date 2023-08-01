@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaCustomDashboard the name of the terraform-provider-instana resource to manage custom dashboards
+// ResourceInstanaCustomDashboard the name of the terraform-provider-instana resource to manage custom dashboards
 const ResourceInstanaCustomDashboard = "instana_custom_dashboard"
 
 const (
@@ -28,8 +28,8 @@ const (
 	CustomDashboardFieldWidgets = "widgets"
 )
 
-//NewCustomDashboardResourceHandle creates the resource handle for RBAC Groups
-func NewCustomDashboardResourceHandle() ResourceHandle {
+// NewCustomDashboardResourceHandle creates the resource handle for RBAC Groups
+func NewCustomDashboardResourceHandle() ResourceHandle[*restapi.CustomDashboard] {
 	return &customDashboardResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaCustomDashboard,
@@ -102,7 +102,7 @@ func (r *customDashboardResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *customDashboardResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *customDashboardResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomDashboard] {
 	return api.CustomDashboards()
 }
 
@@ -110,9 +110,7 @@ func (r *customDashboardResource) SetComputedFields(d *schema.ResourceData) {
 	//No computed fields defined
 }
 
-func (r *customDashboardResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	dashboard := obj.(*restapi.CustomDashboard)
-
+func (r *customDashboardResource) UpdateState(d *schema.ResourceData, dashboard *restapi.CustomDashboard, formatter utils.ResourceNameFormatter) error {
 	widgetsBytes, _ := dashboard.Widgets.MarshalJSON()
 	widgets := NormalizeJSONString(string(widgetsBytes))
 
@@ -136,7 +134,7 @@ func (r *customDashboardResource) mapAccessRuleToState(dashboard *restapi.Custom
 	return result
 }
 
-func (r *customDashboardResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customDashboardResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomDashboard, error) {
 	title := r.computeFullTitleString(d, formatter)
 	accessRules := r.mapAccessRulesFromState(d)
 

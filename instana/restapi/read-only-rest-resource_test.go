@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/stretchr/testify/require"
 
@@ -20,8 +20,8 @@ func TestShouldSuccessfullyGetAllObjects(t *testing.T) {
 	testObject1 := newTestObject("id1", "name1")
 	testObject2 := newTestObject("id2", "name2")
 	testObject3 := newTestObject("id3", "name3")
-	expectedResult := []InstanaDataObject{testObject1, testObject2, testObject3}
-	serverResponse := []TestInstanaDataObject{testObject1, testObject2, testObject3}
+	expectedResult := []*testObject{testObject1, testObject2, testObject3}
+	serverResponse := []*testObject{testObject1, testObject2, testObject3}
 	restResponseData := []byte(`
 	[
 		{
@@ -45,10 +45,10 @@ func TestShouldSuccessfullyGetAllObjects(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().Get(testResourcePath).Times(1).Return(restResponseData, nil)
 
-	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*[]*testObject](ctrl)
 	arrayJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(&serverResponse, nil)
 
-	sut := NewReadOnlyRestResource(testResourcePath, nil, arrayJSONUnmarshaller, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, nil, arrayJSONUnmarshaller, restClient)
 
 	result, err := sut.GetAll()
 
@@ -65,15 +65,15 @@ func TestShouldReturnEmptySliceWhenNoDataIsReturned(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().Get(testResourcePath).Times(1).Return(restResponseData, nil)
 
-	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
-	arrayJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(&[]TestInstanaDataObject{}, nil)
+	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*[]*testObject](ctrl)
+	arrayJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(&[]*testObject{}, nil)
 
-	sut := NewReadOnlyRestResource(testResourcePath, nil, arrayJSONUnmarshaller, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, nil, arrayJSONUnmarshaller, restClient)
 
 	result, err := sut.GetAll()
 
 	require.NoError(t, err)
-	require.Equal(t, &[]InstanaDataObject{}, result)
+	require.Equal(t, &[]*testObject{}, result)
 }
 
 func TestShouldFailToGetAllWhenClientReturnsError(t *testing.T) {
@@ -85,10 +85,10 @@ func TestShouldFailToGetAllWhenClientReturnsError(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().Get(testResourcePath).Times(1).Return(nil, expectedError)
 
-	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*[]*testObject](ctrl)
 	arrayJSONUnmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
 
-	sut := NewReadOnlyRestResource(testResourcePath, nil, arrayJSONUnmarshaller, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, nil, arrayJSONUnmarshaller, restClient)
 
 	_, err := sut.GetAll()
 
@@ -106,10 +106,10 @@ func TestShouldFailToGetAllWhenRestResultCannotBeUnmarshalled(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().Get(testResourcePath).Times(1).Return(restResponseData, nil)
 
-	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*[]*testObject](ctrl)
 	arrayJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(nil, expectedError)
 
-	sut := NewReadOnlyRestResource(testResourcePath, nil, arrayJSONUnmarshaller, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, nil, arrayJSONUnmarshaller, restClient)
 
 	_, err := sut.GetAll()
 
@@ -133,10 +133,10 @@ func TestShouldSuccessfullyGetObjectById(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().GetOne(id, testResourcePath).Times(1).Return(restResponseData, nil)
 
-	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
-	objectJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(&expectedResult, nil)
+	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
+	objectJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(expectedResult, nil)
 
-	sut := NewReadOnlyRestResource(testResourcePath, objectJSONUnmarshaller, nil, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, objectJSONUnmarshaller, nil, restClient)
 
 	result, err := sut.GetOne(id)
 
@@ -154,10 +154,10 @@ func TestShouldFailToGetObjectByIdWhenRestClientResturnsError(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().GetOne(id, testResourcePath).Times(1).Return(nil, expectedError)
 
-	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
 	objectJSONUnmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
 
-	sut := NewReadOnlyRestResource(testResourcePath, objectJSONUnmarshaller, nil, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, objectJSONUnmarshaller, nil, restClient)
 
 	_, err := sut.GetOne(id)
 
@@ -176,10 +176,10 @@ func TestShouldFailToGetObjectByIdWhenRestResultCannotBeUnmarshalled(t *testing.
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().GetOne(id, testResourcePath).Times(1).Return(restResponseData, nil)
 
-	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
 	objectJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(nil, expectedError)
 
-	sut := NewReadOnlyRestResource(testResourcePath, objectJSONUnmarshaller, nil, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, objectJSONUnmarshaller, nil, restClient)
 
 	_, err := sut.GetOne(id)
 
@@ -187,21 +187,6 @@ func TestShouldFailToGetObjectByIdWhenRestResultCannotBeUnmarshalled(t *testing.
 	require.Equal(t, expectedError, err)
 }
 
-func newTestObject(id string, name string) TestInstanaDataObject {
-	return TestInstanaDataObject{ID: id, Name: name}
-}
-
-type TestInstanaDataObject struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-//GetIDForResourcePath implemention of the interface InstanaDataObject
-func (o TestInstanaDataObject) GetIDForResourcePath() string {
-	return o.ID
-}
-
-//Validate implementation of the interface InstanaDataObject to verify if data object is correct. As this is read only datasource no validation is applied
-func (o TestInstanaDataObject) Validate() error {
-	return nil
+func newTestObject(id string, name string) *testObject {
+	return &testObject{ID: id, Name: name}
 }

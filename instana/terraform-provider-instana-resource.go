@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//ResourceMetaData the meta data of a terraform ResourceHandle
+// ResourceMetaData the meta data of a terraform ResourceHandle
 type ResourceMetaData struct {
 	ResourceName     string
 	Schema           map[string]*schema.Schema
@@ -18,31 +18,31 @@ type ResourceMetaData struct {
 	ResourceIDField  *string
 }
 
-//ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
-type ResourceHandle interface {
+// ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
+type ResourceHandle[T restapi.InstanaDataObject] interface {
 	//MetaData returns the meta data of this ResourceHandle
 	MetaData() *ResourceMetaData
 	//StateUpgraders returns the slice of state upgraders used to migrate states from one version to another
 	StateUpgraders() []schema.StateUpgrader
 
 	//GetRestResource provides the restapi.RestResource used by the ResourceHandle
-	GetRestResource(api restapi.InstanaAPI) restapi.RestResource
+	GetRestResource(api restapi.InstanaAPI) restapi.RestResource[T]
 	//UpdateState updates the state of the resource provided as schema.ResourceData with the input data from the Instana API provided as restapi.InstanaDataObject
-	UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error
+	UpdateState(d *schema.ResourceData, obj T, formatter utils.ResourceNameFormatter) error
 	//MapStateToDataObject maps the current state of the resource provided as schema.ResourceData to the API model of the Instana API represented as an implementation of restapi.InstanaDataObject
-	MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error)
+	MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (T, error)
 	//SetComputedFields calculate and set the calculated value of computed fields of the given resource
 	SetComputedFields(d *schema.ResourceData)
 }
 
-//NewTerraformResource creates a new terraform resource for the given handle
-func NewTerraformResource(handle ResourceHandle) TerraformResource {
-	return &terraformResourceImpl{
+// NewTerraformResource creates a new terraform resource for the given handle
+func NewTerraformResource[T restapi.InstanaDataObject](handle ResourceHandle[T]) TerraformResource {
+	return &terraformResourceImpl[T]{
 		resourceHandle: handle,
 	}
 }
 
-//TerraformResource internal simplified representation of a Terraform resource
+// TerraformResource internal simplified representation of a Terraform resource
 type TerraformResource interface {
 	Create(d *schema.ResourceData, meta interface{}) error
 	Read(d *schema.ResourceData, meta interface{}) error
@@ -51,12 +51,12 @@ type TerraformResource interface {
 	ToSchemaResource() *schema.Resource
 }
 
-type terraformResourceImpl struct {
-	resourceHandle ResourceHandle
+type terraformResourceImpl[T restapi.InstanaDataObject] struct {
+	resourceHandle ResourceHandle[T]
 }
 
-//Create defines the create operation for the terraform resource
-func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{}) error {
+// Create defines the create operation for the terraform resource
+func (r *terraformResourceImpl[T]) Create(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
@@ -77,8 +77,8 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-//Read defines the read operation for the terraform resource
-func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) error {
+// Read defines the read operation for the terraform resource
+func (r *terraformResourceImpl[T]) Read(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 	resourceID := r.getResourceID(d)
@@ -96,15 +96,15 @@ func (r *terraformResourceImpl) Read(d *schema.ResourceData, meta interface{}) e
 	return r.resourceHandle.UpdateState(d, obj, providerMeta.ResourceNameFormatter)
 }
 
-func (r *terraformResourceImpl) getResourceID(d *schema.ResourceData) string {
+func (r *terraformResourceImpl[T]) getResourceID(d *schema.ResourceData) string {
 	if r.resourceHandle.MetaData().ResourceIDField != nil {
 		return d.Get(*r.resourceHandle.MetaData().ResourceIDField).(string)
 	}
 	return d.Id()
 }
 
-//Update defines the update operation for the terraform resource
-func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{}) error {
+// Update defines the update operation for the terraform resource
+func (r *terraformResourceImpl[T]) Update(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
@@ -119,8 +119,8 @@ func (r *terraformResourceImpl) Update(d *schema.ResourceData, meta interface{})
 	return r.resourceHandle.UpdateState(d, updatedObject, providerMeta.ResourceNameFormatter)
 }
 
-//Delete defines the delete operation for the terraform resource
-func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{}) error {
+// Delete defines the delete operation for the terraform resource
+func (r *terraformResourceImpl[T]) Delete(d *schema.ResourceData, meta interface{}) error {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
@@ -136,7 +136,7 @@ func (r *terraformResourceImpl) Delete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func (r *terraformResourceImpl) ToSchemaResource() *schema.Resource {
+func (r *terraformResourceImpl[T]) ToSchemaResource() *schema.Resource {
 	metaData := r.resourceHandle.MetaData()
 	return &schema.Resource{
 		Create: r.Create,
@@ -152,7 +152,7 @@ func (r *terraformResourceImpl) ToSchemaResource() *schema.Resource {
 	}
 }
 
-func (r *terraformResourceImpl) importState(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func (r *terraformResourceImpl[T]) importState(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	if r.resourceHandle.MetaData().ResourceIDField != nil {
 		d.Set(*r.resourceHandle.MetaData().ResourceIDField, d.Id())
 	}

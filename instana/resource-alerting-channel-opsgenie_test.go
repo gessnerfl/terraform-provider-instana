@@ -79,7 +79,7 @@ func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenSingleTagIsProvided(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelOpsGenieResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	tags := "tag1"
@@ -94,7 +94,7 @@ func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenSingleTagIsProvi
 }
 
 func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenMultipleTagsAreProvided(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelOpsGenieResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	tags := "tag1, tag2"
@@ -128,7 +128,7 @@ func createAlertingChannelEmailModelForResourceUpdateWithoutTags() *restapi.Aler
 }
 
 func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelOpsGenieResourceHandle()
 	tags := []string{"tag1", "tag2"}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -144,10 +144,10 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, "api key", *model.(*restapi.AlertingChannel).APIKey, "api key should be equal")
-	require.Equal(t, restapi.EuOpsGenieRegion, *model.(*restapi.AlertingChannel).Region, "region should be EU")
-	require.Equal(t, "tag1,tag2", *model.(*restapi.AlertingChannel).Tags, "tags should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, "api key", *model.APIKey, "api key should be equal")
+	require.Equal(t, restapi.EuOpsGenieRegion, *model.Region, "region should be EU")
+	require.Equal(t, "tag1,tag2", *model.Tags, "tags should be equal")
 }
 
 func TestAlertingChannelOpsGenieShouldHaveSchemaVersionZero(t *testing.T) {

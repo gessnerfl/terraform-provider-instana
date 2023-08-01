@@ -64,7 +64,7 @@ const (
 )
 
 // NewSyntheticTestResourceHandle creates the resource handle Synthetic Tests
-func NewSyntheticTestResourceHandle() ResourceHandle {
+func NewSyntheticTestResourceHandle() ResourceHandle[*restapi.SyntheticTest] {
 	return &syntheticTestResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaSyntheticTest,
@@ -234,7 +234,7 @@ func (r *syntheticTestResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *syntheticTestResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *syntheticTestResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.SyntheticTest] {
 	return api.SyntheticTest()
 }
 
@@ -242,8 +242,7 @@ func (r *syntheticTestResource) SetComputedFields(d *schema.ResourceData) {
 	// No computed fields
 }
 
-func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	syntheticTest := obj.(*restapi.SyntheticTest)
+func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTest *restapi.SyntheticTest, formatter utils.ResourceNameFormatter) error {
 	d.SetId(syntheticTest.ID)
 	d.Set(SyntheticTestFieldLabel, syntheticTest.Label)
 	d.Set(SyntheticTestFieldActive, syntheticTest.Active)
@@ -255,7 +254,7 @@ func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, obj restapi.
 	return nil
 }
 
-func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.SyntheticTest, error) {
 	return &restapi.SyntheticTest{
 		ID:               d.Id(),
 		Label:            d.Get(SyntheticTestFieldLabel).(string),

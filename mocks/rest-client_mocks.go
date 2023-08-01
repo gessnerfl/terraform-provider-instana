@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	restapi "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockRestClient is a mock of RestClient interface.

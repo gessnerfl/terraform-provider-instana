@@ -409,7 +409,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 	}
 	additionalMappings(spec)
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -445,7 +445,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThreshol
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -468,7 +468,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThreshol
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -509,7 +509,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleAndMe
 }
 
 func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t *testing.T, additionalMappings func(resourceData *schema.ResourceData), additionalAsserts func(spec restapi.CustomEventSpecification)) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -534,28 +534,27 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(*restapi.CustomEventSpecification)
-	require.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, customEventSpec.Name)
-	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
-	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, *customEventSpec.Query)
-	require.Equal(t, customEventSpecificationWithThresholdRuleDescription, *customEventSpec.Description)
-	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
-	require.True(t, customEventSpec.Triggering)
-	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationWithThresholdRuleID, result.GetIDForResourcePath())
+	require.Equal(t, resourceFullName, result.Name)
+	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, result.EntityType)
+	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, *result.Query)
+	require.Equal(t, customEventSpecificationWithThresholdRuleDescription, *result.Description)
+	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *result.ExpirationTime)
+	require.True(t, result.Triggering)
+	require.True(t, result.Enabled)
 
-	require.Equal(t, 1, len(customEventSpec.Rules))
-	require.Equal(t, customEventSpecificationWithThresholdRuleMetricName, *customEventSpec.Rules[0].MetricName)
-	require.Equal(t, customEventSpecificationWithThresholdRuleWindow, *customEventSpec.Rules[0].Window)
-	require.Equal(t, customEventSpecificationWithThresholdRuleRollup, *customEventSpec.Rules[0].Rollup)
-	require.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *customEventSpec.Rules[0].Aggregation)
-	require.Equal(t, restapi.ConditionOperatorEquals.InstanaAPIValue(), *customEventSpec.Rules[0].ConditionOperator)
-	require.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
-	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+	require.Equal(t, 1, len(result.Rules))
+	require.Equal(t, customEventSpecificationWithThresholdRuleMetricName, *result.Rules[0].MetricName)
+	require.Equal(t, customEventSpecificationWithThresholdRuleWindow, *result.Rules[0].Window)
+	require.Equal(t, customEventSpecificationWithThresholdRuleRollup, *result.Rules[0].Rollup)
+	require.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *result.Rules[0].Aggregation)
+	require.Equal(t, restapi.ConditionOperatorEquals.InstanaAPIValue(), *result.Rules[0].ConditionOperator)
+	require.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *result.Rules[0].ConditionValue)
+	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), result.Rules[0].Severity)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -567,7 +566,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToData
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToDataModelWhenConditionOperationIsNotSupported(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)

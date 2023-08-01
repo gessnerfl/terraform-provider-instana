@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//ResourceInstanaAPIToken the name of the terraform-provider-instana resource to manage API tokens
+// ResourceInstanaAPIToken the name of the terraform-provider-instana resource to manage API tokens
 const ResourceInstanaAPIToken = "instana_api_token"
 
 const (
@@ -259,8 +259,8 @@ var (
 	}
 )
 
-//NewAPITokenResourceHandle creates a ResourceHandle instance for the terraform resource API token
-func NewAPITokenResourceHandle() ResourceHandle {
+// NewAPITokenResourceHandle creates a ResourceHandle instance for the terraform resource API token
+func NewAPITokenResourceHandle() ResourceHandle[*restapi.APIToken] {
 	internalIDFieldName := APITokenFieldInternalID
 	return &apiTokenResource{
 		metaData: ResourceMetaData{
@@ -317,7 +317,7 @@ func (r *apiTokenResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *apiTokenResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *apiTokenResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.APIToken] {
 	return api.APITokens()
 }
 
@@ -326,8 +326,7 @@ func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) {
 	d.Set(APITokenFieldAccessGrantingToken, RandomID())
 }
 
-func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	apiToken := obj.(*restapi.APIToken)
+func (r *apiTokenResource) UpdateState(d *schema.ResourceData, apiToken *restapi.APIToken, formatter utils.ResourceNameFormatter) error {
 	d.Set(APITokenFieldAccessGrantingToken, apiToken.AccessGrantingToken)
 	d.Set(APITokenFieldInternalID, apiToken.InternalID)
 	d.Set(APITokenFieldName, formatter.UndoFormat(apiToken.Name))
@@ -363,7 +362,7 @@ func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.Insta
 	return nil
 }
 
-func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.APIToken, error) {
 	name := r.computeFullNameString(d, formatter)
 	return &restapi.APIToken{
 		ID:                                   d.Id(),

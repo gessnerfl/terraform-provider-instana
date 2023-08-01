@@ -322,7 +322,7 @@ func TestGroupResourceShouldHaveSchemaVersionZero(t *testing.T) {
 }
 
 func TestUpdateStateOfGroupResource(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.Group](t)
 	resourceHandle := NewGroupResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
@@ -380,7 +380,7 @@ func TestUpdateStateOfGroupResource(t *testing.T) {
 }
 
 func TestShouldUpdateStateWhenNoGroupMembersAndAnEmptyPermissionSetIsProvided(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.Group](t)
 	resourceHandle := NewGroupResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
@@ -401,7 +401,7 @@ func TestShouldUpdateStateWhenNoGroupMembersAndAnEmptyPermissionSetIsProvided(t 
 }
 
 func TestGroupResourceShouldReadModelFromState(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.Group](t)
 	resourceHandle := NewGroupResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	members := []interface{}{
@@ -436,15 +436,14 @@ func TestGroupResourceShouldReadModelFromState(t *testing.T) {
 
 	require.NoError(t, err)
 	require.IsType(t, &restapi.Group{}, result)
-	group := result.(*restapi.Group)
-	require.Equal(t, defaultGroupID, group.GetIDForResourcePath())
-	require.Equal(t, defaultGroupID, group.ID)
-	require.Equal(t, defaultGroupFullName, group.Name)
+	require.Equal(t, defaultGroupID, result.GetIDForResourcePath())
+	require.Equal(t, defaultGroupID, result.ID)
+	require.Equal(t, defaultGroupFullName, result.Name)
 	member1Email := defaultGroupMember1Email
 	member2Email := defaultGroupMember2Email
 	expectedMembers := []restapi.APIMember{
 		{UserID: defaultGroupMember1UserID, Email: &member1Email},
 		{UserID: defaultGroupMember2UserID, Email: &member2Email},
 	}
-	require.Equal(t, expectedMembers, group.Members)
+	require.Equal(t, expectedMembers, result.Members)
 }

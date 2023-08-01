@@ -192,7 +192,7 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -213,7 +213,7 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -233,23 +233,22 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(*restapi.CustomEventSpecification)
-	require.Equal(t, customSystemEventID, customEventSpec.GetIDForResourcePath())
-	require.Equal(t, customSystemEventName, customEventSpec.Name)
-	require.Equal(t, SystemRuleEntityType, customEventSpec.EntityType)
-	require.Equal(t, customSystemEventQuery, *customEventSpec.Query)
-	require.Equal(t, customSystemEventDescription, *customEventSpec.Description)
-	require.Equal(t, customSystemEventExpirationTime, *customEventSpec.ExpirationTime)
-	require.True(t, customEventSpec.Triggering)
-	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customSystemEventID, result.GetIDForResourcePath())
+	require.Equal(t, customSystemEventName, result.Name)
+	require.Equal(t, SystemRuleEntityType, result.EntityType)
+	require.Equal(t, customSystemEventQuery, *result.Query)
+	require.Equal(t, customSystemEventDescription, *result.Description)
+	require.Equal(t, customSystemEventExpirationTime, *result.ExpirationTime)
+	require.True(t, result.Triggering)
+	require.True(t, result.Enabled)
 
-	require.Equal(t, 1, len(customEventSpec.Rules))
-	require.Equal(t, customSystemEventRuleSystemRuleId, *customEventSpec.Rules[0].SystemRuleID)
-	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+	require.Equal(t, 1, len(result.Rules))
+	require.Equal(t, customSystemEventRuleSystemRuleId, *result.Rules[0].SystemRuleID)
+	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), result.Rules[0].Severity)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithSystemRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)

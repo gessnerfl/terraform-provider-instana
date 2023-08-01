@@ -138,7 +138,7 @@ func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenHeaderValueIsNotDe
 }
 
 func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headersFromApi []string, headersMapped map[string]interface{}) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelWebhookResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	webhookURLs := []string{"url1", "url2"}
@@ -163,7 +163,7 @@ func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headers
 }
 
 func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvailable(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelWebhookResourceHandle()
 	webhookURLs := []string{"url1", "url2"}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -177,9 +177,9 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Len(t, model.(*restapi.AlertingChannel).WebhookURLs, 2)
-	require.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url1")
-	require.Contains(t, model.(*restapi.AlertingChannel).WebhookURLs, "url2")
-	require.Equal(t, []string{}, model.(*restapi.AlertingChannel).Headers, "There should be no headers")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Len(t, model.WebhookURLs, 2)
+	require.Contains(t, model.WebhookURLs, "url1")
+	require.Contains(t, model.WebhookURLs, "url2")
+	require.Equal(t, []string{}, model.Headers, "There should be no headers")
 }

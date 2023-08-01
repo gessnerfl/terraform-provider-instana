@@ -75,7 +75,7 @@ func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneSplunk(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelSplunkResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	url := "url"
@@ -98,7 +98,7 @@ func TestShouldUpdateResourceStateForAlertingChanneSplunk(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelSplunkResourceHandle()
 	url := "url"
 	token := "token"
@@ -114,9 +114,9 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, url, *model.(*restapi.AlertingChannel).URL, "url should be equal")
-	require.Equal(t, token, *model.(*restapi.AlertingChannel).Token, "token should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, url, *model.URL, "url should be equal")
+	require.Equal(t, token, *model.Token, "token should be equal")
 }
 
 func TestAlertingChannelSplunkkShouldHaveSchemaVersionZero(t *testing.T) {

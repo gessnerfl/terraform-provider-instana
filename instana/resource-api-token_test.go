@@ -259,7 +259,7 @@ func TestShouldReturnCorrectResourceNameForUserroleResource(t *testing.T) {
 }
 
 func TestShouldSetCalculateAccessGrantingTokenAndInternal(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.APIToken](t)
 	sut := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
@@ -271,7 +271,7 @@ func TestShouldSetCalculateAccessGrantingTokenAndInternal(t *testing.T) {
 }
 
 func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.APIToken](t)
 	sut := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
@@ -642,7 +642,7 @@ func TestShouldUpdateCanEditAllAccessibleCustomDashboardsPermissionOfTerraformRe
 }
 
 func testSingleAPITokenPermissionSet(t *testing.T, apiToken restapi.APIToken, expectedPermissionField string) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.APIToken](t)
 	sut := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
@@ -659,7 +659,7 @@ func testSingleAPITokenPermissionSet(t *testing.T, apiToken restapi.APIToken, ex
 }
 
 func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.APIToken](t)
 	resourceHandle := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -700,36 +700,36 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.APIToken{}, model, "Model should be an alerting channel")
-	require.Equal(t, apiTokenID, model.(*restapi.APIToken).ID)
-	require.Equal(t, apiTokenAccessGrantingToken, model.(*restapi.APIToken).AccessGrantingToken)
+	require.Equal(t, apiTokenID, model.ID)
+	require.Equal(t, apiTokenAccessGrantingToken, model.AccessGrantingToken)
 	require.Equal(t, apiTokenInternalID, model.GetIDForResourcePath())
-	require.Equal(t, apiTokenInternalID, model.(*restapi.APIToken).InternalID)
-	require.Equal(t, apiTokenFullNameFieldValue, model.(*restapi.APIToken).Name)
-	require.True(t, model.(*restapi.APIToken).CanConfigureServiceMapping)
-	require.True(t, model.(*restapi.APIToken).CanConfigureEumApplications)
-	require.True(t, model.(*restapi.APIToken).CanConfigureMobileAppMonitoring)
-	require.True(t, model.(*restapi.APIToken).CanConfigureUsers)
-	require.True(t, model.(*restapi.APIToken).CanInstallNewAgents)
-	require.True(t, model.(*restapi.APIToken).CanSeeUsageInformation)
-	require.True(t, model.(*restapi.APIToken).CanConfigureIntegrations)
-	require.True(t, model.(*restapi.APIToken).CanSeeOnPremiseLicenseInformation)
-	require.True(t, model.(*restapi.APIToken).CanConfigureCustomAlerts)
-	require.True(t, model.(*restapi.APIToken).CanConfigureAPITokens)
-	require.True(t, model.(*restapi.APIToken).CanConfigureAgentRunMode)
-	require.True(t, model.(*restapi.APIToken).CanViewAuditLog)
-	require.True(t, model.(*restapi.APIToken).CanConfigureAgents)
-	require.True(t, model.(*restapi.APIToken).CanConfigureAuthenticationMethods)
-	require.True(t, model.(*restapi.APIToken).CanConfigureApplications)
-	require.True(t, model.(*restapi.APIToken).CanConfigureTeams)
-	require.True(t, model.(*restapi.APIToken).CanConfigureReleases)
-	require.True(t, model.(*restapi.APIToken).CanConfigureLogManagement)
-	require.True(t, model.(*restapi.APIToken).CanCreatePublicCustomDashboards)
-	require.True(t, model.(*restapi.APIToken).CanViewLogs)
-	require.True(t, model.(*restapi.APIToken).CanViewTraceDetails)
-	require.True(t, model.(*restapi.APIToken).CanConfigureSessionSettings)
-	require.True(t, model.(*restapi.APIToken).CanConfigureServiceLevelIndicators)
-	require.True(t, model.(*restapi.APIToken).CanConfigureGlobalAlertPayload)
-	require.True(t, model.(*restapi.APIToken).CanConfigureGlobalAlertConfigs)
-	require.True(t, model.(*restapi.APIToken).CanViewAccountAndBillingInformation)
-	require.True(t, model.(*restapi.APIToken).CanEditAllAccessibleCustomDashboards)
+	require.Equal(t, apiTokenInternalID, model.InternalID)
+	require.Equal(t, apiTokenFullNameFieldValue, model.Name)
+	require.True(t, model.CanConfigureServiceMapping)
+	require.True(t, model.CanConfigureEumApplications)
+	require.True(t, model.CanConfigureMobileAppMonitoring)
+	require.True(t, model.CanConfigureUsers)
+	require.True(t, model.CanInstallNewAgents)
+	require.True(t, model.CanSeeUsageInformation)
+	require.True(t, model.CanConfigureIntegrations)
+	require.True(t, model.CanSeeOnPremiseLicenseInformation)
+	require.True(t, model.CanConfigureCustomAlerts)
+	require.True(t, model.CanConfigureAPITokens)
+	require.True(t, model.CanConfigureAgentRunMode)
+	require.True(t, model.CanViewAuditLog)
+	require.True(t, model.CanConfigureAgents)
+	require.True(t, model.CanConfigureAuthenticationMethods)
+	require.True(t, model.CanConfigureApplications)
+	require.True(t, model.CanConfigureTeams)
+	require.True(t, model.CanConfigureReleases)
+	require.True(t, model.CanConfigureLogManagement)
+	require.True(t, model.CanCreatePublicCustomDashboards)
+	require.True(t, model.CanViewLogs)
+	require.True(t, model.CanViewTraceDetails)
+	require.True(t, model.CanConfigureSessionSettings)
+	require.True(t, model.CanConfigureServiceLevelIndicators)
+	require.True(t, model.CanConfigureGlobalAlertPayload)
+	require.True(t, model.CanConfigureGlobalAlertConfigs)
+	require.True(t, model.CanViewAccountAndBillingInformation)
+	require.True(t, model.CanEditAllAccessibleCustomDashboards)
 }

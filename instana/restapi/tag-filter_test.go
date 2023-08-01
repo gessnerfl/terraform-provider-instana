@@ -3,7 +3,7 @@ package restapi_test
 import (
 	"errors"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"

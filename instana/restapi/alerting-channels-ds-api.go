@@ -13,13 +13,13 @@ type AlertingChannelDS struct {
 	AlertingChannel
 }
 
-// GetIDForResourcePath implemention of the interface InstanaDataObject
-func (r AlertingChannelDS) GetIDForResourcePath() string {
+// GetIDForResourcePath implementation of the interface InstanaDataObject
+func (r *AlertingChannelDS) GetIDForResourcePath() string {
 	return r.ID
 }
 
 // Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (r AlertingChannelDS) Validate() error {
+func (r *AlertingChannelDS) Validate() error {
 	if utils.IsBlank(r.ID) {
 		return errors.New("ID is missing")
 	}
@@ -50,36 +50,36 @@ func (r AlertingChannelDS) Validate() error {
 	}
 }
 
-func (r AlertingChannelDS) validateEmailIntegration() error {
+func (r *AlertingChannelDS) validateEmailIntegration() error {
 	return acValidateList(r.Emails, "Email addresses are missing")
 }
 
-func (r AlertingChannelDS) validateWebHookBasedIntegrations() error {
+func (r *AlertingChannelDS) validateWebHookBasedIntegrations() error {
 	return acValidateOpt(r.WebhookURL, "Webhook URL is missing")
 }
 
-func (r AlertingChannelDS) validateOpsGenieIntegration() error {
+func (r *AlertingChannelDS) validateOpsGenieIntegration() error {
 	return acValidateOpsGenieIntegration(r.APIKey, r.Tags, r.Region)
 }
 
-func (r AlertingChannelDS) validatePagerDutyIntegration() error {
+func (r *AlertingChannelDS) validatePagerDutyIntegration() error {
 	return acValidateOpt(r.ServiceIntegrationKey, "Service integration key is missing")
 }
 
-func (r AlertingChannelDS) validateSplunkIntegration() error {
+func (r *AlertingChannelDS) validateSplunkIntegration() error {
 	m := make(map[string]*string)
 	m["URL is missing"] = r.URL
 	m["Token is missing"] = r.Token
 	return acValidateOpts(m)
 }
 
-func (r AlertingChannelDS) validateVictorOpsIntegration() error {
+func (r *AlertingChannelDS) validateVictorOpsIntegration() error {
 	m := make(map[string]*string)
 	m["API Key is missing"] = r.APIKey
 	m["Routing Key is missing"] = r.RoutingKey
 	return acValidateOpts(m)
 }
 
-func (r AlertingChannelDS) validateGenericWebHookIntegration() error {
+func (r *AlertingChannelDS) validateGenericWebHookIntegration() error {
 	return acValidateList(r.WebhookURLs, "Webhook URLs are missing")
 }

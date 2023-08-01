@@ -259,7 +259,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -304,7 +304,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithEntityVe
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -315,7 +315,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithEntityVe
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -338,26 +338,25 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(*restapi.CustomEventSpecification)
-	require.Equal(t, customEntityVerificationEventID, customEventSpec.GetIDForResourcePath())
-	require.Equal(t, customEntityVerificationEventName, customEventSpec.Name)
-	require.Equal(t, EntityVerificationRuleEntityType, customEventSpec.EntityType)
-	require.Equal(t, customEntityVerificationEventQuery, *customEventSpec.Query)
-	require.Equal(t, customEntityVerificationEventDescription, *customEventSpec.Description)
-	require.Equal(t, customEntityVerificationEventExpirationTime, *customEventSpec.ExpirationTime)
-	require.True(t, customEventSpec.Triggering)
-	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEntityVerificationEventID, result.GetIDForResourcePath())
+	require.Equal(t, customEntityVerificationEventName, result.Name)
+	require.Equal(t, EntityVerificationRuleEntityType, result.EntityType)
+	require.Equal(t, customEntityVerificationEventQuery, *result.Query)
+	require.Equal(t, customEntityVerificationEventDescription, *result.Description)
+	require.Equal(t, customEntityVerificationEventExpirationTime, *result.ExpirationTime)
+	require.True(t, result.Triggering)
+	require.True(t, result.Enabled)
 
-	require.Equal(t, 1, len(customEventSpec.Rules))
-	require.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, *customEventSpec.Rules[0].MatchingEntityLabel)
-	require.Equal(t, customEntityVerificationEventRuleMatchingEntityType, *customEventSpec.Rules[0].MatchingEntityType)
-	require.Equal(t, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue(), *customEventSpec.Rules[0].MatchingOperator)
-	require.Equal(t, customEntityVerificationEventRuleOfflineDuration, *customEventSpec.Rules[0].OfflineDuration)
-	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+	require.Equal(t, 1, len(result.Rules))
+	require.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, *result.Rules[0].MatchingEntityLabel)
+	require.Equal(t, customEntityVerificationEventRuleMatchingEntityType, *result.Rules[0].MatchingEntityType)
+	require.Equal(t, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue(), *result.Rules[0].MatchingOperator)
+	require.Equal(t, customEntityVerificationEventRuleOfflineDuration, *result.Rules[0].OfflineDuration)
+	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), result.Rules[0].Severity)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -369,7 +368,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenMatchingOperatorIsMissing(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -382,7 +381,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenMatchingOperatorIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)

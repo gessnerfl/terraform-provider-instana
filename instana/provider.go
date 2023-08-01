@@ -103,7 +103,7 @@ func providerResources() map[string]*schema.Resource {
 	return resources
 }
 
-func bindResourceHandle(resources map[string]*schema.Resource, resourceHandle ResourceHandle) {
+func bindResourceHandle[T restapi.InstanaDataObject](resources map[string]*schema.Resource, resourceHandle ResourceHandle[T]) {
 	resources[resourceHandle.MetaData().ResourceName] = NewTerraformResource(resourceHandle).ToSchemaResource()
 }
 

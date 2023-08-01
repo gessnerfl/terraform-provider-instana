@@ -16,7 +16,7 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 )
 
-func createApplicationAlertConfigTestFor(terraformResourceName string, resourceRestAPIPath string, resourceHandle ResourceHandle) *anyApplicationConfigTest {
+func createApplicationAlertConfigTestFor(terraformResourceName string, resourceRestAPIPath string, resourceHandle ResourceHandle[*restapi.ApplicationAlertConfig]) *anyApplicationConfigTest {
 	terraformResourceInstanceName := terraformResourceName + ".example"
 	resourceInstanceRestAPIPath := resourceRestAPIPath + "/{internal-id}"
 	inst := &anyApplicationConfigTest{
@@ -34,7 +34,7 @@ type anyApplicationConfigTest struct {
 	terraformResourceInstanceName string
 	resourceRestAPIPath           string
 	resourceInstanceRestAPIPath   string
-	resourceHandle                ResourceHandle
+	resourceHandle                ResourceHandle[*restapi.ApplicationAlertConfig]
 }
 
 var applicationAlertConfigTerraformTemplate = `
@@ -703,7 +703,7 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 			Triggering:          true,
 		}
 
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.ApplicationAlertConfig](t)
 		sut := f.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -1101,7 +1101,7 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 			Triggering:          true,
 		}
 
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.ApplicationAlertConfig](t)
 		sut := f.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 		resourceData.Set(ApplicationAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})

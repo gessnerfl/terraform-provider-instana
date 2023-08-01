@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-//ResourceInstanaGroup the name of the terraform-provider-instana resource to manage groups for role based access control
+// ResourceInstanaGroup the name of the terraform-provider-instana resource to manage groups for role based access control
 const ResourceInstanaGroup = "instana_rbac_group"
 
 const (
@@ -149,8 +149,8 @@ var groupSchema = map[string]*schema.Schema{
 	},
 }
 
-//NewGroupResourceHandle creates the resource handle for RBAC Groups
-func NewGroupResourceHandle() ResourceHandle {
+// NewGroupResourceHandle creates the resource handle for RBAC Groups
+func NewGroupResourceHandle() ResourceHandle[*restapi.Group] {
 	return &groupResource{
 		metaData: ResourceMetaData{
 			ResourceName:     ResourceInstanaGroup,
@@ -173,7 +173,7 @@ func (r *groupResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *groupResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *groupResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.Group] {
 	return api.Groups()
 }
 
@@ -181,9 +181,7 @@ func (r *groupResource) SetComputedFields(d *schema.ResourceData) {
 	//No computed fields defined
 }
 
-func (r *groupResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	group := obj.(*restapi.Group)
-
+func (r *groupResource) UpdateState(d *schema.ResourceData, group *restapi.Group, formatter utils.ResourceNameFormatter) error {
 	d.Set(GroupFieldName, formatter.UndoFormat(group.Name))
 	d.Set(GroupFieldFullName, group.Name)
 
@@ -243,7 +241,7 @@ func (r *groupResource) convertScopeBindingSliceToState(value []restapi.ScopeBin
 	return schema.NewSet(schema.HashString, result)
 }
 
-func (r *groupResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *groupResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.Group, error) {
 	name := r.computeFullNameString(d, formatter)
 	members := r.convertStateToGroupMembers(d)
 	permissionSet := convertStateToPermissionSet(d)

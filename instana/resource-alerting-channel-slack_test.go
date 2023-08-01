@@ -82,7 +82,7 @@ func TestResourceAlertingChannelSlackDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelSlackResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	webhookURL := testAlertingChannelSlackWebhookURL
@@ -108,7 +108,7 @@ func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelSlackResourceHandle()
 	webhookURL := testAlertingChannelSlackWebhookURL
 	iconURL := testAlertingChannelSlackIconURL
@@ -126,10 +126,10 @@ func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, webhookURL, *model.(*restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
-	require.Equal(t, iconURL, *model.(*restapi.AlertingChannel).IconURL, "icon url should be equal")
-	require.Equal(t, channel, *model.(*restapi.AlertingChannel).Channel, "channel should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, webhookURL, *model.WebhookURL, "webhook url should be equal")
+	require.Equal(t, iconURL, *model.IconURL, "icon url should be equal")
+	require.Equal(t, channel, *model.Channel, "channel should be equal")
 }
 
 func TestAlertingChannelSlackShouldHaveSchemaVersionZero(t *testing.T) {

@@ -540,7 +540,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSp
 		BoundaryScope:      restapi.BoundaryScopeAll,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.ApplicationConfig](t)
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -566,7 +566,7 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenM
 		Scope:              restapi.ApplicationConfigScopeIncludeNoDownstream,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.ApplicationConfig](t)
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -585,7 +585,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenTagFilt
 		BoundaryScope:       restapi.BoundaryScopeAll,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.ApplicationConfig](t)
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -611,7 +611,7 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenT
 		Scope:               restapi.ApplicationConfigScopeIncludeNoDownstream,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.ApplicationConfig](t)
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -621,7 +621,7 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenT
 }
 
 func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsAvailable(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.ApplicationConfig](t)
 	resourceHandle := NewApplicationConfigResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -636,15 +636,15 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenMatchSpec
 	require.Nil(t, err)
 	require.IsType(t, &restapi.ApplicationConfig{}, result)
 	require.Equal(t, applicationConfigID, result.GetIDForResourcePath())
-	require.Equal(t, defaultLabel, result.(*restapi.ApplicationConfig).Label)
-	require.Equal(t, defaultMatchSpecificationModel, result.(*restapi.ApplicationConfig).MatchSpecification)
-	require.Nil(t, result.(*restapi.ApplicationConfig).TagFilterExpression)
-	require.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)
-	require.Equal(t, restapi.BoundaryScopeAll, result.(*restapi.ApplicationConfig).BoundaryScope)
+	require.Equal(t, defaultLabel, result.Label)
+	require.Equal(t, defaultMatchSpecificationModel, result.MatchSpecification)
+	require.Nil(t, result.TagFilterExpression)
+	require.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.Scope)
+	require.Equal(t, restapi.BoundaryScopeAll, result.BoundaryScope)
 }
 
 func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificationIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.ApplicationConfig](t)
 	resourceHandle := NewApplicationConfigResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -660,7 +660,7 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificat
 }
 
 func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenTagFilterIsAvailable(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.ApplicationConfig](t)
 	resourceHandle := NewApplicationConfigResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -675,15 +675,15 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenTagFilter
 	require.Nil(t, err)
 	require.IsType(t, &restapi.ApplicationConfig{}, result)
 	require.Equal(t, applicationConfigID, result.GetIDForResourcePath())
-	require.Equal(t, defaultLabel, result.(*restapi.ApplicationConfig).Label)
-	require.Nil(t, result.(*restapi.ApplicationConfig).MatchSpecification)
-	require.Equal(t, defaultTagFilterModel, result.(*restapi.ApplicationConfig).TagFilterExpression)
-	require.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.(*restapi.ApplicationConfig).Scope)
-	require.Equal(t, restapi.BoundaryScopeAll, result.(*restapi.ApplicationConfig).BoundaryScope)
+	require.Equal(t, defaultLabel, result.Label)
+	require.Nil(t, result.MatchSpecification)
+	require.Equal(t, defaultTagFilterModel, result.TagFilterExpression)
+	require.Equal(t, restapi.ApplicationConfigScopeIncludeNoDownstream, result.Scope)
+	require.Equal(t, restapi.BoundaryScopeAll, result.BoundaryScope)
 }
 
 func TestShouldFailToConvertApplicationConfigStateToDataModelWhenTagFilterIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.ApplicationConfig](t)
 	resourceHandle := NewApplicationConfigResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)

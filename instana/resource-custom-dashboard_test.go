@@ -25,7 +25,7 @@ func TestCustomDashboardResource(t *testing.T) {
 
 type customDashboardResourceTest struct {
 	terraformResourceInstanceName string
-	resourceHandle                ResourceHandle
+	resourceHandle                ResourceHandle[*restapi.CustomDashboard]
 }
 
 func (test *customDashboardResourceTest) run(t *testing.T) {
@@ -263,7 +263,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyUpdateTerra
 			},
 		}
 
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.CustomDashboard](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -292,7 +292,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyUpdateTerra
 
 func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerraformStateFromModel() func(t *testing.T) {
 	return func(t *testing.T) {
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.CustomDashboard](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -331,7 +331,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 
 func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerraformStateFromModelWhenNoAccessRuleIsDefined() func(t *testing.T) {
 	return func(t *testing.T) {
-		testHelper := NewTestHelper(t)
+		testHelper := NewTestHelper[*restapi.CustomDashboard](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 

@@ -1,12 +1,10 @@
 package restapi
 
-import (
-	"reflect"
-)
+import "github.com/gessnerfl/terraform-provider-instana/utils"
 
 // NewReadOnlyRestResource creates a new instance of ReadOnlyRestResource
-func NewReadOnlyRestResource(resourcePath string, objectUnmarshaller JSONUnmarshaller, arrayUnmarshaller JSONUnmarshaller, client RestClient) ReadOnlyRestResource {
-	return &readOnlyRestResource{
+func NewReadOnlyRestResource[T InstanaDataObject](resourcePath string, objectUnmarshaller JSONUnmarshaller[T], arrayUnmarshaller JSONUnmarshaller[*[]T], client RestClient) ReadOnlyRestResource[T] {
+	return &readOnlyRestResource[T]{
 		resourcePath:       resourcePath,
 		objectUnmarshaller: objectUnmarshaller,
 		arrayUnmarshaller:  arrayUnmarshaller,
@@ -14,14 +12,14 @@ func NewReadOnlyRestResource(resourcePath string, objectUnmarshaller JSONUnmarsh
 	}
 }
 
-type readOnlyRestResource struct {
+type readOnlyRestResource[T InstanaDataObject] struct {
 	resourcePath       string
-	objectUnmarshaller JSONUnmarshaller
-	arrayUnmarshaller  JSONUnmarshaller
+	objectUnmarshaller JSONUnmarshaller[T]
+	arrayUnmarshaller  JSONUnmarshaller[*[]T]
 	client             RestClient
 }
 
-func (r *readOnlyRestResource) GetAll() (*[]InstanaDataObject, error) {
+func (r *readOnlyRestResource[T]) GetAll() (*[]T, error) {
 	data, err := r.client.Get(r.resourcePath)
 	if err != nil {
 		return nil, err
@@ -30,27 +28,13 @@ func (r *readOnlyRestResource) GetAll() (*[]InstanaDataObject, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	values := reflect.ValueOf(objects).Elem()
-	result := make([]InstanaDataObject, values.Len())
-
-	for i := 0; i < values.Len(); i++ {
-		o := values.Index(i).Interface()
-		result[i] = o.(InstanaDataObject)
-	}
-	return &result, nil
+	return objects, nil
 }
 
-func (r *readOnlyRestResource) GetOne(id string) (InstanaDataObject, error) {
+func (r *readOnlyRestResource[T]) GetOne(id string) (T, error) {
 	data, err := r.client.GetOne(id, r.resourcePath)
 	if err != nil {
-		return nil, err
+		return utils.GetZeroValue[T](), err
 	}
-	object, err := r.objectUnmarshaller.Unmarshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	value := reflect.ValueOf(object).Elem()
-	return value.Interface().(InstanaDataObject), nil
+	return r.objectUnmarshaller.Unmarshal(data)
 }

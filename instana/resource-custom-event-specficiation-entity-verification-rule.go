@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
+// ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
 const ResourceInstanaCustomEventSpecificationEntityVerificationRule = "instana_custom_event_spec_entity_verification_rule"
 
 const (
@@ -23,7 +23,7 @@ const (
 	EntityVerificationRuleFieldOfflineDuration = ruleFieldPrefix + "offline_duration"
 )
 
-//EntityVerificationRuleEntityType the fix entity_type of entity verification rules
+// EntityVerificationRuleEntityType the fix entity_type of entity verification rules
 const EntityVerificationRuleEntityType = "host"
 
 var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
@@ -59,8 +59,8 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with entity verification rules
-func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() ResourceHandle {
+// NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with entity verification rules
+func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
 	commons := &customEventSpecificationCommons{}
 	return &customEventSpecificationWithEntityVerificationRuleResource{
 		metaData: ResourceMetaData{
@@ -101,7 +101,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) StateUpgrad
 	}
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomEventSpecification] {
 	return api.CustomEventSpecifications()
 }
 
@@ -109,8 +109,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) SetComputed
 	d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	customEventSpecification := obj.(*restapi.CustomEventSpecification)
+func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
 	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
 
 	ruleSpec := customEventSpecification.Rules[0]
@@ -130,7 +129,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState
 	return nil
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err

@@ -76,7 +76,7 @@ func TestResourceAlertingChannelOffice365Definition(t *testing.T) {
 	testResourceAlertingChannelWebhookBasedDefinition(t, NewAlertingChannelOffice356ResourceHandle())
 }
 
-func testResourceAlertingChannelWebhookBasedDefinition(t *testing.T, resourceHandle ResourceHandle) {
+func testResourceAlertingChannelWebhookBasedDefinition[T restapi.InstanaDataObject](t *testing.T, resourceHandle ResourceHandle[T]) {
 	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
@@ -92,7 +92,7 @@ func TestShouldReturnCorrectResourceNameForAlertingChannelGoogleChat(t *testing.
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelGoogleChatResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	webhookURL := alertingChannelWebhookBasedWebhookUrl
@@ -112,7 +112,7 @@ func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelWebhookBasedToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelGoogleChatResourceHandle()
 	webhookURL := alertingChannelWebhookBasedWebhookUrl
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -126,8 +126,8 @@ func TestShouldConvertStateOfAlertingChannelWebhookBasedToDataModel(t *testing.T
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, webhookURL, *model.(*restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, webhookURL, *model.WebhookURL, "webhook url should be equal")
 }
 
 func TestAlertingChannelWebhookBasedShouldHaveSchemaVersionZero(t *testing.T) {

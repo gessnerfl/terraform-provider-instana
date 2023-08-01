@@ -17,8 +17,8 @@ const (
 	ResourceInstanaAlertingChannelSlack = "instana_alerting_channel_slack"
 )
 
-//NewAlertingChannelSlackResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelSlackResourceHandle() ResourceHandle {
+// NewAlertingChannelSlackResourceHandle creates the resource handle for Alerting Channels of type Email
+func NewAlertingChannelSlackResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelSlackResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelSlack,
@@ -57,7 +57,7 @@ func (r *alertingChannelSlackResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *alertingChannelSlackResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingChannelSlackResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
 	return api.AlertingChannels()
 }
 
@@ -65,8 +65,7 @@ func (r *alertingChannelSlackResource) SetComputedFields(d *schema.ResourceData)
 	//No computed fields defined
 }
 
-func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	alertingChannel := obj.(*restapi.AlertingChannel)
+func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
 	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
 	d.Set(AlertingChannelSlackFieldWebhookURL, alertingChannel.WebhookURL)
@@ -76,7 +75,7 @@ func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, obj r
 	return nil
 }
 
-func (r *alertingChannelSlackResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelSlackResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	webhookURL := d.Get(AlertingChannelSlackFieldWebhookURL).(string)
 	iconURL := d.Get(AlertingChannelSlackFieldIconURL).(string)

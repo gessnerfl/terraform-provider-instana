@@ -109,7 +109,7 @@ func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersio
 }
 
 func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelEmailResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.AlertingChannel{
@@ -132,7 +132,7 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelEmailResourceHandle()
 	emails := []string{"email1", "email2"}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -146,8 +146,8 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Len(t, model.(*restapi.AlertingChannel).Emails, 2)
-	require.Contains(t, model.(*restapi.AlertingChannel).Emails, "email1")
-	require.Contains(t, model.(*restapi.AlertingChannel).Emails, "email2")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Len(t, model.Emails, 2)
+	require.Contains(t, model.Emails, "email1")
+	require.Contains(t, model.Emails, "email2")
 }

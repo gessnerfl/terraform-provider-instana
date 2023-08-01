@@ -133,7 +133,7 @@ var (
 )
 
 // NewApplicationConfigResourceHandle creates a new instance of the ResourceHandle for application configs
-func NewApplicationConfigResourceHandle() ResourceHandle {
+func NewApplicationConfigResourceHandle() ResourceHandle[*restapi.ApplicationConfig] {
 	return &applicationConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaApplicationConfig,
@@ -178,7 +178,7 @@ func (r *applicationConfigResource) StateUpgraders() []schema.StateUpgrader {
 	}
 }
 
-func (r *applicationConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *applicationConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationConfig] {
 	return api.ApplicationConfigs()
 }
 
@@ -186,8 +186,7 @@ func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {
 	//No computed fields defined
 }
 
-func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	applicationConfig := obj.(*restapi.ApplicationConfig)
+func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicationConfig *restapi.ApplicationConfig, formatter utils.ResourceNameFormatter) error {
 	if applicationConfig.MatchSpecification != nil {
 		normalizedExpressionString, err := r.mapMatchSpecificationToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 		if err != nil {
@@ -221,7 +220,7 @@ func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepre
 	return &renderedExpression, nil
 }
 
-func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.ApplicationConfig, error) {
 	var matchSpecification restapi.MatchExpression
 	var tagFilter restapi.TagFilterExpressionElement
 	var err error

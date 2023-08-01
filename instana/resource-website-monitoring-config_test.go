@@ -163,7 +163,7 @@ func TestResourceWebsiteMonitoringConfigDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.WebsiteMonitoringConfig](t)
 	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	fullname := resourceFullName
@@ -184,7 +184,7 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 }
 
 func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.WebsiteMonitoringConfig](t)
 	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
@@ -196,7 +196,7 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.WebsiteMonitoringConfig{}, model)
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, websiteMonitoringConfigFullName, model.(*restapi.WebsiteMonitoringConfig).Name)
+	require.Equal(t, websiteMonitoringConfigFullName, model.Name)
 }
 
 func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {

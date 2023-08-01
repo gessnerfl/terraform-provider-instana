@@ -181,7 +181,7 @@ func TestSyntheticTestResourceShouldHaveSchemaVersionZero(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForSyntheticTests(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.SyntheticTest](t)
 	resourceHandle := NewSyntheticTestResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.SyntheticTest{
@@ -200,7 +200,7 @@ func TestShouldUpdateResourceStateForSyntheticTests(t *testing.T) {
 }
 
 func TestShouldConvertStateOfSyntheticTestsToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.SyntheticTest](t)
 	resourceHandle := NewSyntheticTestResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(syntheticTestID)

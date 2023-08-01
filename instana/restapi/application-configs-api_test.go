@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 	"testing"
 
 	"github.com/stretchr/testify/require"

@@ -52,13 +52,10 @@ func (ds *alertingChannelOffice365DataSource) read(d *schema.ResourceData, meta 
 	return ds.updateState(d, alertChannel)
 }
 
-func (ds *alertingChannelOffice365DataSource) findAlertChannel(name string, data *[]restapi.InstanaDataObject) (*restapi.AlertingChannelDS, error) {
-	for _, e := range *data {
-		alertingChannel, ok := e.(restapi.AlertingChannelDS)
-		if ok {
-			if alertingChannel.Name == name {
-				return &alertingChannel, nil
-			}
+func (ds *alertingChannelOffice365DataSource) findAlertChannel(name string, data *[]*restapi.AlertingChannelDS) (*restapi.AlertingChannelDS, error) {
+	for _, alertingChannel := range *data {
+		if alertingChannel.Name == name {
+			return alertingChannel, nil
 		}
 	}
 	return nil, fmt.Errorf("no alerting channel found")

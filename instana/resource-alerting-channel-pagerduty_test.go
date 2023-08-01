@@ -71,7 +71,7 @@ func TestResourceAlertingChannelPagerDutyDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelPagerDutyResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	integrationKey := "integration key"
@@ -91,7 +91,7 @@ func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelPagerDutyResourceHandle()
 	integrationKey := "integration key"
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -105,8 +105,8 @@ func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, integrationKey, *model.(*restapi.AlertingChannel).ServiceIntegrationKey, "service integration key should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, integrationKey, *model.ServiceIntegrationKey, "service integration key should be equal")
 }
 
 func TestAlertingChannelPagerDutyShouldHaveSchemaVersionZero(t *testing.T) {

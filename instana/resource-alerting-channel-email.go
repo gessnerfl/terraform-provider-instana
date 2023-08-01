@@ -15,7 +15,7 @@ const (
 	ResourceInstanaAlertingChannelEmail = "instana_alerting_channel_email"
 )
 
-//AlertingChannelEmailEmailsSchemaField schema definition for instana alerting channel emails field
+// AlertingChannelEmailEmailsSchemaField schema definition for instana alerting channel emails field
 var AlertingChannelEmailEmailsSchemaField = &schema.Schema{
 	Type:     schema.TypeSet,
 	MinItems: 1,
@@ -26,8 +26,8 @@ var AlertingChannelEmailEmailsSchemaField = &schema.Schema{
 	Description: "The list of emails of the Email alerting channel",
 }
 
-//NewAlertingChannelEmailResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelEmailResourceHandle() ResourceHandle {
+// NewAlertingChannelEmailResourceHandle creates the resource handle for Alerting Channels of type Email
+func NewAlertingChannelEmailResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelEmailResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelEmail,
@@ -61,7 +61,7 @@ func (r *alertingChannelEmailResource) StateUpgraders() []schema.StateUpgrader {
 	}
 }
 
-func (r *alertingChannelEmailResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingChannelEmailResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
 	return api.AlertingChannels()
 }
 
@@ -69,8 +69,7 @@ func (r *alertingChannelEmailResource) SetComputedFields(d *schema.ResourceData)
 	//No computed fields defined
 }
 
-func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	alertingChannel := obj.(*restapi.AlertingChannel)
+func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
 	emails := alertingChannel.Emails
 	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
 	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
@@ -79,7 +78,7 @@ func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, obj r
 	return nil
 }
 
-func (r *alertingChannelEmailResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelEmailResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	return &restapi.AlertingChannel{
 		ID:     d.Id(),

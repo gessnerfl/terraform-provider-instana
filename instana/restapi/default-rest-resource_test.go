@@ -9,8 +9,8 @@ import (
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 const (
@@ -40,7 +40,7 @@ func makeTestObject() *testObject {
 }
 
 func TestSuccessfulGetOneTestObjectThroughDefaultRestResource(t *testing.T) {
-	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 		serializedJSON, _ := json.Marshal(testObject)
 
@@ -55,7 +55,7 @@ func TestSuccessfulGetOneTestObjectThroughDefaultRestResource(t *testing.T) {
 }
 
 func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenErrorIsRetrievedFromRestClient(t *testing.T) {
-	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		client.EXPECT().GetOne(gomock.Eq(testObjectID), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("error during test"))
 		unmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
 
@@ -66,7 +66,7 @@ func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenErrorIsRetrie
 }
 
 func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenResponseCannotBeUnmarshalled(t *testing.T) {
-	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		expectedError := errors.New("test")
 		response := []byte("[{ \"invalid\" : \"data\" }]")
 
@@ -80,24 +80,8 @@ func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenResponseCanno
 	})
 }
 
-type InvalidInstanaDataObject struct{}
-
-func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenUnmarshalledObjectIsNotAInstanaDataObject(t *testing.T) {
-	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
-		response := []byte("[{ \"some\" : \"data\" }]")
-
-		client.EXPECT().GetOne(gomock.Eq(testObjectID), gomock.Eq(testObjectResourcePath)).Return(response, nil)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(&InvalidInstanaDataObject{}, nil)
-
-		_, err := sut.GetOne(testObjectID)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "unmarshalled object does not implement InstanaDataObject")
-	})
-}
-
 func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenUnmarshalledObjectIsNotValid(t *testing.T) {
-	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		response := []byte("[{ \"some\" : \"data\" }]")
 		object := makeTestObject()
 		object.Name = "invalid"
@@ -112,7 +96,7 @@ func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenUnmarshalledO
 }
 
 func TestSuccessfulDeleteOfTestObjectByObjectThroughDefaultRestResource(t *testing.T) {
-	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 
 		client.EXPECT().Delete(gomock.Eq(testObjectID), gomock.Eq(testObjectResourcePath)).Return(nil)
@@ -124,7 +108,7 @@ func TestSuccessfulDeleteOfTestObjectByObjectThroughDefaultRestResource(t *testi
 }
 
 func TestShouldFailToDeleteTestObjectThroughDefaultRestResourceWhenErrorIsRetrunedFromRestClient(t *testing.T) {
-	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 
 		client.EXPECT().Delete(gomock.Eq(testObjectID), gomock.Eq(testObjectResourcePath)).Return(errors.New("Error during test"))
@@ -135,15 +119,15 @@ func TestShouldFailToDeleteTestObjectThroughDefaultRestResourceWhenErrorIsRetrun
 	})
 }
 
-func executeForAllImplementationsOfDefaultRestResource(t *testing.T, testFunc func(t *testing.T, sut RestResource, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller)) {
+func executeForAllImplementationsOfDefaultRestResource(t *testing.T, testFunc func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject])) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+	unmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
 
-	implementations := map[DefaultRestResourceMode]RestResource{
-		DefaultRestResourceModeCreateAndUpdatePUT:  NewCreatePUTUpdatePUTRestResource(testObjectResourcePath, unmarshaller, client),
-		DefaultRestResourceModeCreatePOSTUpdatePUT: NewCreatePOSTUpdatePUTRestResource(testObjectResourcePath, unmarshaller, client),
+	implementations := map[DefaultRestResourceMode]RestResource[*testObject]{
+		DefaultRestResourceModeCreateAndUpdatePUT:  NewCreatePUTUpdatePUTRestResource[*testObject](testObjectResourcePath, unmarshaller, client),
+		DefaultRestResourceModeCreatePOSTUpdatePUT: NewCreatePOSTUpdatePUTRestResource[*testObject](testObjectResourcePath, unmarshaller, client),
 	}
 
 	caller := getCallerName()

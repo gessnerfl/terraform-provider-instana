@@ -100,11 +100,10 @@ func (ds *builtInEventDataSource) read(d *schema.ResourceData, meta interface{})
 	return ds.updateState(d, builtInEvent)
 }
 
-func (ds *builtInEventDataSource) findBuiltInEventByNameAndPluginID(name string, shortPluginID string, data *[]restapi.InstanaDataObject) (*restapi.BuiltinEventSpecification, error) {
-	for _, e := range *data {
-		builtInEvent, ok := e.(restapi.BuiltinEventSpecification)
-		if ok && builtInEvent.Name == name && builtInEvent.ShortPluginID == shortPluginID {
-			return &builtInEvent, nil
+func (ds *builtInEventDataSource) findBuiltInEventByNameAndPluginID(name string, shortPluginID string, data *[]*restapi.BuiltinEventSpecification) (*restapi.BuiltinEventSpecification, error) {
+	for _, builtInEvent := range *data {
+		if builtInEvent.Name == name && builtInEvent.ShortPluginID == shortPluginID {
+			return builtInEvent, nil
 		}
 	}
 	return nil, fmt.Errorf("no built in event found for name '%s' and short plugin ID '%s'", name, shortPluginID)
