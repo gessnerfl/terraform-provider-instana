@@ -103,7 +103,7 @@ const alertingChannelMessageIdMissing = "id is missing"
 const alertingChannelMessageNameMissing = "name is missing"
 const alertingChannelMessageKindMissing = "kind is missing"
 
-// nolint not an api key but only an error message in case API Key is missing
+//nolint:goseec
 const alertingChannelMessageAPIKeyMissing = "api key is missing"
 const alertingChannelMessageWebhookURLMissing = "webhook URL is missing"
 const alertingChannelMessageWebhookURLsMissing = "webhook URLs are missing"
