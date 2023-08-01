@@ -2,6 +2,7 @@ package restapi_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,22 +16,14 @@ const (
 )
 
 func TestShouldSuccessfullyUnmarshalApplicationConfigWithMatchSpecification(t *testing.T) {
-	id := testApplicationConfigId
-	label := testApplicationConfigLabel
-	applicationConfig := ApplicationConfig{
-		ID:                 id,
-		Label:              label,
-		MatchSpecification: NewBinaryOperator(NewComparisonExpression("key", MatcherExpressionEntityDestination, EqualsOperator, "value"), LogicalAnd, NewUnaryOperationExpression("key", MatcherExpressionEntityDestination, NotBlankOperator)),
-		Scope:              "scope",
-		BoundaryScope:      "boundaryScope",
-	}
+	applicationConfig := createTestApplicationConfig()
 
 	serializedJSON, _ := json.Marshal(applicationConfig)
 
 	result, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
 
 	require.NoError(t, err)
-	require.Equal(t, &applicationConfig, result)
+	require.Equal(t, applicationConfig, result)
 }
 
 func TestShouldSuccessfullyUnmarshalApplicationConfigWithTagFilterExpressionContainingASingleTagFilter(t *testing.T) {
@@ -185,4 +178,46 @@ func TestShouldFailToUnmarshalApplicationConfigWhenTagFilterIsNotAValidJsonObjec
 	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(json))
 
 	require.Error(t, err)
+}
+
+func TestShouldSuccessfullyUnmarshalApplicationConfigArray(t *testing.T) {
+	applicationConfig := createTestApplicationConfig()
+	input := []*ApplicationConfig{applicationConfig}
+
+	serializedJSON, _ := json.Marshal(&input)
+
+	result, err := NewApplicationConfigUnmarshaller().UnmarshalArray(serializedJSON)
+
+	require.NoError(t, err)
+	require.Equal(t, &input, result)
+}
+
+func TestShouldFailToUnmarshalApplicationConfigArrayContainingAtLeastOneInvalidApplicationConfig(t *testing.T) {
+	applicationConfig := createTestApplicationConfig()
+	objectJson, _ := json.Marshal(applicationConfig)
+
+	serializedJSON := fmt.Sprintf("[%s,[\"foo\",\"bar\"]]", objectJson)
+
+	_, err := NewApplicationConfigUnmarshaller().UnmarshalArray([]byte(serializedJSON))
+
+	require.Error(t, err)
+}
+
+func TestShouldFailToUnmarshalApplicationConfigArrayyWhenNoValidJsonIsProvided(t *testing.T) {
+	_, err := NewApplicationConfigUnmarshaller().UnmarshalArray([]byte("invalid json data"))
+
+	require.Error(t, err)
+}
+
+func createTestApplicationConfig() *ApplicationConfig {
+	id := testApplicationConfigId
+	label := testApplicationConfigLabel
+	applicationConfig := ApplicationConfig{
+		ID:                 id,
+		Label:              label,
+		MatchSpecification: NewBinaryOperator(NewComparisonExpression("key", MatcherExpressionEntityDestination, EqualsOperator, "value"), LogicalAnd, NewUnaryOperationExpression("key", MatcherExpressionEntityDestination, NotBlankOperator)),
+		Scope:              "scope",
+		BoundaryScope:      "boundaryScope",
+	}
+	return &applicationConfig
 }

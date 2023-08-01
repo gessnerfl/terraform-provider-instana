@@ -15,7 +15,11 @@ type applicationAlertConfigUnmarshaller struct {
 	tagFilterUnmarshaller TagFilterUnmarshaller
 }
 
-// Unmarshal Unmarshaller interface implementation
+// UnmarshalArray Unmarshaller interface implementation
+func (u *applicationAlertConfigUnmarshaller) UnmarshalArray(data []byte) (*[]*ApplicationAlertConfig, error) {
+	return unmarshalArray[*ApplicationAlertConfig](data, u.Unmarshal)
+}
+
 func (u *applicationAlertConfigUnmarshaller) Unmarshal(data []byte) (*ApplicationAlertConfig, error) {
 	var rawTagFilterExpression json.RawMessage
 	temp := &ApplicationAlertConfig{

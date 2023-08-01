@@ -16,6 +16,11 @@ type applicationConfigUnmarshaller struct {
 	tagFilterUnmarshaller TagFilterUnmarshaller
 }
 
+// UnmarshalArray Unmarshaller interface implementation
+func (u *applicationConfigUnmarshaller) UnmarshalArray(data []byte) (*[]*ApplicationConfig, error) {
+	return unmarshalArray[*ApplicationConfig](data, u.Unmarshal)
+}
+
 // Unmarshal Unmarshaller interface implementation
 func (u *applicationConfigUnmarshaller) Unmarshal(data []byte) (*ApplicationConfig, error) {
 	var rawMatchSpecification json.RawMessage

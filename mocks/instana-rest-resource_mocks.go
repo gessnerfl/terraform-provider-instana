@@ -248,3 +248,18 @@ func (mr *MockJSONUnmarshallerMockRecorder[T]) Unmarshal(data interface{}) *gomo
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unmarshal", reflect.TypeOf((*MockJSONUnmarshaller[T])(nil).Unmarshal), data)
 }
+
+// UnmarshalArray mocks base method.
+func (m *MockJSONUnmarshaller[T]) UnmarshalArray(data []byte) (*[]T, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnmarshalArray", data)
+	ret0, _ := ret[0].(*[]T)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UnmarshalArray indicates an expected call of UnmarshalArray.
+func (mr *MockJSONUnmarshallerMockRecorder[T]) UnmarshalArray(data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnmarshalArray", reflect.TypeOf((*MockJSONUnmarshaller[T])(nil).UnmarshalArray), data)
+}

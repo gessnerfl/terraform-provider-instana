@@ -15,6 +15,11 @@ type websiteAlertConfigUnmarshaller struct {
 	tagFilterUnmarshaller TagFilterUnmarshaller
 }
 
+// UnmarshalArray Unmarshaller interface implementation
+func (u *websiteAlertConfigUnmarshaller) UnmarshalArray(data []byte) (*[]*WebsiteAlertConfig, error) {
+	return unmarshalArray[*WebsiteAlertConfig](data, u.Unmarshal)
+}
+
 // Unmarshal Unmarshaller interface implementation
 func (u *websiteAlertConfigUnmarshaller) Unmarshal(data []byte) (*WebsiteAlertConfig, error) {
 	var rawTagFilterExpression json.RawMessage

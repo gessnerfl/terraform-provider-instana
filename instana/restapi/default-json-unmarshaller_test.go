@@ -36,16 +36,23 @@ func TestShouldSuccessfullyUnmarshalArrayOfObjects(t *testing.T) {
 		Name: defaultObjectName,
 	}
 	testObjects := &[]*testObject{testData, testData}
-	arrayOfObjects := make([]*testObject, 0)
 
 	serializedJSON, _ := json.Marshal(testObjects)
 
-	sut := NewDefaultJSONArrayUnmarshaller(&arrayOfObjects)
+	sut := NewDefaultJSONUnmarshaller(testData)
 
-	result, err := sut.Unmarshal(serializedJSON)
+	result, err := sut.UnmarshalArray(serializedJSON)
 
 	require.NoError(t, err)
 	require.Equal(t, testObjects, result)
+}
+
+func TestShouldFailToUnmarshalArrayWhenNoValidJsonIsProvided(t *testing.T) {
+	sut := NewDefaultJSONUnmarshaller(&testObject{})
+
+	_, err := sut.UnmarshalArray([]byte("invalid json data"))
+
+	require.Error(t, err)
 }
 
 func TestShouldFailToUnmarshalWhenObjectIsRequestedButResponseIsAJsonArray(t *testing.T) {

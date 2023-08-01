@@ -60,7 +60,7 @@ func (api *baseInstanaAPI) CustomEventSpecifications() RestResource[*CustomEvent
 
 // BuiltinEventSpecifications implementation of InstanaAPI interface
 func (api *baseInstanaAPI) BuiltinEventSpecifications() ReadOnlyRestResource[*BuiltinEventSpecification] {
-	return NewReadOnlyRestResource(BuiltinEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&BuiltinEventSpecification{}), NewDefaultJSONArrayUnmarshaller(&[]*BuiltinEventSpecification{}), api.client)
+	return NewReadOnlyRestResource(BuiltinEventSpecificationResourcePath, NewDefaultJSONUnmarshaller(&BuiltinEventSpecification{}), api.client)
 }
 
 // APITokens implementation of InstanaAPI interface
@@ -90,7 +90,7 @@ func (api *baseInstanaAPI) AlertingChannels() RestResource[*AlertingChannel] {
 
 // AlertingChannelsDS read-only implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingChannelsDS() ReadOnlyRestResource[*AlertingChannel] {
-	return NewReadOnlyRestResource(AlertingChannelsResourcePath, NewDefaultJSONUnmarshaller(&AlertingChannel{}), NewDefaultJSONArrayUnmarshaller(&[]*AlertingChannel{}), api.client)
+	return NewReadOnlyRestResource(AlertingChannelsResourcePath, NewDefaultJSONUnmarshaller(&AlertingChannel{}), api.client)
 }
 
 // AlertingConfigurations implementation of InstanaAPI interface
@@ -124,5 +124,5 @@ func (api *baseInstanaAPI) SyntheticTest() RestResource[*SyntheticTest] {
 
 // BuiltinEventSpecifications implementation of InstanaAPI interface
 func (api *baseInstanaAPI) SyntheticLocation() ReadOnlyRestResource[*SyntheticLocation] {
-	return NewReadOnlyRestResource(SyntheticLocationResourcePath, NewDefaultJSONUnmarshaller(&SyntheticLocation{}), NewDefaultJSONArrayUnmarshaller(&[]*SyntheticLocation{}), api.client)
+	return NewReadOnlyRestResource(SyntheticLocationResourcePath, NewDefaultJSONUnmarshaller(&SyntheticLocation{}), api.client)
 }

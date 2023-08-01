@@ -45,10 +45,10 @@ func TestShouldSuccessfullyGetAllObjects(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().Get(testResourcePath).Times(1).Return(restResponseData, nil)
 
-	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*[]*testObject](ctrl)
-	arrayJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(&serverResponse, nil)
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(&serverResponse, nil)
 
-	sut := NewReadOnlyRestResource[*testObject](testResourcePath, nil, arrayJSONUnmarshaller, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, jsonUnmarshaller, restClient)
 
 	result, err := sut.GetAll()
 
@@ -65,10 +65,10 @@ func TestShouldReturnEmptySliceWhenNoDataIsReturned(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().Get(testResourcePath).Times(1).Return(restResponseData, nil)
 
-	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*[]*testObject](ctrl)
-	arrayJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(&[]*testObject{}, nil)
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(&[]*testObject{}, nil)
 
-	sut := NewReadOnlyRestResource[*testObject](testResourcePath, nil, arrayJSONUnmarshaller, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, jsonUnmarshaller, restClient)
 
 	result, err := sut.GetAll()
 
@@ -85,10 +85,10 @@ func TestShouldFailToGetAllWhenClientReturnsError(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().Get(testResourcePath).Times(1).Return(nil, expectedError)
 
-	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*[]*testObject](ctrl)
-	arrayJSONUnmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(gomock.Any()).Times(0)
 
-	sut := NewReadOnlyRestResource[*testObject](testResourcePath, nil, arrayJSONUnmarshaller, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, jsonUnmarshaller, restClient)
 
 	_, err := sut.GetAll()
 
@@ -106,10 +106,10 @@ func TestShouldFailToGetAllWhenRestResultCannotBeUnmarshalled(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().Get(testResourcePath).Times(1).Return(restResponseData, nil)
 
-	arrayJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*[]*testObject](ctrl)
-	arrayJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(nil, expectedError)
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(nil, expectedError)
 
-	sut := NewReadOnlyRestResource[*testObject](testResourcePath, nil, arrayJSONUnmarshaller, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, jsonUnmarshaller, restClient)
 
 	_, err := sut.GetAll()
 
@@ -133,10 +133,10 @@ func TestShouldSuccessfullyGetObjectById(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().GetOne(id, testResourcePath).Times(1).Return(restResponseData, nil)
 
-	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
-	objectJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(expectedResult, nil)
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
+	jsonUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(expectedResult, nil)
 
-	sut := NewReadOnlyRestResource[*testObject](testResourcePath, objectJSONUnmarshaller, nil, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, jsonUnmarshaller, restClient)
 
 	result, err := sut.GetOne(id)
 
@@ -154,10 +154,10 @@ func TestShouldFailToGetObjectByIdWhenRestClientResturnsError(t *testing.T) {
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().GetOne(id, testResourcePath).Times(1).Return(nil, expectedError)
 
-	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
-	objectJSONUnmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
+	jsonUnmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
 
-	sut := NewReadOnlyRestResource[*testObject](testResourcePath, objectJSONUnmarshaller, nil, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, jsonUnmarshaller, restClient)
 
 	_, err := sut.GetOne(id)
 
@@ -176,10 +176,10 @@ func TestShouldFailToGetObjectByIdWhenRestResultCannotBeUnmarshalled(t *testing.
 	restClient := mocks.NewMockRestClient(ctrl)
 	restClient.EXPECT().GetOne(id, testResourcePath).Times(1).Return(restResponseData, nil)
 
-	objectJSONUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
-	objectJSONUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(nil, expectedError)
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
+	jsonUnmarshaller.EXPECT().Unmarshal(restResponseData).Times(1).Return(nil, expectedError)
 
-	sut := NewReadOnlyRestResource[*testObject](testResourcePath, objectJSONUnmarshaller, nil, restClient)
+	sut := NewReadOnlyRestResource[*testObject](testResourcePath, jsonUnmarshaller, restClient)
 
 	_, err := sut.GetOne(id)
 
