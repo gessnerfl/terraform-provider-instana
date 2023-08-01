@@ -94,7 +94,7 @@ type AlertingChannel struct {
 	Headers               []string            `json:"headers"`
 }
 
-// GetIDForResourcePath implemention of the interface InstanaDataObject
+// GetIDForResourcePath implementation of the interface InstanaDataObject
 func (r *AlertingChannel) GetIDForResourcePath() string {
 	return r.ID
 }
@@ -102,9 +102,7 @@ func (r *AlertingChannel) GetIDForResourcePath() string {
 const alertingChannelMessageIdMissing = "id is missing"
 const alertingChannelMessageNameMissing = "name is missing"
 const alertingChannelMessageKindMissing = "kind is missing"
-
-//nolint:goseec
-const alertingChannelMessageAPIKeyMissing = "api key is missing"
+const alertingChannelMessageAPIKeyMissing = "api key is missing" //nolint:gosec
 const alertingChannelMessageWebhookURLMissing = "webhook URL is missing"
 const alertingChannelMessageWebhookURLsMissing = "webhook URLs are missing"
 const alertingChannelMessageEmailsMissing = "email addresses are missing"
