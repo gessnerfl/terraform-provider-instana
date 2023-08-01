@@ -74,53 +74,6 @@ func isInOpsGenieRegionTypeSlice(allRegionTypes []OpsGenieRegionType, regionType
 	return false
 }
 
-func acValidateOpt(opt *string, err string) error {
-	if opt == nil || utils.IsBlank(*opt) {
-		return errors.New(err)
-	}
-	return nil
-}
-
-func acValidateOpts(opts map[string]*string) error {
-	for k, v := range opts {
-		err := acValidateOpt(v, k)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func acValidateList(opts []string, err string) error {
-	if len(opts) == 0 {
-		return errors.New(err)
-	}
-	return nil
-}
-
-func acValidateOpsGenieIntegration(apiKey *string, tags *string, region *OpsGenieRegionType) error {
-	if apiKey == nil || utils.IsBlank(*apiKey) {
-		return errors.New("API key is missing")
-	}
-	if tags == nil || utils.IsBlank(*tags) {
-		return errors.New("tags are missing")
-	}
-	m := make(map[string]*string)
-	m["API key is missing"] = apiKey
-	m["Tags are missing"] = tags
-	err := acValidateOpts(m)
-	if err != nil {
-		return err
-	}
-	if region == nil {
-		return errors.New("region is missing")
-	}
-	if !IsSupportedOpsGenieRegionType(*region) {
-		return fmt.Errorf("region %s is not valid", *region)
-	}
-	return nil
-}
-
 // AlertingChannel is the representation of an alerting channel in Instana
 type AlertingChannel struct {
 	ID                    string              `json:"id"`
@@ -149,13 +102,13 @@ func (r *AlertingChannel) GetIDForResourcePath() string {
 // Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (r *AlertingChannel) Validate() error {
 	if utils.IsBlank(r.ID) {
-		return errors.New("ID is missing")
+		return errors.New("id is missing")
 	}
 	if utils.IsBlank(r.Name) {
-		return errors.New("Name is missing")
+		return errors.New("name is missing")
 	}
 	if len(r.Kind) == 0 {
-		return errors.New("Kind is missing")
+		return errors.New("kind is missing")
 	}
 
 	switch r.Kind {
@@ -179,35 +132,78 @@ func (r *AlertingChannel) Validate() error {
 }
 
 func (r *AlertingChannel) validateEmailIntegration() error {
-	return acValidateList(r.Emails, "Email addresses are missing")
+	return r.validateList(r.Emails, "email addresses are missing")
 }
 
 func (r *AlertingChannel) validateWebHookBasedIntegrations() error {
-	return acValidateOpt(r.WebhookURL, "Webhook URL is missing")
+	return r.validateStringAttribute(r.WebhookURL, "webhook URL is missing")
 }
 
 func (r *AlertingChannel) validateOpsGenieIntegration() error {
-	return acValidateOpsGenieIntegration(r.APIKey, r.Tags, r.Region)
+	if r.APIKey == nil || utils.IsBlank(*r.APIKey) {
+		return errors.New("api key is missing")
+	}
+	if r.Tags == nil || utils.IsBlank(*r.Tags) {
+		return errors.New("tags are missing")
+	}
+	m := make(map[string]*string)
+	m["api key is missing"] = r.APIKey
+	m["tags are missing"] = r.Tags
+	err := r.validateStringAttributes(m)
+	if err != nil {
+		return err
+	}
+	if r.Region == nil {
+		return errors.New("region is missing")
+	}
+	if !IsSupportedOpsGenieRegionType(*r.Region) {
+		return fmt.Errorf("region %s is not valid", *r.Region)
+	}
+	return nil
 }
 
 func (r *AlertingChannel) validatePagerDutyIntegration() error {
-	return acValidateOpt(r.ServiceIntegrationKey, "Service integration key is missing")
+	return r.validateStringAttribute(r.ServiceIntegrationKey, "service integration key is missing")
 }
 
 func (r *AlertingChannel) validateSplunkIntegration() error {
 	m := make(map[string]*string)
-	m["URL is missing"] = r.URL
-	m["Token is missing"] = r.Token
-	return acValidateOpts(m)
+	m["url is missing"] = r.URL
+	m["token is missing"] = r.Token
+	return r.validateStringAttributes(m)
 }
 
 func (r *AlertingChannel) validateVictorOpsIntegration() error {
 	m := make(map[string]*string)
-	m["API Key is missing"] = r.APIKey
-	m["Routing Key is missing"] = r.RoutingKey
-	return acValidateOpts(m)
+	m["api key is missing"] = r.APIKey
+	m["routing key is missing"] = r.RoutingKey
+	return r.validateStringAttributes(m)
 }
 
 func (r *AlertingChannel) validateGenericWebHookIntegration() error {
-	return acValidateList(r.WebhookURLs, "Webhook URLs are missing")
+	return r.validateList(r.WebhookURLs, "webhook URLs are missing")
+}
+
+func (r *AlertingChannel) validateList(opts []string, err string) error {
+	if len(opts) == 0 {
+		return errors.New(err)
+	}
+	return nil
+}
+
+func (r *AlertingChannel) validateStringAttributes(opts map[string]*string) error {
+	for k, v := range opts {
+		err := r.validateStringAttribute(v, k)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *AlertingChannel) validateStringAttribute(attr *string, err string) error {
+	if attr == nil || utils.IsBlank(*attr) {
+		return errors.New(err)
+	}
+	return nil
 }

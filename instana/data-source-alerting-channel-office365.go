@@ -52,7 +52,7 @@ func (ds *alertingChannelOffice365DataSource) read(d *schema.ResourceData, meta 
 	return ds.updateState(d, alertChannel)
 }
 
-func (ds *alertingChannelOffice365DataSource) findAlertChannel(name string, data *[]*restapi.AlertingChannelDS) (*restapi.AlertingChannelDS, error) {
+func (ds *alertingChannelOffice365DataSource) findAlertChannel(name string, data *[]*restapi.AlertingChannel) (*restapi.AlertingChannel, error) {
 	for _, alertingChannel := range *data {
 		if alertingChannel.Name == name {
 			return alertingChannel, nil
@@ -61,7 +61,7 @@ func (ds *alertingChannelOffice365DataSource) findAlertChannel(name string, data
 	return nil, fmt.Errorf("no alerting channel found")
 }
 
-func (ds *alertingChannelOffice365DataSource) updateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannelDS) error {
+func (ds *alertingChannelOffice365DataSource) updateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	d.SetId(alertingChannel.ID)
 	return d.Set(AlertingChannelFieldName, alertingChannel.Name)
 }
