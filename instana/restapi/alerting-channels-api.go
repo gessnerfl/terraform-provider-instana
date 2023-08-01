@@ -102,7 +102,9 @@ func (r *AlertingChannel) GetIDForResourcePath() string {
 const alertingChannelMessageIdMissing = "id is missing"
 const alertingChannelMessageNameMissing = "name is missing"
 const alertingChannelMessageKindMissing = "kind is missing"
-const alertingChannelMessageAPIKeyMissing = "api key is missing" // nolint:gosec not an api key but only an error message in case API Key is missing
+
+// nolint:gosec not an api key but only an error message in case API Key is missing
+const alertingChannelMessageAPIKeyMissing = "api key is missing"
 const alertingChannelMessageWebhookURLMissing = "webhook URL is missing"
 const alertingChannelMessageWebhookURLsMissing = "webhook URLs are missing"
 const alertingChannelMessageEmailsMissing = "email addresses are missing"
