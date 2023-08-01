@@ -24,6 +24,92 @@ func makeTestWebsiteMonitoringConfig() *WebsiteMonitoringConfig {
 }
 
 // ########################################################
+// GET All Tests
+// ########################################################
+func TestShouldSuccessfullyGetAllWebsiteMonitoringConfigs(t *testing.T) {
+	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
+	expectedResult := []*WebsiteMonitoringConfig{websiteMonitoringConfig, websiteMonitoringConfig, websiteMonitoringConfig}
+	restResponseData := []byte("server-response")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	restClient := mocks.NewMockRestClient(ctrl)
+	restClient.EXPECT().Get(WebsiteMonitoringConfigResourcePath).Times(1).Return(restResponseData, nil)
+
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(&expectedResult, nil)
+
+	sut := NewWebsiteMonitoringConfigRestResource(jsonUnmarshaller, restClient)
+
+	result, err := sut.GetAll()
+
+	require.NoError(t, err)
+	require.Equal(t, &expectedResult, result)
+}
+
+func TestShouldReturnEmptySliceWhenNoWebsiteMonitoringConfigsIsReturnedForGetAll(t *testing.T) {
+	restResponseData := []byte("[]")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	restClient := mocks.NewMockRestClient(ctrl)
+	restClient.EXPECT().Get(WebsiteMonitoringConfigResourcePath).Times(1).Return(restResponseData, nil)
+
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(&[]*WebsiteMonitoringConfig{}, nil)
+
+	sut := NewWebsiteMonitoringConfigRestResource(jsonUnmarshaller, restClient)
+
+	result, err := sut.GetAll()
+
+	require.NoError(t, err)
+	require.Equal(t, &[]*WebsiteMonitoringConfig{}, result)
+}
+
+func TestShouldFailToGetAllWebsiteMonitoringConfigsWhenClientReturnsError(t *testing.T) {
+	expectedError := errors.New("test")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	restClient := mocks.NewMockRestClient(ctrl)
+	restClient.EXPECT().Get(WebsiteMonitoringConfigResourcePath).Times(1).Return(nil, expectedError)
+
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(gomock.Any()).Times(0)
+
+	sut := NewWebsiteMonitoringConfigRestResource(jsonUnmarshaller, restClient)
+
+	_, err := sut.GetAll()
+
+	require.Error(t, err)
+	require.Equal(t, expectedError, err)
+}
+
+func TestShouldFailToGetAllWebsiteMonitoringConfigsWhenRestResultCannotBeUnmarshalled(t *testing.T) {
+	restResponseData := []byte("invalidResponse")
+	expectedError := errors.New("test")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	restClient := mocks.NewMockRestClient(ctrl)
+	restClient.EXPECT().Get(WebsiteMonitoringConfigResourcePath).Times(1).Return(restResponseData, nil)
+
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(nil, expectedError)
+
+	sut := NewWebsiteMonitoringConfigRestResource(jsonUnmarshaller, restClient)
+
+	_, err := sut.GetAll()
+
+	require.Error(t, err)
+	require.Equal(t, expectedError, err)
+}
+
+// ########################################################
 // GET Operation Tests
 // ########################################################
 

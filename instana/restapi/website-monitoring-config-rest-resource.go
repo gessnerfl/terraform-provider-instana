@@ -15,6 +15,18 @@ type websiteMonitoringConfigRestResource struct {
 	client       RestClient
 }
 
+func (r *websiteMonitoringConfigRestResource) GetAll() (*[]*WebsiteMonitoringConfig, error) {
+	data, err := r.client.Get(r.resourcePath)
+	if err != nil {
+		return nil, err
+	}
+	objects, err := r.unmarshaller.UnmarshalArray(data)
+	if err != nil {
+		return nil, err
+	}
+	return objects, nil
+}
+
 func (r *websiteMonitoringConfigRestResource) GetOne(id string) (*WebsiteMonitoringConfig, error) {
 	data, err := r.client.GetOne(id, r.resourcePath)
 	if err != nil {

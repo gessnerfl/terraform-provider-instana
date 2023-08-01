@@ -38,6 +38,92 @@ func makeSyntheticTest() *SyntheticTest {
 }
 
 // ########################################################
+// GET All Tests
+// ########################################################
+func TestShouldSuccessfullyGetAllSyntheticTests(t *testing.T) {
+	testObject := makeSyntheticTest()
+	expectedResult := []*SyntheticTest{testObject, testObject, testObject}
+	restResponseData := []byte("server-response")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	restClient := mocks.NewMockRestClient(ctrl)
+	restClient.EXPECT().Get(SyntheticTestResourcePath).Times(1).Return(restResponseData, nil)
+
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(&expectedResult, nil)
+
+	sut := NewSyntheticTestRestResource(jsonUnmarshaller, restClient)
+
+	result, err := sut.GetAll()
+
+	require.NoError(t, err)
+	require.Equal(t, &expectedResult, result)
+}
+
+func TestShouldReturnEmptySliceWhenNoSyntheticTestsIsReturnedForGetAll(t *testing.T) {
+	restResponseData := []byte("[]")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	restClient := mocks.NewMockRestClient(ctrl)
+	restClient.EXPECT().Get(SyntheticTestResourcePath).Times(1).Return(restResponseData, nil)
+
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(&[]*SyntheticTest{}, nil)
+
+	sut := NewSyntheticTestRestResource(jsonUnmarshaller, restClient)
+
+	result, err := sut.GetAll()
+
+	require.NoError(t, err)
+	require.Equal(t, &[]*SyntheticTest{}, result)
+}
+
+func TestShouldFailToGetAllSyntheticTestsWhenClientReturnsError(t *testing.T) {
+	expectedError := errors.New("test")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	restClient := mocks.NewMockRestClient(ctrl)
+	restClient.EXPECT().Get(SyntheticTestResourcePath).Times(1).Return(nil, expectedError)
+
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(gomock.Any()).Times(0)
+
+	sut := NewSyntheticTestRestResource(jsonUnmarshaller, restClient)
+
+	_, err := sut.GetAll()
+
+	require.Error(t, err)
+	require.Equal(t, expectedError, err)
+}
+
+func TestShouldFailToGetAllSyntheticTestsWhenRestResultCannotBeUnmarshalled(t *testing.T) {
+	restResponseData := []byte("invalidResponse")
+	expectedError := errors.New("test")
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	restClient := mocks.NewMockRestClient(ctrl)
+	restClient.EXPECT().Get(SyntheticTestResourcePath).Times(1).Return(restResponseData, nil)
+
+	jsonUnmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
+	jsonUnmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(nil, expectedError)
+
+	sut := NewSyntheticTestRestResource(jsonUnmarshaller, restClient)
+
+	_, err := sut.GetAll()
+
+	require.Error(t, err)
+	require.Equal(t, expectedError, err)
+}
+
+// ########################################################
 // GET Operation Tests
 // ########################################################
 

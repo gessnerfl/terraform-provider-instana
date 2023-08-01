@@ -8,7 +8,7 @@ type InstanaDataObject interface {
 
 // RestResource interface definition of a instana REST resource.
 type RestResource[T InstanaDataObject] interface {
-	GetOne(id string) (T, error)
+	ReadOnlyRestResource[T]
 	Create(data T) (T, error)
 	Update(data T) (T, error)
 	Delete(data T) error

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"runtime"
 	"testing"
 
@@ -116,6 +117,65 @@ func TestShouldFailToDeleteTestObjectThroughDefaultRestResourceWhenErrorIsRetrun
 		err := sut.Delete(testObject)
 
 		assert.Error(t, err)
+	})
+}
+
+func TestShouldSuccessfullyGetAllTestObjects(t *testing.T) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
+		testData := makeTestObject()
+		expectedResult := []*testObject{testData, testData, testData}
+		restResponseData := []byte("server-response")
+
+		client.EXPECT().Get(testObjectResourcePath).Times(1).Return(restResponseData, nil)
+		unmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(&expectedResult, nil)
+
+		result, err := sut.GetAll()
+
+		require.NoError(t, err)
+		require.Equal(t, &expectedResult, result)
+	})
+}
+
+func TestShouldReturnEmptySliceWhenNoTestObjectsIsReturnedForGetAll(t *testing.T) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
+		restResponseData := []byte("[]")
+
+		client.EXPECT().Get(testObjectResourcePath).Times(1).Return(restResponseData, nil)
+		unmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(&[]*testObject{}, nil)
+
+		result, err := sut.GetAll()
+
+		require.NoError(t, err)
+		require.Equal(t, &[]*testObject{}, result)
+	})
+}
+
+func TestShouldFailToGetAllTestObjectsWhenClientReturnsError(t *testing.T) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
+		expectedError := errors.New("test")
+
+		client.EXPECT().Get(testObjectResourcePath).Times(1).Return(nil, expectedError)
+		unmarshaller.EXPECT().UnmarshalArray(gomock.Any()).Times(0)
+
+		_, err := sut.GetAll()
+
+		require.Error(t, err)
+		require.Equal(t, expectedError, err)
+	})
+}
+
+func TestShouldFailToGetAllTestObjectsWhenRestResultCannotBeUnmarshalled(t *testing.T) {
+	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
+		restResponseData := []byte("invalidResponse")
+		expectedError := errors.New("test")
+
+		client.EXPECT().Get(testObjectResourcePath).Times(1).Return(restResponseData, nil)
+		unmarshaller.EXPECT().UnmarshalArray(restResponseData).Times(1).Return(nil, expectedError)
+
+		_, err := sut.GetAll()
+
+		require.Error(t, err)
+		require.Equal(t, expectedError, err)
 	})
 }
 

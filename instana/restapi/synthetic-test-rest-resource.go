@@ -15,6 +15,18 @@ type SyntheticTestRestResource struct {
 	client       RestClient
 }
 
+func (r *SyntheticTestRestResource) GetAll() (*[]*SyntheticTest, error) {
+	data, err := r.client.Get(r.resourcePath)
+	if err != nil {
+		return nil, err
+	}
+	objects, err := r.unmarshaller.UnmarshalArray(data)
+	if err != nil {
+		return nil, err
+	}
+	return objects, nil
+}
+
 func (r *SyntheticTestRestResource) GetOne(id string) (*SyntheticTest, error) {
 	data, err := r.client.GetOne(id, r.resourcePath)
 	if err != nil {
