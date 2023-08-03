@@ -10,3 +10,4 @@ linters:
     - staticcheck
     - typecheck
     - unused
+max-issues-per-linter: 0
