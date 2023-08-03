@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -582,8 +583,8 @@ func (r *applicationAlertConfigResource) GetRestResource(api restapi.InstanaAPI)
 	return r.resourceProvider(api)
 }
 
-func (r *applicationAlertConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *applicationAlertConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.ApplicationAlertConfig, formatter utils.ResourceNameFormatter) error {
@@ -600,25 +601,26 @@ func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, con
 		}
 	}
 
-	d.Set(ApplicationAlertConfigFieldAlertChannelIDs, config.AlertChannelIDs)
-	d.Set(ApplicationAlertConfigFieldApplications, r.mapApplicationsToSchema(config))
-	d.Set(ApplicationAlertConfigFieldBoundaryScope, config.BoundaryScope)
-	d.Set(ApplicationAlertConfigFieldCustomPayloadFields, r.mapCustomPayloadFieldsToSchema(config))
-	d.Set(ApplicationAlertConfigFieldDescription, config.Description)
-	d.Set(ApplicationAlertConfigFieldEvaluationType, config.EvaluationType)
-	d.Set(ApplicationAlertConfigFieldGranularity, config.Granularity)
-	d.Set(ApplicationAlertConfigFieldIncludeInternal, config.IncludeInternal)
-	d.Set(ApplicationAlertConfigFieldIncludeSynthetic, config.IncludeSynthetic)
-	d.Set(ApplicationAlertConfigFieldName, name)
-	d.Set(ApplicationAlertConfigFieldFullName, config.Name)
-	d.Set(ApplicationAlertConfigFieldRule, r.mapRuleToSchema(config))
-	d.Set(ApplicationAlertConfigFieldSeverity, severity)
-	d.Set(ApplicationAlertConfigFieldTagFilter, normalizedTagFilterString)
-	d.Set(ResourceFieldThreshold, newThresholdMapper().toState(&config.Threshold))
-	d.Set(ApplicationAlertConfigFieldTimeThreshold, r.mapTimeThresholdToSchema(config))
-	d.Set(ApplicationAlertConfigFieldTriggering, config.Triggering)
 	d.SetId(config.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		ApplicationAlertConfigFieldAlertChannelIDs:     config.AlertChannelIDs,
+		ApplicationAlertConfigFieldApplications:        r.mapApplicationsToSchema(config),
+		ApplicationAlertConfigFieldBoundaryScope:       config.BoundaryScope,
+		ApplicationAlertConfigFieldCustomPayloadFields: r.mapCustomPayloadFieldsToSchema(config),
+		ApplicationAlertConfigFieldDescription:         config.Description,
+		ApplicationAlertConfigFieldEvaluationType:      config.EvaluationType,
+		ApplicationAlertConfigFieldGranularity:         config.Granularity,
+		ApplicationAlertConfigFieldIncludeInternal:     config.IncludeInternal,
+		ApplicationAlertConfigFieldIncludeSynthetic:    config.IncludeSynthetic,
+		ApplicationAlertConfigFieldName:                name,
+		ApplicationAlertConfigFieldFullName:            config.Name,
+		ApplicationAlertConfigFieldRule:                r.mapRuleToSchema(config),
+		ApplicationAlertConfigFieldSeverity:            severity,
+		ApplicationAlertConfigFieldTagFilter:           normalizedTagFilterString,
+		ResourceFieldThreshold:                         newThresholdMapper().toState(&config.Threshold),
+		ApplicationAlertConfigFieldTimeThreshold:       r.mapTimeThresholdToSchema(config),
+		ApplicationAlertConfigFieldTriggering:          config.Triggering,
+	})
 }
 
 func (r *applicationAlertConfigResource) mapApplicationsToSchema(config *restapi.ApplicationAlertConfig) []interface{} {

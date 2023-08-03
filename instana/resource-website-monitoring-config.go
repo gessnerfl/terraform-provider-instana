@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -71,16 +72,17 @@ func (r *websiteMonitoringConfigResource) GetRestResource(api restapi.InstanaAPI
 	return api.WebsiteMonitoringConfig()
 }
 
-func (r *websiteMonitoringConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *websiteMonitoringConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteMonitoringConfig, formatter utils.ResourceNameFormatter) error {
-	d.Set(WebsiteMonitoringConfigFieldName, formatter.UndoFormat(config.Name))
-	d.Set(WebsiteMonitoringConfigFieldFullName, config.Name)
-	d.Set(WebsiteMonitoringConfigFieldAppName, config.AppName)
 	d.SetId(config.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		WebsiteMonitoringConfigFieldName:     formatter.UndoFormat(config.Name),
+		WebsiteMonitoringConfigFieldFullName: config.Name,
+		WebsiteMonitoringConfigFieldAppName:  config.AppName,
+	})
 }
 
 func (r *websiteMonitoringConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.WebsiteMonitoringConfig, error) {

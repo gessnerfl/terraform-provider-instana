@@ -23,7 +23,7 @@ const SchemaFieldDefaultNameSuffix = "default_name_suffix"
 // SchemaFieldTlsSkipVerify flag to deactivate skip tls verification
 const SchemaFieldTlsSkipVerify = "tls_skip_verify"
 
-// ProviderMeta data structure for the meta data which is configured and provided to the resources by this provider
+// ProviderMeta data structure for the metadata which is configured and provided to the resources by this provider
 type ProviderMeta struct {
 	InstanaAPI            restapi.InstanaAPI
 	ResourceNameFormatter utils.ResourceNameFormatter

@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -47,16 +48,17 @@ func (r *alertingChannelPagerDutyResource) GetRestResource(api restapi.InstanaAP
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelPagerDutyResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *alertingChannelPagerDutyResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *alertingChannelPagerDutyResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
-	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
-	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
-	d.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, alertingChannel.ServiceIntegrationKey)
 	d.SetId(alertingChannel.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingChannelFieldName:                           formatter.UndoFormat(alertingChannel.Name),
+		AlertingChannelFieldFullName:                       alertingChannel.Name,
+		AlertingChannelPagerDutyFieldServiceIntegrationKey: alertingChannel.ServiceIntegrationKey,
+	})
 }
 
 func (r *alertingChannelPagerDutyResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {

@@ -3,6 +3,7 @@ package instana
 import (
 	"encoding/json"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -106,20 +107,21 @@ func (r *customDashboardResource) GetRestResource(api restapi.InstanaAPI) restap
 	return api.CustomDashboards()
 }
 
-func (r *customDashboardResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *customDashboardResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *customDashboardResource) UpdateState(d *schema.ResourceData, dashboard *restapi.CustomDashboard, formatter utils.ResourceNameFormatter) error {
 	widgetsBytes, _ := dashboard.Widgets.MarshalJSON()
 	widgets := NormalizeJSONString(string(widgetsBytes))
 
-	d.Set(CustomDashboardFieldTitle, formatter.UndoFormat(dashboard.Title))
-	d.Set(CustomDashboardFieldFullTitle, dashboard.Title)
-	d.Set(CustomDashboardFieldWidgets, widgets)
-	d.Set(CustomDashboardFieldAccessRule, r.mapAccessRuleToState(dashboard))
 	d.SetId(dashboard.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		CustomDashboardFieldTitle:      formatter.UndoFormat(dashboard.Title),
+		CustomDashboardFieldFullTitle:  dashboard.Title,
+		CustomDashboardFieldWidgets:    widgets,
+		CustomDashboardFieldAccessRule: r.mapAccessRuleToState(dashboard),
+	})
 }
 
 func (r *customDashboardResource) mapAccessRuleToState(dashboard *restapi.CustomDashboard) []map[string]interface{} {

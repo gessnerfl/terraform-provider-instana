@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -20,7 +21,7 @@ type ResourceMetaData struct {
 
 // ResourceHandle resource specific implementation which provides meta data and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
 type ResourceHandle[T restapi.InstanaDataObject] interface {
-	//MetaData returns the meta data of this ResourceHandle
+	//MetaData returns the metadata of this ResourceHandle
 	MetaData() *ResourceMetaData
 	//StateUpgraders returns the slice of state upgraders used to migrate states from one version to another
 	StateUpgraders() []schema.StateUpgrader
@@ -32,7 +33,7 @@ type ResourceHandle[T restapi.InstanaDataObject] interface {
 	//MapStateToDataObject maps the current state of the resource provided as schema.ResourceData to the API model of the Instana API represented as an implementation of restapi.InstanaDataObject
 	MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (T, error)
 	//SetComputedFields calculate and set the calculated value of computed fields of the given resource
-	SetComputedFields(d *schema.ResourceData)
+	SetComputedFields(d *schema.ResourceData) error
 }
 
 // NewTerraformResource creates a new terraform resource for the given handle
@@ -63,7 +64,10 @@ func (r *terraformResourceImpl[T]) Create(d *schema.ResourceData, meta interface
 	if !r.resourceHandle.MetaData().SkipIDGeneration {
 		d.SetId(RandomID())
 	}
-	r.resourceHandle.SetComputedFields(d)
+	err := r.resourceHandle.SetComputedFields(d)
+	if err != nil {
+		return err
+	}
 
 	createRequest, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
 	if err != nil {
@@ -73,8 +77,7 @@ func (r *terraformResourceImpl[T]) Create(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	r.resourceHandle.UpdateState(d, createdObject, providerMeta.ResourceNameFormatter)
-	return nil
+	return r.resourceHandle.UpdateState(d, createdObject, providerMeta.ResourceNameFormatter)
 }
 
 // Read defines the read operation for the terraform resource
@@ -87,7 +90,7 @@ func (r *terraformResourceImpl[T]) Read(d *schema.ResourceData, meta interface{}
 	}
 	obj, err := r.resourceHandle.GetRestResource(instanaAPI).GetOne(resourceID)
 	if err != nil {
-		if err == restapi.ErrEntityNotFound {
+		if errors.Is(err, restapi.ErrEntityNotFound) {
 			d.SetId("")
 			return nil
 		}
@@ -154,7 +157,10 @@ func (r *terraformResourceImpl[T]) ToSchemaResource() *schema.Resource {
 
 func (r *terraformResourceImpl[T]) importState(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	if r.resourceHandle.MetaData().ResourceIDField != nil {
-		d.Set(*r.resourceHandle.MetaData().ResourceIDField, d.Id())
+		err := d.Set(*r.resourceHandle.MetaData().ResourceIDField, d.Id())
+		if err != nil {
+			return []*schema.ResourceData{}, err
+		}
 	}
 	return []*schema.ResourceData{d}, nil
 }

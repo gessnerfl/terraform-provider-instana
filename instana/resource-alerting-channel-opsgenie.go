@@ -2,6 +2,7 @@ package instana
 
 import (
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -75,19 +76,20 @@ func (r *alertingChannelOpsGenieResource) GetRestResource(api restapi.InstanaAPI
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelOpsGenieResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *alertingChannelOpsGenieResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *alertingChannelOpsGenieResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
 	tags := r.convertCommaSeparatedListToSlice(*alertingChannel.Tags)
-	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
-	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
-	d.Set(AlertingChannelOpsGenieFieldAPIKey, alertingChannel.APIKey)
-	d.Set(AlertingChannelOpsGenieFieldRegion, alertingChannel.Region)
-	d.Set(AlertingChannelOpsGenieFieldTags, tags)
 	d.SetId(alertingChannel.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingChannelFieldName:           formatter.UndoFormat(alertingChannel.Name),
+		AlertingChannelFieldFullName:       alertingChannel.Name,
+		AlertingChannelOpsGenieFieldAPIKey: alertingChannel.APIKey,
+		AlertingChannelOpsGenieFieldRegion: alertingChannel.Region,
+		AlertingChannelOpsGenieFieldTags:   tags,
+	})
 }
 
 func (r *alertingChannelOpsGenieResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {

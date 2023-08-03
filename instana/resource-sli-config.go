@@ -2,6 +2,7 @@ package instana
 
 import (
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -181,8 +182,8 @@ func (r *sliConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.Rest
 	return api.SliConfigs()
 }
 
-func (r *sliConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *sliConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *restapi.SliConfig, formatter utils.ResourceNameFormatter) error {
@@ -200,14 +201,16 @@ func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *resta
 		SliConfigFieldBoundaryScope: sliConfig.SliEntity.BoundaryScope,
 	}
 
-	d.Set(SliConfigFieldName, formatter.UndoFormat(sliConfig.Name))
-	d.Set(SliConfigFieldFullName, sliConfig.Name)
-	d.Set(SliConfigFieldInitialEvaluationTimestamp, sliConfig.InitialEvaluationTimestamp)
-	d.Set(SliConfigFieldMetricConfiguration, []map[string]interface{}{metricConfiguration})
-	d.Set(SliConfigFieldSliEntity, []map[string]interface{}{sliEntity})
+	data := map[string]interface{}{
+		SliConfigFieldName:                       formatter.UndoFormat(sliConfig.Name),
+		SliConfigFieldFullName:                   sliConfig.Name,
+		SliConfigFieldInitialEvaluationTimestamp: sliConfig.InitialEvaluationTimestamp,
+		SliConfigFieldMetricConfiguration:        []map[string]interface{}{metricConfiguration},
+		SliConfigFieldSliEntity:                  []map[string]interface{}{sliEntity},
+	}
 
 	d.SetId(sliConfig.ID)
-	return nil
+	return tfutils.UpdateState(d, data)
 }
 
 func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.SliConfig, error) {

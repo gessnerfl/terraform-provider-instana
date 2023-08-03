@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -65,17 +66,18 @@ func (r *alertingChannelEmailResource) GetRestResource(api restapi.InstanaAPI) r
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelEmailResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *alertingChannelEmailResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
 	emails := alertingChannel.Emails
-	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
-	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
-	d.Set(AlertingChannelEmailFieldEmails, emails)
 	d.SetId(alertingChannel.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingChannelFieldName:        formatter.UndoFormat(alertingChannel.Name),
+		AlertingChannelFieldFullName:    alertingChannel.Name,
+		AlertingChannelEmailFieldEmails: emails,
+	})
 }
 
 func (r *alertingChannelEmailResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {

@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -238,20 +239,21 @@ func (r *syntheticTestResource) GetRestResource(api restapi.InstanaAPI) restapi.
 	return api.SyntheticTest()
 }
 
-func (r *syntheticTestResource) SetComputedFields(d *schema.ResourceData) {
-	// No computed fields
+func (r *syntheticTestResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTest *restapi.SyntheticTest, formatter utils.ResourceNameFormatter) error {
 	d.SetId(syntheticTest.ID)
-	d.Set(SyntheticTestFieldLabel, syntheticTest.Label)
-	d.Set(SyntheticTestFieldActive, syntheticTest.Active)
-	d.Set(SyntheticTestFieldCustomProperties, syntheticTest.CustomProperties)
-	d.Set(SyntheticTestFieldLocations, syntheticTest.Locations)
-	d.Set(SyntheticTestFieldPlaybackMode, syntheticTest.PlaybackMode)
-	d.Set(SyntheticTestFieldTestFrequency, syntheticTest.TestFrequency)
-	d.Set(SyntheticTestFieldConfiguration, r.mapConfigurationToSchema(syntheticTest))
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		SyntheticTestFieldLabel:            syntheticTest.Label,
+		SyntheticTestFieldActive:           syntheticTest.Active,
+		SyntheticTestFieldCustomProperties: syntheticTest.CustomProperties,
+		SyntheticTestFieldLocations:        syntheticTest.Locations,
+		SyntheticTestFieldPlaybackMode:     syntheticTest.PlaybackMode,
+		SyntheticTestFieldTestFrequency:    syntheticTest.TestFrequency,
+		SyntheticTestFieldConfiguration:    r.mapConfigurationToSchema(syntheticTest),
+	})
 }
 
 func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.SyntheticTest, error) {

@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -105,12 +106,12 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) GetRestReso
 	return api.CustomEventSpecifications()
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) SetComputedFields(d *schema.ResourceData) {
-	d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
+func (r *customEventSpecificationWithEntityVerificationRuleResource) SetComputedFields(d *schema.ResourceData) error {
+	return d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
 }
 
 func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
 
 	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
@@ -121,12 +122,14 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState
 	if err != nil {
 		return err
 	}
-	d.Set(CustomEventSpecificationRuleSeverity, severity)
-	d.Set(EntityVerificationRuleFieldMatchingEntityLabel, ruleSpec.MatchingEntityLabel)
-	d.Set(EntityVerificationRuleFieldMatchingEntityType, ruleSpec.MatchingEntityType)
-	d.Set(EntityVerificationRuleFieldMatchingOperator, matchingOperator.InstanaAPIValue())
-	d.Set(EntityVerificationRuleFieldOfflineDuration, ruleSpec.OfflineDuration)
-	return nil
+	data[CustomEventSpecificationRuleSeverity] = severity
+	data[EntityVerificationRuleFieldMatchingEntityLabel] = ruleSpec.MatchingEntityLabel
+	data[EntityVerificationRuleFieldMatchingEntityType] = ruleSpec.MatchingEntityType
+	data[EntityVerificationRuleFieldMatchingOperator] = matchingOperator.InstanaAPIValue()
+	data[EntityVerificationRuleFieldOfflineDuration] = ruleSpec.OfflineDuration
+
+	d.SetId(customEventSpecification.ID)
+	return tfutils.UpdateState(d, data)
 }
 
 func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {

@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -145,19 +146,20 @@ func (r *alertingConfigResource) GetRestResource(api restapi.InstanaAPI) restapi
 	return api.AlertingConfigurations()
 }
 
-func (r *alertingConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *alertingConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, config *restapi.AlertingConfiguration, formatter utils.ResourceNameFormatter) error {
-	d.Set(AlertingConfigFieldAlertName, formatter.UndoFormat(config.AlertName))
-	d.Set(AlertingConfigFieldFullAlertName, config.AlertName)
-	d.Set(AlertingConfigFieldIntegrationIds, config.IntegrationIDs)
-	d.Set(AlertingConfigFieldEventFilterQuery, config.EventFilteringConfiguration.Query)
-	d.Set(AlertingConfigFieldEventFilterEventTypes, r.convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes))
-	d.Set(AlertingConfigFieldEventFilterRuleIDs, config.EventFilteringConfiguration.RuleIDs)
 	d.SetId(config.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingConfigFieldAlertName:             formatter.UndoFormat(config.AlertName),
+		AlertingConfigFieldFullAlertName:         config.AlertName,
+		AlertingConfigFieldIntegrationIds:        config.IntegrationIDs,
+		AlertingConfigFieldEventFilterQuery:      config.EventFilteringConfiguration.Query,
+		AlertingConfigFieldEventFilterEventTypes: r.convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes),
+		AlertingConfigFieldEventFilterRuleIDs:    config.EventFilteringConfiguration.RuleIDs,
+	})
 }
 
 func (r *alertingConfigResource) convertEventTypesToHarmonizedStringRepresentation(input []restapi.AlertEventType) []string {

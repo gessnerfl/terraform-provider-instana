@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -177,25 +178,27 @@ func (r *groupResource) GetRestResource(api restapi.InstanaAPI) restapi.RestReso
 	return api.Groups()
 }
 
-func (r *groupResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *groupResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *groupResource) UpdateState(d *schema.ResourceData, group *restapi.Group, formatter utils.ResourceNameFormatter) error {
-	d.Set(GroupFieldName, formatter.UndoFormat(group.Name))
-	d.Set(GroupFieldFullName, group.Name)
+	data := map[string]interface{}{
+		GroupFieldName:     formatter.UndoFormat(group.Name),
+		GroupFieldFullName: group.Name,
+	}
 
 	members := r.convertGroupMembersToState(group)
 	if members != nil {
-		d.Set(GroupFieldMembers, members)
+		data[GroupFieldMembers] = members
 	}
 	if !group.PermissionSet.IsEmpty() {
 		permissions := r.convertPermissionSetToState(group)
-		d.Set(GroupFieldPermissionSet, permissions)
+		data[GroupFieldPermissionSet] = permissions
 	}
 
 	d.SetId(group.ID)
-	return nil
+	return tfutils.UpdateState(d, data)
 }
 
 func (r *groupResource) convertGroupMembersToState(obj *restapi.Group) *schema.Set {

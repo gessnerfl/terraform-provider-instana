@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -71,22 +72,23 @@ func (r *customEventSpecificationWithSystemRuleResource) GetRestResource(api res
 	return api.CustomEventSpecifications()
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) SetComputedFields(d *schema.ResourceData) {
-	d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
+func (r *customEventSpecificationWithSystemRuleResource) SetComputedFields(d *schema.ResourceData) error {
+	return d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
 }
 
 func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
 
 	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
 	if err != nil {
 		return err
 	}
+	data[CustomEventSpecificationRuleSeverity] = severity
+	data[SystemRuleSpecificationSystemRuleID] = ruleSpec.SystemRuleID
 
-	d.Set(CustomEventSpecificationRuleSeverity, severity)
-	d.Set(SystemRuleSpecificationSystemRuleID, ruleSpec.SystemRuleID)
-	return nil
+	d.SetId(customEventSpecification.ID)
+	return tfutils.UpdateState(d, data)
 }
 
 func (r *customEventSpecificationWithSystemRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {

@@ -3,6 +3,7 @@ package instana
 import (
 	"context"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"log"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
@@ -182,32 +183,32 @@ func (r *applicationConfigResource) GetRestResource(api restapi.InstanaAPI) rest
 	return api.ApplicationConfigs()
 }
 
-func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *applicationConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicationConfig *restapi.ApplicationConfig, formatter utils.ResourceNameFormatter) error {
+	data := make(map[string]interface{})
 	if applicationConfig.MatchSpecification != nil {
 		normalizedExpressionString, err := r.mapMatchSpecificationToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 		if err != nil {
 			return err
 		}
-		d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
+		data[ApplicationConfigFieldMatchSpecification] = normalizedExpressionString
 	} else if applicationConfig.TagFilterExpression != nil {
 		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(applicationConfig.TagFilterExpression.(restapi.TagFilterExpressionElement))
 		if err != nil {
 			return err
 		}
-		d.Set(ApplicationConfigFieldTagFilter, normalizedTagFilterString)
+		data[ApplicationConfigFieldTagFilter] = normalizedTagFilterString
 	}
-
-	d.Set(ApplicationConfigFieldLabel, formatter.UndoFormat(applicationConfig.Label))
-	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
-	d.Set(ApplicationConfigFieldScope, string(applicationConfig.Scope))
-	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))
+	data[ApplicationConfigFieldLabel] = formatter.UndoFormat(applicationConfig.Label)
+	data[ApplicationConfigFieldFullLabel] = applicationConfig.Label
+	data[ApplicationConfigFieldScope] = string(applicationConfig.Scope)
+	data[ApplicationConfigFieldBoundaryScope] = string(applicationConfig.BoundaryScope)
 
 	d.SetId(applicationConfig.ID)
-	return nil
+	return tfutils.UpdateState(d, data)
 }
 
 func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepresentation(input restapi.MatchExpression) (*string, error) {

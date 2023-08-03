@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -156,8 +157,8 @@ func (r *customEventSpecificationWithThresholdRuleResource) GetRestResource(api 
 	return api.CustomEventSpecifications()
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
 func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
@@ -172,22 +173,24 @@ func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schem
 		return err
 	}
 
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
-	d.Set(CustomEventSpecificationRuleSeverity, severity)
-	d.Set(ThresholdRuleFieldMetricName, ruleSpec.MetricName)
-	d.Set(ThresholdRuleFieldRollup, ruleSpec.Rollup)
-	d.Set(ThresholdRuleFieldWindow, ruleSpec.Window)
-	d.Set(ThresholdRuleFieldAggregation, ruleSpec.Aggregation)
-	d.Set(ThresholdRuleFieldConditionOperator, conditionOperator.InstanaAPIValue())
-	d.Set(ThresholdRuleFieldConditionValue, ruleSpec.ConditionValue)
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
+	data[CustomEventSpecificationRuleSeverity] = severity
+	data[ThresholdRuleFieldMetricName] = ruleSpec.MetricName
+	data[ThresholdRuleFieldRollup] = ruleSpec.Rollup
+	data[ThresholdRuleFieldWindow] = ruleSpec.Window
+	data[ThresholdRuleFieldAggregation] = ruleSpec.Aggregation
+	data[ThresholdRuleFieldConditionOperator] = conditionOperator.InstanaAPIValue()
+	data[ThresholdRuleFieldConditionValue] = ruleSpec.ConditionValue
 
 	if ruleSpec.MetricPattern != nil {
-		d.Set(ThresholdRuleFieldMetricPatternPrefix, ruleSpec.MetricPattern.Prefix)
-		d.Set(ThresholdRuleFieldMetricPatternPostfix, ruleSpec.MetricPattern.Postfix)
-		d.Set(ThresholdRuleFieldMetricPatternPlaceholder, ruleSpec.MetricPattern.Placeholder)
-		d.Set(ThresholdRuleFieldMetricPatternOperator, ruleSpec.MetricPattern.Operator)
+		data[ThresholdRuleFieldMetricPatternPrefix] = ruleSpec.MetricPattern.Prefix
+		data[ThresholdRuleFieldMetricPatternPostfix] = ruleSpec.MetricPattern.Postfix
+		data[ThresholdRuleFieldMetricPatternPlaceholder] = ruleSpec.MetricPattern.Placeholder
+		data[ThresholdRuleFieldMetricPatternOperator] = ruleSpec.MetricPattern.Operator
 	}
-	return nil
+
+	d.SetId(customEventSpecification.ID)
+	return tfutils.UpdateState(d, data)
 }
 
 func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {

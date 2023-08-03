@@ -2,6 +2,7 @@ package instana
 
 import (
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -88,9 +89,9 @@ func (ds *syntheticLocationDataSource) findSyntheticLocations(label string, loca
 
 func (ds *syntheticLocationDataSource) updateState(d *schema.ResourceData, syntheticLocation *restapi.SyntheticLocation) error {
 	d.SetId(syntheticLocation.ID)
-	d.Set(SyntheticLocationFieldLabel, syntheticLocation.Label)
-	d.Set(SyntheticLocationFieldDescription, syntheticLocation.Description)
-	d.Set(SyntheticLocationFieldLocationType, syntheticLocation.LocationType)
-
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		SyntheticLocationFieldLabel:        syntheticLocation.Label,
+		SyntheticLocationFieldDescription:  syntheticLocation.Description,
+		SyntheticLocationFieldLocationType: syntheticLocation.LocationType,
+	})
 }

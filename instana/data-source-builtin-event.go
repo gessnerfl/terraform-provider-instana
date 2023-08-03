@@ -2,6 +2,7 @@ package instana
 
 import (
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -115,10 +116,11 @@ func (ds *builtInEventDataSource) updateState(d *schema.ResourceData, builtInEve
 		return err
 	}
 	d.SetId(builtInEvent.ID)
-	d.Set(BuiltinEventSpecificationFieldDescription, builtInEvent.Description)
-	d.Set(BuiltinEventSpecificationFieldSeverity, severity)
-	d.Set(BuiltinEventSpecificationFieldSeverityCode, builtInEvent.Severity)
-	d.Set(BuiltinEventSpecificationFieldTriggering, builtInEvent.Triggering)
-	d.Set(BuiltinEventSpecificationFieldEnabled, builtInEvent.Enabled)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		BuiltinEventSpecificationFieldDescription:  builtInEvent.Description,
+		BuiltinEventSpecificationFieldSeverity:     severity,
+		BuiltinEventSpecificationFieldSeverityCode: builtInEvent.Severity,
+		BuiltinEventSpecificationFieldTriggering:   builtInEvent.Triggering,
+		BuiltinEventSpecificationFieldEnabled:      builtInEvent.Enabled,
+	})
 }
