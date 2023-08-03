@@ -56,10 +56,6 @@ const (
 	SyntheticTestFieldConfigExpectStatus = "expect_status"
 	//SyntheticTestFieldConfigExpectMatch constant value for the schema field configuration.expect_match
 	SyntheticTestFieldConfigExpectMatch = "expect_match"
-	//SyntheticTestFieldConfigExpectExists constant value for the schema field configuration.expect_exists
-	SyntheticTestFieldConfigExpectExists = "expect_exists"
-	//SyntheticTestFieldConfigExpectNotEmpty constant value for the schema field configuration.expect_not_empty
-	SyntheticTestFieldConfigExpectNotEmpty = "expect_not_empty"
 	//SyntheticTestFieldConfigScript constant value for the schema field configuration.script
 	SyntheticTestFieldConfigScript = "script"
 )
@@ -243,7 +239,7 @@ func (r *syntheticTestResource) SetComputedFields(_ *schema.ResourceData) error 
 	return nil
 }
 
-func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTest *restapi.SyntheticTest, formatter utils.ResourceNameFormatter) error {
+func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTest *restapi.SyntheticTest, _ utils.ResourceNameFormatter) error {
 	d.SetId(syntheticTest.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		SyntheticTestFieldLabel:            syntheticTest.Label,

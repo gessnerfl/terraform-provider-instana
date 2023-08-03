@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )

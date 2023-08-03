@@ -8,15 +8,15 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
-//AlertsResourcePath path to Alerts resource of Instana RESTful API
+// AlertsResourcePath path to Alerts resource of Instana RESTful API
 const AlertsResourcePath = EventSettingsBasePath + "/alerts"
 
-//AlertEventType type definition of EventTypes of an Instana Alert
+// AlertEventType type definition of EventTypes of an Instana Alert
 type AlertEventType string
 
-//Equals checks if the alert event type is equal to the provided alert event type. It compares the string representation of both case insensitive
+// Equals checks if the alert event type is equal to the provided alert event type. It compares the string representation of both case insensitive
 func (t AlertEventType) Equals(other AlertEventType) bool {
-	return strings.ToLower(string(t)) == strings.ToLower(string(other))
+	return strings.EqualFold(string(t), string(other))
 }
 
 const (
@@ -38,7 +38,7 @@ const (
 	AgentMonitoringIssueEventType = AlertEventType("agent_monitoring_issue")
 )
 
-//SupportedAlertEventTypes list of supported alert event types of Instana API
+// SupportedAlertEventTypes list of supported alert event types of Instana API
 var SupportedAlertEventTypes = []AlertEventType{
 	IncidentAlertEventType,
 	CriticalAlertEventType,
@@ -50,7 +50,7 @@ var SupportedAlertEventTypes = []AlertEventType{
 	AgentMonitoringIssueEventType,
 }
 
-//IsSupportedAlertEventType checks if the given alert type is supported by Instana API
+// IsSupportedAlertEventType checks if the given alert type is supported by Instana API
 func IsSupportedAlertEventType(t AlertEventType) bool {
 	for _, supported := range SupportedAlertEventTypes {
 		if supported.Equals(t) {
@@ -60,14 +60,14 @@ func IsSupportedAlertEventType(t AlertEventType) bool {
 	return false
 }
 
-//EventFilteringConfiguration type definiton of an EventFilteringConfiguration of a AlertingConfiguration of the Instana ReST AOI
+// EventFilteringConfiguration type definiton of an EventFilteringConfiguration of a AlertingConfiguration of the Instana ReST AOI
 type EventFilteringConfiguration struct {
 	Query      *string          `json:"query"`
 	RuleIDs    []string         `json:"ruleIds"`
 	EventTypes []AlertEventType `json:"eventTypes"`
 }
 
-//Validate implementation of the interface InstanaDataObject to verify if data object is correct
+// Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (c EventFilteringConfiguration) Validate() error {
 	if c.Query != nil && len(*c.Query) > 2048 {
 		return errors.New("Query of EventFilterConfig not valid; Maximum length of Query is 2048 characters")
@@ -115,7 +115,7 @@ func eventTypeSliceToStringSlice(input []AlertEventType) []string {
 	return result
 }
 
-//AlertingConfiguration type definition of an Alertinng Configruation in Instana REST API
+// AlertingConfiguration type definition of an Alertinng Configruation in Instana REST API
 type AlertingConfiguration struct {
 	ID                          string                      `json:"id"`
 	AlertName                   string                      `json:"alertName"`
@@ -123,12 +123,12 @@ type AlertingConfiguration struct {
 	EventFilteringConfiguration EventFilteringConfiguration `json:"eventFilteringConfiguration"`
 }
 
-//GetIDForResourcePath implementation of the interface InstanaDataObject
+// GetIDForResourcePath implementation of the interface InstanaDataObject
 func (c *AlertingConfiguration) GetIDForResourcePath() string {
 	return c.ID
 }
 
-//Validate implementation of the interface InstanaDataObject to verify if data object is correct
+// Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (c *AlertingConfiguration) Validate() error {
 	if utils.IsBlank(c.ID) {
 		return errors.New("ID is missing")

@@ -130,7 +130,7 @@ func TestCRUDOfSyntheticTestResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createSyntheticTestTestCheckFunctions(httpPort int64, iteration int) resource.TestStep {
+func createSyntheticTestTestCheckFunctions(httpPort int64, _ int) resource.TestStep {
 	nestedConfigPattern := "%s.0.%s"
 
 	return resource.TestStep{

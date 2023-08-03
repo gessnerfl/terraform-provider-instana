@@ -116,7 +116,7 @@ func (api *baseInstanaAPI) SyntheticTest() RestResource[*SyntheticTest] {
 	return NewSyntheticTestRestResource(NewDefaultJSONUnmarshaller(&SyntheticTest{}), api.client)
 }
 
-// BuiltinEventSpecifications implementation of InstanaAPI interface
+// SyntheticLocation implementation of InstanaAPI interface
 func (api *baseInstanaAPI) SyntheticLocation() ReadOnlyRestResource[*SyntheticLocation] {
 	return NewReadOnlyRestResource(SyntheticLocationResourcePath, NewDefaultJSONUnmarshaller(&SyntheticLocation{}), api.client)
 }

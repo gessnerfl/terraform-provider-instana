@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -21,7 +21,6 @@ const (
 )
 
 var syntheticTestSerialized = []byte("serialized")
-var IDQueryParameter = map[string]string{"id": syntheticTestID}
 
 func makeSyntheticTest() *SyntheticTest {
 	return &SyntheticTest{

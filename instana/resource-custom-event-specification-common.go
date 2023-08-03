@@ -174,12 +174,12 @@ func (c *customEventSpecificationCommons) getDataForBasicCustomEventSpecificatio
 	}
 }
 
-func (c *customEventSpecificationCommons) migrateCustomEventConfigFullNameInStateFromV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullNameInStateFromV0toV1(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	rawState[CustomEventSpecificationFieldFullName] = rawState[CustomEventSpecificationFieldName]
 	return rawState, nil
 }
 
-func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	delete(rawState, customEventSpecificationDownstreamIntegrationIds)
 	delete(rawState, customEventSpecificationDownstreamBroadcastToAllAlertingConfigs)
 	return rawState, nil

@@ -508,7 +508,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithThresholdRuleAndMe
 	testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t, additionalMappings, additionalAsserts)
 }
 
-func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t *testing.T, additionalMappings func(resourceData *schema.ResourceData), additionalAsserts func(spec restapi.CustomEventSpecification)) {
+func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataModel(t *testing.T, _ func(resourceData *schema.ResourceData), _ func(spec restapi.CustomEventSpecification)) {
 	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 

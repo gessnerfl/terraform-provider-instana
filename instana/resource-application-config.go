@@ -290,7 +290,7 @@ func (r *applicationConfigResource) applicationConfigSchemaV0() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) applicationConfigStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) applicationConfigStateUpgradeV0(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	rawState[ApplicationConfigFieldFullLabel] = rawState[ApplicationConfigFieldLabel]
 	return rawState, nil
 }
@@ -307,7 +307,7 @@ func (r *applicationConfigResource) applicationConfigSchemaV1() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatchSpecification(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatchSpecification(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	spec := rawState[ApplicationConfigFieldMatchSpecification]
 	if spec != nil {
 		log.Printf("[DEBUG] Instana Provider: migrate application config match specification to include entity")
@@ -336,7 +336,7 @@ func (r *applicationConfigResource) applicationConfigSchemaV2() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) updateToVersion2AndRemoveNormalizedMatchSpecification(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) updateToVersion2AndRemoveNormalizedMatchSpecification(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	delete(rawState, ApplicationConfigFieldNormalizedMatchSpecification)
 	return rawState, nil
 }

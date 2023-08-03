@@ -260,7 +260,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) schemaV2() *schema.R
 	}
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *customEventSpecificationWithThresholdRuleResource) migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	v, ok := rawState[ThresholdRuleFieldConditionOperator]
 	if ok {
 		operator, err := restapi.SupportedConditionOperators.FromTerraformValue(v.(string))

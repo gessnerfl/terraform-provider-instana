@@ -14,9 +14,6 @@ func NewSyntheticLocationDataSource() DataSource {
 	return &syntheticLocationDataSource{}
 }
 
-// ResourceInstanaSyntheticLocation the name of the terraform-provider-instana resource to manage synthetic locations
-const ResourceInstanaSyntheticLocation = "instana_synthetic_location"
-
 const (
 	//SyntheticLocationFieldLabel constant value for the schema field label
 	SyntheticLocationFieldLabel = "label"

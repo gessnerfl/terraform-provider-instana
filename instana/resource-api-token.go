@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ResourceInstanaAPIToken the name of the terraform-provider-instana resource to manage API tokens
-const ResourceInstanaAPIToken = "instana_api_token"
-
 //nolint:gosec
 const (
+	// ResourceInstanaAPIToken the name of the terraform-provider-instana resource to manage API tokens
+	ResourceInstanaAPIToken = "instana_api_token"
+
 	//APITokenFieldAccessGrantingToken constant value for the schema field access_granting_token
 	APITokenFieldAccessGrantingToken = "access_granting_token"
 	//APITokenFieldInternalID constant value for the schema field internal_id

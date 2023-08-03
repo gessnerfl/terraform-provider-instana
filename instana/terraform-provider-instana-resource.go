@@ -155,7 +155,7 @@ func (r *terraformResourceImpl[T]) ToSchemaResource() *schema.Resource {
 	}
 }
 
-func (r *terraformResourceImpl[T]) importState(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+func (r *terraformResourceImpl[T]) importState(_ context.Context, d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
 	if r.resourceHandle.MetaData().ResourceIDField != nil {
 		err := d.Set(*r.resourceHandle.MetaData().ResourceIDField, d.Id())
 		if err != nil {
