@@ -70,9 +70,9 @@ func createAlertingChannelWebhookResourceTestStep(httpPort int64, iteration int)
 }
 
 func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
-	resource := NewAlertingChannelWebhookResourceHandle()
+	resourceHandle := NewAlertingChannelWebhookResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -168,9 +168,9 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	webhookURLs := []string{"url1", "url2"}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelWebhookFieldWebhookURLs, webhookURLs)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelWebhookFieldWebhookURLs, webhookURLs)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

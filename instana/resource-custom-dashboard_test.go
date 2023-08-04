@@ -185,10 +185,10 @@ func (test *customDashboardResourceTest) createIntegrationTest() func(t *testing
 		httpServer.AddRoute(http.MethodDelete, resourceInstanceRestAPIPath, testutils.EchoHandlerFunc)
 		httpServer.AddRoute(http.MethodGet, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
 			modCount := httpServer.GetCallCount(http.MethodPut, restapi.CustomDashboardsResourcePath+"/"+id)
-			json := fmt.Sprintf(serverResponseTemplate, id, modCount)
+			jsonData := fmt.Sprintf(serverResponseTemplate, id, modCount)
 			w.Header().Set(contentType, r.Header.Get(contentType))
 			w.WriteHeader(http.StatusOK)
-			_, err := w.Write([]byte(json))
+			_, err := w.Write([]byte(jsonData))
 			if err != nil {
 				fmt.Println("failed to write json response")
 			}
@@ -298,9 +298,9 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 
 		userID := "user-id"
 		resourceData.SetId("dashboard-id")
-		resourceData.Set(CustomDashboardFieldTitle, "dashboard-title")
-		resourceData.Set(CustomDashboardFieldFullTitle, "prefix dashboard-title suffix")
-		resourceData.Set(CustomDashboardFieldAccessRule, []interface{}{
+		setValueOnResourceData(t, resourceData, CustomDashboardFieldTitle, "dashboard-title")
+		setValueOnResourceData(t, resourceData, CustomDashboardFieldFullTitle, "prefix dashboard-title suffix")
+		setValueOnResourceData(t, resourceData, CustomDashboardFieldAccessRule, []interface{}{
 			map[string]interface{}{
 				CustomDashboardFieldAccessRuleAccessType:   "READ_WRITE",
 				CustomDashboardFieldAccessRuleRelatedID:    userID,
@@ -311,7 +311,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 				CustomDashboardFieldAccessRuleRelationType: "GLOBAL",
 			},
 		})
-		resourceData.Set(CustomDashboardFieldWidgets, "dashboard-widgets")
+		setValueOnResourceData(t, resourceData, CustomDashboardFieldWidgets, "dashboard-widgets")
 
 		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
@@ -336,9 +336,9 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
 		resourceData.SetId("dashboard-id")
-		resourceData.Set(CustomDashboardFieldTitle, "dashboard-title")
-		resourceData.Set(CustomDashboardFieldFullTitle, "prefix dashboard-title suffix")
-		resourceData.Set(CustomDashboardFieldWidgets, "dashboard-widgets")
+		setValueOnResourceData(t, resourceData, CustomDashboardFieldTitle, "dashboard-title")
+		setValueOnResourceData(t, resourceData, CustomDashboardFieldFullTitle, "prefix dashboard-title suffix")
+		setValueOnResourceData(t, resourceData, CustomDashboardFieldWidgets, "dashboard-widgets")
 
 		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

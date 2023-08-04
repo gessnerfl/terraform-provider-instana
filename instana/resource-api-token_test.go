@@ -16,6 +16,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
+//nolint:gosec
 const resourceAPITokenDefinitionTemplate = `
 resource "instana_api_token" "example" {
   name = "name %d"
@@ -49,6 +50,7 @@ resource "instana_api_token" "example" {
 }
 `
 
+//nolint:gosec
 const (
 	apiTokenApiPath             = restapi.APITokensResourcePath + "/{internal-id}"
 	testAPITokenDefinition      = "instana_api_token.example"
@@ -99,14 +101,20 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 		err := json.NewDecoder(r.Body).Decode(apiToken)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			r.Write(bytes.NewBufferString("Failed to get request"))
+			err = r.Write(bytes.NewBufferString("Failed to get request"))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 		} else {
 			apiToken.ID = id
 			apiToken.AccessGrantingToken = accessGrantingToken
 			apiToken.InternalID = internalID
 			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(apiToken)
+			err = json.NewEncoder(w).Encode(apiToken)
+			if err != nil {
+				fmt.Printf("failed to decode json; %s\n", err)
+			}
 		}
 	})
 	httpServer.AddRoute(http.MethodPut, apiTokenApiPath, testutils.EchoHandlerFunc)
@@ -114,7 +122,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodGet, apiTokenApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		modCount := httpServer.GetCallCount(http.MethodPut, restapi.APITokensResourcePath+"/"+internalID)
-		json := fmt.Sprintf(`
+		jsonData := fmt.Sprintf(`
 		{
 			"id" : "%s",
 			"accessGrantingToken": "%s",
@@ -151,7 +159,10 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 		`, id, accessGrantingToken, vars["internal-id"], modCount)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
+		_, err := w.Write([]byte(jsonData))
+		if err != nil {
+			fmt.Printf("failed to write response; %s\n", err)
+		}
 	})
 	httpServer.Start()
 	defer httpServer.Close()
@@ -264,8 +275,9 @@ func TestShouldSetCalculateAccessGrantingTokenAndInternal(t *testing.T) {
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	sut.SetComputedFields(resourceData)
+	err := sut.SetComputedFields(resourceData)
 
+	require.NoError(t, err)
 	require.NotEmpty(t, resourceData.Get(APITokenFieldInternalID))
 	require.NotEmpty(t, resourceData.Get(APITokenFieldAccessGrantingToken))
 }
@@ -664,37 +676,37 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(apiTokenID)
-	resourceData.Set(APITokenFieldAccessGrantingToken, apiTokenAccessGrantingToken)
-	resourceData.Set(APITokenFieldInternalID, apiTokenInternalID)
-	resourceData.Set(APITokenFieldName, apiTokenNameFieldValue)
-	resourceData.Set(APITokenFieldFullName, apiTokenFullNameFieldValue)
-	resourceData.Set(APITokenFieldCanConfigureServiceMapping, true)
-	resourceData.Set(APITokenFieldCanConfigureEumApplications, true)
-	resourceData.Set(APITokenFieldCanConfigureMobileAppMonitoring, true)
-	resourceData.Set(APITokenFieldCanConfigureUsers, true)
-	resourceData.Set(APITokenFieldCanInstallNewAgents, true)
-	resourceData.Set(APITokenFieldCanSeeUsageInformation, true)
-	resourceData.Set(APITokenFieldCanConfigureIntegrations, true)
-	resourceData.Set(APITokenFieldCanSeeOnPremiseLicenseInformation, true)
-	resourceData.Set(APITokenFieldCanConfigureCustomAlerts, true)
-	resourceData.Set(APITokenFieldCanConfigureAPITokens, true)
-	resourceData.Set(APITokenFieldCanConfigureAgentRunMode, true)
-	resourceData.Set(APITokenFieldCanViewAuditLog, true)
-	resourceData.Set(APITokenFieldCanConfigureAgents, true)
-	resourceData.Set(APITokenFieldCanConfigureAuthenticationMethods, true)
-	resourceData.Set(APITokenFieldCanConfigureApplications, true)
-	resourceData.Set(APITokenFieldCanConfigureTeams, true)
-	resourceData.Set(APITokenFieldCanConfigureReleases, true)
-	resourceData.Set(APITokenFieldCanConfigureLogManagement, true)
-	resourceData.Set(APITokenFieldCanCreatePublicCustomDashboards, true)
-	resourceData.Set(APITokenFieldCanViewLogs, true)
-	resourceData.Set(APITokenFieldCanViewTraceDetails, true)
-	resourceData.Set(APITokenFieldCanConfigureSessionSettings, true)
-	resourceData.Set(APITokenFieldCanConfigureServiceLevelIndicators, true)
-	resourceData.Set(APITokenFieldCanConfigureGlobalAlertPayload, true)
-	resourceData.Set(APITokenFieldCanConfigureGlobalAlertConfigs, true)
-	resourceData.Set(APITokenFieldCanViewAccountAndBillingInformation, true)
-	resourceData.Set(APITokenFieldCanEditAllAccessibleCustomDashboards, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldAccessGrantingToken, apiTokenAccessGrantingToken)
+	setValueOnResourceData(t, resourceData, APITokenFieldInternalID, apiTokenInternalID)
+	setValueOnResourceData(t, resourceData, APITokenFieldName, apiTokenNameFieldValue)
+	setValueOnResourceData(t, resourceData, APITokenFieldFullName, apiTokenFullNameFieldValue)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureServiceMapping, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureEumApplications, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureMobileAppMonitoring, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureUsers, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanInstallNewAgents, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanSeeUsageInformation, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureIntegrations, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanSeeOnPremiseLicenseInformation, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureCustomAlerts, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureAPITokens, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureAgentRunMode, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanViewAuditLog, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureAgents, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureAuthenticationMethods, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureApplications, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureTeams, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureReleases, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureLogManagement, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanCreatePublicCustomDashboards, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanViewLogs, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanViewTraceDetails, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureSessionSettings, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureServiceLevelIndicators, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureGlobalAlertPayload, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureGlobalAlertConfigs, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanViewAccountAndBillingInformation, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanEditAllAccessibleCustomDashboards, true)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

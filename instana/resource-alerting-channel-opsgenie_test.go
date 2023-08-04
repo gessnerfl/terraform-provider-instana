@@ -66,9 +66,9 @@ func createAlertingChannelOpsGenielResourceTestStep(httpPort int64, iteration in
 }
 
 func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {
-	resource := NewAlertingChannelOpsGenieResourceHandle()
+	resourceHandle := NewAlertingChannelOpsGenieResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -133,11 +133,11 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	tags := []string{"tag1", "tag2"}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelOpsGenieFieldAPIKey, "api key")
-	resourceData.Set(AlertingChannelOpsGenieFieldRegion, "EU")
-	resourceData.Set(AlertingChannelOpsGenieFieldTags, tags)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelOpsGenieFieldAPIKey, "api key")
+	setValueOnResourceData(t, resourceData, AlertingChannelOpsGenieFieldRegion, "EU")
+	setValueOnResourceData(t, resourceData, AlertingChannelOpsGenieFieldTags, tags)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

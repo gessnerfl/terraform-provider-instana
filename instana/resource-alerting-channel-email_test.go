@@ -64,9 +64,9 @@ func createAlertingChannelEmailResourceTestStep(httpPort int64, iteration int) r
 }
 
 func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
-	resource := NewAlertingChannelEmailResourceHandle()
+	resourceHandle := NewAlertingChannelEmailResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -137,9 +137,9 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	emails := []string{"email1", "email2"}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelEmailFieldEmails, emails)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelEmailFieldEmails, emails)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

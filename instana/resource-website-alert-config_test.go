@@ -152,12 +152,18 @@ func (test *websiteAlertConfigTest) createIntegrationTest() func(t *testing.T) {
 			err := json.NewDecoder(r.Body).Decode(config)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				r.Write(bytes.NewBufferString("Failed to get request"))
+				err = r.Write(bytes.NewBufferString("Failed to get request"))
+				if err != nil {
+					fmt.Printf("failed to write response; %s\n", err)
+				}
 			} else {
 				config.ID = id
 				w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 				w.WriteHeader(http.StatusOK)
-				json.NewEncoder(w).Encode(config)
+				err = json.NewEncoder(w).Encode(config)
+				if err != nil {
+					fmt.Printf("failed to encode json; %s\n", err)
+				}
 			}
 		})
 		httpServer.AddRoute(http.MethodPost, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
@@ -166,10 +172,13 @@ func (test *websiteAlertConfigTest) createIntegrationTest() func(t *testing.T) {
 		httpServer.AddRoute(http.MethodDelete, resourceInstanceRestAPIPath, testutils.EchoHandlerFunc)
 		httpServer.AddRoute(http.MethodGet, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
 			modCount := httpServer.GetCallCount(http.MethodPost, resourceRestAPIPath+"/"+id)
-			json := fmt.Sprintf(websiteAlertConfigServerResponseTemplate, id, modCount)
+			jsonData := fmt.Sprintf(websiteAlertConfigServerResponseTemplate, id, modCount)
 			w.Header().Set(contentType, r.Header.Get(contentType))
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(json))
+			_, err := w.Write([]byte(jsonData))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 		})
 		httpServer.Start()
 		defer httpServer.Close()
@@ -950,21 +959,21 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
-		resourceData.Set(WebsiteAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})
-		resourceData.Set(WebsiteAlertConfigFieldWebsiteID, websiteID)
-		resourceData.Set(WebsiteAlertConfigFieldCustomPayloadFields, []interface{}{
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldWebsiteID, websiteID)
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldCustomPayloadFields, []interface{}{
 			map[string]interface{}{WebsiteAlertConfigFieldCustomPayloadFieldsKey: "static-key", WebsiteAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
 		})
-		resourceData.Set(WebsiteAlertConfigFieldDescription, "website-alert-config-description")
-		resourceData.Set(WebsiteAlertConfigFieldGranularity, restapi.Granularity600000)
-		resourceData.Set(WebsiteAlertConfigFieldName, "website-alert-config-name")
-		resourceData.Set(WebsiteAlertConfigFieldFullName, fullName)
-		resourceData.Set(WebsiteAlertConfigFieldRule, ruleTestPair.input)
-		resourceData.Set(WebsiteAlertConfigFieldSeverity, restapi.SeverityCritical.GetTerraformRepresentation())
-		resourceData.Set(WebsiteAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
-		resourceData.Set(ResourceFieldThreshold, thresholdTestPair.input)
-		resourceData.Set(WebsiteAlertConfigFieldTimeThreshold, timeThresholdTestPair.input)
-		resourceData.Set(WebsiteAlertConfigFieldTriggering, true)
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldDescription, "website-alert-config-description")
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldGranularity, restapi.Granularity600000)
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldName, "website-alert-config-name")
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldFullName, fullName)
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldRule, ruleTestPair.input)
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, restapi.SeverityCritical.GetTerraformRepresentation())
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
+		setValueOnResourceData(t, resourceData, ResourceFieldThreshold, thresholdTestPair.input)
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTimeThreshold, timeThresholdTestPair.input)
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTriggering, true)
 		resourceData.SetId(websiteAlertConfigID)
 
 		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
@@ -979,8 +988,8 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
-		resourceData.Set(WebsiteAlertConfigFieldName, "website-alert-config-name")
-		resourceData.Set(WebsiteAlertConfigFieldSeverity, "invalid")
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldName, "website-alert-config-name")
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, "invalid")
 
 		_, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
@@ -994,9 +1003,9 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 		testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
-		resourceData.Set(WebsiteAlertConfigFieldName, "website-alert-config-name")
-		resourceData.Set(WebsiteAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
-		resourceData.Set(WebsiteAlertConfigFieldTagFilter, "invalid invalid invalid")
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldName, "website-alert-config-name")
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
+		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTagFilter, "invalid invalid invalid")
 
 		_, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

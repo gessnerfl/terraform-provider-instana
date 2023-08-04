@@ -108,9 +108,9 @@ func createSliConfigTestCheckFunctions(httpPort int64, iteration int) resource.T
 }
 
 func TestResourceSliConfigDefinition(t *testing.T) {
-	resource := NewSliConfigResourceHandle()
+	resourceHandle := NewSliConfigResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SliConfigFieldName)
@@ -168,9 +168,9 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(sliConfigID)
-	resourceData.Set(SliConfigFieldName, sliConfigName)
-	resourceData.Set(SliConfigFieldFullName, sliConfigFullName)
-	resourceData.Set(SliConfigFieldInitialEvaluationTimestamp, 0)
+	setValueOnResourceData(t, resourceData, SliConfigFieldName, sliConfigName)
+	setValueOnResourceData(t, resourceData, SliConfigFieldFullName, sliConfigFullName)
+	setValueOnResourceData(t, resourceData, SliConfigFieldInitialEvaluationTimestamp, 0)
 
 	metricConfigurationStateObject := []map[string]interface{}{
 		{
@@ -179,7 +179,7 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 			SliConfigFieldMetricThreshold:   sliConfigMetricThreshold,
 		},
 	}
-	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
+	setValueOnResourceData(t, resourceData, SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
 
 	sliEntityStateObject := []map[string]interface{}{
 		{
@@ -190,7 +190,7 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 			SliConfigFieldBoundaryScope: sliConfigEntityBoundaryScope,
 		},
 	}
-	resourceData.Set(SliConfigFieldSliEntity, sliEntityStateObject)
+	setValueOnResourceData(t, resourceData, SliConfigFieldSliEntity, sliEntityStateObject)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
@@ -214,9 +214,9 @@ func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(sliConfigID)
-	resourceData.Set(SliConfigFieldName, sliConfigName)
-	resourceData.Set(SliConfigFieldFullName, sliConfigFullName)
-	resourceData.Set(SliConfigFieldInitialEvaluationTimestamp, 0)
+	setValueOnResourceData(t, resourceData, SliConfigFieldName, sliConfigName)
+	setValueOnResourceData(t, resourceData, SliConfigFieldFullName, sliConfigFullName)
+	setValueOnResourceData(t, resourceData, SliConfigFieldInitialEvaluationTimestamp, 0)
 
 	metricConfigurationStateObject := []map[string]interface{}{
 		{
@@ -225,7 +225,7 @@ func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.
 			SliConfigFieldMetricThreshold:   0.0,
 		},
 	}
-	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
+	setValueOnResourceData(t, resourceData, SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
 
 	_, metricThresholdIsOK := resourceData.GetOk("metric_configuration.0.threshold")
 	require.False(t, metricThresholdIsOK)

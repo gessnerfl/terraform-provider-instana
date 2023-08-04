@@ -230,22 +230,31 @@ func executeRBACGroupIntegrationTest(t *testing.T, serverResponseTemplate string
 		err := json.NewDecoder(r.Body).Decode(group)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			r.Write(bytes.NewBufferString("Failed to get request"))
+			err = r.Write(bytes.NewBufferString("Failed to get request"))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 		} else {
 			group.ID = id
 			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(group)
+			err = json.NewEncoder(w).Encode(group)
+			if err != nil {
+				fmt.Printf("failed to encode json; %s\n", err)
+			}
 		}
 	})
 	httpServer.AddRoute(http.MethodPut, groupApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodDelete, groupApiPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, groupApiPath, func(w http.ResponseWriter, r *http.Request) {
 		modCount := httpServer.GetCallCount(http.MethodPut, restapi.GroupsResourcePath+"/"+id)
-		json := fmt.Sprintf(serverResponseTemplate, id, modCount)
+		jsonData := fmt.Sprintf(serverResponseTemplate, id, modCount)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
+		_, err := w.Write([]byte(jsonData))
+		if err != nil {
+			fmt.Printf("failed to write response; %s\n", err)
+		}
 	})
 	httpServer.Start()
 	defer httpServer.Close()
@@ -257,9 +266,9 @@ func executeRBACGroupIntegrationTest(t *testing.T, serverResponseTemplate string
 }
 
 func TestResourceGroupDefinition(t *testing.T) {
-	resource := NewGroupResourceHandle()
+	resourceHandle := NewGroupResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(GroupFieldName)
@@ -427,10 +436,10 @@ func TestGroupResourceShouldReadModelFromState(t *testing.T) {
 		},
 	}
 	resourceData.SetId(defaultGroupID)
-	resourceData.Set(GroupFieldName, defaultGroupName)
-	resourceData.Set(GroupFieldFullName, defaultGroupFullName)
-	resourceData.Set(GroupFieldMembers, members)
-	resourceData.Set(GroupFieldPermissionSet, permissionSet)
+	setValueOnResourceData(t, resourceData, GroupFieldName, defaultGroupName)
+	setValueOnResourceData(t, resourceData, GroupFieldFullName, defaultGroupFullName)
+	setValueOnResourceData(t, resourceData, GroupFieldMembers, members)
+	setValueOnResourceData(t, resourceData, GroupFieldPermissionSet, permissionSet)
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

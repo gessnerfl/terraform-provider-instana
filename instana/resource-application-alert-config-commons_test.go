@@ -202,12 +202,18 @@ func (f *anyApplicationConfigTest) createIntegrationTest() func(t *testing.T) {
 			err := json.NewDecoder(r.Body).Decode(config)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				r.Write(bytes.NewBufferString("Failed to get request"))
+				err = r.Write(bytes.NewBufferString("Failed to get request"))
+				if err != nil {
+					fmt.Printf("failed to write response; %s\n", err)
+				}
 			} else {
 				config.ID = id
 				w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 				w.WriteHeader(http.StatusOK)
-				json.NewEncoder(w).Encode(config)
+				err = json.NewEncoder(w).Encode(config)
+				if err != nil {
+					fmt.Printf("failed to encode json; %s\n", err)
+				}
 			}
 		})
 		httpServer.AddRoute(http.MethodPost, f.resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
@@ -216,10 +222,13 @@ func (f *anyApplicationConfigTest) createIntegrationTest() func(t *testing.T) {
 		httpServer.AddRoute(http.MethodDelete, f.resourceInstanceRestAPIPath, testutils.EchoHandlerFunc)
 		httpServer.AddRoute(http.MethodGet, f.resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
 			modCount := httpServer.GetCallCount(http.MethodPost, f.resourceRestAPIPath+"/"+id)
-			json := fmt.Sprintf(applicationAlertConfigServerResponseTemplate, id, modCount)
+			jsonData := fmt.Sprintf(applicationAlertConfigServerResponseTemplate, id, modCount)
 			w.Header().Set(contentType, r.Header.Get(contentType))
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(json))
+			_, err := w.Write([]byte(jsonData))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 		})
 		httpServer.Start()
 		defer httpServer.Close()
@@ -290,68 +299,68 @@ func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int64, ite
 
 func (f *anyApplicationConfigTest) createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual() func(t *testing.T) {
 	return func(t *testing.T) {
-		schema := f.resourceHandle.MetaData().Schema
+		resourceSchema := f.resourceHandle.MetaData().Schema
 		oldValue := expressionEntityTypeDestEqValue
 		newValue := "entity.type  EQUALS    'foo'"
 
-		require.True(t, schema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
+		require.True(t, resourceSchema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
 	}
 }
 
 func (f *anyApplicationConfigTest) createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual() func(t *testing.T) {
 	return func(t *testing.T) {
-		schema := f.resourceHandle.MetaData().Schema
+		resourceSchema := f.resourceHandle.MetaData().Schema
 		oldValue := expressionEntityTypeSrcEqValue
 		newValue := validTagFilter
 
-		require.False(t, schema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
+		require.False(t, resourceSchema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
 	}
 }
 
 func (f *anyApplicationConfigTest) createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCannotBeNormalizedAndOldAndNewValueAreEqual() func(t *testing.T) {
 	return func(t *testing.T) {
-		schema := f.resourceHandle.MetaData().Schema
+		resourceSchema := f.resourceHandle.MetaData().Schema
 		invalidValue := invalidTagFilter
 
-		require.True(t, schema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, invalidValue, invalidValue, nil))
+		require.True(t, resourceSchema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, invalidValue, invalidValue, nil))
 	}
 }
 
 func (f *anyApplicationConfigTest) createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCannotBeNormalizedAndOldAndNewValueAreNotEqual() func(t *testing.T) {
 	return func(t *testing.T) {
-		schema := f.resourceHandle.MetaData().Schema
+		resourceSchema := f.resourceHandle.MetaData().Schema
 		oldValue := invalidTagFilter
 		newValue := "entity.type foo foo foo"
 
-		require.False(t, schema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
+		require.False(t, resourceSchema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
 	}
 }
 
 func (f *anyApplicationConfigTest) createTestOfStateFuncOfTagFilterShouldReturnNormalizedValueWhenValueCanBeNormalized() func(t *testing.T) {
 	return func(t *testing.T) {
-		schema := f.resourceHandle.MetaData().Schema
+		resourceSchema := f.resourceHandle.MetaData().Schema
 		expectedValue := expressionEntityTypeDestEqValue
 		newValue := validTagFilter
 
-		require.Equal(t, expectedValue, schema[ApplicationAlertConfigFieldTagFilter].StateFunc(newValue))
+		require.Equal(t, expectedValue, resourceSchema[ApplicationAlertConfigFieldTagFilter].StateFunc(newValue))
 	}
 }
 
 func (f *anyApplicationConfigTest) createTestOfStateFuncOfTagFilterShouldReturnProvidedValueWhenValueCannotBeNormalized() func(t *testing.T) {
 	return func(t *testing.T) {
-		schema := f.resourceHandle.MetaData().Schema
+		resourceSchema := f.resourceHandle.MetaData().Schema
 		value := invalidTagFilter
 
-		require.Equal(t, value, schema[ApplicationAlertConfigFieldTagFilter].StateFunc(value))
+		require.Equal(t, value, resourceSchema[ApplicationAlertConfigFieldTagFilter].StateFunc(value))
 	}
 }
 
 func (f *anyApplicationConfigTest) createTestOfValidateFuncOfTagFilterShouldReturnNoErrorsAndWarningsWhenValueCanBeParsed() func(t *testing.T) {
 	return func(t *testing.T) {
-		schema := f.resourceHandle.MetaData().Schema
+		resourceSchema := f.resourceHandle.MetaData().Schema
 		value := validTagFilter
 
-		warns, errs := schema[ApplicationAlertConfigFieldTagFilter].ValidateFunc(value, ApplicationAlertConfigFieldTagFilter)
+		warns, errs := resourceSchema[ApplicationAlertConfigFieldTagFilter].ValidateFunc(value, ApplicationAlertConfigFieldTagFilter)
 		require.Empty(t, warns)
 		require.Empty(t, errs)
 	}
@@ -359,10 +368,10 @@ func (f *anyApplicationConfigTest) createTestOfValidateFuncOfTagFilterShouldRetu
 
 func (f *anyApplicationConfigTest) createTestOfValidateFuncOfTagFilterShouldReturnOneErrorAndNoWarningsWhenValueCannotBeParsed() func(t *testing.T) {
 	return func(t *testing.T) {
-		schema := f.resourceHandle.MetaData().Schema
+		resourceSchema := f.resourceHandle.MetaData().Schema
 		value := invalidTagFilter
 
-		warns, errs := schema[ApplicationAlertConfigFieldTagFilter].ValidateFunc(value, ApplicationAlertConfigFieldTagFilter)
+		warns, errs := resourceSchema[ApplicationAlertConfigFieldTagFilter].ValidateFunc(value, ApplicationAlertConfigFieldTagFilter)
 		require.Empty(t, warns)
 		require.Len(t, errs, 1)
 	}
@@ -1104,8 +1113,8 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 		testHelper := NewTestHelper[*restapi.ApplicationAlertConfig](t)
 		sut := f.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
-		resourceData.Set(ApplicationAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})
-		resourceData.Set(ApplicationAlertConfigFieldApplications, []interface{}{
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldApplications, []interface{}{
 			map[string]interface{}{
 				ApplicationAlertConfigFieldApplicationsApplicationID: "app-1",
 				ApplicationAlertConfigFieldApplicationsInclusive:     true,
@@ -1123,23 +1132,23 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 				},
 			},
 		})
-		resourceData.Set(ApplicationAlertConfigFieldBoundaryScope, restapi.BoundaryScopeInbound)
-		resourceData.Set(ApplicationAlertConfigFieldCustomPayloadFields, []interface{}{
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldBoundaryScope, restapi.BoundaryScopeInbound)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldCustomPayloadFields, []interface{}{
 			map[string]interface{}{ApplicationAlertConfigFieldCustomPayloadFieldsKey: "static-key", ApplicationAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
 		})
-		resourceData.Set(ApplicationAlertConfigFieldDescription, "application-alert-config-description")
-		resourceData.Set(ApplicationAlertConfigFieldEvaluationType, restapi.EvaluationTypePerApplication)
-		resourceData.Set(ApplicationAlertConfigFieldGranularity, restapi.Granularity600000)
-		resourceData.Set(ApplicationAlertConfigFieldIncludeInternal, false)
-		resourceData.Set(ApplicationAlertConfigFieldIncludeSynthetic, false)
-		resourceData.Set(ApplicationAlertConfigFieldName, "application-alert-config-name")
-		resourceData.Set(ApplicationAlertConfigFieldFullName, fullName)
-		resourceData.Set(ApplicationAlertConfigFieldRule, ruleTestPair.input)
-		resourceData.Set(ApplicationAlertConfigFieldSeverity, restapi.SeverityCritical.GetTerraformRepresentation())
-		resourceData.Set(ApplicationAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
-		resourceData.Set(ResourceFieldThreshold, thresholdTestPair.input)
-		resourceData.Set(ApplicationAlertConfigFieldTimeThreshold, timeThresholdTestPair.input)
-		resourceData.Set(ApplicationAlertConfigFieldTriggering, true)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldDescription, "application-alert-config-description")
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldEvaluationType, restapi.EvaluationTypePerApplication)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldGranularity, restapi.Granularity600000)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldIncludeInternal, false)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldIncludeSynthetic, false)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldName, "application-alert-config-name")
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldFullName, fullName)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldRule, ruleTestPair.input)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldSeverity, restapi.SeverityCritical.GetTerraformRepresentation())
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
+		setValueOnResourceData(t, resourceData, ResourceFieldThreshold, thresholdTestPair.input)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldTimeThreshold, timeThresholdTestPair.input)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldTriggering, true)
 		resourceData.SetId(applicationAlertConfigID)
 
 		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())

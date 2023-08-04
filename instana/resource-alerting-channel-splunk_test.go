@@ -63,9 +63,9 @@ func createAlertingChannelSplunkResourceTestStep(httpPort int64, iteration int) 
 }
 
 func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {
-	resource := NewAlertingChannelSplunkResourceHandle()
+	resourceHandle := NewAlertingChannelSplunkResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -104,10 +104,10 @@ func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
 	token := "token"
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelSplunkFieldURL, url)
-	resourceData.Set(AlertingChannelSplunkFieldToken, token)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelSplunkFieldURL, url)
+	setValueOnResourceData(t, resourceData, AlertingChannelSplunkFieldToken, token)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

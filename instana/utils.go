@@ -10,13 +10,13 @@ import (
 	"github.com/rs/xid"
 )
 
-//RandomID generates a random ID for a resource
+// RandomID generates a random ID for a resource
 func RandomID() string {
-	xid := xid.New()
-	return xid.String()
+	id := xid.New()
+	return id.String()
 }
 
-//ReadStringArrayParameterFromResource reads a string array parameter from a resource
+// ReadStringArrayParameterFromResource reads a string array parameter from a resource
 func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []string {
 	if attr, ok := d.GetOk(key); ok {
 		var array []string
@@ -30,7 +30,7 @@ func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []
 	return nil
 }
 
-//ReadStringSetParameterFromResource reads a string set parameter from a resource and returns it as a slice of strings
+// ReadStringSetParameterFromResource reads a string set parameter from a resource and returns it as a slice of strings
 func ReadStringSetParameterFromResource(d *schema.ResourceData, key string) []string {
 	if attr, ok := d.GetOk(key); ok {
 		var array []string
@@ -44,7 +44,7 @@ func ReadStringSetParameterFromResource(d *schema.ResourceData, key string) []st
 	return nil
 }
 
-//ConvertSeverityFromInstanaAPIToTerraformRepresentation converts the integer representation of the Instana API to the string representation of the Terraform provider
+// ConvertSeverityFromInstanaAPIToTerraformRepresentation converts the integer representation of the Instana API to the string representation of the Terraform provider
 func ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity int) (string, error) {
 	if severity == restapi.SeverityWarning.GetAPIRepresentation() {
 		return restapi.SeverityWarning.GetTerraformRepresentation(), nil
@@ -55,7 +55,7 @@ func ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity int) (strin
 	}
 }
 
-//ConvertSeverityFromTerraformToInstanaAPIRepresentation converts the string representation of the Terraform to the int representation of the Instana API provider
+// ConvertSeverityFromTerraformToInstanaAPIRepresentation converts the string representation of the Terraform to the int representation of the Instana API provider
 func ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity string) (int, error) {
 	if severity == restapi.SeverityWarning.GetTerraformRepresentation() {
 		return restapi.SeverityWarning.GetAPIRepresentation(), nil
@@ -66,7 +66,7 @@ func ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity string) (in
 	}
 }
 
-//GetIntPointerFromResourceData gets a int value from the resource data and either returns a pointer to the value or nil if the value is not defined
+// GetIntPointerFromResourceData gets a int value from the resource data and either returns a pointer to the value or nil if the value is not defined
 func GetIntPointerFromResourceData(d *schema.ResourceData, key string) *int {
 	val, ok := d.GetOk(key)
 	if ok {
@@ -76,7 +76,7 @@ func GetIntPointerFromResourceData(d *schema.ResourceData, key string) *int {
 	return nil
 }
 
-//GetInt32PointerFromResourceData gets a int32 value from the resource data and either returns a pointer to the value or nil if the value is not defined
+// GetInt32PointerFromResourceData gets a int32 value from the resource data and either returns a pointer to the value or nil if the value is not defined
 func GetInt32PointerFromResourceData(d *schema.ResourceData, key string) *int32 {
 	val, ok := d.GetOk(key)
 	if ok {
@@ -86,7 +86,7 @@ func GetInt32PointerFromResourceData(d *schema.ResourceData, key string) *int32 
 	return nil
 }
 
-//GetFloat64PointerFromResourceData gets a float64 value from the resource data and either returns a pointer to the value or nil if the value is not defined
+// GetFloat64PointerFromResourceData gets a float64 value from the resource data and either returns a pointer to the value or nil if the value is not defined
 func GetFloat64PointerFromResourceData(d *schema.ResourceData, key string) *float64 {
 	val, ok := d.GetOk(key)
 	if ok {
@@ -96,7 +96,7 @@ func GetFloat64PointerFromResourceData(d *schema.ResourceData, key string) *floa
 	return nil
 }
 
-//GetFloat32PointerFromResourceData gets a float32 value from the resource data and either returns a pointer to the value or nil if the value is not defined
+// GetFloat32PointerFromResourceData gets a float32 value from the resource data and either returns a pointer to the value or nil if the value is not defined
 func GetFloat32PointerFromResourceData(d *schema.ResourceData, key string) *float32 {
 	val, ok := d.GetOk(key)
 	if ok {
@@ -106,7 +106,7 @@ func GetFloat32PointerFromResourceData(d *schema.ResourceData, key string) *floa
 	return nil
 }
 
-//GetStringPointerFromResourceData gets a string value from the resource data and either returns a pointer to the value or nil if the value is not defined
+// GetStringPointerFromResourceData gets a string value from the resource data and either returns a pointer to the value or nil if the value is not defined
 func GetStringPointerFromResourceData(d *schema.ResourceData, key string) *string {
 	val, ok := d.GetOk(key)
 	if ok {
@@ -116,7 +116,7 @@ func GetStringPointerFromResourceData(d *schema.ResourceData, key string) *strin
 	return nil
 }
 
-//MergeSchemaMap merges the provided maps into a single map
+// MergeSchemaMap merges the provided maps into a single map
 func MergeSchemaMap(mapA map[string]*schema.Schema, mapB map[string]*schema.Schema) map[string]*schema.Schema {
 	mergedMap := make(map[string]*schema.Schema)
 
@@ -130,7 +130,7 @@ func MergeSchemaMap(mapA map[string]*schema.Schema, mapB map[string]*schema.Sche
 	return mergedMap
 }
 
-//ConvertInterfaceSlice converts the given interface slice to the desired target slice
+// ConvertInterfaceSlice converts the given interface slice to the desired target slice
 func ConvertInterfaceSlice[T any](input []interface{}) []T {
 	result := make([]T, len(input))
 	for i, v := range input {

@@ -97,14 +97,19 @@ func TestCRUDOfSyntheticTestResourceWithMockServer(t *testing.T) {
 		err := json.NewDecoder(r.Body).Decode(config)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			r.Write(bytes.NewBufferString("Failed to get request"))
+			err = r.Write(bytes.NewBufferString("Failed to get request"))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 		} else {
 			config.ID = id
 
 			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(config)
-			t.Log(config.Configuration.SyntheticType)
+			err = json.NewEncoder(w).Encode(config)
+			if err != nil {
+				fmt.Printf("failed to encode json; %s\n", err)
+			}
 		}
 	})
 	httpServer.AddRoute(http.MethodPut, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
@@ -112,10 +117,13 @@ func TestCRUDOfSyntheticTestResourceWithMockServer(t *testing.T) {
 	})
 	httpServer.AddRoute(http.MethodDelete, resourceInstanceRestAPIPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
-		json := fmt.Sprintf(syntheticTestServerResponseTemplate, id)
+		jsonData := fmt.Sprintf(syntheticTestServerResponseTemplate, id)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
+		_, err := w.Write([]byte(jsonData))
+		if err != nil {
+			fmt.Printf("failed to write response; %s\n", err)
+		}
 	})
 	httpServer.Start()
 	defer httpServer.Close()
@@ -151,9 +159,9 @@ func createSyntheticTestTestCheckFunctions(httpPort int64, _ int) resource.TestS
 }
 
 func TestResourceSyntheticTestDefinition(t *testing.T) {
-	resource := NewSyntheticTestResourceHandle()
+	resourceHandle := NewSyntheticTestResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SyntheticTestFieldLabel)
@@ -204,8 +212,7 @@ func TestShouldConvertStateOfSyntheticTestsToDataModel(t *testing.T) {
 	resourceHandle := NewSyntheticTestResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(syntheticTestID)
-	resourceData.Set(SyntheticTestFieldActive, syntheticTestActive)
-	resourceData.Set(SyntheticTestFieldConfigRetries, 2)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldActive, syntheticTestActive)
 
 	syntheticConfigurationStateObject := []map[string]interface{}{
 		{
@@ -214,7 +221,7 @@ func TestShouldConvertStateOfSyntheticTestsToDataModel(t *testing.T) {
 			SyntheticTestFieldConfigRetries:           2,
 		},
 	}
-	resourceData.Set(SyntheticTestFieldConfiguration, syntheticConfigurationStateObject)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldConfiguration, syntheticConfigurationStateObject)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

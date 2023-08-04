@@ -219,15 +219,15 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	resourceData.SetId(customSystemEventID)
-	resourceData.Set(CustomEventSpecificationFieldFullName, customSystemEventName)
-	resourceData.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
-	resourceData.Set(CustomEventSpecificationFieldQuery, customSystemEventQuery)
-	resourceData.Set(CustomEventSpecificationFieldTriggering, true)
-	resourceData.Set(CustomEventSpecificationFieldDescription, customSystemEventDescription)
-	resourceData.Set(CustomEventSpecificationFieldExpirationTime, customSystemEventExpirationTime)
-	resourceData.Set(CustomEventSpecificationFieldEnabled, true)
-	resourceData.Set(CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity)
-	resourceData.Set(SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldFullName, customSystemEventName)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldQuery, customSystemEventQuery)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldTriggering, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customSystemEventDescription)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customSystemEventExpirationTime)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity)
+	setValueOnResourceData(t, resourceData, SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId)
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
@@ -252,7 +252,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithSystemRuleStateToDataMod
 	resourceHandle := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	resourceData.Set(CustomEventSpecificationRuleSeverity, "INVALID")
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, "INVALID")
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

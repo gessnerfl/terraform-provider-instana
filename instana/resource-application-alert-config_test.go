@@ -120,15 +120,21 @@ func TestIssue141(t *testing.T) {
 		err := json.NewDecoder(r.Body).Decode(config)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			r.Write(bytes.NewBufferString("Failed to get request"))
+			err = r.Write(bytes.NewBufferString("Failed to get request"))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 		} else {
 			config.ID = id
 			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
-			err := json.NewEncoder(w).Encode(config)
+			err = json.NewEncoder(w).Encode(config)
 			if err == nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				r.Write(bytes.NewBufferString("Failed to map JSON"))
+				err = r.Write(bytes.NewBufferString("Failed to map JSON"))
+				if err != nil {
+					fmt.Printf("failed to write response; %s\n", err)
+				}
 			}
 		}
 	})
@@ -138,10 +144,13 @@ func TestIssue141(t *testing.T) {
 	httpServer.AddRoute(http.MethodDelete, resourceInstanceRestAPIPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
 		modCount := httpServer.GetCallCount(http.MethodPost, resourceRestAPIPath+"/"+id)
-		json := fmt.Sprintf(issue141JsonResponse, id, modCount)
+		jsonData := fmt.Sprintf(issue141JsonResponse, id, modCount)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
+		_, err := w.Write([]byte(jsonData))
+		if err != nil {
+			fmt.Printf("failed to write response; %s\n", err)
+		}
 	})
 	httpServer.Start()
 	defer httpServer.Close()

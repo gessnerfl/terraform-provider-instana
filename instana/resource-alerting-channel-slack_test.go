@@ -69,9 +69,9 @@ func createAlertingChannelSlackResourceTestStep(httpPort int64, iteration int) r
 }
 
 func TestResourceAlertingChannelSlackDefinition(t *testing.T) {
-	resource := NewAlertingChannelSlackResourceHandle()
+	resourceHandle := NewAlertingChannelSlackResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -115,11 +115,11 @@ func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
 	channel := testAlertingChannelSlackChannel
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelSlackFieldWebhookURL, webhookURL)
-	resourceData.Set(AlertingChannelSlackFieldIconURL, iconURL)
-	resourceData.Set(AlertingChannelSlackFieldChannel, channel)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldWebhookURL, webhookURL)
+	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldIconURL, iconURL)
+	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldChannel, channel)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

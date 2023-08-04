@@ -173,9 +173,9 @@ func TestShouldFailToUnmarshalApplicationConfigWhenElementOfTagFilterExpressionI
 }
 
 func TestShouldFailToUnmarshalApplicationConfigWhenTagFilterIsNotAValidJsonObject(t *testing.T) {
-	json := "{\"id\":\"test-application-config-id\",\"label\":\"test-application-config-label\",\"matchSpecification\":null,\"tagFilterExpression\":[\"foo\", \"bar\"],\"scope\":\"scope\",\"boundaryScope\":\"boundaryScope\"}"
+	jsonData := "{\"id\":\"test-application-config-id\",\"label\":\"test-application-config-label\",\"matchSpecification\":null,\"tagFilterExpression\":[\"foo\", \"bar\"],\"scope\":\"scope\",\"boundaryScope\":\"boundaryScope\"}"
 
-	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(json))
+	_, err := NewApplicationConfigUnmarshaller().Unmarshal([]byte(jsonData))
 
 	require.Error(t, err)
 }

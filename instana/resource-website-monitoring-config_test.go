@@ -102,11 +102,17 @@ func (s *websiteMonitoringConfigTestServer) onPost(w http.ResponseWriter, r *htt
 			AppName: name,
 		}
 
-		json.NewEncoder(w).Encode(s.serverState)
+		err := json.NewEncoder(w).Encode(s.serverState)
+		if err != nil {
+			fmt.Printf("failed to encode json; %s\n", err)
+		}
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 	} else {
-		w.Write([]byte("Name is missing"))
+		_, err := w.Write([]byte("Name is missing"))
+		if err != nil {
+			fmt.Printf("failed to write response; %s\n", err)
+		}
 		w.WriteHeader(http.StatusBadRequest)
 	}
 }
@@ -120,15 +126,24 @@ func (s *websiteMonitoringConfigTestServer) onPut(w http.ResponseWriter, r *http
 			s.serverState.Name = name
 			s.serverState.AppName = name
 
-			json.NewEncoder(w).Encode(s.serverState)
+			err := json.NewEncoder(w).Encode(s.serverState)
+			if err != nil {
+				fmt.Printf("failed to encode json; %s\n", err)
+			}
 			w.Header().Set(contentType, r.Header.Get(contentType))
 			w.WriteHeader(http.StatusOK)
 		} else {
-			w.Write([]byte("Name is missing"))
+			_, err := w.Write([]byte("Name is missing"))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	} else {
-		w.Write([]byte("Entity with id %s not found"))
+		_, err := w.Write([]byte("Entity with id %s not found"))
+		if err != nil {
+			fmt.Printf("failed to write response; %s\n", err)
+		}
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
@@ -136,11 +151,17 @@ func (s *websiteMonitoringConfigTestServer) onPut(w http.ResponseWriter, r *http
 func (s *websiteMonitoringConfigTestServer) onGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	if s.serverState != nil && vars["id"] == s.serverState.ID {
-		json.NewEncoder(w).Encode(s.serverState)
+		err := json.NewEncoder(w).Encode(s.serverState)
+		if err != nil {
+			fmt.Printf("failed to encode json; %s\n", err)
+		}
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 	} else {
-		w.Write([]byte("Entity with id %s not found"))
+		_, err := w.Write([]byte("Entity with id %s not found"))
+		if err != nil {
+			fmt.Printf("failed to write response; %s\n", err)
+		}
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
@@ -152,9 +173,9 @@ func (s *websiteMonitoringConfigTestServer) Close() {
 }
 
 func TestResourceWebsiteMonitoringConfigDefinition(t *testing.T) {
-	resource := NewWebsiteMonitoringConfigResourceHandle()
+	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(WebsiteMonitoringConfigFieldName)
@@ -188,8 +209,8 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(WebsiteMonitoringConfigFieldName, "name")
-	resourceData.Set(WebsiteMonitoringConfigFieldFullName, websiteMonitoringConfigFullName)
+	setValueOnResourceData(t, resourceData, WebsiteMonitoringConfigFieldName, "name")
+	setValueOnResourceData(t, resourceData, WebsiteMonitoringConfigFieldFullName, websiteMonitoringConfigFullName)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

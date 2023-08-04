@@ -65,9 +65,9 @@ func createAlertingChannelVictorOpsResourceTestStep(httpPort int64, iteration in
 }
 
 func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {
-	resource := NewAlertingChannelVictorOpsResourceHandle()
+	resourceHandle := NewAlertingChannelVictorOpsResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -106,10 +106,10 @@ func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 	routingKey := testAlertingChannelVictorOpsRoutingKey
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelVictorOpsFieldAPIKey, apiKey)
-	resourceData.Set(AlertingChannelVictorOpsFieldRoutingKey, routingKey)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelVictorOpsFieldAPIKey, apiKey)
+	setValueOnResourceData(t, resourceData, AlertingChannelVictorOpsFieldRoutingKey, routingKey)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

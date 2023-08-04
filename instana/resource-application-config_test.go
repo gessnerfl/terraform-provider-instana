@@ -626,10 +626,10 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenMatchSpec
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
-	resourceData.Set(ApplicationConfigFieldFullLabel, defaultLabel)
-	resourceData.Set(ApplicationConfigFieldMatchSpecification, defaultMatchSpecification)
-	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
-	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldFullLabel, defaultLabel)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
@@ -649,10 +649,10 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificat
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
-	resourceData.Set(ApplicationConfigFieldFullLabel, defaultLabel)
-	resourceData.Set(ApplicationConfigFieldMatchSpecification, "INVALID")
-	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
-	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldFullLabel, defaultLabel)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldMatchSpecification, "INVALID")
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
@@ -665,10 +665,10 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenTagFilter
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
-	resourceData.Set(ApplicationConfigFieldFullLabel, defaultLabel)
-	resourceData.Set(ApplicationConfigFieldTagFilter, defaultTagFilter)
-	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
-	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldFullLabel, defaultLabel)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldTagFilter, defaultTagFilter)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
@@ -688,10 +688,10 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenTagFilterIsNotV
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
-	resourceData.Set(ApplicationConfigFieldFullLabel, defaultLabel)
-	resourceData.Set(ApplicationConfigFieldTagFilter, "INVALID")
-	resourceData.Set(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
-	resourceData.Set(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldFullLabel, defaultLabel)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldTagFilter, "INVALID")
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 

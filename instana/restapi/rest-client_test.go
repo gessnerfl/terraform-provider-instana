@@ -246,12 +246,12 @@ type testDataObject struct {
 	id string
 }
 
-//GetIDForResourcePath implementation of InstanaDataObject
+// GetIDForResourcePath implementation of InstanaDataObject
 func (tdo testDataObject) GetIDForResourcePath() string {
 	return tdo.id
 }
 
-//Validate implementation of InstanaDataObject
+// Validate implementation of InstanaDataObject
 func (tdo testDataObject) Validate() error {
 	return nil
 }
@@ -304,11 +304,20 @@ func doSetupAndStartHttpServer(httpMethod string, fullPath string, statusCode in
 		err := additionalChecks(r)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
-			w.Write([]byte(testData))
+			_, err = w.Write([]byte(err.Error()))
+			if err != nil {
+				fmt.Printf("failed to write error response; %s\n", err)
+			}
+			_, err = w.Write([]byte(testData))
+			if err != nil {
+				fmt.Printf("failed to write test data; %s\n", err)
+			}
 		} else {
 			w.WriteHeader(statusCode)
-			w.Write([]byte(testData))
+			_, err = w.Write([]byte(testData))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 		}
 	})
 	httpServer.Start()

@@ -129,9 +129,9 @@ func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration 
 }
 
 func TestResourceAlertingConfigDefinition(t *testing.T) {
-	resource := NewAlertingConfigResourceHandle()
+	resourceHandle := NewAlertingConfigResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingConfigFieldAlertName)
@@ -281,11 +281,11 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) 
 	ruleIds := []string{alertingConfigRuleId1, alertingConfigRuleId2}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(alertingConfigID)
-	resourceData.Set(AlertingConfigFieldAlertName, alertingConfigName)
-	resourceData.Set(AlertingConfigFieldFullAlertName, alertingConfigName)
-	resourceData.Set(AlertingConfigFieldIntegrationIds, integrationIds)
-	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
-	resourceData.Set(AlertingConfigFieldEventFilterRuleIDs, ruleIds)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldAlertName, alertingConfigName)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldFullAlertName, alertingConfigName)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldIntegrationIds, integrationIds)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterRuleIDs, ruleIds)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
@@ -305,11 +305,11 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.
 	integrationIds := []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(alertingConfigID)
-	resourceData.Set(AlertingConfigFieldAlertName, alertingConfigName)
-	resourceData.Set(AlertingConfigFieldFullAlertName, alertingConfigName)
-	resourceData.Set(AlertingConfigFieldIntegrationIds, integrationIds)
-	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
-	resourceData.Set(AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldAlertName, alertingConfigName)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldFullAlertName, alertingConfigName)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldIntegrationIds, integrationIds)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
