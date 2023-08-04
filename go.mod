@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/alecthomas/participle v0.7.1
-	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
 	github.com/rs/xid v1.5.0
 	github.com/stretchr/testify v1.7.2
