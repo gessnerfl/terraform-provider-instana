@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -28,9 +29,9 @@ func TestShouldSuccessfullyReadTestObjectFromInstanaAPIWhenBaseDataIsReturned(t 
 		mockResourceNameFormatter.EXPECT().UndoFormat(expectedModel.Name).Return(resourceNameWithoutPrefixAndSuffix).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Read(context.TODO(), resourceData, providerMeta)
 
-		assert.Nil(t, err)
+		assert.Nil(t, diag)
 		verifyTestObjectModelAppliedToResource(expectedModel, resourceData, t)
 	})
 }
@@ -41,10 +42,11 @@ func TestShouldFailToReadTestObjectFromInstanaAPIWhenResourceIDIsMissing(t *test
 		resourceData := createEmptyAlertingChannelEmailResourceData(t)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Read(context.TODO(), resourceData, providerMeta)
 
-		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "ID of instana_alerting_channel_email")
+		assert.NotNil(t, diag)
+		assert.True(t, diag.HasError())
+		assert.Contains(t, diag[0].Summary, "ID of instana_alerting_channel_email")
 	})
 }
 
@@ -59,9 +61,9 @@ func TestShouldFailToReadTestObjectFromInstanaAPIAndDeleteResourceWhenRoleDoesNo
 		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(&restapi.AlertingChannel{}, restapi.ErrEntityNotFound).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Read(context.TODO(), resourceData, providerMeta)
 
-		assert.Nil(t, err)
+		assert.Nil(t, diag)
 		assert.GreaterOrEqual(t, 0, len(resourceData.Id()))
 	})
 }
@@ -78,9 +80,11 @@ func TestShouldFailToReadTestObjectFromInstanaAPIAndReturnErrorWhenAPICallFails(
 		mockTestObjectApi.EXPECT().GetOne(gomock.Eq(alertingChannelEmailID)).Return(&restapi.AlertingChannel{}, expectedError).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Read(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Read(context.TODO(), resourceData, providerMeta)
 
-		assert.Equal(t, expectedError, err)
+		assert.NotNil(t, diag)
+		assert.True(t, diag.HasError())
+		assert.Equal(t, diag[0].Summary, expectedError.Error())
 		assert.NotEqual(t, 0, len(resourceData.Id()))
 	})
 }
@@ -99,9 +103,9 @@ func TestShouldCreateTestObjectThroughInstanaAPI(t *testing.T) {
 		mockTestObjectApi.EXPECT().Create(gomock.AssignableToTypeOf(&restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Create(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Create(context.TODO(), resourceData, providerMeta)
 
-		assert.Nil(t, err)
+		assert.Nil(t, diag)
 		verifyTestObjectModelAppliedToResource(expectedModel, resourceData, t)
 	})
 }
@@ -119,9 +123,11 @@ func TestShouldReturnErrorWhenCreateTestObjectFailsThroughInstanaAPI(t *testing.
 		mockTestObjectApi.EXPECT().Create(gomock.AssignableToTypeOf(&restapi.AlertingChannel{})).Return(&restapi.AlertingChannel{}, expectedError).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Create(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Create(context.TODO(), resourceData, providerMeta)
 
-		assert.Equal(t, expectedError, err)
+		assert.NotNil(t, diag)
+		assert.True(t, diag.HasError())
+		assert.Equal(t, diag[0].Summary, expectedError.Error())
 	})
 }
 
@@ -139,9 +145,9 @@ func TestShouldUpdateTestObjectThroughInstanaAPI(t *testing.T) {
 		mockTestObjectApi.EXPECT().Update(gomock.AssignableToTypeOf(&restapi.AlertingChannel{})).Return(expectedModel, nil).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Update(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Update(context.TODO(), resourceData, providerMeta)
 
-		assert.Nil(t, err)
+		assert.Nil(t, diag)
 		verifyTestObjectModelAppliedToResource(expectedModel, resourceData, t)
 	})
 }
@@ -159,9 +165,11 @@ func TestShouldReturnErrorWhenUpdateTestObjectFailsThroughInstanaAPI(t *testing.
 		mockTestObjectApi.EXPECT().Update(gomock.AssignableToTypeOf(&restapi.AlertingChannel{})).Return(&restapi.AlertingChannel{}, expectedError).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Update(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Update(context.TODO(), resourceData, providerMeta)
 
-		assert.Equal(t, expectedError, err)
+		assert.NotNil(t, diag)
+		assert.True(t, diag.HasError())
+		assert.Equal(t, diag[0].Summary, expectedError.Error())
 	})
 }
 
@@ -179,9 +187,9 @@ func TestShouldDeleteTestObjectThroughInstanaAPI(t *testing.T) {
 		mockTestObjectApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(nil).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Delete(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Delete(context.TODO(), resourceData, providerMeta)
 
-		assert.Nil(t, err)
+		assert.Nil(t, diag)
 		assert.GreaterOrEqual(t, 0, len(resourceData.Id()))
 	})
 }
@@ -201,9 +209,11 @@ func TestShouldReturnErrorWhenDeleteTestObjectFailsThroughInstanaAPI(t *testing.
 		mockTestObjectApi.EXPECT().DeleteByID(gomock.Eq(id)).Return(expectedError).Times(1)
 
 		resourceHandle := NewAlertingChannelEmailResourceHandle()
-		err := NewTerraformResource(resourceHandle).Delete(resourceData, providerMeta)
+		diag := NewTerraformResource(resourceHandle).Delete(context.TODO(), resourceData, providerMeta)
 
-		assert.Equal(t, expectedError, err)
+		assert.NotNil(t, diag)
+		assert.True(t, diag.HasError())
+		assert.Equal(t, diag[0].Summary, expectedError.Error())
 		assert.NotEqual(t, 0, len(resourceData.Id()))
 	})
 }

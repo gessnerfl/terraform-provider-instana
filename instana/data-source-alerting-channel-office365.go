@@ -1,8 +1,10 @@
 package instana
 
 import (
+	"context"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -21,7 +23,7 @@ type alertingChannelOffice365DataSource struct{}
 // CreateResource creates the resource handle for Office 365 alerting channel
 func (ds *alertingChannelOffice365DataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
-		Read: ds.read,
+		ReadContext: ds.read,
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName: {
 				Type:        schema.TypeString,
@@ -32,7 +34,7 @@ func (ds *alertingChannelOffice365DataSource) CreateResource() *schema.Resource 
 	}
 }
 
-func (ds *alertingChannelOffice365DataSource) read(d *schema.ResourceData, meta interface{}) error {
+func (ds *alertingChannelOffice365DataSource) read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
@@ -40,16 +42,19 @@ func (ds *alertingChannelOffice365DataSource) read(d *schema.ResourceData, meta 
 
 	data, err := instanaAPI.AlertingChannels().GetAll()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	alertChannel, err := ds.findAlertChannel(name, data)
-
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return ds.updateState(d, alertChannel)
+	err = ds.updateState(d, alertChannel)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
 }
 
 func (ds *alertingChannelOffice365DataSource) findAlertChannel(name string, data *[]*restapi.AlertingChannel) (*restapi.AlertingChannel, error) {

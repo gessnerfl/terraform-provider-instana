@@ -1,6 +1,7 @@
 package instana_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -114,9 +115,9 @@ func executeReadWithTenGeneratedObjectsAsResponse(requestedName string, requeste
 	meta := &ProviderMeta{InstanaAPI: mockInstanaAPI}
 	resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{BuiltinEventSpecificationFieldName: requestedName, BuiltinEventSpecificationFieldShortPluginID: requestedPluginId})
 
-	err := sut.Read(resourceData, meta)
-	if err != nil {
-		return nil, err
+	diag := sut.ReadContext(context.TODO(), resourceData, meta)
+	if diag != nil && diag.HasError() {
+		return nil, errors.New(diag[0].Summary)
 	}
 	return resourceData, nil
 }
@@ -139,10 +140,11 @@ func TestShouldFailtToReadBuiltInEventWhenAPIRequestFails(t *testing.T) {
 	meta := &ProviderMeta{InstanaAPI: mockInstanaAPI}
 	resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{BuiltinEventSpecificationFieldName: requestedName, BuiltinEventSpecificationFieldShortPluginID: requestedPluginId})
 
-	err := sut.Read(resourceData, meta)
+	diag := sut.ReadContext(context.TODO(), resourceData, meta)
 
-	require.Error(t, err)
-	require.Equal(t, expectedError, err)
+	require.NotNil(t, diag)
+	require.True(t, diag.HasError())
+	require.Equal(t, expectedError.Error(), diag[0].Summary)
 }
 
 func TestShouldFailtToReadBuiltInEventWhenSeverityCannotBeConvertedFromItsCodeRepresentation(t *testing.T) {
@@ -165,10 +167,11 @@ func TestShouldFailtToReadBuiltInEventWhenSeverityCannotBeConvertedFromItsCodeRe
 	meta := &ProviderMeta{InstanaAPI: mockInstanaAPI}
 	resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{BuiltinEventSpecificationFieldName: requestedName, BuiltinEventSpecificationFieldShortPluginID: requestedPluginId})
 
-	err := sut.Read(resourceData, meta)
+	diag := sut.ReadContext(context.TODO(), resourceData, meta)
 
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "100 is not a valid severity")
+	require.NotNil(t, diag)
+	require.True(t, diag.HasError())
+	require.Contains(t, diag[0].Summary, "100 is not a valid severity")
 }
 
 func createBuiltinEventSpecifications(count int) *[]*restapi.BuiltinEventSpecification {

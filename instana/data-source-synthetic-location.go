@@ -1,8 +1,10 @@
 package instana
 
 import (
+	"context"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -30,7 +32,7 @@ type syntheticLocationDataSource struct{}
 // CreateResource creates the resource handle Synthetic Locations
 func (ds *syntheticLocationDataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
-		Read: ds.read,
+		ReadContext: ds.read,
 		Schema: map[string]*schema.Schema{
 			SyntheticLocationFieldLabel: {
 				Type:         schema.TypeString,
@@ -54,7 +56,7 @@ func (ds *syntheticLocationDataSource) CreateResource() *schema.Resource {
 	}
 }
 
-func (ds *syntheticLocationDataSource) read(d *schema.ResourceData, meta interface{}) error {
+func (ds *syntheticLocationDataSource) read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
@@ -63,16 +65,19 @@ func (ds *syntheticLocationDataSource) read(d *schema.ResourceData, meta interfa
 
 	data, err := instanaAPI.SyntheticLocation().GetAll()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	syntheticLocation, err := ds.findSyntheticLocations(label, locationType, data)
-
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return ds.updateState(d, syntheticLocation)
+	err = ds.updateState(d, syntheticLocation)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
 }
 
 func (ds *syntheticLocationDataSource) findSyntheticLocations(label string, locationType string, data *[]*restapi.SyntheticLocation) (*restapi.SyntheticLocation, error) {
