@@ -2,6 +2,7 @@ package instana
 
 import (
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -9,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaSliConfig the name of the terraform-provider-instana resource to manage SLI configurations
+// ResourceInstanaSliConfig the name of the terraform-provider-instana resource to manage SLI configurations
 const ResourceInstanaSliConfig = "instana_sli_config"
 
 const (
@@ -148,8 +149,8 @@ var (
 	}
 )
 
-//NewSliConfigResourceHandle creates the resource handle for SLI configuration
-func NewSliConfigResourceHandle() ResourceHandle {
+// NewSliConfigResourceHandle creates the resource handle for SLI configuration
+func NewSliConfigResourceHandle() ResourceHandle[*restapi.SliConfig] {
 	return &sliConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaSliConfig,
@@ -177,17 +178,15 @@ func (r *sliConfigResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *sliConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *sliConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.SliConfig] {
 	return api.SliConfigs()
 }
 
-func (r *sliConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *sliConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	sliConfig := obj.(*restapi.SliConfig)
-
+func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *restapi.SliConfig, formatter utils.ResourceNameFormatter) error {
 	metricConfiguration := map[string]interface{}{
 		SliConfigFieldMetricName:        sliConfig.MetricConfiguration.Name,
 		SliConfigFieldMetricAggregation: sliConfig.MetricConfiguration.Aggregation,
@@ -202,17 +201,19 @@ func (r *sliConfigResource) UpdateState(d *schema.ResourceData, obj restapi.Inst
 		SliConfigFieldBoundaryScope: sliConfig.SliEntity.BoundaryScope,
 	}
 
-	d.Set(SliConfigFieldName, formatter.UndoFormat(sliConfig.Name))
-	d.Set(SliConfigFieldFullName, sliConfig.Name)
-	d.Set(SliConfigFieldInitialEvaluationTimestamp, sliConfig.InitialEvaluationTimestamp)
-	d.Set(SliConfigFieldMetricConfiguration, []map[string]interface{}{metricConfiguration})
-	d.Set(SliConfigFieldSliEntity, []map[string]interface{}{sliEntity})
+	data := map[string]interface{}{
+		SliConfigFieldName:                       formatter.UndoFormat(sliConfig.Name),
+		SliConfigFieldFullName:                   sliConfig.Name,
+		SliConfigFieldInitialEvaluationTimestamp: sliConfig.InitialEvaluationTimestamp,
+		SliConfigFieldMetricConfiguration:        []map[string]interface{}{metricConfiguration},
+		SliConfigFieldSliEntity:                  []map[string]interface{}{sliEntity},
+	}
 
 	d.SetId(sliConfig.ID)
-	return nil
+	return tfutils.UpdateState(d, data)
 }
 
-func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.SliConfig, error) {
 	metricConfigurationsStateObject := d.Get(SliConfigFieldMetricConfiguration).([]interface{})
 	var metricConfiguration restapi.MetricConfiguration
 	if len(metricConfigurationsStateObject) > 0 {

@@ -1,7 +1,10 @@
 package instana
 
 import (
+	"context"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -12,9 +15,6 @@ import (
 func NewSyntheticLocationDataSource() DataSource {
 	return &syntheticLocationDataSource{}
 }
-
-// ResourceInstanaSyntheticLocation the name of the terraform-provider-instana resource to manage synthetic locations
-const ResourceInstanaSyntheticLocation = "instana_synthetic_location"
 
 const (
 	//SyntheticLocationFieldLabel constant value for the schema field label
@@ -32,7 +32,7 @@ type syntheticLocationDataSource struct{}
 // CreateResource creates the resource handle Synthetic Locations
 func (ds *syntheticLocationDataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
-		Read: ds.read,
+		ReadContext: ds.read,
 		Schema: map[string]*schema.Schema{
 			SyntheticLocationFieldLabel: {
 				Type:         schema.TypeString,
@@ -56,7 +56,7 @@ func (ds *syntheticLocationDataSource) CreateResource() *schema.Resource {
 	}
 }
 
-func (ds *syntheticLocationDataSource) read(d *schema.ResourceData, meta interface{}) error {
+func (ds *syntheticLocationDataSource) read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
@@ -65,23 +65,25 @@ func (ds *syntheticLocationDataSource) read(d *schema.ResourceData, meta interfa
 
 	data, err := instanaAPI.SyntheticLocation().GetAll()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	syntheticLocation, err := ds.findSyntheticLocations(label, locationType, data)
-
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return ds.updateState(d, syntheticLocation)
+	err = ds.updateState(d, syntheticLocation)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
 }
 
-func (ds *syntheticLocationDataSource) findSyntheticLocations(label string, locationType string, data *[]restapi.InstanaDataObject) (*restapi.SyntheticLocation, error) {
+func (ds *syntheticLocationDataSource) findSyntheticLocations(label string, locationType string, data *[]*restapi.SyntheticLocation) (*restapi.SyntheticLocation, error) {
 	for _, e := range *data {
-		syntheticLocation, ok := e.(restapi.SyntheticLocation)
-		if ok {
-			return &syntheticLocation, nil
+		if e.Label == label && e.LocationType == locationType {
+			return e, nil
 		}
 	}
 	return nil, fmt.Errorf("no synthetic location found")
@@ -89,9 +91,9 @@ func (ds *syntheticLocationDataSource) findSyntheticLocations(label string, loca
 
 func (ds *syntheticLocationDataSource) updateState(d *schema.ResourceData, syntheticLocation *restapi.SyntheticLocation) error {
 	d.SetId(syntheticLocation.ID)
-	d.Set(SyntheticLocationFieldLabel, syntheticLocation.Label)
-	d.Set(SyntheticLocationFieldDescription, syntheticLocation.Description)
-	d.Set(SyntheticLocationFieldLocationType, syntheticLocation.LocationType)
-
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		SyntheticLocationFieldLabel:        syntheticLocation.Label,
+		SyntheticLocationFieldDescription:  syntheticLocation.Description,
+		SyntheticLocationFieldLocationType: syntheticLocation.LocationType,
+	})
 }

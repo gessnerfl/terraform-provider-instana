@@ -108,9 +108,9 @@ func createSliConfigTestCheckFunctions(httpPort int64, iteration int) resource.T
 }
 
 func TestResourceSliConfigDefinition(t *testing.T) {
-	resource := NewSliConfigResourceHandle()
+	resourceHandle := NewSliConfigResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SliConfigFieldName)
@@ -145,7 +145,7 @@ func TestSliConfigResourceShouldHaveSchemaVersionZero(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.SliConfig](t)
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.SliConfig{
@@ -164,13 +164,13 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 }
 
 func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.SliConfig](t)
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(sliConfigID)
-	resourceData.Set(SliConfigFieldName, sliConfigName)
-	resourceData.Set(SliConfigFieldFullName, sliConfigFullName)
-	resourceData.Set(SliConfigFieldInitialEvaluationTimestamp, 0)
+	setValueOnResourceData(t, resourceData, SliConfigFieldName, sliConfigName)
+	setValueOnResourceData(t, resourceData, SliConfigFieldFullName, sliConfigFullName)
+	setValueOnResourceData(t, resourceData, SliConfigFieldInitialEvaluationTimestamp, 0)
 
 	metricConfigurationStateObject := []map[string]interface{}{
 		{
@@ -179,7 +179,7 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 			SliConfigFieldMetricThreshold:   sliConfigMetricThreshold,
 		},
 	}
-	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
+	setValueOnResourceData(t, resourceData, SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
 
 	sliEntityStateObject := []map[string]interface{}{
 		{
@@ -190,33 +190,33 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 			SliConfigFieldBoundaryScope: sliConfigEntityBoundaryScope,
 		},
 	}
-	resourceData.Set(SliConfigFieldSliEntity, sliEntityStateObject)
+	setValueOnResourceData(t, resourceData, SliConfigFieldSliEntity, sliEntityStateObject)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.SliConfig{}, model, "Model should be an sli config")
 	require.Equal(t, sliConfigID, model.GetIDForResourcePath())
-	require.Equal(t, sliConfigFullName, model.(*restapi.SliConfig).Name, "name should be equal to full name")
-	require.Equal(t, sliConfigInitialEvaluationTimestamp, model.(*restapi.SliConfig).InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
-	require.Equal(t, sliConfigMetricName, model.(*restapi.SliConfig).MetricConfiguration.Name)
-	require.Equal(t, sliConfigMetricAggregation, model.(*restapi.SliConfig).MetricConfiguration.Aggregation)
-	require.Equal(t, sliConfigMetricThreshold, model.(*restapi.SliConfig).MetricConfiguration.Threshold)
-	require.Equal(t, sliConfigEntityType, model.(*restapi.SliConfig).SliEntity.Type)
-	require.Equal(t, sliConfigEntityApplicationID, model.(*restapi.SliConfig).SliEntity.ApplicationID)
-	require.Equal(t, sliConfigEntityServiceID, model.(*restapi.SliConfig).SliEntity.ServiceID)
-	require.Equal(t, sliConfigEntityEndpointID, model.(*restapi.SliConfig).SliEntity.EndpointID)
-	require.Equal(t, sliConfigEntityBoundaryScope, model.(*restapi.SliConfig).SliEntity.BoundaryScope)
+	require.Equal(t, sliConfigFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, sliConfigInitialEvaluationTimestamp, model.InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
+	require.Equal(t, sliConfigMetricName, model.MetricConfiguration.Name)
+	require.Equal(t, sliConfigMetricAggregation, model.MetricConfiguration.Aggregation)
+	require.Equal(t, sliConfigMetricThreshold, model.MetricConfiguration.Threshold)
+	require.Equal(t, sliConfigEntityType, model.SliEntity.Type)
+	require.Equal(t, sliConfigEntityApplicationID, model.SliEntity.ApplicationID)
+	require.Equal(t, sliConfigEntityServiceID, model.SliEntity.ServiceID)
+	require.Equal(t, sliConfigEntityEndpointID, model.SliEntity.EndpointID)
+	require.Equal(t, sliConfigEntityBoundaryScope, model.SliEntity.BoundaryScope)
 }
 
 func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.SliConfig](t)
 	resourceHandle := NewSliConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(sliConfigID)
-	resourceData.Set(SliConfigFieldName, sliConfigName)
-	resourceData.Set(SliConfigFieldFullName, sliConfigFullName)
-	resourceData.Set(SliConfigFieldInitialEvaluationTimestamp, 0)
+	setValueOnResourceData(t, resourceData, SliConfigFieldName, sliConfigName)
+	setValueOnResourceData(t, resourceData, SliConfigFieldFullName, sliConfigFullName)
+	setValueOnResourceData(t, resourceData, SliConfigFieldInitialEvaluationTimestamp, 0)
 
 	metricConfigurationStateObject := []map[string]interface{}{
 		{
@@ -225,7 +225,7 @@ func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.
 			SliConfigFieldMetricThreshold:   0.0,
 		},
 	}
-	resourceData.Set(SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
+	setValueOnResourceData(t, resourceData, SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
 
 	_, metricThresholdIsOK := resourceData.GetOk("metric_configuration.0.threshold")
 	require.False(t, metricThresholdIsOK)

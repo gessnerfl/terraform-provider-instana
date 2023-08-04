@@ -5,8 +5,8 @@ import (
 	"errors"
 )
 
-//NewApplicationConfigUnmarshaller creates a new Unmarshaller instance for application configs
-func NewApplicationConfigUnmarshaller() JSONUnmarshaller {
+// NewApplicationConfigUnmarshaller creates a new Unmarshaller instance for application configs
+func NewApplicationConfigUnmarshaller() JSONUnmarshaller[*ApplicationConfig] {
 	return &applicationConfigUnmarshaller{
 		tagFilterUnmarshaller: NewTagFilterUnmarshaller(),
 	}
@@ -16,8 +16,13 @@ type applicationConfigUnmarshaller struct {
 	tagFilterUnmarshaller TagFilterUnmarshaller
 }
 
-//Unmarshal Unmarshaller interface implementation
-func (u *applicationConfigUnmarshaller) Unmarshal(data []byte) (interface{}, error) {
+// UnmarshalArray Unmarshaller interface implementation
+func (u *applicationConfigUnmarshaller) UnmarshalArray(data []byte) (*[]*ApplicationConfig, error) {
+	return unmarshalArray[*ApplicationConfig](data, u.Unmarshal)
+}
+
+// Unmarshal Unmarshaller interface implementation
+func (u *applicationConfigUnmarshaller) Unmarshal(data []byte) (*ApplicationConfig, error) {
 	var rawMatchSpecification json.RawMessage
 	var rawTagFilterExpression json.RawMessage
 	temp := &ApplicationConfig{

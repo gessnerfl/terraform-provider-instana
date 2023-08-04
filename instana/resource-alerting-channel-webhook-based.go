@@ -2,6 +2,7 @@ package instana
 
 import (
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -17,17 +18,17 @@ const (
 	ResourceInstanaAlertingChannelGoogleChat = "instana_alerting_channel_google_chat"
 )
 
-//NewAlertingChannelGoogleChatResourceHandle creates the terraform resource for Alerting Channels of type Google Chat
-func NewAlertingChannelGoogleChatResourceHandle() ResourceHandle {
+// NewAlertingChannelGoogleChatResourceHandle creates the terraform resource for Alerting Channels of type Google Chat
+func NewAlertingChannelGoogleChatResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return newAlertingChannelWebhookBasedResourceHandle(restapi.GoogleChatChannelType, ResourceInstanaAlertingChannelGoogleChat)
 }
 
-//NewAlertingChannelOffice356ResourceHandle creates the terraform resource for Alerting Channels of type Office 356
-func NewAlertingChannelOffice356ResourceHandle() ResourceHandle {
+// NewAlertingChannelOffice356ResourceHandle creates the terraform resource for Alerting Channels of type Office 356
+func NewAlertingChannelOffice356ResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return newAlertingChannelWebhookBasedResourceHandle(restapi.Office365ChannelType, ResourceInstanaAlertingChannelOffice365)
 }
 
-func newAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingChannelType, resourceName string) ResourceHandle {
+func newAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingChannelType, resourceName string) ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelWebhookBasedResource{
 		metaData: ResourceMetaData{
 			ResourceName: resourceName,
@@ -58,24 +59,24 @@ func (r *alertingChannelWebhookBasedResource) StateUpgraders() []schema.StateUpg
 	return []schema.StateUpgrader{}
 }
 
-func (r *alertingChannelWebhookBasedResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingChannelWebhookBasedResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelWebhookBasedResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
-}
-
-func (r *alertingChannelWebhookBasedResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	alertingChannel := obj.(*restapi.AlertingChannel)
-	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
-	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
-	d.Set(AlertingChannelWebhookBasedFieldWebhookURL, alertingChannel.WebhookURL)
-	d.SetId(alertingChannel.ID)
+func (r *alertingChannelWebhookBasedResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *alertingChannelWebhookBasedResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelWebhookBasedResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
+	d.SetId(alertingChannel.ID)
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingChannelFieldName:                   formatter.UndoFormat(alertingChannel.Name),
+		AlertingChannelFieldFullName:               alertingChannel.Name,
+		AlertingChannelWebhookBasedFieldWebhookURL: alertingChannel.WebhookURL,
+	})
+}
+
+func (r *alertingChannelWebhookBasedResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	webhookURL := d.Get(AlertingChannelWebhookBasedFieldWebhookURL).(string)
 	return &restapi.AlertingChannel{

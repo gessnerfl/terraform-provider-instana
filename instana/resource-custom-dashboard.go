@@ -3,12 +3,13 @@ package instana
 import (
 	"encoding/json"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaCustomDashboard the name of the terraform-provider-instana resource to manage custom dashboards
+// ResourceInstanaCustomDashboard the name of the terraform-provider-instana resource to manage custom dashboards
 const ResourceInstanaCustomDashboard = "instana_custom_dashboard"
 
 const (
@@ -28,8 +29,8 @@ const (
 	CustomDashboardFieldWidgets = "widgets"
 )
 
-//NewCustomDashboardResourceHandle creates the resource handle for RBAC Groups
-func NewCustomDashboardResourceHandle() ResourceHandle {
+// NewCustomDashboardResourceHandle creates the resource handle for RBAC Groups
+func NewCustomDashboardResourceHandle() ResourceHandle[*restapi.CustomDashboard] {
 	return &customDashboardResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaCustomDashboard,
@@ -102,26 +103,25 @@ func (r *customDashboardResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *customDashboardResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *customDashboardResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomDashboard] {
 	return api.CustomDashboards()
 }
 
-func (r *customDashboardResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *customDashboardResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *customDashboardResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	dashboard := obj.(*restapi.CustomDashboard)
-
+func (r *customDashboardResource) UpdateState(d *schema.ResourceData, dashboard *restapi.CustomDashboard, formatter utils.ResourceNameFormatter) error {
 	widgetsBytes, _ := dashboard.Widgets.MarshalJSON()
 	widgets := NormalizeJSONString(string(widgetsBytes))
 
-	d.Set(CustomDashboardFieldTitle, formatter.UndoFormat(dashboard.Title))
-	d.Set(CustomDashboardFieldFullTitle, dashboard.Title)
-	d.Set(CustomDashboardFieldWidgets, widgets)
-	d.Set(CustomDashboardFieldAccessRule, r.mapAccessRuleToState(dashboard))
 	d.SetId(dashboard.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		CustomDashboardFieldTitle:      formatter.UndoFormat(dashboard.Title),
+		CustomDashboardFieldFullTitle:  dashboard.Title,
+		CustomDashboardFieldWidgets:    widgets,
+		CustomDashboardFieldAccessRule: r.mapAccessRuleToState(dashboard),
+	})
 }
 
 func (r *customDashboardResource) mapAccessRuleToState(dashboard *restapi.CustomDashboard) []map[string]interface{} {
@@ -136,7 +136,7 @@ func (r *customDashboardResource) mapAccessRuleToState(dashboard *restapi.Custom
 	return result
 }
 
-func (r *customDashboardResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customDashboardResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomDashboard, error) {
 	title := r.computeFullTitleString(d, formatter)
 	accessRules := r.mapAccessRulesFromState(d)
 

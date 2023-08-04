@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -9,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
+// ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
 const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_event_spec_threshold_rule"
 
 const (
@@ -110,8 +111,8 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
-func NewCustomEventSpecificationWithThresholdRuleResourceHandle() ResourceHandle {
+// NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
+func NewCustomEventSpecificationWithThresholdRuleResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
 	commons := &customEventSpecificationCommons{}
 	return &customEventSpecificationWithThresholdRuleResource{
 		metaData: ResourceMetaData{
@@ -152,16 +153,15 @@ func (r *customEventSpecificationWithThresholdRuleResource) StateUpgraders() []s
 	}
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *customEventSpecificationWithThresholdRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomEventSpecification] {
 	return api.CustomEventSpecifications()
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	customEventSpecification := obj.(*restapi.CustomEventSpecification)
+func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
 	ruleSpec := customEventSpecification.Rules[0]
 
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
@@ -173,25 +173,27 @@ func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schem
 		return err
 	}
 
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
-	d.Set(CustomEventSpecificationRuleSeverity, severity)
-	d.Set(ThresholdRuleFieldMetricName, ruleSpec.MetricName)
-	d.Set(ThresholdRuleFieldRollup, ruleSpec.Rollup)
-	d.Set(ThresholdRuleFieldWindow, ruleSpec.Window)
-	d.Set(ThresholdRuleFieldAggregation, ruleSpec.Aggregation)
-	d.Set(ThresholdRuleFieldConditionOperator, conditionOperator.InstanaAPIValue())
-	d.Set(ThresholdRuleFieldConditionValue, ruleSpec.ConditionValue)
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
+	data[CustomEventSpecificationRuleSeverity] = severity
+	data[ThresholdRuleFieldMetricName] = ruleSpec.MetricName
+	data[ThresholdRuleFieldRollup] = ruleSpec.Rollup
+	data[ThresholdRuleFieldWindow] = ruleSpec.Window
+	data[ThresholdRuleFieldAggregation] = ruleSpec.Aggregation
+	data[ThresholdRuleFieldConditionOperator] = conditionOperator.InstanaAPIValue()
+	data[ThresholdRuleFieldConditionValue] = ruleSpec.ConditionValue
 
 	if ruleSpec.MetricPattern != nil {
-		d.Set(ThresholdRuleFieldMetricPatternPrefix, ruleSpec.MetricPattern.Prefix)
-		d.Set(ThresholdRuleFieldMetricPatternPostfix, ruleSpec.MetricPattern.Postfix)
-		d.Set(ThresholdRuleFieldMetricPatternPlaceholder, ruleSpec.MetricPattern.Placeholder)
-		d.Set(ThresholdRuleFieldMetricPatternOperator, ruleSpec.MetricPattern.Operator)
+		data[ThresholdRuleFieldMetricPatternPrefix] = ruleSpec.MetricPattern.Prefix
+		data[ThresholdRuleFieldMetricPatternPostfix] = ruleSpec.MetricPattern.Postfix
+		data[ThresholdRuleFieldMetricPatternPlaceholder] = ruleSpec.MetricPattern.Placeholder
+		data[ThresholdRuleFieldMetricPatternOperator] = ruleSpec.MetricPattern.Operator
 	}
-	return nil
+
+	d.SetId(customEventSpecification.ID)
+	return tfutils.UpdateState(d, data)
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err
@@ -258,7 +260,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) schemaV2() *schema.R
 	}
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *customEventSpecificationWithThresholdRuleResource) migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	v, ok := rawState[ThresholdRuleFieldConditionOperator]
 	if ok {
 		operator, err := restapi.SupportedConditionOperators.FromTerraformValue(v.(string))

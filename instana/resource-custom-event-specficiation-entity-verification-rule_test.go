@@ -97,7 +97,7 @@ func createCustomEventSpecificationWithEntityVerificationRuleResourceTestStep(ht
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType),
-			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue())),
+			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldMatchingOperator, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue()),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, EntityVerificationRuleFieldOfflineDuration, strconv.Itoa(customEntityVerificationEventRuleOfflineDuration)),
 		),
 	}
@@ -259,7 +259,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -277,7 +277,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 
 	require.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, resourceData.Get(EntityVerificationRuleFieldMatchingEntityLabel))
 	require.Equal(t, customEntityVerificationEventRuleMatchingEntityType, resourceData.Get(EntityVerificationRuleFieldMatchingEntityType))
-	require.Equal(t, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue()), resourceData.Get(EntityVerificationRuleFieldMatchingOperator))
+	require.Equal(t, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue(), resourceData.Get(EntityVerificationRuleFieldMatchingOperator))
 	require.Equal(t, customEntityVerificationEventRuleOfflineDuration, resourceData.Get(EntityVerificationRuleFieldOfflineDuration))
 	require.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), resourceData.Get(CustomEventSpecificationRuleSeverity))
 }
@@ -304,7 +304,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithEntityVe
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
@@ -315,53 +315,52 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithEntityVe
 }
 
 func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	resourceData.SetId(customEntityVerificationEventID)
-	resourceData.Set(CustomEventSpecificationFieldFullName, customEntityVerificationEventName)
-	resourceData.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
-	resourceData.Set(CustomEventSpecificationFieldQuery, customEntityVerificationEventQuery)
-	resourceData.Set(CustomEventSpecificationFieldTriggering, true)
-	resourceData.Set(CustomEventSpecificationFieldDescription, customEntityVerificationEventDescription)
-	resourceData.Set(CustomEventSpecificationFieldExpirationTime, customEntityVerificationEventExpirationTime)
-	resourceData.Set(CustomEventSpecificationFieldEnabled, true)
-	resourceData.Set(CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
-	resourceData.Set(EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel)
-	resourceData.Set(EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType)
-	resourceData.Set(EntityVerificationRuleFieldMatchingOperator, string(customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue()))
-	resourceData.Set(EntityVerificationRuleFieldOfflineDuration, customEntityVerificationEventRuleOfflineDuration)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldFullName, customEntityVerificationEventName)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldQuery, customEntityVerificationEventQuery)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldTriggering, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEntityVerificationEventDescription)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEntityVerificationEventExpirationTime)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
+	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldMatchingEntityLabel, customEntityVerificationEventRuleMatchingEntityLabel)
+	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldMatchingEntityType, customEntityVerificationEventRuleMatchingEntityType)
+	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldMatchingOperator, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue())
+	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldOfflineDuration, customEntityVerificationEventRuleOfflineDuration)
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(*restapi.CustomEventSpecification)
-	require.Equal(t, customEntityVerificationEventID, customEventSpec.GetIDForResourcePath())
-	require.Equal(t, customEntityVerificationEventName, customEventSpec.Name)
-	require.Equal(t, EntityVerificationRuleEntityType, customEventSpec.EntityType)
-	require.Equal(t, customEntityVerificationEventQuery, *customEventSpec.Query)
-	require.Equal(t, customEntityVerificationEventDescription, *customEventSpec.Description)
-	require.Equal(t, customEntityVerificationEventExpirationTime, *customEventSpec.ExpirationTime)
-	require.True(t, customEventSpec.Triggering)
-	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEntityVerificationEventID, result.GetIDForResourcePath())
+	require.Equal(t, customEntityVerificationEventName, result.Name)
+	require.Equal(t, EntityVerificationRuleEntityType, result.EntityType)
+	require.Equal(t, customEntityVerificationEventQuery, *result.Query)
+	require.Equal(t, customEntityVerificationEventDescription, *result.Description)
+	require.Equal(t, customEntityVerificationEventExpirationTime, *result.ExpirationTime)
+	require.True(t, result.Triggering)
+	require.True(t, result.Enabled)
 
-	require.Equal(t, 1, len(customEventSpec.Rules))
-	require.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, *customEventSpec.Rules[0].MatchingEntityLabel)
-	require.Equal(t, customEntityVerificationEventRuleMatchingEntityType, *customEventSpec.Rules[0].MatchingEntityType)
-	require.Equal(t, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue(), *customEventSpec.Rules[0].MatchingOperator)
-	require.Equal(t, customEntityVerificationEventRuleOfflineDuration, *customEventSpec.Rules[0].OfflineDuration)
-	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+	require.Equal(t, 1, len(result.Rules))
+	require.Equal(t, customEntityVerificationEventRuleMatchingEntityLabel, *result.Rules[0].MatchingEntityLabel)
+	require.Equal(t, customEntityVerificationEventRuleMatchingEntityType, *result.Rules[0].MatchingEntityType)
+	require.Equal(t, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue(), *result.Rules[0].MatchingOperator)
+	require.Equal(t, customEntityVerificationEventRuleOfflineDuration, *result.Rules[0].OfflineDuration)
+	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), result.Rules[0].Severity)
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenSeverityIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	resourceData.Set(CustomEventSpecificationRuleSeverity, "INVALID")
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, "INVALID")
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
@@ -369,11 +368,11 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenMatchingOperatorIsMissing(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	resourceData.Set(CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 
@@ -382,12 +381,12 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 }
 
 func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleStateToDataModelWhenMatchingOperatorIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	resourceData.Set(CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
-	resourceData.Set(EntityVerificationRuleFieldMatchingOperator, "invalid")
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
+	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldMatchingOperator, "invalid")
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
 

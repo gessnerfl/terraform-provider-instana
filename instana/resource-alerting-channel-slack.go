@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -17,8 +18,8 @@ const (
 	ResourceInstanaAlertingChannelSlack = "instana_alerting_channel_slack"
 )
 
-//NewAlertingChannelSlackResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelSlackResourceHandle() ResourceHandle {
+// NewAlertingChannelSlackResourceHandle creates the resource handle for Alerting Channels of type Email
+func NewAlertingChannelSlackResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelSlackResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelSlack,
@@ -57,26 +58,26 @@ func (r *alertingChannelSlackResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *alertingChannelSlackResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingChannelSlackResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelSlackResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
-}
-
-func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	alertingChannel := obj.(*restapi.AlertingChannel)
-	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
-	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
-	d.Set(AlertingChannelSlackFieldWebhookURL, alertingChannel.WebhookURL)
-	d.Set(AlertingChannelSlackFieldIconURL, alertingChannel.IconURL)
-	d.Set(AlertingChannelSlackFieldChannel, alertingChannel.Channel)
-	d.SetId(alertingChannel.ID)
+func (r *alertingChannelSlackResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *alertingChannelSlackResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
+	d.SetId(alertingChannel.ID)
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingChannelFieldName:            formatter.UndoFormat(alertingChannel.Name),
+		AlertingChannelFieldFullName:        alertingChannel.Name,
+		AlertingChannelSlackFieldWebhookURL: alertingChannel.WebhookURL,
+		AlertingChannelSlackFieldIconURL:    alertingChannel.IconURL,
+		AlertingChannelSlackFieldChannel:    alertingChannel.Channel,
+	})
+}
+
+func (r *alertingChannelSlackResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	webhookURL := d.Get(AlertingChannelSlackFieldWebhookURL).(string)
 	iconURL := d.Get(AlertingChannelSlackFieldIconURL).(string)

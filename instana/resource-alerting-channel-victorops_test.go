@@ -65,9 +65,9 @@ func createAlertingChannelVictorOpsResourceTestStep(httpPort int64, iteration in
 }
 
 func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {
-	resource := NewAlertingChannelVictorOpsResourceHandle()
+	resourceHandle := NewAlertingChannelVictorOpsResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -77,7 +77,7 @@ func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelVictorOpsResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	apiKey := testAlertingChannelVictorOpsApiKey
@@ -100,25 +100,25 @@ func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelVictorOpsResourceHandle()
 	apiKey := testAlertingChannelVictorOpsApiKey
 	routingKey := testAlertingChannelVictorOpsRoutingKey
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelVictorOpsFieldAPIKey, apiKey)
-	resourceData.Set(AlertingChannelVictorOpsFieldRoutingKey, routingKey)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelVictorOpsFieldAPIKey, apiKey)
+	setValueOnResourceData(t, resourceData, AlertingChannelVictorOpsFieldRoutingKey, routingKey)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, apiKey, *model.(*restapi.AlertingChannel).APIKey, "api key should be equal")
-	require.Equal(t, routingKey, *model.(*restapi.AlertingChannel).RoutingKey, "routing key should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, apiKey, *model.APIKey, "api key should be equal")
+	require.Equal(t, routingKey, *model.RoutingKey, "routing key should be equal")
 }
 
 func TestAlertingChannelVictorOpskShouldHaveSchemaVersionZero(t *testing.T) {

@@ -1,7 +1,10 @@
 package instana
 
 import (
+	"context"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -38,7 +41,7 @@ type builtInEventDataSource struct{}
 // CreateResource creates the terraform Resource for the data source for Instana builtin events
 func (ds *builtInEventDataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
-		Read: ds.read,
+		ReadContext: ds.read,
 		Schema: map[string]*schema.Schema{
 			BuiltinEventSpecificationFieldName: {
 				Type:        schema.TypeString,
@@ -79,7 +82,7 @@ func (ds *builtInEventDataSource) CreateResource() *schema.Resource {
 	}
 }
 
-func (ds *builtInEventDataSource) read(d *schema.ResourceData, meta interface{}) error {
+func (ds *builtInEventDataSource) read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
@@ -88,23 +91,26 @@ func (ds *builtInEventDataSource) read(d *schema.ResourceData, meta interface{})
 
 	data, err := instanaAPI.BuiltinEventSpecifications().GetAll()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	builtInEvent, err := ds.findBuiltInEventByNameAndPluginID(name, shortPluginID, data)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return ds.updateState(d, builtInEvent)
+	err = ds.updateState(d, builtInEvent)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
 }
 
-func (ds *builtInEventDataSource) findBuiltInEventByNameAndPluginID(name string, shortPluginID string, data *[]restapi.InstanaDataObject) (*restapi.BuiltinEventSpecification, error) {
-	for _, e := range *data {
-		builtInEvent, ok := e.(restapi.BuiltinEventSpecification)
-		if ok && builtInEvent.Name == name && builtInEvent.ShortPluginID == shortPluginID {
-			return &builtInEvent, nil
+func (ds *builtInEventDataSource) findBuiltInEventByNameAndPluginID(name string, shortPluginID string, data *[]*restapi.BuiltinEventSpecification) (*restapi.BuiltinEventSpecification, error) {
+	for _, builtInEvent := range *data {
+		if builtInEvent.Name == name && builtInEvent.ShortPluginID == shortPluginID {
+			return builtInEvent, nil
 		}
 	}
 	return nil, fmt.Errorf("no built in event found for name '%s' and short plugin ID '%s'", name, shortPluginID)
@@ -116,10 +122,11 @@ func (ds *builtInEventDataSource) updateState(d *schema.ResourceData, builtInEve
 		return err
 	}
 	d.SetId(builtInEvent.ID)
-	d.Set(BuiltinEventSpecificationFieldDescription, builtInEvent.Description)
-	d.Set(BuiltinEventSpecificationFieldSeverity, severity)
-	d.Set(BuiltinEventSpecificationFieldSeverityCode, builtInEvent.Severity)
-	d.Set(BuiltinEventSpecificationFieldTriggering, builtInEvent.Triggering)
-	d.Set(BuiltinEventSpecificationFieldEnabled, builtInEvent.Enabled)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		BuiltinEventSpecificationFieldDescription:  builtInEvent.Description,
+		BuiltinEventSpecificationFieldSeverity:     severity,
+		BuiltinEventSpecificationFieldSeverityCode: builtInEvent.Severity,
+		BuiltinEventSpecificationFieldTriggering:   builtInEvent.Triggering,
+		BuiltinEventSpecificationFieldEnabled:      builtInEvent.Enabled,
+	})
 }

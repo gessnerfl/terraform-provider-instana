@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	mocks "github.com/gessnerfl/terraform-provider-instana/mocks"
-	"github.com/golang/mock/gomock"
+	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
 )
 
 func TestSuccessfulCreateOrUpdateOfTestObjectThroughCreatePUTUpdatePUTRestResource(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 		serializedJSON, _ := json.Marshal(testObject)
 
@@ -28,7 +28,7 @@ func TestSuccessfulCreateOrUpdateOfTestObjectThroughCreatePUTUpdatePUTRestResour
 }
 
 func TestShouldFailToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResourceWhenErrorIsReturnedFromRestClient(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 
 		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(nil, errors.New("Error during test"))
@@ -41,7 +41,7 @@ func TestShouldFailToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResour
 }
 
 func TestShouldFailToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResourceWhenResponseCannotBeUnmarshalled(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := makeTestObject()
 		response := []byte("invalid response")
 		expectedError := errors.New("test")
@@ -56,23 +56,8 @@ func TestShouldFailToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResour
 	})
 }
 
-func TestShouldFailToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResourceWhenTheUnmarshalledResponseIsNotImplementingInstanaDataObject(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
-		testObject := makeTestObject()
-		response := []byte("{ \"invalid\" : \"testObject\" }")
-
-		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Return(response, nil)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(&InvalidInstanaDataObject{}, nil)
-
-		_, err := resourceFunc(testObject)
-
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "unmarshalled object does not implement InstanaDataObject")
-	})
-}
-
 func TestShouldFailedToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResourceWhenAnInvalidTestObjectIsProvided(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		testObject := &testObject{
 			ID:   "some id",
 			Name: "invalid name",
@@ -88,7 +73,7 @@ func TestShouldFailedToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestReso
 }
 
 func TestShouldFailedToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResourceWhenAnInvalidTestObjectIsReceived(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller) {
+	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
 		object := makeTestObject()
 		response := []byte("invalid response")
 
@@ -101,16 +86,16 @@ func TestShouldFailedToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestReso
 	})
 }
 
-type createUpdateFunc func(data InstanaDataObject) (InstanaDataObject, error)
+type createUpdateFunc func(data *testObject) (*testObject, error)
 type createPutUpdatePutContext struct {
 	operation           string
-	resourceFuncFactory func(RestResource) createUpdateFunc
+	resourceFuncFactory func(RestResource[*testObject]) createUpdateFunc
 }
 
-func executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t *testing.T, testFunction func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller)) {
+func executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t *testing.T, testFunction func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject])) {
 	contexts := []createPutUpdatePutContext{
-		{operation: "Create", resourceFuncFactory: func(sut RestResource) createUpdateFunc { return sut.Create }},
-		{operation: "Update", resourceFuncFactory: func(sut RestResource) createUpdateFunc { return sut.Update }},
+		{operation: "Create", resourceFuncFactory: func(sut RestResource[*testObject]) createUpdateFunc { return sut.Create }},
+		{operation: "Update", resourceFuncFactory: func(sut RestResource[*testObject]) createUpdateFunc { return sut.Update }},
 	}
 
 	caller := getCallerName()
@@ -120,9 +105,9 @@ func executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t *
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			client := mocks.NewMockRestClient(ctrl)
-			unmarshaller := mocks.NewMockJSONUnmarshaller(ctrl)
+			unmarshaller := mocks.NewMockJSONUnmarshaller[*testObject](ctrl)
 
-			sut := NewCreatePUTUpdatePUTRestResource(testObjectResourcePath, unmarshaller, client)
+			sut := NewCreatePUTUpdatePUTRestResource[*testObject](testObjectResourcePath, unmarshaller, client)
 
 			client.EXPECT().Post(gomock.Any(), gomock.Eq(testObjectResourcePath)).Times(0)
 			testFunction(t, context.resourceFuncFactory(sut), client, unmarshaller)

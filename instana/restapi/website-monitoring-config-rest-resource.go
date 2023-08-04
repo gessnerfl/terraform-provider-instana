@@ -1,9 +1,7 @@
 package restapi
 
-import "errors"
-
-//NewWebsiteMonitoringConfigRestResource creates a new REST for the website monitoring config
-func NewWebsiteMonitoringConfigRestResource(unmarshaller JSONUnmarshaller, client RestClient) RestResource {
+// NewWebsiteMonitoringConfigRestResource creates a new REST for the website monitoring config
+func NewWebsiteMonitoringConfigRestResource(unmarshaller JSONUnmarshaller[*WebsiteMonitoringConfig], client RestClient) RestResource[*WebsiteMonitoringConfig] {
 	return &websiteMonitoringConfigRestResource{
 		resourcePath: WebsiteMonitoringConfigResourcePath,
 		unmarshaller: unmarshaller,
@@ -13,11 +11,23 @@ func NewWebsiteMonitoringConfigRestResource(unmarshaller JSONUnmarshaller, clien
 
 type websiteMonitoringConfigRestResource struct {
 	resourcePath string
-	unmarshaller JSONUnmarshaller
+	unmarshaller JSONUnmarshaller[*WebsiteMonitoringConfig]
 	client       RestClient
 }
 
-func (r *websiteMonitoringConfigRestResource) GetOne(id string) (InstanaDataObject, error) {
+func (r *websiteMonitoringConfigRestResource) GetAll() (*[]*WebsiteMonitoringConfig, error) {
+	data, err := r.client.Get(r.resourcePath)
+	if err != nil {
+		return nil, err
+	}
+	objects, err := r.unmarshaller.UnmarshalArray(data)
+	if err != nil {
+		return nil, err
+	}
+	return objects, nil
+}
+
+func (r *websiteMonitoringConfigRestResource) GetOne(id string) (*WebsiteMonitoringConfig, error) {
 	data, err := r.client.GetOne(id, r.resourcePath)
 	if err != nil {
 		return nil, err
@@ -25,45 +35,40 @@ func (r *websiteMonitoringConfigRestResource) GetOne(id string) (InstanaDataObje
 	return r.validateResponseAndConvertToStruct(data)
 }
 
-func (r *websiteMonitoringConfigRestResource) Create(data InstanaDataObject) (InstanaDataObject, error) {
+func (r *websiteMonitoringConfigRestResource) Create(data *WebsiteMonitoringConfig) (*WebsiteMonitoringConfig, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
-	response, err := r.client.PostByQuery(r.resourcePath, map[string]string{"name": data.(*WebsiteMonitoringConfig).Name})
+	response, err := r.client.PostByQuery(r.resourcePath, map[string]string{"name": data.Name})
 	if err != nil {
 		return data, err
 	}
 	return r.validateResponseAndConvertToStruct(response)
 }
 
-func (r *websiteMonitoringConfigRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
+func (r *websiteMonitoringConfigRestResource) Update(data *WebsiteMonitoringConfig) (*WebsiteMonitoringConfig, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
-	response, err := r.client.PutByQuery(r.resourcePath, data.GetIDForResourcePath(), map[string]string{"name": data.(*WebsiteMonitoringConfig).Name})
+	response, err := r.client.PutByQuery(r.resourcePath, data.GetIDForResourcePath(), map[string]string{"name": data.Name})
 	if err != nil {
 		return data, err
 	}
 	return r.validateResponseAndConvertToStruct(response)
 }
 
-func (r *websiteMonitoringConfigRestResource) validateResponseAndConvertToStruct(data []byte) (InstanaDataObject, error) {
-	object, err := r.unmarshaller.Unmarshal(data)
+func (r *websiteMonitoringConfigRestResource) validateResponseAndConvertToStruct(data []byte) (*WebsiteMonitoringConfig, error) {
+	dataObject, err := r.unmarshaller.Unmarshal(data)
 	if err != nil {
 		return nil, err
 	}
-	dataObject, ok := object.(InstanaDataObject)
-	if !ok {
-		return dataObject, errors.New("Unmarshalled object does not implement InstanaDataObject")
-	}
-
 	if err := dataObject.Validate(); err != nil {
 		return dataObject, err
 	}
 	return dataObject, nil
 }
 
-func (r *websiteMonitoringConfigRestResource) Delete(data InstanaDataObject) error {
+func (r *websiteMonitoringConfigRestResource) Delete(data *WebsiteMonitoringConfig) error {
 	return r.DeleteByID(data.GetIDForResourcePath())
 }
 

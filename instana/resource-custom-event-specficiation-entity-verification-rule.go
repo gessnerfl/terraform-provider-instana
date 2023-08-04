@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -9,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
+// ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
 const ResourceInstanaCustomEventSpecificationEntityVerificationRule = "instana_custom_event_spec_entity_verification_rule"
 
 const (
@@ -23,7 +24,7 @@ const (
 	EntityVerificationRuleFieldOfflineDuration = ruleFieldPrefix + "offline_duration"
 )
 
-//EntityVerificationRuleEntityType the fix entity_type of entity verification rules
+// EntityVerificationRuleEntityType the fix entity_type of entity verification rules
 const EntityVerificationRuleEntityType = "host"
 
 var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
@@ -59,8 +60,8 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with entity verification rules
-func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() ResourceHandle {
+// NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with entity verification rules
+func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
 	commons := &customEventSpecificationCommons{}
 	return &customEventSpecificationWithEntityVerificationRuleResource{
 		metaData: ResourceMetaData{
@@ -101,17 +102,16 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) StateUpgrad
 	}
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomEventSpecification] {
 	return api.CustomEventSpecifications()
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) SetComputedFields(d *schema.ResourceData) {
-	d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
+func (r *customEventSpecificationWithEntityVerificationRuleResource) SetComputedFields(d *schema.ResourceData) error {
+	return d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	customEventSpecification := obj.(*restapi.CustomEventSpecification)
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
+func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
 
 	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
@@ -122,15 +122,17 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState
 	if err != nil {
 		return err
 	}
-	d.Set(CustomEventSpecificationRuleSeverity, severity)
-	d.Set(EntityVerificationRuleFieldMatchingEntityLabel, ruleSpec.MatchingEntityLabel)
-	d.Set(EntityVerificationRuleFieldMatchingEntityType, ruleSpec.MatchingEntityType)
-	d.Set(EntityVerificationRuleFieldMatchingOperator, matchingOperator.InstanaAPIValue())
-	d.Set(EntityVerificationRuleFieldOfflineDuration, ruleSpec.OfflineDuration)
-	return nil
+	data[CustomEventSpecificationRuleSeverity] = severity
+	data[EntityVerificationRuleFieldMatchingEntityLabel] = ruleSpec.MatchingEntityLabel
+	data[EntityVerificationRuleFieldMatchingEntityType] = ruleSpec.MatchingEntityType
+	data[EntityVerificationRuleFieldMatchingOperator] = matchingOperator.InstanaAPIValue()
+	data[EntityVerificationRuleFieldOfflineDuration] = ruleSpec.OfflineDuration
+
+	d.SetId(customEventSpecification.ID)
+	return tfutils.UpdateState(d, data)
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err
@@ -170,7 +172,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) schemaV2() 
 	}
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) migrateCustomEventConfigWithEntityVerificationRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) migrateCustomEventConfigWithEntityVerificationRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	v, ok := rawState[EntityVerificationRuleFieldMatchingOperator]
 	if ok {
 		operator, err := restapi.SupportedMatchingOperators.FromTerraformValue(v.(string))

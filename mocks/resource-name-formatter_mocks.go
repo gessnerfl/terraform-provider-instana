@@ -5,34 +5,35 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "go.uber.org/mock/gomock"
 )
 
-// MockResourceNameFormatter is a mock of ResourceNameFormatter interface
+// MockResourceNameFormatter is a mock of ResourceNameFormatter interface.
 type MockResourceNameFormatter struct {
 	ctrl     *gomock.Controller
 	recorder *MockResourceNameFormatterMockRecorder
 }
 
-// MockResourceNameFormatterMockRecorder is the mock recorder for MockResourceNameFormatter
+// MockResourceNameFormatterMockRecorder is the mock recorder for MockResourceNameFormatter.
 type MockResourceNameFormatterMockRecorder struct {
 	mock *MockResourceNameFormatter
 }
 
-// NewMockResourceNameFormatter creates a new mock instance
+// NewMockResourceNameFormatter creates a new mock instance.
 func NewMockResourceNameFormatter(ctrl *gomock.Controller) *MockResourceNameFormatter {
 	mock := &MockResourceNameFormatter{ctrl: ctrl}
 	mock.recorder = &MockResourceNameFormatterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockResourceNameFormatter) EXPECT() *MockResourceNameFormatterMockRecorder {
 	return m.recorder
 }
 
-// Format mocks base method
+// Format mocks base method.
 func (m *MockResourceNameFormatter) Format(name string) string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Format", name)
@@ -40,13 +41,13 @@ func (m *MockResourceNameFormatter) Format(name string) string {
 	return ret0
 }
 
-// Format indicates an expected call of Format
+// Format indicates an expected call of Format.
 func (mr *MockResourceNameFormatterMockRecorder) Format(name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Format", reflect.TypeOf((*MockResourceNameFormatter)(nil).Format), name)
 }
 
-// UndoFormat mocks base method
+// UndoFormat mocks base method.
 func (m *MockResourceNameFormatter) UndoFormat(name string) string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UndoFormat", name)
@@ -54,7 +55,7 @@ func (m *MockResourceNameFormatter) UndoFormat(name string) string {
 	return ret0
 }
 
-// UndoFormat indicates an expected call of UndoFormat
+// UndoFormat indicates an expected call of UndoFormat.
 func (mr *MockResourceNameFormatterMockRecorder) UndoFormat(name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UndoFormat", reflect.TypeOf((*MockResourceNameFormatter)(nil).UndoFormat), name)

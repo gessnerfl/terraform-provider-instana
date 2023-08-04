@@ -161,24 +161,25 @@ func (c *customEventSpecificationCommons) computeFullCustomEventNameString(d *sc
 	return d.Get(CustomEventSpecificationFieldFullName).(string)
 }
 
-func (c *customEventSpecificationCommons) updateStateForBasicCustomEventSpecification(d *schema.ResourceData, spec *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) {
-	d.SetId(spec.ID)
-	d.Set(CustomEventSpecificationFieldName, formatter.UndoFormat(spec.Name))
-	d.Set(CustomEventSpecificationFieldFullName, spec.Name)
-	d.Set(CustomEventSpecificationFieldQuery, spec.Query)
-	d.Set(CustomEventSpecificationFieldEntityType, spec.EntityType)
-	d.Set(CustomEventSpecificationFieldTriggering, spec.Triggering)
-	d.Set(CustomEventSpecificationFieldDescription, spec.Description)
-	d.Set(CustomEventSpecificationFieldExpirationTime, spec.ExpirationTime)
-	d.Set(CustomEventSpecificationFieldEnabled, spec.Enabled)
+func (c *customEventSpecificationCommons) getDataForBasicCustomEventSpecification(spec *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) map[string]interface{} {
+	return map[string]interface{}{
+		CustomEventSpecificationFieldName:           formatter.UndoFormat(spec.Name),
+		CustomEventSpecificationFieldFullName:       spec.Name,
+		CustomEventSpecificationFieldQuery:          spec.Query,
+		CustomEventSpecificationFieldEntityType:     spec.EntityType,
+		CustomEventSpecificationFieldTriggering:     spec.Triggering,
+		CustomEventSpecificationFieldDescription:    spec.Description,
+		CustomEventSpecificationFieldExpirationTime: spec.ExpirationTime,
+		CustomEventSpecificationFieldEnabled:        spec.Enabled,
+	}
 }
 
-func (c *customEventSpecificationCommons) migrateCustomEventConfigFullNameInStateFromV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullNameInStateFromV0toV1(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	rawState[CustomEventSpecificationFieldFullName] = rawState[CustomEventSpecificationFieldName]
 	return rawState, nil
 }
 
-func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	delete(rawState, customEventSpecificationDownstreamIntegrationIds)
 	delete(rawState, customEventSpecificationDownstreamBroadcastToAllAlertingConfigs)
 	return rawState, nil

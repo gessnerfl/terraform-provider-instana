@@ -2,7 +2,6 @@ package restapi_test
 
 import (
 	"encoding/json"
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,49 +15,56 @@ const (
 )
 
 func TestShouldSuccessfullyUnmarshalSingleObject(t *testing.T) {
-	testObject := TestObject{
+	testData := &testObject{
 		ID:   defaultObjectId,
 		Name: defaultObjectName,
 	}
 
-	serializedJSON, _ := json.Marshal(testObject)
+	serializedJSON, _ := json.Marshal(testData)
 
-	sut := NewDefaultJSONUnmarshaller(&TestObject{})
+	sut := NewDefaultJSONUnmarshaller(&testObject{})
 
 	result, err := sut.Unmarshal(serializedJSON)
 
 	require.NoError(t, err)
-	require.Equal(t, &testObject, result)
+	require.Equal(t, testData, result)
 }
 
 func TestShouldSuccessfullyUnmarshalArrayOfObjects(t *testing.T) {
-	testObject := TestObject{
+	testData := &testObject{
 		ID:   defaultObjectId,
 		Name: defaultObjectName,
 	}
-	testObjects := []TestObject{testObject, testObject}
-	arrayOfObjects := make([]TestObject, 0)
+	testObjects := &[]*testObject{testData, testData}
 
 	serializedJSON, _ := json.Marshal(testObjects)
 
-	sut := NewDefaultJSONUnmarshaller(&arrayOfObjects)
+	sut := NewDefaultJSONUnmarshaller(testData)
 
-	result, err := sut.Unmarshal(serializedJSON)
+	result, err := sut.UnmarshalArray(serializedJSON)
 
 	require.NoError(t, err)
-	require.Equal(t, &testObjects, result)
+	require.Equal(t, testObjects, result)
+}
+
+func TestShouldFailToUnmarshalArrayWhenNoValidJsonIsProvided(t *testing.T) {
+	sut := NewDefaultJSONUnmarshaller(&testObject{})
+
+	_, err := sut.UnmarshalArray([]byte("invalid json data"))
+
+	require.Error(t, err)
 }
 
 func TestShouldFailToUnmarshalWhenObjectIsRequestedButResponseIsAJsonArray(t *testing.T) {
-	testObject := TestObject{
+	testData := &testObject{
 		ID:   defaultObjectId,
 		Name: defaultObjectName,
 	}
-	testObjects := []TestObject{testObject, testObject}
+	testObjects := []*testObject{testData, testData}
 
 	serializedJSON, _ := json.Marshal(testObjects)
 
-	sut := NewDefaultJSONUnmarshaller(&TestObject{})
+	sut := NewDefaultJSONUnmarshaller(&testObject{})
 
 	_, err := sut.Unmarshal(serializedJSON)
 
@@ -68,7 +74,7 @@ func TestShouldFailToUnmarshalWhenObjectIsRequestedButResponseIsAJsonArray(t *te
 func TestShouldFailToUnmarshalWhenResponseIsNotAJsonMessage(t *testing.T) {
 	response := `foo bar`
 
-	sut := NewDefaultJSONUnmarshaller(&TestObject{})
+	sut := NewDefaultJSONUnmarshaller(&testObject{})
 
 	_, err := sut.Unmarshal([]byte(response))
 
@@ -78,31 +84,10 @@ func TestShouldFailToUnmarshalWhenResponseIsNotAJsonMessage(t *testing.T) {
 func TestShouldReturnEmptyObjectWhenJsonObjectIsReturnWhereNoFiledMatches(t *testing.T) {
 	response := `{"foo" : "bar" }`
 
-	sut := NewDefaultJSONUnmarshaller(&TestObject{})
+	sut := NewDefaultJSONUnmarshaller(&testObject{})
 
 	result, err := sut.Unmarshal([]byte(response))
 
 	require.NoError(t, err)
-	require.Equal(t, &TestObject{}, result)
-}
-
-func TestShouldPanicToInitializeJSONUnmarshallerWhenObjectTypeIsNotAPointer(t *testing.T) {
-	panicObject := recoverOnPanic(func() { NewDefaultJSONUnmarshaller(TestObject{}) })
-
-	require.NotNil(t, panicObject)
-	require.IsType(t, errors.New(""), panicObject)
-	require.Contains(t, panicObject.(error).Error(), "objectType of defaultJSONUnmarshaller")
-}
-
-func recoverOnPanic(fn func()) (recovered interface{}) {
-	defer func() {
-		recovered = recover()
-	}()
-	fn()
-	return
-}
-
-type TestObject struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	require.Equal(t, &testObject{}, result)
 }

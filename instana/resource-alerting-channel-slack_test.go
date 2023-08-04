@@ -69,9 +69,9 @@ func createAlertingChannelSlackResourceTestStep(httpPort int64, iteration int) r
 }
 
 func TestResourceAlertingChannelSlackDefinition(t *testing.T) {
-	resource := NewAlertingChannelSlackResourceHandle()
+	resourceHandle := NewAlertingChannelSlackResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -82,7 +82,7 @@ func TestResourceAlertingChannelSlackDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelSlackResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	webhookURL := testAlertingChannelSlackWebhookURL
@@ -108,28 +108,28 @@ func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelSlackResourceHandle()
 	webhookURL := testAlertingChannelSlackWebhookURL
 	iconURL := testAlertingChannelSlackIconURL
 	channel := testAlertingChannelSlackChannel
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelSlackFieldWebhookURL, webhookURL)
-	resourceData.Set(AlertingChannelSlackFieldIconURL, iconURL)
-	resourceData.Set(AlertingChannelSlackFieldChannel, channel)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldWebhookURL, webhookURL)
+	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldIconURL, iconURL)
+	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldChannel, channel)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, webhookURL, *model.(*restapi.AlertingChannel).WebhookURL, "webhook url should be equal")
-	require.Equal(t, iconURL, *model.(*restapi.AlertingChannel).IconURL, "icon url should be equal")
-	require.Equal(t, channel, *model.(*restapi.AlertingChannel).Channel, "channel should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, webhookURL, *model.WebhookURL, "webhook url should be equal")
+	require.Equal(t, iconURL, *model.IconURL, "icon url should be equal")
+	require.Equal(t, channel, *model.Channel, "channel should be equal")
 }
 
 func TestAlertingChannelSlackShouldHaveSchemaVersionZero(t *testing.T) {

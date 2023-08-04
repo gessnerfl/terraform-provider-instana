@@ -2,6 +2,7 @@ package instana
 
 import (
 	"context"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -10,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaAlertingConfig the name of the terraform-provider-instana resource to manage alerting configurations
+// ResourceInstanaAlertingConfig the name of the terraform-provider-instana resource to manage alerting configurations
 const ResourceInstanaAlertingConfig = "instana_alerting_config"
 
 const (
@@ -38,7 +39,7 @@ func convertSupportedEventTypesToStringSlice() []string {
 	return result
 }
 
-//AlertingConfigSchemaAlertName schema field definition of instana_alerting_config field alert_name
+// AlertingConfigSchemaAlertName schema field definition of instana_alerting_config field alert_name
 var AlertingConfigSchemaAlertName = &schema.Schema{
 	Type:         schema.TypeString,
 	Required:     true,
@@ -46,14 +47,14 @@ var AlertingConfigSchemaAlertName = &schema.Schema{
 	ValidateFunc: validation.StringLenBetween(1, 200),
 }
 
-//AlertingConfigSchemaFullAlertName schema field definition of instana_alerting_config field full_alert_name
+// AlertingConfigSchemaFullAlertName schema field definition of instana_alerting_config field full_alert_name
 var AlertingConfigSchemaFullAlertName = &schema.Schema{
 	Type:        schema.TypeString,
 	Computed:    true,
 	Description: "The the full alert name field of the alerting configuration. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
 }
 
-//AlertingConfigSchemaIntegrationIds schema field definition of instana_alerting_config field integration_ids
+// AlertingConfigSchemaIntegrationIds schema field definition of instana_alerting_config field integration_ids
 var AlertingConfigSchemaIntegrationIds = &schema.Schema{
 	Type:     schema.TypeSet,
 	MinItems: 0,
@@ -65,7 +66,7 @@ var AlertingConfigSchemaIntegrationIds = &schema.Schema{
 	Description: "Configures the list of Integration IDs (Alerting Channels).",
 }
 
-//AlertingConfigSchemaEventFilterQuery schema field definition of instana_alerting_config field event_filter_query
+// AlertingConfigSchemaEventFilterQuery schema field definition of instana_alerting_config field event_filter_query
 var AlertingConfigSchemaEventFilterQuery = &schema.Schema{
 	Type:         schema.TypeString,
 	Required:     false,
@@ -74,7 +75,7 @@ var AlertingConfigSchemaEventFilterQuery = &schema.Schema{
 	ValidateFunc: validation.StringLenBetween(0, 2048),
 }
 
-//AlertingConfigSchemaEventFilterEventTypes schema field definition of instana_alerting_config field event_filter_event_types
+// AlertingConfigSchemaEventFilterEventTypes schema field definition of instana_alerting_config field event_filter_event_types
 var AlertingConfigSchemaEventFilterEventTypes = &schema.Schema{
 	Type:     schema.TypeSet,
 	MinItems: 0,
@@ -89,7 +90,7 @@ var AlertingConfigSchemaEventFilterEventTypes = &schema.Schema{
 	Description:   "Configures the list of Event Types IDs which should trigger an alert.",
 }
 
-//AlertingConfigSchemaEventFilterRuleIDs schema field definition of instana_alerting_config field event_filter_rule_ids
+// AlertingConfigSchemaEventFilterRuleIDs schema field definition of instana_alerting_config field event_filter_rule_ids
 var AlertingConfigSchemaEventFilterRuleIDs = &schema.Schema{
 	Type:     schema.TypeSet,
 	MinItems: 0,
@@ -103,8 +104,8 @@ var AlertingConfigSchemaEventFilterRuleIDs = &schema.Schema{
 	Description:   "Configures the list of Rule IDs which should trigger an alert.",
 }
 
-//NewAlertingConfigResourceHandle creates the resource handle for Alerting Configuration
-func NewAlertingConfigResourceHandle() ResourceHandle {
+// NewAlertingConfigResourceHandle creates the resource handle for Alerting Configuration
+func NewAlertingConfigResourceHandle() ResourceHandle[*restapi.AlertingConfiguration] {
 	return &alertingConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingConfig,
@@ -141,24 +142,24 @@ func (r *alertingConfigResource) StateUpgraders() []schema.StateUpgrader {
 	}
 }
 
-func (r *alertingConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingConfiguration] {
 	return api.AlertingConfigurations()
 }
 
-func (r *alertingConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *alertingConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	config := obj.(*restapi.AlertingConfiguration)
-	d.Set(AlertingConfigFieldAlertName, formatter.UndoFormat(config.AlertName))
-	d.Set(AlertingConfigFieldFullAlertName, config.AlertName)
-	d.Set(AlertingConfigFieldIntegrationIds, config.IntegrationIDs)
-	d.Set(AlertingConfigFieldEventFilterQuery, config.EventFilteringConfiguration.Query)
-	d.Set(AlertingConfigFieldEventFilterEventTypes, r.convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes))
-	d.Set(AlertingConfigFieldEventFilterRuleIDs, config.EventFilteringConfiguration.RuleIDs)
+func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, config *restapi.AlertingConfiguration, formatter utils.ResourceNameFormatter) error {
 	d.SetId(config.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingConfigFieldAlertName:             formatter.UndoFormat(config.AlertName),
+		AlertingConfigFieldFullAlertName:         config.AlertName,
+		AlertingConfigFieldIntegrationIds:        config.IntegrationIDs,
+		AlertingConfigFieldEventFilterQuery:      config.EventFilteringConfiguration.Query,
+		AlertingConfigFieldEventFilterEventTypes: r.convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes),
+		AlertingConfigFieldEventFilterRuleIDs:    config.EventFilteringConfiguration.RuleIDs,
+	})
 }
 
 func (r *alertingConfigResource) convertEventTypesToHarmonizedStringRepresentation(input []restapi.AlertEventType) []string {
@@ -170,7 +171,7 @@ func (r *alertingConfigResource) convertEventTypesToHarmonizedStringRepresentati
 	return result
 }
 
-func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingConfiguration, error) {
 	name := r.computeFullAlertingConfigAlertNameString(d, formatter)
 	query := GetStringPointerFromResourceData(d, AlertingConfigFieldEventFilterQuery)
 

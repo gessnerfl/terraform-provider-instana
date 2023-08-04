@@ -19,7 +19,7 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 	ruleIds := []interface{}{"test1", "test2"}
 	data := make(map[string]interface{})
 	data[AlertingChannelOpsGenieFieldTags] = ruleIds
-	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle(), data)
+	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle(), data)
 	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
 
 	require.NotNil(t, result)
@@ -27,7 +27,7 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.
 }
 
 func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle())
+	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle())
 	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
 
 	require.Nil(t, result)
@@ -37,7 +37,7 @@ func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T)
 	emails := []interface{}{"test1", "test2"}
 	data := make(map[string]interface{})
 	data[AlertingChannelEmailFieldEmails] = emails
-	resourceData := NewTestHelper(t).CreateResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle(), data)
+	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle(), data)
 	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
 
 	require.NotNil(t, result)
@@ -47,7 +47,7 @@ func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T)
 }
 
 func TestReadStringSetParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := NewTestHelper(t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle())
+	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle())
 	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
 
 	require.Nil(t, result)

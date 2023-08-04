@@ -1,10 +1,12 @@
 package restapi
 
-import "errors"
+import (
+	"github.com/gessnerfl/terraform-provider-instana/utils"
+)
 
-//NewCreatePUTUpdatePUTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using PUT as operation for create and update
-func NewCreatePUTUpdatePUTRestResource(resourcePath string, unmarshaller JSONUnmarshaller, client RestClient) RestResource {
-	return &defaultRestResource{
+// NewCreatePUTUpdatePUTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using PUT as operation for create and update
+func NewCreatePUTUpdatePUTRestResource[T InstanaDataObject](resourcePath string, unmarshaller JSONUnmarshaller[T], client RestClient) RestResource[T] {
+	return &defaultRestResource[T]{
 		mode:         DefaultRestResourceModeCreateAndUpdatePUT,
 		resourcePath: resourcePath,
 		unmarshaller: unmarshaller,
@@ -12,9 +14,9 @@ func NewCreatePUTUpdatePUTRestResource(resourcePath string, unmarshaller JSONUnm
 	}
 }
 
-//NewCreatePOSTUpdatePUTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using POST as operation for create and PUT for update
-func NewCreatePOSTUpdatePUTRestResource(resourcePath string, unmarshaller JSONUnmarshaller, client RestClient) RestResource {
-	return &defaultRestResource{
+// NewCreatePOSTUpdatePUTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using POST as operation for create and PUT for update
+func NewCreatePOSTUpdatePUTRestResource[T InstanaDataObject](resourcePath string, unmarshaller JSONUnmarshaller[T], client RestClient) RestResource[T] {
+	return &defaultRestResource[T]{
 		mode:         DefaultRestResourceModeCreatePOSTUpdatePUT,
 		resourcePath: resourcePath,
 		unmarshaller: unmarshaller,
@@ -22,9 +24,9 @@ func NewCreatePOSTUpdatePUTRestResource(resourcePath string, unmarshaller JSONUn
 	}
 }
 
-//NewCreatePOSTUpdatePOSTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using POST as operation for create and update
-func NewCreatePOSTUpdatePOSTRestResource(resourcePath string, unmarshaller JSONUnmarshaller, client RestClient) RestResource {
-	return &defaultRestResource{
+// NewCreatePOSTUpdatePOSTRestResource creates a new REST resource using the provided unmarshaller function to convert the response from the REST API to the corresponding InstanaDataObject. The REST resource is using POST as operation for create and update
+func NewCreatePOSTUpdatePOSTRestResource[T InstanaDataObject](resourcePath string, unmarshaller JSONUnmarshaller[T], client RestClient) RestResource[T] {
+	return &defaultRestResource[T]{
 		mode:         DefaultRestResourceModeCreateAndUpdatePOST,
 		resourcePath: resourcePath,
 		unmarshaller: unmarshaller,
@@ -32,7 +34,7 @@ func NewCreatePOSTUpdatePOSTRestResource(resourcePath string, unmarshaller JSONU
 	}
 }
 
-//DefaultRestResourceMode custom type for create/update behavior of the defaultRestResource
+// DefaultRestResourceMode custom type for create/update behavior of the defaultRestResource
 type DefaultRestResourceMode string
 
 type restClientOperation func(InstanaDataObject, string) ([]byte, error)
@@ -46,36 +48,48 @@ const (
 	DefaultRestResourceModeCreateAndUpdatePOST = DefaultRestResourceMode("CREATE_POST_UPDATE_POST")
 )
 
-type defaultRestResource struct {
+type defaultRestResource[T InstanaDataObject] struct {
 	mode         DefaultRestResourceMode
 	resourcePath string
-	unmarshaller JSONUnmarshaller
+	unmarshaller JSONUnmarshaller[T]
 	client       RestClient
 }
 
-func (r *defaultRestResource) GetOne(id string) (InstanaDataObject, error) {
-	data, err := r.client.GetOne(id, r.resourcePath)
+func (r *defaultRestResource[T]) GetAll() (*[]T, error) {
+	data, err := r.client.Get(r.resourcePath)
 	if err != nil {
 		return nil, err
+	}
+	objects, err := r.unmarshaller.UnmarshalArray(data)
+	if err != nil {
+		return nil, err
+	}
+	return objects, nil
+}
+
+func (r *defaultRestResource[T]) GetOne(id string) (T, error) {
+	data, err := r.client.GetOne(id, r.resourcePath)
+	if err != nil {
+		return utils.GetZeroValue[T](), err
 	}
 	return r.validateResponseAndConvertToStruct(data)
 }
 
-func (r *defaultRestResource) Create(data InstanaDataObject) (InstanaDataObject, error) {
+func (r *defaultRestResource[T]) Create(data T) (T, error) {
 	if r.mode == DefaultRestResourceModeCreateAndUpdatePUT {
 		return r.upsert(data, r.client.Put)
 	}
 	return r.upsert(data, r.client.Post)
 }
 
-func (r *defaultRestResource) Update(data InstanaDataObject) (InstanaDataObject, error) {
+func (r *defaultRestResource[T]) Update(data T) (T, error) {
 	if r.mode == DefaultRestResourceModeCreateAndUpdatePOST {
 		return r.upsert(data, r.client.PostWithID)
 	}
 	return r.upsert(data, r.client.Put)
 }
 
-func (r *defaultRestResource) upsert(data InstanaDataObject, operation restClientOperation) (InstanaDataObject, error) {
+func (r *defaultRestResource[T]) upsert(data T, operation restClientOperation) (T, error) {
 	if err := data.Validate(); err != nil {
 		return data, err
 	}
@@ -86,14 +100,10 @@ func (r *defaultRestResource) upsert(data InstanaDataObject, operation restClien
 	return r.validateResponseAndConvertToStruct(response)
 }
 
-func (r *defaultRestResource) validateResponseAndConvertToStruct(data []byte) (InstanaDataObject, error) {
-	object, err := r.unmarshaller.Unmarshal(data)
+func (r *defaultRestResource[T]) validateResponseAndConvertToStruct(data []byte) (T, error) {
+	dataObject, err := r.unmarshaller.Unmarshal(data)
 	if err != nil {
-		return nil, err
-	}
-	dataObject, ok := object.(InstanaDataObject)
-	if !ok {
-		return dataObject, errors.New("unmarshalled object does not implement InstanaDataObject")
+		return utils.GetZeroValue[T](), err
 	}
 
 	if err := dataObject.Validate(); err != nil {
@@ -102,10 +112,10 @@ func (r *defaultRestResource) validateResponseAndConvertToStruct(data []byte) (I
 	return dataObject, nil
 }
 
-func (r *defaultRestResource) Delete(data InstanaDataObject) error {
+func (r *defaultRestResource[T]) Delete(data T) error {
 	return r.DeleteByID(data.GetIDForResourcePath())
 }
 
-func (r *defaultRestResource) DeleteByID(id string) error {
+func (r *defaultRestResource[T]) DeleteByID(id string) error {
 	return r.client.Delete(id, r.resourcePath)
 }

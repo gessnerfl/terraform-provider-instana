@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -15,8 +16,8 @@ const (
 	ResourceInstanaAlertingChannelSplunk = "instana_alerting_channel_splunk"
 )
 
-//NewAlertingChannelSplunkResourceHandle creates the resource handle for Alerting Channels of type Email
-func NewAlertingChannelSplunkResourceHandle() ResourceHandle {
+// NewAlertingChannelSplunkResourceHandle creates the resource handle for Alerting Channels of type Email
+func NewAlertingChannelSplunkResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelSplunkResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelSplunk,
@@ -50,25 +51,25 @@ func (r *alertingChannelSplunkResource) StateUpgraders() []schema.StateUpgrader 
 	return []schema.StateUpgrader{}
 }
 
-func (r *alertingChannelSplunkResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingChannelSplunkResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelSplunkResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
-}
-
-func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	alertingChannel := obj.(*restapi.AlertingChannel)
-	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
-	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
-	d.Set(AlertingChannelSplunkFieldURL, alertingChannel.URL)
-	d.Set(AlertingChannelSplunkFieldToken, alertingChannel.Token)
-	d.SetId(alertingChannel.ID)
+func (r *alertingChannelSplunkResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *alertingChannelSplunkResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
+	d.SetId(alertingChannel.ID)
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingChannelFieldName:        formatter.UndoFormat(alertingChannel.Name),
+		AlertingChannelFieldFullName:    alertingChannel.Name,
+		AlertingChannelSplunkFieldURL:   alertingChannel.URL,
+		AlertingChannelSplunkFieldToken: alertingChannel.Token,
+	})
+}
+
+func (r *alertingChannelSplunkResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	url := d.Get(AlertingChannelSplunkFieldURL).(string)
 	token := d.Get(AlertingChannelSplunkFieldToken).(string)

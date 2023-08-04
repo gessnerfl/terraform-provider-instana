@@ -2,11 +2,12 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//ResourceInstanaWebsiteMonitoringConfig the name of the terraform-provider-instana resource to manage website monitoring configurations
+// ResourceInstanaWebsiteMonitoringConfig the name of the terraform-provider-instana resource to manage website monitoring configurations
 const ResourceInstanaWebsiteMonitoringConfig = "instana_website_monitoring_config"
 
 const (
@@ -18,14 +19,14 @@ const (
 	WebsiteMonitoringConfigFieldAppName = "app_name"
 )
 
-//WebsiteMonitoringConfigSchemaName schema field definition of instana_website_monitoring_config field name
+// WebsiteMonitoringConfigSchemaName schema field definition of instana_website_monitoring_config field name
 var WebsiteMonitoringConfigSchemaName = &schema.Schema{
 	Type:        schema.TypeString,
 	Required:    true,
 	Description: "Configures the name of the website monitoring configuration",
 }
 
-//WebsiteMonitoringConfigSchemaFullName schema field definition of instana_website_monitoring_config field full_name
+// WebsiteMonitoringConfigSchemaFullName schema field definition of instana_website_monitoring_config field full_name
 var WebsiteMonitoringConfigSchemaFullName = &schema.Schema{
 	Type:        schema.TypeString,
 	Required:    false,
@@ -33,7 +34,7 @@ var WebsiteMonitoringConfigSchemaFullName = &schema.Schema{
 	Description: "Configures the full name field of the website monitoring configuration. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
 }
 
-//WebsiteMonitoringConfigSchemaAppName schema field definition of instana_website_monitoring_config field app_name
+// WebsiteMonitoringConfigSchemaAppName schema field definition of instana_website_monitoring_config field app_name
 var WebsiteMonitoringConfigSchemaAppName = &schema.Schema{
 	Type:        schema.TypeString,
 	Required:    false,
@@ -41,8 +42,8 @@ var WebsiteMonitoringConfigSchemaAppName = &schema.Schema{
 	Description: "Configures the calculated app name of the website monitoring configuration",
 }
 
-//NewWebsiteMonitoringConfigResourceHandle creates the resource handle for Alerting Configuration
-func NewWebsiteMonitoringConfigResourceHandle() ResourceHandle {
+// NewWebsiteMonitoringConfigResourceHandle creates the resource handle for Alerting Configuration
+func NewWebsiteMonitoringConfigResourceHandle() ResourceHandle[*restapi.WebsiteMonitoringConfig] {
 	return &websiteMonitoringConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaWebsiteMonitoringConfig,
@@ -67,24 +68,24 @@ func (r *websiteMonitoringConfigResource) StateUpgraders() []schema.StateUpgrade
 	return []schema.StateUpgrader{}
 }
 
-func (r *websiteMonitoringConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *websiteMonitoringConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.WebsiteMonitoringConfig] {
 	return api.WebsiteMonitoringConfig()
 }
 
-func (r *websiteMonitoringConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
-}
-
-func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	config := obj.(*restapi.WebsiteMonitoringConfig)
-	d.Set(WebsiteMonitoringConfigFieldName, formatter.UndoFormat(config.Name))
-	d.Set(WebsiteMonitoringConfigFieldFullName, config.Name)
-	d.Set(WebsiteMonitoringConfigFieldAppName, config.AppName)
-	d.SetId(config.ID)
+func (r *websiteMonitoringConfigResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *websiteMonitoringConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteMonitoringConfig, formatter utils.ResourceNameFormatter) error {
+	d.SetId(config.ID)
+	return tfutils.UpdateState(d, map[string]interface{}{
+		WebsiteMonitoringConfigFieldName:     formatter.UndoFormat(config.Name),
+		WebsiteMonitoringConfigFieldFullName: config.Name,
+		WebsiteMonitoringConfigFieldAppName:  config.AppName,
+	})
+}
+
+func (r *websiteMonitoringConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.WebsiteMonitoringConfig, error) {
 	name := r.computeFullWebsiteMonitoringNameString(d, formatter)
 
 	return &restapi.WebsiteMonitoringConfig{

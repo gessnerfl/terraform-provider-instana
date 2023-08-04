@@ -3,6 +3,7 @@ package testutils
 import (
 	"bytes"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -133,7 +134,7 @@ func (server *testHTTPServerImpl) Start() {
 		}
 		certFile := fmt.Sprintf("%s/testutils/test-server.pem", rootFolder)
 		keyFile := fmt.Sprintf("%s/testutils/test-server.key", rootFolder)
-		if err := srv.ListenAndServeTLS(certFile, keyFile); err != http.ErrServerClosed {
+		if err = srv.ListenAndServeTLS(certFile, keyFile); !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Failed to start http server using binding %s: %s", binding, err)
 		}
 

@@ -16,6 +16,7 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
+//nolint:gosec
 const resourceAPITokenDefinitionTemplate = `
 resource "instana_api_token" "example" {
   name = "name %d"
@@ -49,6 +50,7 @@ resource "instana_api_token" "example" {
 }
 `
 
+//nolint:gosec
 const (
 	apiTokenApiPath             = restapi.APITokensResourcePath + "/{internal-id}"
 	testAPITokenDefinition      = "instana_api_token.example"
@@ -99,14 +101,20 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 		err := json.NewDecoder(r.Body).Decode(apiToken)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			r.Write(bytes.NewBufferString("Failed to get request"))
+			err = r.Write(bytes.NewBufferString("Failed to get request"))
+			if err != nil {
+				fmt.Printf("failed to write response; %s\n", err)
+			}
 		} else {
 			apiToken.ID = id
 			apiToken.AccessGrantingToken = accessGrantingToken
 			apiToken.InternalID = internalID
 			w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(apiToken)
+			err = json.NewEncoder(w).Encode(apiToken)
+			if err != nil {
+				fmt.Printf("failed to decode json; %s\n", err)
+			}
 		}
 	})
 	httpServer.AddRoute(http.MethodPut, apiTokenApiPath, testutils.EchoHandlerFunc)
@@ -114,7 +122,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	httpServer.AddRoute(http.MethodGet, apiTokenApiPath, func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		modCount := httpServer.GetCallCount(http.MethodPut, restapi.APITokensResourcePath+"/"+internalID)
-		json := fmt.Sprintf(`
+		jsonData := fmt.Sprintf(`
 		{
 			"id" : "%s",
 			"accessGrantingToken": "%s",
@@ -151,7 +159,10 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 		`, id, accessGrantingToken, vars["internal-id"], modCount)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(json))
+		_, err := w.Write([]byte(jsonData))
+		if err != nil {
+			fmt.Printf("failed to write response; %s\n", err)
+		}
 	})
 	httpServer.Start()
 	defer httpServer.Close()
@@ -259,19 +270,20 @@ func TestShouldReturnCorrectResourceNameForUserroleResource(t *testing.T) {
 }
 
 func TestShouldSetCalculateAccessGrantingTokenAndInternal(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.APIToken](t)
 	sut := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	sut.SetComputedFields(resourceData)
+	err := sut.SetComputedFields(resourceData)
 
+	require.NoError(t, err)
 	require.NotEmpty(t, resourceData.Get(APITokenFieldInternalID))
 	require.NotEmpty(t, resourceData.Get(APITokenFieldAccessGrantingToken))
 }
 
 func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.APIToken](t)
 	sut := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
@@ -642,7 +654,7 @@ func TestShouldUpdateCanEditAllAccessibleCustomDashboardsPermissionOfTerraformRe
 }
 
 func testSingleAPITokenPermissionSet(t *testing.T, apiToken restapi.APIToken, expectedPermissionField string) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.APIToken](t)
 	sut := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
@@ -659,77 +671,77 @@ func testSingleAPITokenPermissionSet(t *testing.T, apiToken restapi.APIToken, ex
 }
 
 func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.APIToken](t)
 	resourceHandle := NewAPITokenResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(apiTokenID)
-	resourceData.Set(APITokenFieldAccessGrantingToken, apiTokenAccessGrantingToken)
-	resourceData.Set(APITokenFieldInternalID, apiTokenInternalID)
-	resourceData.Set(APITokenFieldName, apiTokenNameFieldValue)
-	resourceData.Set(APITokenFieldFullName, apiTokenFullNameFieldValue)
-	resourceData.Set(APITokenFieldCanConfigureServiceMapping, true)
-	resourceData.Set(APITokenFieldCanConfigureEumApplications, true)
-	resourceData.Set(APITokenFieldCanConfigureMobileAppMonitoring, true)
-	resourceData.Set(APITokenFieldCanConfigureUsers, true)
-	resourceData.Set(APITokenFieldCanInstallNewAgents, true)
-	resourceData.Set(APITokenFieldCanSeeUsageInformation, true)
-	resourceData.Set(APITokenFieldCanConfigureIntegrations, true)
-	resourceData.Set(APITokenFieldCanSeeOnPremiseLicenseInformation, true)
-	resourceData.Set(APITokenFieldCanConfigureCustomAlerts, true)
-	resourceData.Set(APITokenFieldCanConfigureAPITokens, true)
-	resourceData.Set(APITokenFieldCanConfigureAgentRunMode, true)
-	resourceData.Set(APITokenFieldCanViewAuditLog, true)
-	resourceData.Set(APITokenFieldCanConfigureAgents, true)
-	resourceData.Set(APITokenFieldCanConfigureAuthenticationMethods, true)
-	resourceData.Set(APITokenFieldCanConfigureApplications, true)
-	resourceData.Set(APITokenFieldCanConfigureTeams, true)
-	resourceData.Set(APITokenFieldCanConfigureReleases, true)
-	resourceData.Set(APITokenFieldCanConfigureLogManagement, true)
-	resourceData.Set(APITokenFieldCanCreatePublicCustomDashboards, true)
-	resourceData.Set(APITokenFieldCanViewLogs, true)
-	resourceData.Set(APITokenFieldCanViewTraceDetails, true)
-	resourceData.Set(APITokenFieldCanConfigureSessionSettings, true)
-	resourceData.Set(APITokenFieldCanConfigureServiceLevelIndicators, true)
-	resourceData.Set(APITokenFieldCanConfigureGlobalAlertPayload, true)
-	resourceData.Set(APITokenFieldCanConfigureGlobalAlertConfigs, true)
-	resourceData.Set(APITokenFieldCanViewAccountAndBillingInformation, true)
-	resourceData.Set(APITokenFieldCanEditAllAccessibleCustomDashboards, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldAccessGrantingToken, apiTokenAccessGrantingToken)
+	setValueOnResourceData(t, resourceData, APITokenFieldInternalID, apiTokenInternalID)
+	setValueOnResourceData(t, resourceData, APITokenFieldName, apiTokenNameFieldValue)
+	setValueOnResourceData(t, resourceData, APITokenFieldFullName, apiTokenFullNameFieldValue)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureServiceMapping, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureEumApplications, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureMobileAppMonitoring, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureUsers, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanInstallNewAgents, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanSeeUsageInformation, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureIntegrations, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanSeeOnPremiseLicenseInformation, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureCustomAlerts, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureAPITokens, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureAgentRunMode, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanViewAuditLog, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureAgents, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureAuthenticationMethods, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureApplications, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureTeams, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureReleases, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureLogManagement, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanCreatePublicCustomDashboards, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanViewLogs, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanViewTraceDetails, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureSessionSettings, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureServiceLevelIndicators, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureGlobalAlertPayload, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureGlobalAlertConfigs, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanViewAccountAndBillingInformation, true)
+	setValueOnResourceData(t, resourceData, APITokenFieldCanEditAllAccessibleCustomDashboards, true)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.APIToken{}, model, "Model should be an alerting channel")
-	require.Equal(t, apiTokenID, model.(*restapi.APIToken).ID)
-	require.Equal(t, apiTokenAccessGrantingToken, model.(*restapi.APIToken).AccessGrantingToken)
+	require.Equal(t, apiTokenID, model.ID)
+	require.Equal(t, apiTokenAccessGrantingToken, model.AccessGrantingToken)
 	require.Equal(t, apiTokenInternalID, model.GetIDForResourcePath())
-	require.Equal(t, apiTokenInternalID, model.(*restapi.APIToken).InternalID)
-	require.Equal(t, apiTokenFullNameFieldValue, model.(*restapi.APIToken).Name)
-	require.True(t, model.(*restapi.APIToken).CanConfigureServiceMapping)
-	require.True(t, model.(*restapi.APIToken).CanConfigureEumApplications)
-	require.True(t, model.(*restapi.APIToken).CanConfigureMobileAppMonitoring)
-	require.True(t, model.(*restapi.APIToken).CanConfigureUsers)
-	require.True(t, model.(*restapi.APIToken).CanInstallNewAgents)
-	require.True(t, model.(*restapi.APIToken).CanSeeUsageInformation)
-	require.True(t, model.(*restapi.APIToken).CanConfigureIntegrations)
-	require.True(t, model.(*restapi.APIToken).CanSeeOnPremiseLicenseInformation)
-	require.True(t, model.(*restapi.APIToken).CanConfigureCustomAlerts)
-	require.True(t, model.(*restapi.APIToken).CanConfigureAPITokens)
-	require.True(t, model.(*restapi.APIToken).CanConfigureAgentRunMode)
-	require.True(t, model.(*restapi.APIToken).CanViewAuditLog)
-	require.True(t, model.(*restapi.APIToken).CanConfigureAgents)
-	require.True(t, model.(*restapi.APIToken).CanConfigureAuthenticationMethods)
-	require.True(t, model.(*restapi.APIToken).CanConfigureApplications)
-	require.True(t, model.(*restapi.APIToken).CanConfigureTeams)
-	require.True(t, model.(*restapi.APIToken).CanConfigureReleases)
-	require.True(t, model.(*restapi.APIToken).CanConfigureLogManagement)
-	require.True(t, model.(*restapi.APIToken).CanCreatePublicCustomDashboards)
-	require.True(t, model.(*restapi.APIToken).CanViewLogs)
-	require.True(t, model.(*restapi.APIToken).CanViewTraceDetails)
-	require.True(t, model.(*restapi.APIToken).CanConfigureSessionSettings)
-	require.True(t, model.(*restapi.APIToken).CanConfigureServiceLevelIndicators)
-	require.True(t, model.(*restapi.APIToken).CanConfigureGlobalAlertPayload)
-	require.True(t, model.(*restapi.APIToken).CanConfigureGlobalAlertConfigs)
-	require.True(t, model.(*restapi.APIToken).CanViewAccountAndBillingInformation)
-	require.True(t, model.(*restapi.APIToken).CanEditAllAccessibleCustomDashboards)
+	require.Equal(t, apiTokenInternalID, model.InternalID)
+	require.Equal(t, apiTokenFullNameFieldValue, model.Name)
+	require.True(t, model.CanConfigureServiceMapping)
+	require.True(t, model.CanConfigureEumApplications)
+	require.True(t, model.CanConfigureMobileAppMonitoring)
+	require.True(t, model.CanConfigureUsers)
+	require.True(t, model.CanInstallNewAgents)
+	require.True(t, model.CanSeeUsageInformation)
+	require.True(t, model.CanConfigureIntegrations)
+	require.True(t, model.CanSeeOnPremiseLicenseInformation)
+	require.True(t, model.CanConfigureCustomAlerts)
+	require.True(t, model.CanConfigureAPITokens)
+	require.True(t, model.CanConfigureAgentRunMode)
+	require.True(t, model.CanViewAuditLog)
+	require.True(t, model.CanConfigureAgents)
+	require.True(t, model.CanConfigureAuthenticationMethods)
+	require.True(t, model.CanConfigureApplications)
+	require.True(t, model.CanConfigureTeams)
+	require.True(t, model.CanConfigureReleases)
+	require.True(t, model.CanConfigureLogManagement)
+	require.True(t, model.CanCreatePublicCustomDashboards)
+	require.True(t, model.CanViewLogs)
+	require.True(t, model.CanViewTraceDetails)
+	require.True(t, model.CanConfigureSessionSettings)
+	require.True(t, model.CanConfigureServiceLevelIndicators)
+	require.True(t, model.CanConfigureGlobalAlertPayload)
+	require.True(t, model.CanConfigureGlobalAlertConfigs)
+	require.True(t, model.CanViewAccountAndBillingInformation)
+	require.True(t, model.CanEditAllAccessibleCustomDashboards)
 }

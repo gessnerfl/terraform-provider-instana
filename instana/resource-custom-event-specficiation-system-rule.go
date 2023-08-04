@@ -2,11 +2,12 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
+// ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
 const ResourceInstanaCustomEventSpecificationSystemRule = "instana_custom_event_spec_system_rule"
 
 const (
@@ -14,7 +15,7 @@ const (
 	SystemRuleSpecificationSystemRuleID = ruleFieldPrefix + "system_rule_id"
 )
 
-//SystemRuleEntityType the fix entity_type of entity verification rules
+// SystemRuleEntityType the fix entity_type of entity verification rules
 const SystemRuleEntityType = "any"
 
 var systemRuleSchemaFields = map[string]*schema.Schema{
@@ -30,8 +31,8 @@ var systemRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//NewCustomEventSpecificationWithSystemRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
-func NewCustomEventSpecificationWithSystemRuleResourceHandle() ResourceHandle {
+// NewCustomEventSpecificationWithSystemRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
+func NewCustomEventSpecificationWithSystemRuleResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
 	commons := &customEventSpecificationCommons{}
 	return &customEventSpecificationWithSystemRuleResource{
 		metaData: ResourceMetaData{
@@ -67,30 +68,30 @@ func (r *customEventSpecificationWithSystemRuleResource) StateUpgraders() []sche
 	}
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *customEventSpecificationWithSystemRuleResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomEventSpecification] {
 	return api.CustomEventSpecifications()
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) SetComputedFields(d *schema.ResourceData) {
-	d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
+func (r *customEventSpecificationWithSystemRuleResource) SetComputedFields(d *schema.ResourceData) error {
+	return d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	customEventSpecification := obj.(*restapi.CustomEventSpecification)
-	r.commons.updateStateForBasicCustomEventSpecification(d, customEventSpecification, formatter)
+func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
 
 	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
 	if err != nil {
 		return err
 	}
+	data[CustomEventSpecificationRuleSeverity] = severity
+	data[SystemRuleSpecificationSystemRuleID] = ruleSpec.SystemRuleID
 
-	d.Set(CustomEventSpecificationRuleSeverity, severity)
-	d.Set(SystemRuleSpecificationSystemRuleID, ruleSpec.SystemRuleID)
-	return nil
+	d.SetId(customEventSpecification.ID)
+	return tfutils.UpdateState(d, data)
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customEventSpecificationWithSystemRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err

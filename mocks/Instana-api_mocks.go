@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	restapi "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockInstanaAPI is a mock of InstanaAPI interface.
@@ -35,10 +35,10 @@ func (m *MockInstanaAPI) EXPECT() *MockInstanaAPIMockRecorder {
 }
 
 // APITokens mocks base method.
-func (m *MockInstanaAPI) APITokens() restapi.RestResource {
+func (m *MockInstanaAPI) APITokens() restapi.RestResource[*restapi.APIToken] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "APITokens")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.APIToken])
 	return ret0
 }
 
@@ -49,18 +49,10 @@ func (mr *MockInstanaAPIMockRecorder) APITokens() *gomock.Call {
 }
 
 // AlertingChannels mocks base method.
-func (m *MockInstanaAPI) AlertingChannels() restapi.RestResource {
+func (m *MockInstanaAPI) AlertingChannels() restapi.RestResource[*restapi.AlertingChannel] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AlertingChannels")
-	ret0, _ := ret[0].(restapi.RestResource)
-	return ret0
-}
-
-// AlertingChannelsDS mocks base method.
-func (m *MockInstanaAPI) AlertingChannelsDS() restapi.ReadOnlyRestResource {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AlertingChannelsDS")
-	ret0, _ := ret[0].(restapi.ReadOnlyRestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.AlertingChannel])
 	return ret0
 }
 
@@ -71,10 +63,10 @@ func (mr *MockInstanaAPIMockRecorder) AlertingChannels() *gomock.Call {
 }
 
 // AlertingConfigurations mocks base method.
-func (m *MockInstanaAPI) AlertingConfigurations() restapi.RestResource {
+func (m *MockInstanaAPI) AlertingConfigurations() restapi.RestResource[*restapi.AlertingConfiguration] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AlertingConfigurations")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.AlertingConfiguration])
 	return ret0
 }
 
@@ -85,10 +77,10 @@ func (mr *MockInstanaAPIMockRecorder) AlertingConfigurations() *gomock.Call {
 }
 
 // ApplicationAlertConfigs mocks base method.
-func (m *MockInstanaAPI) ApplicationAlertConfigs() restapi.RestResource {
+func (m *MockInstanaAPI) ApplicationAlertConfigs() restapi.RestResource[*restapi.ApplicationAlertConfig] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ApplicationAlertConfigs")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.ApplicationAlertConfig])
 	return ret0
 }
 
@@ -99,10 +91,10 @@ func (mr *MockInstanaAPIMockRecorder) ApplicationAlertConfigs() *gomock.Call {
 }
 
 // ApplicationConfigs mocks base method.
-func (m *MockInstanaAPI) ApplicationConfigs() restapi.RestResource {
+func (m *MockInstanaAPI) ApplicationConfigs() restapi.RestResource[*restapi.ApplicationConfig] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ApplicationConfigs")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.ApplicationConfig])
 	return ret0
 }
 
@@ -113,10 +105,10 @@ func (mr *MockInstanaAPIMockRecorder) ApplicationConfigs() *gomock.Call {
 }
 
 // BuiltinEventSpecifications mocks base method.
-func (m *MockInstanaAPI) BuiltinEventSpecifications() restapi.ReadOnlyRestResource {
+func (m *MockInstanaAPI) BuiltinEventSpecifications() restapi.ReadOnlyRestResource[*restapi.BuiltinEventSpecification] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "BuiltinEventSpecifications")
-	ret0, _ := ret[0].(restapi.ReadOnlyRestResource)
+	ret0, _ := ret[0].(restapi.ReadOnlyRestResource[*restapi.BuiltinEventSpecification])
 	return ret0
 }
 
@@ -127,10 +119,10 @@ func (mr *MockInstanaAPIMockRecorder) BuiltinEventSpecifications() *gomock.Call 
 }
 
 // CustomDashboards mocks base method.
-func (m *MockInstanaAPI) CustomDashboards() restapi.RestResource {
+func (m *MockInstanaAPI) CustomDashboards() restapi.RestResource[*restapi.CustomDashboard] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CustomDashboards")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.CustomDashboard])
 	return ret0
 }
 
@@ -141,10 +133,10 @@ func (mr *MockInstanaAPIMockRecorder) CustomDashboards() *gomock.Call {
 }
 
 // CustomEventSpecifications mocks base method.
-func (m *MockInstanaAPI) CustomEventSpecifications() restapi.RestResource {
+func (m *MockInstanaAPI) CustomEventSpecifications() restapi.RestResource[*restapi.CustomEventSpecification] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CustomEventSpecifications")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.CustomEventSpecification])
 	return ret0
 }
 
@@ -155,10 +147,10 @@ func (mr *MockInstanaAPIMockRecorder) CustomEventSpecifications() *gomock.Call {
 }
 
 // GlobalApplicationAlertConfigs mocks base method.
-func (m *MockInstanaAPI) GlobalApplicationAlertConfigs() restapi.RestResource {
+func (m *MockInstanaAPI) GlobalApplicationAlertConfigs() restapi.RestResource[*restapi.ApplicationAlertConfig] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GlobalApplicationAlertConfigs")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.ApplicationAlertConfig])
 	return ret0
 }
 
@@ -169,10 +161,10 @@ func (mr *MockInstanaAPIMockRecorder) GlobalApplicationAlertConfigs() *gomock.Ca
 }
 
 // Groups mocks base method.
-func (m *MockInstanaAPI) Groups() restapi.RestResource {
+func (m *MockInstanaAPI) Groups() restapi.RestResource[*restapi.Group] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Groups")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.Group])
 	return ret0
 }
 
@@ -183,10 +175,10 @@ func (mr *MockInstanaAPIMockRecorder) Groups() *gomock.Call {
 }
 
 // SliConfigs mocks base method.
-func (m *MockInstanaAPI) SliConfigs() restapi.RestResource {
+func (m *MockInstanaAPI) SliConfigs() restapi.RestResource[*restapi.SliConfig] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SliConfigs")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.SliConfig])
 	return ret0
 }
 
@@ -197,10 +189,10 @@ func (mr *MockInstanaAPIMockRecorder) SliConfigs() *gomock.Call {
 }
 
 // SyntheticLocation mocks base method.
-func (m *MockInstanaAPI) SyntheticLocation() restapi.ReadOnlyRestResource {
+func (m *MockInstanaAPI) SyntheticLocation() restapi.ReadOnlyRestResource[*restapi.SyntheticLocation] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyntheticLocation")
-	ret0, _ := ret[0].(restapi.ReadOnlyRestResource)
+	ret0, _ := ret[0].(restapi.ReadOnlyRestResource[*restapi.SyntheticLocation])
 	return ret0
 }
 
@@ -211,10 +203,10 @@ func (mr *MockInstanaAPIMockRecorder) SyntheticLocation() *gomock.Call {
 }
 
 // SyntheticTest mocks base method.
-func (m *MockInstanaAPI) SyntheticTest() restapi.RestResource {
+func (m *MockInstanaAPI) SyntheticTest() restapi.RestResource[*restapi.SyntheticTest] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyntheticTest")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.SyntheticTest])
 	return ret0
 }
 
@@ -225,10 +217,10 @@ func (mr *MockInstanaAPIMockRecorder) SyntheticTest() *gomock.Call {
 }
 
 // WebsiteAlertConfig mocks base method.
-func (m *MockInstanaAPI) WebsiteAlertConfig() restapi.RestResource {
+func (m *MockInstanaAPI) WebsiteAlertConfig() restapi.RestResource[*restapi.WebsiteAlertConfig] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WebsiteAlertConfig")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.WebsiteAlertConfig])
 	return ret0
 }
 
@@ -239,10 +231,10 @@ func (mr *MockInstanaAPIMockRecorder) WebsiteAlertConfig() *gomock.Call {
 }
 
 // WebsiteMonitoringConfig mocks base method.
-func (m *MockInstanaAPI) WebsiteMonitoringConfig() restapi.RestResource {
+func (m *MockInstanaAPI) WebsiteMonitoringConfig() restapi.RestResource[*restapi.WebsiteMonitoringConfig] {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WebsiteMonitoringConfig")
-	ret0, _ := ret[0].(restapi.RestResource)
+	ret0, _ := ret[0].(restapi.RestResource[*restapi.WebsiteMonitoringConfig])
 	return ret0
 }
 

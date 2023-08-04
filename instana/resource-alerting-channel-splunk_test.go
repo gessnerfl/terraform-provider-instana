@@ -63,9 +63,9 @@ func createAlertingChannelSplunkResourceTestStep(httpPort int64, iteration int) 
 }
 
 func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {
-	resource := NewAlertingChannelSplunkResourceHandle()
+	resourceHandle := NewAlertingChannelSplunkResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -75,7 +75,7 @@ func TestResourceAlertingChannelSplunkDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChanneSplunk(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelSplunkResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	url := "url"
@@ -98,25 +98,25 @@ func TestShouldUpdateResourceStateForAlertingChanneSplunk(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelSplunkToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelSplunkResourceHandle()
 	url := "url"
 	token := "token"
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelSplunkFieldURL, url)
-	resourceData.Set(AlertingChannelSplunkFieldToken, token)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelSplunkFieldURL, url)
+	setValueOnResourceData(t, resourceData, AlertingChannelSplunkFieldToken, token)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, url, *model.(*restapi.AlertingChannel).URL, "url should be equal")
-	require.Equal(t, token, *model.(*restapi.AlertingChannel).Token, "token should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, url, *model.URL, "url should be equal")
+	require.Equal(t, token, *model.Token, "token should be equal")
 }
 
 func TestAlertingChannelSplunkkShouldHaveSchemaVersionZero(t *testing.T) {

@@ -129,9 +129,9 @@ func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration 
 }
 
 func TestResourceAlertingConfigDefinition(t *testing.T) {
-	resource := NewAlertingConfigResourceHandle()
+	resourceHandle := NewAlertingConfigResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingConfigFieldAlertName)
@@ -203,7 +203,7 @@ const (
 )
 
 func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingConfiguration](t)
 	resourceHandle := NewAlertingConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
@@ -233,7 +233,7 @@ func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingConfiguration](t)
 	resourceHandle := NewAlertingConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
@@ -275,53 +275,53 @@ func requireSetMatchesToValues(t *testing.T, set *schema.Set, values ...string) 
 }
 
 func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingConfiguration](t)
 	resourceHandle := NewAlertingConfigResourceHandle()
 	integrationIds := []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2}
 	ruleIds := []string{alertingConfigRuleId1, alertingConfigRuleId2}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(alertingConfigID)
-	resourceData.Set(AlertingConfigFieldAlertName, alertingConfigName)
-	resourceData.Set(AlertingConfigFieldFullAlertName, alertingConfigName)
-	resourceData.Set(AlertingConfigFieldIntegrationIds, integrationIds)
-	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
-	resourceData.Set(AlertingConfigFieldEventFilterRuleIDs, ruleIds)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldAlertName, alertingConfigName)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldFullAlertName, alertingConfigName)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldIntegrationIds, integrationIds)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterRuleIDs, ruleIds)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingConfiguration{}, model)
 	require.Equal(t, alertingConfigID, model.GetIDForResourcePath())
-	require.Equal(t, alertingConfigName, model.(*restapi.AlertingConfiguration).AlertName)
+	require.Equal(t, alertingConfigName, model.AlertName)
 
-	requireIntegrationIdOFAlertingConfigModel(t, model.(*restapi.AlertingConfiguration))
-	require.Equal(t, alertingConfigQuery, *model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
-	requireSliceValuesMatchesToValues(t, model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.RuleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
+	requireIntegrationIdOFAlertingConfigModel(t, model)
+	require.Equal(t, alertingConfigQuery, *model.EventFilteringConfiguration.Query)
+	requireSliceValuesMatchesToValues(t, model.EventFilteringConfiguration.RuleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
 }
 
 func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingConfiguration](t)
 	resourceHandle := NewAlertingConfigResourceHandle()
 	integrationIds := []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(alertingConfigID)
-	resourceData.Set(AlertingConfigFieldAlertName, alertingConfigName)
-	resourceData.Set(AlertingConfigFieldFullAlertName, alertingConfigName)
-	resourceData.Set(AlertingConfigFieldIntegrationIds, integrationIds)
-	resourceData.Set(AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
-	resourceData.Set(AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldAlertName, alertingConfigName)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldFullAlertName, alertingConfigName)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldIntegrationIds, integrationIds)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
+	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingConfiguration{}, model)
 	require.Equal(t, alertingConfigID, model.GetIDForResourcePath())
-	require.Equal(t, alertingConfigName, model.(*restapi.AlertingConfiguration).AlertName)
+	require.Equal(t, alertingConfigName, model.AlertName)
 
-	requireIntegrationIdOFAlertingConfigModel(t, model.(*restapi.AlertingConfiguration))
-	require.Equal(t, alertingConfigQuery, *model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.Query)
+	requireIntegrationIdOFAlertingConfigModel(t, model)
+	require.Equal(t, alertingConfigQuery, *model.EventFilteringConfiguration.Query)
 
-	eventTypes := model.(*restapi.AlertingConfiguration).EventFilteringConfiguration.EventTypes
+	eventTypes := model.EventFilteringConfiguration.EventTypes
 	require.Len(t, eventTypes, 2)
 	require.Contains(t, eventTypes, restapi.CriticalAlertEventType)
 	require.Contains(t, eventTypes, restapi.IncidentAlertEventType)

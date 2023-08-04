@@ -8,11 +8,11 @@ type SyntheticLocation struct {
 }
 
 // GetIDForResourcePath implementation of the interface InstanaDataObject for SyntheticLocation
-func (s SyntheticLocation) GetIDForResourcePath() string {
+func (s *SyntheticLocation) GetIDForResourcePath() string {
 	return s.ID
 }
 
 // Validate implementation of the interface InstanaDataObject for SyntheticLocation
-func (s SyntheticLocation) Validate() error {
+func (s *SyntheticLocation) Validate() error {
 	return nil
 }

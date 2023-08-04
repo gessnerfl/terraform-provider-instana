@@ -2,13 +2,14 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
 )
 
-//ResourceInstanaGroup the name of the terraform-provider-instana resource to manage groups for role based access control
+// ResourceInstanaGroup the name of the terraform-provider-instana resource to manage groups for role based access control
 const ResourceInstanaGroup = "instana_rbac_group"
 
 const (
@@ -149,8 +150,8 @@ var groupSchema = map[string]*schema.Schema{
 	},
 }
 
-//NewGroupResourceHandle creates the resource handle for RBAC Groups
-func NewGroupResourceHandle() ResourceHandle {
+// NewGroupResourceHandle creates the resource handle for RBAC Groups
+func NewGroupResourceHandle() ResourceHandle[*restapi.Group] {
 	return &groupResource{
 		metaData: ResourceMetaData{
 			ResourceName:     ResourceInstanaGroup,
@@ -173,31 +174,31 @@ func (r *groupResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *groupResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *groupResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.Group] {
 	return api.Groups()
 }
 
-func (r *groupResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *groupResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *groupResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	group := obj.(*restapi.Group)
-
-	d.Set(GroupFieldName, formatter.UndoFormat(group.Name))
-	d.Set(GroupFieldFullName, group.Name)
+func (r *groupResource) UpdateState(d *schema.ResourceData, group *restapi.Group, formatter utils.ResourceNameFormatter) error {
+	data := map[string]interface{}{
+		GroupFieldName:     formatter.UndoFormat(group.Name),
+		GroupFieldFullName: group.Name,
+	}
 
 	members := r.convertGroupMembersToState(group)
 	if members != nil {
-		d.Set(GroupFieldMembers, members)
+		data[GroupFieldMembers] = members
 	}
 	if !group.PermissionSet.IsEmpty() {
 		permissions := r.convertPermissionSetToState(group)
-		d.Set(GroupFieldPermissionSet, permissions)
+		data[GroupFieldPermissionSet] = permissions
 	}
 
 	d.SetId(group.ID)
-	return nil
+	return tfutils.UpdateState(d, data)
 }
 
 func (r *groupResource) convertGroupMembersToState(obj *restapi.Group) *schema.Set {
@@ -243,7 +244,7 @@ func (r *groupResource) convertScopeBindingSliceToState(value []restapi.ScopeBin
 	return schema.NewSet(schema.HashString, result)
 }
 
-func (r *groupResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *groupResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.Group, error) {
 	name := r.computeFullNameString(d, formatter)
 	members := r.convertStateToGroupMembers(d)
 	permissionSet := convertStateToPermissionSet(d)

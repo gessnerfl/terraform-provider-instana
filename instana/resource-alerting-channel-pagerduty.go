@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -13,8 +14,8 @@ const (
 	ResourceInstanaAlertingChannelPagerDuty = "instana_alerting_channel_pager_duty"
 )
 
-//NewAlertingChannelPagerDutyResourceHandle creates the resource handle for Alerting Channels of type PagerDuty
-func NewAlertingChannelPagerDutyResourceHandle() ResourceHandle {
+// NewAlertingChannelPagerDutyResourceHandle creates the resource handle for Alerting Channels of type PagerDuty
+func NewAlertingChannelPagerDutyResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelPagerDutyResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelPagerDuty,
@@ -43,24 +44,24 @@ func (r *alertingChannelPagerDutyResource) StateUpgraders() []schema.StateUpgrad
 	return []schema.StateUpgrader{}
 }
 
-func (r *alertingChannelPagerDutyResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingChannelPagerDutyResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelPagerDutyResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
-}
-
-func (r *alertingChannelPagerDutyResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	alertingChannel := obj.(*restapi.AlertingChannel)
-	d.Set(AlertingChannelFieldName, formatter.UndoFormat(alertingChannel.Name))
-	d.Set(AlertingChannelFieldFullName, alertingChannel.Name)
-	d.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, alertingChannel.ServiceIntegrationKey)
-	d.SetId(alertingChannel.ID)
+func (r *alertingChannelPagerDutyResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *alertingChannelPagerDutyResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelPagerDutyResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
+	d.SetId(alertingChannel.ID)
+	return tfutils.UpdateState(d, map[string]interface{}{
+		AlertingChannelFieldName:                           formatter.UndoFormat(alertingChannel.Name),
+		AlertingChannelFieldFullName:                       alertingChannel.Name,
+		AlertingChannelPagerDutyFieldServiceIntegrationKey: alertingChannel.ServiceIntegrationKey,
+	})
+}
+
+func (r *alertingChannelPagerDutyResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
 	name := computeFullAlertingChannelNameString(d, formatter)
 	serviceIntegrationKey := d.Get(AlertingChannelPagerDutyFieldServiceIntegrationKey).(string)
 	return &restapi.AlertingChannel{

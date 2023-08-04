@@ -64,9 +64,9 @@ func createAlertingChannelEmailResourceTestStep(httpPort int64, iteration int) r
 }
 
 func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
-	resource := NewAlertingChannelEmailResourceHandle()
+	resourceHandle := NewAlertingChannelEmailResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -109,7 +109,7 @@ func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersio
 }
 
 func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelEmailResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.AlertingChannel{
@@ -132,22 +132,22 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelEmailResourceHandle()
 	emails := []string{"email1", "email2"}
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelEmailFieldEmails, emails)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelEmailFieldEmails, emails)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Len(t, model.(*restapi.AlertingChannel).Emails, 2)
-	require.Contains(t, model.(*restapi.AlertingChannel).Emails, "email1")
-	require.Contains(t, model.(*restapi.AlertingChannel).Emails, "email2")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Len(t, model.Emails, 2)
+	require.Contains(t, model.Emails, "email1")
+	require.Contains(t, model.Emails, "email2")
 }

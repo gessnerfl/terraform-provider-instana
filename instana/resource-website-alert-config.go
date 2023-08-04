@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -387,7 +388,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 }
 
 // NewWebsiteAlertConfigResourceHandle creates the resource handle for Website Alert Configs
-func NewWebsiteAlertConfigResourceHandle() ResourceHandle {
+func NewWebsiteAlertConfigResourceHandle() ResourceHandle[*restapi.WebsiteAlertConfig] {
 	return &websiteAlertConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName:     ResourceInstanaWebsiteAlertConfig,
@@ -409,17 +410,15 @@ func (r *websiteAlertConfigResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *websiteAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *websiteAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.WebsiteAlertConfig] {
 	return api.WebsiteAlertConfig()
 }
 
-func (r *websiteAlertConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *websiteAlertConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	config := obj.(*restapi.WebsiteAlertConfig)
-
+func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteAlertConfig, formatter utils.ResourceNameFormatter) error {
 	name := formatter.UndoFormat(config.Name)
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(config.Severity)
 	if err != nil {
@@ -433,21 +432,22 @@ func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, obj res
 		}
 	}
 
-	d.Set(WebsiteAlertConfigFieldAlertChannelIDs, config.AlertChannelIDs)
-	d.Set(WebsiteAlertConfigFieldCustomPayloadFields, r.mapCustomPayloadFieldsToSchema(config))
-	d.Set(WebsiteAlertConfigFieldDescription, config.Description)
-	d.Set(WebsiteAlertConfigFieldGranularity, config.Granularity)
-	d.Set(WebsiteAlertConfigFieldName, name)
-	d.Set(WebsiteAlertConfigFieldFullName, config.Name)
-	d.Set(WebsiteAlertConfigFieldRule, r.mapRuleToSchema(config))
-	d.Set(WebsiteAlertConfigFieldSeverity, severity)
-	d.Set(WebsiteAlertConfigFieldTagFilter, normalizedTagFilterString)
-	d.Set(ResourceFieldThreshold, newThresholdMapper().toState(&config.Threshold))
-	d.Set(WebsiteAlertConfigFieldTimeThreshold, r.mapTimeThresholdToSchema(config))
-	d.Set(WebsiteAlertConfigFieldTriggering, config.Triggering)
-	d.Set(WebsiteAlertConfigFieldWebsiteID, config.WebsiteID)
 	d.SetId(config.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		WebsiteAlertConfigFieldAlertChannelIDs:     config.AlertChannelIDs,
+		WebsiteAlertConfigFieldCustomPayloadFields: r.mapCustomPayloadFieldsToSchema(config),
+		WebsiteAlertConfigFieldDescription:         config.Description,
+		WebsiteAlertConfigFieldGranularity:         config.Granularity,
+		WebsiteAlertConfigFieldName:                name,
+		WebsiteAlertConfigFieldFullName:            config.Name,
+		WebsiteAlertConfigFieldRule:                r.mapRuleToSchema(config),
+		WebsiteAlertConfigFieldSeverity:            severity,
+		WebsiteAlertConfigFieldTagFilter:           normalizedTagFilterString,
+		ResourceFieldThreshold:                     newThresholdMapper().toState(&config.Threshold),
+		WebsiteAlertConfigFieldTimeThreshold:       r.mapTimeThresholdToSchema(config),
+		WebsiteAlertConfigFieldTriggering:          config.Triggering,
+		WebsiteAlertConfigFieldWebsiteID:           config.WebsiteID,
+	})
 }
 
 func (r *websiteAlertConfigResource) mapCustomPayloadFieldsToSchema(config *restapi.WebsiteAlertConfig) []map[string]string {
@@ -530,7 +530,7 @@ func (r *websiteAlertConfigResource) mapTimeThresholdTypeToSchema(input string) 
 	return input
 }
 
-func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.WebsiteAlertConfig, error) {
 	fullName := r.mapFullNameStringFromSchema(d, formatter)
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(WebsiteAlertConfigFieldSeverity).(string))
 	if err != nil {

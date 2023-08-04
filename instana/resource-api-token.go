@@ -2,14 +2,16 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//ResourceInstanaAPIToken the name of the terraform-provider-instana resource to manage API tokens
-const ResourceInstanaAPIToken = "instana_api_token"
-
+//nolint:gosec
 const (
+	// ResourceInstanaAPIToken the name of the terraform-provider-instana resource to manage API tokens
+	ResourceInstanaAPIToken = "instana_api_token"
+
 	//APITokenFieldAccessGrantingToken constant value for the schema field access_granting_token
 	APITokenFieldAccessGrantingToken = "access_granting_token"
 	//APITokenFieldInternalID constant value for the schema field internal_id
@@ -259,8 +261,8 @@ var (
 	}
 )
 
-//NewAPITokenResourceHandle creates a ResourceHandle instance for the terraform resource API token
-func NewAPITokenResourceHandle() ResourceHandle {
+// NewAPITokenResourceHandle creates a ResourceHandle instance for the terraform resource API token
+func NewAPITokenResourceHandle() ResourceHandle[*restapi.APIToken] {
 	internalIDFieldName := APITokenFieldInternalID
 	return &apiTokenResource{
 		metaData: ResourceMetaData{
@@ -317,53 +319,55 @@ func (r *apiTokenResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *apiTokenResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *apiTokenResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.APIToken] {
 	return api.APITokens()
 }
 
-func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) {
-	d.Set(APITokenFieldInternalID, RandomID())
-	d.Set(APITokenFieldAccessGrantingToken, RandomID())
+func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) error {
+	return tfutils.UpdateState(d, map[string]interface{}{
+		APITokenFieldInternalID:          RandomID(),
+		APITokenFieldAccessGrantingToken: RandomID(),
+	})
 }
 
-func (r *apiTokenResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	apiToken := obj.(*restapi.APIToken)
-	d.Set(APITokenFieldAccessGrantingToken, apiToken.AccessGrantingToken)
-	d.Set(APITokenFieldInternalID, apiToken.InternalID)
-	d.Set(APITokenFieldName, formatter.UndoFormat(apiToken.Name))
-	d.Set(APITokenFieldFullName, apiToken.Name)
-	d.Set(APITokenFieldCanConfigureServiceMapping, apiToken.CanConfigureServiceMapping)
-	d.Set(APITokenFieldCanConfigureEumApplications, apiToken.CanConfigureEumApplications)
-	d.Set(APITokenFieldCanConfigureMobileAppMonitoring, apiToken.CanConfigureMobileAppMonitoring)
-	d.Set(APITokenFieldCanConfigureUsers, apiToken.CanConfigureUsers)
-	d.Set(APITokenFieldCanInstallNewAgents, apiToken.CanInstallNewAgents)
-	d.Set(APITokenFieldCanSeeUsageInformation, apiToken.CanSeeUsageInformation)
-	d.Set(APITokenFieldCanConfigureIntegrations, apiToken.CanConfigureIntegrations)
-	d.Set(APITokenFieldCanSeeOnPremiseLicenseInformation, apiToken.CanSeeOnPremiseLicenseInformation)
-	d.Set(APITokenFieldCanConfigureCustomAlerts, apiToken.CanConfigureCustomAlerts)
-	d.Set(APITokenFieldCanConfigureAPITokens, apiToken.CanConfigureAPITokens)
-	d.Set(APITokenFieldCanConfigureAgentRunMode, apiToken.CanConfigureAgentRunMode)
-	d.Set(APITokenFieldCanViewAuditLog, apiToken.CanViewAuditLog)
-	d.Set(APITokenFieldCanConfigureAgents, apiToken.CanConfigureAgents)
-	d.Set(APITokenFieldCanConfigureAuthenticationMethods, apiToken.CanConfigureAuthenticationMethods)
-	d.Set(APITokenFieldCanConfigureApplications, apiToken.CanConfigureApplications)
-	d.Set(APITokenFieldCanConfigureTeams, apiToken.CanConfigureTeams)
-	d.Set(APITokenFieldCanConfigureReleases, apiToken.CanConfigureReleases)
-	d.Set(APITokenFieldCanConfigureLogManagement, apiToken.CanConfigureLogManagement)
-	d.Set(APITokenFieldCanCreatePublicCustomDashboards, apiToken.CanCreatePublicCustomDashboards)
-	d.Set(APITokenFieldCanViewLogs, apiToken.CanViewLogs)
-	d.Set(APITokenFieldCanViewTraceDetails, apiToken.CanViewTraceDetails)
-	d.Set(APITokenFieldCanConfigureSessionSettings, apiToken.CanConfigureSessionSettings)
-	d.Set(APITokenFieldCanConfigureServiceLevelIndicators, apiToken.CanConfigureServiceLevelIndicators)
-	d.Set(APITokenFieldCanConfigureGlobalAlertPayload, apiToken.CanConfigureGlobalAlertPayload)
-	d.Set(APITokenFieldCanConfigureGlobalAlertConfigs, apiToken.CanConfigureGlobalAlertConfigs)
-	d.Set(APITokenFieldCanViewAccountAndBillingInformation, apiToken.CanViewAccountAndBillingInformation)
-	d.Set(APITokenFieldCanEditAllAccessibleCustomDashboards, apiToken.CanEditAllAccessibleCustomDashboards)
+func (r *apiTokenResource) UpdateState(d *schema.ResourceData, apiToken *restapi.APIToken, formatter utils.ResourceNameFormatter) error {
 	d.SetId(apiToken.ID)
-	return nil
+	return tfutils.UpdateState(d, map[string]interface{}{
+		APITokenFieldAccessGrantingToken:                  apiToken.AccessGrantingToken,
+		APITokenFieldInternalID:                           apiToken.InternalID,
+		APITokenFieldName:                                 formatter.UndoFormat(apiToken.Name),
+		APITokenFieldFullName:                             apiToken.Name,
+		APITokenFieldCanConfigureServiceMapping:           apiToken.CanConfigureServiceMapping,
+		APITokenFieldCanConfigureEumApplications:          apiToken.CanConfigureEumApplications,
+		APITokenFieldCanConfigureMobileAppMonitoring:      apiToken.CanConfigureMobileAppMonitoring,
+		APITokenFieldCanConfigureUsers:                    apiToken.CanConfigureUsers,
+		APITokenFieldCanInstallNewAgents:                  apiToken.CanInstallNewAgents,
+		APITokenFieldCanSeeUsageInformation:               apiToken.CanSeeUsageInformation,
+		APITokenFieldCanConfigureIntegrations:             apiToken.CanConfigureIntegrations,
+		APITokenFieldCanSeeOnPremiseLicenseInformation:    apiToken.CanSeeOnPremiseLicenseInformation,
+		APITokenFieldCanConfigureCustomAlerts:             apiToken.CanConfigureCustomAlerts,
+		APITokenFieldCanConfigureAPITokens:                apiToken.CanConfigureAPITokens,
+		APITokenFieldCanConfigureAgentRunMode:             apiToken.CanConfigureAgentRunMode,
+		APITokenFieldCanViewAuditLog:                      apiToken.CanViewAuditLog,
+		APITokenFieldCanConfigureAgents:                   apiToken.CanConfigureAgents,
+		APITokenFieldCanConfigureAuthenticationMethods:    apiToken.CanConfigureAuthenticationMethods,
+		APITokenFieldCanConfigureApplications:             apiToken.CanConfigureApplications,
+		APITokenFieldCanConfigureTeams:                    apiToken.CanConfigureTeams,
+		APITokenFieldCanConfigureReleases:                 apiToken.CanConfigureReleases,
+		APITokenFieldCanConfigureLogManagement:            apiToken.CanConfigureLogManagement,
+		APITokenFieldCanCreatePublicCustomDashboards:      apiToken.CanCreatePublicCustomDashboards,
+		APITokenFieldCanViewLogs:                          apiToken.CanViewLogs,
+		APITokenFieldCanViewTraceDetails:                  apiToken.CanViewTraceDetails,
+		APITokenFieldCanConfigureSessionSettings:          apiToken.CanConfigureSessionSettings,
+		APITokenFieldCanConfigureServiceLevelIndicators:   apiToken.CanConfigureServiceLevelIndicators,
+		APITokenFieldCanConfigureGlobalAlertPayload:       apiToken.CanConfigureGlobalAlertPayload,
+		APITokenFieldCanConfigureGlobalAlertConfigs:       apiToken.CanConfigureGlobalAlertConfigs,
+		APITokenFieldCanViewAccountAndBillingInformation:  apiToken.CanViewAccountAndBillingInformation,
+		APITokenFieldCanEditAllAccessibleCustomDashboards: apiToken.CanEditAllAccessibleCustomDashboards,
+	})
 }
 
-func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.APIToken, error) {
 	name := r.computeFullNameString(d, formatter)
 	return &restapi.APIToken{
 		ID:                                   d.Id(),

@@ -3,6 +3,7 @@ package instana
 import (
 	"context"
 	"fmt"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"log"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
@@ -133,7 +134,7 @@ var (
 )
 
 // NewApplicationConfigResourceHandle creates a new instance of the ResourceHandle for application configs
-func NewApplicationConfigResourceHandle() ResourceHandle {
+func NewApplicationConfigResourceHandle() ResourceHandle[*restapi.ApplicationConfig] {
 	return &applicationConfigResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaApplicationConfig,
@@ -178,37 +179,36 @@ func (r *applicationConfigResource) StateUpgraders() []schema.StateUpgrader {
 	}
 }
 
-func (r *applicationConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *applicationConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationConfig] {
 	return api.ApplicationConfigs()
 }
 
-func (r *applicationConfigResource) SetComputedFields(d *schema.ResourceData) {
-	//No computed fields defined
+func (r *applicationConfigResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	applicationConfig := obj.(*restapi.ApplicationConfig)
+func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicationConfig *restapi.ApplicationConfig, formatter utils.ResourceNameFormatter) error {
+	data := make(map[string]interface{})
 	if applicationConfig.MatchSpecification != nil {
 		normalizedExpressionString, err := r.mapMatchSpecificationToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
 		if err != nil {
 			return err
 		}
-		d.Set(ApplicationConfigFieldMatchSpecification, normalizedExpressionString)
+		data[ApplicationConfigFieldMatchSpecification] = normalizedExpressionString
 	} else if applicationConfig.TagFilterExpression != nil {
 		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(applicationConfig.TagFilterExpression.(restapi.TagFilterExpressionElement))
 		if err != nil {
 			return err
 		}
-		d.Set(ApplicationConfigFieldTagFilter, normalizedTagFilterString)
+		data[ApplicationConfigFieldTagFilter] = normalizedTagFilterString
 	}
-
-	d.Set(ApplicationConfigFieldLabel, formatter.UndoFormat(applicationConfig.Label))
-	d.Set(ApplicationConfigFieldFullLabel, applicationConfig.Label)
-	d.Set(ApplicationConfigFieldScope, string(applicationConfig.Scope))
-	d.Set(ApplicationConfigFieldBoundaryScope, string(applicationConfig.BoundaryScope))
+	data[ApplicationConfigFieldLabel] = formatter.UndoFormat(applicationConfig.Label)
+	data[ApplicationConfigFieldFullLabel] = applicationConfig.Label
+	data[ApplicationConfigFieldScope] = string(applicationConfig.Scope)
+	data[ApplicationConfigFieldBoundaryScope] = string(applicationConfig.BoundaryScope)
 
 	d.SetId(applicationConfig.ID)
-	return nil
+	return tfutils.UpdateState(d, data)
 }
 
 func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepresentation(input restapi.MatchExpression) (*string, error) {
@@ -221,7 +221,7 @@ func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepre
 	return &renderedExpression, nil
 }
 
-func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.ApplicationConfig, error) {
 	var matchSpecification restapi.MatchExpression
 	var tagFilter restapi.TagFilterExpressionElement
 	var err error
@@ -290,7 +290,7 @@ func (r *applicationConfigResource) applicationConfigSchemaV0() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) applicationConfigStateUpgradeV0(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) applicationConfigStateUpgradeV0(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	rawState[ApplicationConfigFieldFullLabel] = rawState[ApplicationConfigFieldLabel]
 	return rawState, nil
 }
@@ -307,7 +307,7 @@ func (r *applicationConfigResource) applicationConfigSchemaV1() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatchSpecification(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatchSpecification(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	spec := rawState[ApplicationConfigFieldMatchSpecification]
 	if spec != nil {
 		log.Printf("[DEBUG] Instana Provider: migrate application config match specification to include entity")
@@ -336,7 +336,7 @@ func (r *applicationConfigResource) applicationConfigSchemaV2() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) updateToVersion2AndRemoveNormalizedMatchSpecification(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) updateToVersion2AndRemoveNormalizedMatchSpecification(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	delete(rawState, ApplicationConfigFieldNormalizedMatchSpecification)
 	return rawState, nil
 }

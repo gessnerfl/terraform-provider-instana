@@ -60,9 +60,9 @@ func createAlertingChannelPagerDutyResourceTestStep(httpPort int64, iteration in
 }
 
 func TestResourceAlertingChannelPagerDutyDefinition(t *testing.T) {
-	resource := NewAlertingChannelPagerDutyResourceHandle()
+	resourceHandle := NewAlertingChannelPagerDutyResourceHandle()
 
-	schemaMap := resource.MetaData().Schema
+	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
@@ -71,7 +71,7 @@ func TestResourceAlertingChannelPagerDutyDefinition(t *testing.T) {
 }
 
 func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelPagerDutyResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	integrationKey := "integration key"
@@ -91,22 +91,22 @@ func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
 }
 
 func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelPagerDutyResourceHandle()
 	integrationKey := "integration key"
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
-	resourceData.Set(AlertingChannelFieldName, "name")
-	resourceData.Set(AlertingChannelFieldFullName, resourceFullName)
-	resourceData.Set(AlertingChannelPagerDutyFieldServiceIntegrationKey, integrationKey)
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
+	setValueOnResourceData(t, resourceData, AlertingChannelPagerDutyFieldServiceIntegrationKey, integrationKey)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.(*restapi.AlertingChannel).Name, "name should be equal to full name")
-	require.Equal(t, integrationKey, *model.(*restapi.AlertingChannel).ServiceIntegrationKey, "service integration key should be equal")
+	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, integrationKey, *model.ServiceIntegrationKey, "service integration key should be equal")
 }
 
 func TestAlertingChannelPagerDutyShouldHaveSchemaVersionZero(t *testing.T) {

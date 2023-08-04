@@ -2,6 +2,7 @@ package instana
 
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -55,16 +56,12 @@ const (
 	SyntheticTestFieldConfigExpectStatus = "expect_status"
 	//SyntheticTestFieldConfigExpectMatch constant value for the schema field configuration.expect_match
 	SyntheticTestFieldConfigExpectMatch = "expect_match"
-	//SyntheticTestFieldConfigExpectExists constant value for the schema field configuration.expect_exists
-	SyntheticTestFieldConfigExpectExists = "expect_exists"
-	//SyntheticTestFieldConfigExpectNotEmpty constant value for the schema field configuration.expect_not_empty
-	SyntheticTestFieldConfigExpectNotEmpty = "expect_not_empty"
 	//SyntheticTestFieldConfigScript constant value for the schema field configuration.script
 	SyntheticTestFieldConfigScript = "script"
 )
 
 // NewSyntheticTestResourceHandle creates the resource handle Synthetic Tests
-func NewSyntheticTestResourceHandle() ResourceHandle {
+func NewSyntheticTestResourceHandle() ResourceHandle[*restapi.SyntheticTest] {
 	return &syntheticTestResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaSyntheticTest,
@@ -234,28 +231,28 @@ func (r *syntheticTestResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *syntheticTestResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *syntheticTestResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.SyntheticTest] {
 	return api.SyntheticTest()
 }
 
-func (r *syntheticTestResource) SetComputedFields(d *schema.ResourceData) {
-	// No computed fields
-}
-
-func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, formatter utils.ResourceNameFormatter) error {
-	syntheticTest := obj.(*restapi.SyntheticTest)
-	d.SetId(syntheticTest.ID)
-	d.Set(SyntheticTestFieldLabel, syntheticTest.Label)
-	d.Set(SyntheticTestFieldActive, syntheticTest.Active)
-	d.Set(SyntheticTestFieldCustomProperties, syntheticTest.CustomProperties)
-	d.Set(SyntheticTestFieldLocations, syntheticTest.Locations)
-	d.Set(SyntheticTestFieldPlaybackMode, syntheticTest.PlaybackMode)
-	d.Set(SyntheticTestFieldTestFrequency, syntheticTest.TestFrequency)
-	d.Set(SyntheticTestFieldConfiguration, r.mapConfigurationToSchema(syntheticTest))
+func (r *syntheticTestResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTest *restapi.SyntheticTest, _ utils.ResourceNameFormatter) error {
+	d.SetId(syntheticTest.ID)
+	return tfutils.UpdateState(d, map[string]interface{}{
+		SyntheticTestFieldLabel:            syntheticTest.Label,
+		SyntheticTestFieldActive:           syntheticTest.Active,
+		SyntheticTestFieldCustomProperties: syntheticTest.CustomProperties,
+		SyntheticTestFieldLocations:        syntheticTest.Locations,
+		SyntheticTestFieldPlaybackMode:     syntheticTest.PlaybackMode,
+		SyntheticTestFieldTestFrequency:    syntheticTest.TestFrequency,
+		SyntheticTestFieldConfiguration:    r.mapConfigurationToSchema(syntheticTest),
+	})
+}
+
+func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.SyntheticTest, error) {
 	return &restapi.SyntheticTest{
 		ID:               d.Id(),
 		Label:            d.Get(SyntheticTestFieldLabel).(string),
