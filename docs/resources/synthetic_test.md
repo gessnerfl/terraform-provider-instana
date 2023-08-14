@@ -12,6 +12,7 @@ API Documentation: <https://instana.github.io/openapi/#operation/getSyntheticTes
 resource "instana_synthetic_test" "uptime_check" {
   label          = "test"
   active         = true
+  application_id = "my-app-id"
   locations      = [data.instana_synthetic_location.loc1.id]
   test_frequency = 10
   playback_mode  = "Staggered"
@@ -33,9 +34,10 @@ resource "instana_synthetic_test" "uptime_check" {
 ### Create a HTTPScript test
 ```hcl
 resource "instana_synthetic_test" "http_action" {
-  label     = "test"
-  active    = true
-  locations = [data.instana_synthetic_location.loc1.id]
+  label          = "test"
+  active         = true
+  application_id = "my-app-id"
+  locations      = [data.instana_synthetic_location.loc1.id]
   configuration {
     synthetic_type = "HTTPScript"
     script         = <<EOF
@@ -59,6 +61,7 @@ resource "instana_synthetic_test" "http_action" {
 * `label` - Required - The name of the synthetic monitor
 * `description` - Optional - The name of the synthetic monitor
 * `active` - Optional - Enables/disables the synthetic monitor (defaults to true)
+* `application_id` - Optional - Unique identifier of the Application Perspective.
 * `configuration` - Required - Configuration block
 * `custom_properties` - Optional - A map of key/values which are used as tags
 * `locations` - Required - A list of strings with location IDs 
