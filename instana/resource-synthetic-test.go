@@ -17,7 +17,8 @@ const (
 	//SyntheticTestFieldDescription constant value for the computed schema field description
 	SyntheticTestFieldDescription = "description"
 	//SyntheticTestFieldActive constant value for the schema field active
-	SyntheticTestFieldActive = "active"
+	SyntheticTestFieldActive        = "active"
+	SyntheticTestFieldApplicationID = "application_id"
 	//SyntheticTestFieldConfiguration constant value for the schema field configuration
 	SyntheticTestFieldConfiguration = "configuration"
 	//SyntheticTestFieldCustomProperties constant value for the schema field custom_properties
@@ -83,6 +84,11 @@ func NewSyntheticTestResourceHandle() ResourceHandle[*restapi.SyntheticTest] {
 					Optional:    true,
 					Default:     true,
 					Description: "Indicates if the Synthetic test is started or not",
+				},
+				SyntheticTestFieldApplicationID: {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "Unique identifier of the Application Perspective.",
 				},
 				SyntheticTestFieldConfiguration: {
 					Type:        schema.TypeList,
@@ -244,6 +250,7 @@ func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTes
 	return tfutils.UpdateState(d, map[string]interface{}{
 		SyntheticTestFieldLabel:            syntheticTest.Label,
 		SyntheticTestFieldActive:           syntheticTest.Active,
+		SyntheticTestFieldApplicationID:    syntheticTest.ApplicationID,
 		SyntheticTestFieldCustomProperties: syntheticTest.CustomProperties,
 		SyntheticTestFieldLocations:        syntheticTest.Locations,
 		SyntheticTestFieldPlaybackMode:     syntheticTest.PlaybackMode,
@@ -253,11 +260,18 @@ func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTes
 }
 
 func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.SyntheticTest, error) {
+	appID, ok := d.GetOk(SyntheticTestFieldApplicationID)
+	var applicationID *string
+	if ok {
+		tempAppID := appID.(string)
+		applicationID = &tempAppID
+	}
 	return &restapi.SyntheticTest{
 		ID:               d.Id(),
 		Label:            d.Get(SyntheticTestFieldLabel).(string),
 		Description:      d.Get(SyntheticTestFieldDescription).(string),
 		Active:           d.Get(SyntheticTestFieldActive).(bool),
+		ApplicationID:    applicationID,
 		Configuration:    r.mapConfigurationFromSchema(d),
 		CustomProperties: d.Get(SyntheticTestFieldCustomProperties).(map[string]interface{}),
 		Locations:        ReadStringSetParameterFromResource(d, SyntheticTestFieldLocations),

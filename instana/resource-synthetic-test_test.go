@@ -18,7 +18,7 @@ import (
 
 const syntheticTestTerraformTemplate = `
 resource "instana_synthetic_test" "example" {
-	label          = "label"
+	label          = "label %d"
 	active         = true
 	locations      = ["location-id"]
 	test_frequency = 10
@@ -48,8 +48,68 @@ resource "instana_synthetic_test" "example" {
 const syntheticTestServerResponseTemplate = `
 {
     "id": "%s",
-    "label": "label",
+    "label": "label %d",
     "active": true,
+    "locations": ["location-id"],
+    "testFrequency": 10,
+    "playbackMode": "Staggered",
+    "configuration": {
+        "syntheticType": "HTTPAction",
+        "markSyntheticCall": true,
+        "url": "https://example.com",
+		"operation": "GET",
+		"retryInterval": 1,
+		"timeout": "3m",
+		"body": "expected_body",
+		"validationString": "expected_body",
+		"followRedirect": false,
+		"allowInsecure": true,
+		"expectStatus": 201,
+		"expectMatch": "[a-zA-Z]"
+    },
+	"customProperties": {
+		"key1": "val1",
+		"key2": "val2"
+	}
+}
+`
+
+const syntheticTestWithApplicationIdTerraformTemplate = `
+resource "instana_synthetic_test" "example" {
+	label          = "label %d"
+	active         = true
+	application_id = "application-id"
+	locations      = ["location-id"]
+	test_frequency = 10
+	playback_mode  = "Staggered"
+	configuration {
+		mark_synthetic_call = true
+		retries             = 0
+		retry_interval      = 1
+		synthetic_type      = "HTTPAction"
+		timeout             = "3m"
+		url                 = "https://example.com"
+		operation           = "GET"
+		body 				= "expected_body"
+		validation_string   = "expected_body"
+		follow_redirect     = false
+		allow_insecure      = true
+		expect_status       = 201
+		expect_match        = "[a-zA-Z]"
+	}
+	custom_properties = {
+		"key1" = "val1"
+		"key2" = "val2"
+	}
+}
+`
+
+const syntheticTestWithApplicationIdServerResponseTemplate = `
+{
+    "id": "%s",
+    "label": "label %d",
+    "active": true,
+    "applicationId": "application-id",
     "locations": ["location-id"],
     "testFrequency": 10,
     "playbackMode": "Staggered",
@@ -86,8 +146,63 @@ const (
 	syntheticTestSyntheticType = "HTTPAction"
 )
 
-func TestCRUDOfSyntheticTestResourceWithMockServer(t *testing.T) {
+func TestCRUDOfSyntheticTestResourceUsingMockServer(t *testing.T) {
 	id := RandomID()
+	httpServer := createTestServerForSyntheticTestResource(id, syntheticTestServerResponseTemplate)
+	defer httpServer.Close()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProviderFactories: testProviderFactory,
+		Steps: []resource.TestStep{
+			createSyntheticTestTestCheckFunctions(syntheticTestTerraformTemplate, httpServer.GetPort(), 0),
+			testStepImport(syntheticTestDefinition),
+			createSyntheticTestTestCheckFunctions(syntheticTestTerraformTemplate, httpServer.GetPort(), 1),
+			testStepImport(syntheticTestDefinition),
+		},
+	})
+}
+
+func TestCRUDOfSyntheticTestResourceWithApplicationIdUsingMockServer(t *testing.T) {
+	id := RandomID()
+	httpServer := createTestServerForSyntheticTestResource(id, syntheticTestWithApplicationIdServerResponseTemplate)
+	defer httpServer.Close()
+
+	additionalCheck := resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldApplicationID, "application-id")
+	resource.UnitTest(t, resource.TestCase{
+		ProviderFactories: testProviderFactory,
+		Steps: []resource.TestStep{
+			createSyntheticTestTestCheckFunctions(syntheticTestWithApplicationIdTerraformTemplate, httpServer.GetPort(), 0, additionalCheck),
+			testStepImport(syntheticTestDefinition),
+			createSyntheticTestTestCheckFunctions(syntheticTestWithApplicationIdTerraformTemplate, httpServer.GetPort(), 1, additionalCheck),
+			testStepImport(syntheticTestDefinition),
+		},
+	})
+}
+
+func createSyntheticTestTestCheckFunctions(template string, httpPort int64, iteration int, additionalChecks ...resource.TestCheckFunc) resource.TestStep {
+	nestedConfigPattern := "%s.0.%s"
+
+	defaultChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrSet(syntheticTestDefinition, "id"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldLabel, fmt.Sprintf("%s %d", syntheticTestLabel, iteration)),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldActive, "true"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigMarkSyntheticCall), "true"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigRetries), "0"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigRetryInterval), "1"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigSyntheticType), syntheticTestSyntheticType),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigTimeout), "3m"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigOperation), syntheticTestOperation),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigUrl), syntheticTestUrl),
+	}
+	checks := append(defaultChecks, additionalChecks...)
+
+	return resource.TestStep{
+		Config: appendProviderConfig(fmt.Sprintf(template, iteration), httpPort),
+		Check:  resource.ComposeTestCheckFunc(checks...),
+	}
+}
+
+func createTestServerForSyntheticTestResource(id string, responseTemplate string) testutils.TestHTTPServer {
 	resourceRestAPIPath := restapi.SyntheticTestResourcePath
 	resourceInstanceRestAPIPath := resourceRestAPIPath + "/{id}"
 
@@ -117,7 +232,8 @@ func TestCRUDOfSyntheticTestResourceWithMockServer(t *testing.T) {
 	})
 	httpServer.AddRoute(http.MethodDelete, resourceInstanceRestAPIPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
-		jsonData := fmt.Sprintf(syntheticTestServerResponseTemplate, id)
+		puts := httpServer.GetCallCount(http.MethodPut, resourceRestAPIPath+"/"+id)
+		jsonData := fmt.Sprintf(responseTemplate, id, puts)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		_, err := w.Write([]byte(jsonData))
@@ -126,36 +242,7 @@ func TestCRUDOfSyntheticTestResourceWithMockServer(t *testing.T) {
 		}
 	})
 	httpServer.Start()
-	defer httpServer.Close()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testProviderFactory,
-		Steps: []resource.TestStep{
-			createSyntheticTestTestCheckFunctions(httpServer.GetPort(), 0),
-			testStepImport(syntheticTestDefinition),
-			createSyntheticTestTestCheckFunctions(httpServer.GetPort(), 1),
-		},
-	})
-}
-
-func createSyntheticTestTestCheckFunctions(httpPort int64, _ int) resource.TestStep {
-	nestedConfigPattern := "%s.0.%s"
-
-	return resource.TestStep{
-		Config: appendProviderConfig(syntheticTestTerraformTemplate, httpPort),
-		Check: resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttrSet(syntheticTestDefinition, "id"),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldLabel, syntheticTestLabel),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldActive, "true"),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigMarkSyntheticCall), "true"),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigRetries), "0"),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigRetryInterval), "1"),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigSyntheticType), syntheticTestSyntheticType),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigTimeout), "3m"),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigOperation), syntheticTestOperation),
-			resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigUrl), syntheticTestUrl),
-		),
-	}
+	return httpServer
 }
 
 func TestResourceSyntheticTestDefinition(t *testing.T) {
