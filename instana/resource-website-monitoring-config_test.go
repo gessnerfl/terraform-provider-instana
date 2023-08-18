@@ -54,7 +54,6 @@ func createWebsiteMonitoringConfigTestCheckFunctions(iteration int) []resource.T
 	testCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(websiteMonitoringConfigDefinition, "id"),
 		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldName, fmt.Sprintf("name %d", iteration)),
-		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldFullName, fmt.Sprintf("prefix name %d suffix", iteration)),
 		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldAppName, fmt.Sprintf("prefix name %d suffix", iteration)),
 	}
 	return testCheckFunctions
@@ -179,7 +178,6 @@ func TestResourceWebsiteMonitoringConfigDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(WebsiteMonitoringConfigFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(WebsiteMonitoringConfigFieldFullName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(WebsiteMonitoringConfigFieldAppName)
 }
 
@@ -221,11 +219,34 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 }
 
 func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewWebsiteMonitoringConfigResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 1, NewWebsiteMonitoringConfigResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestWebsiteMonitoringConfigShouldHaveNoStateUpgrader(t *testing.T) {
-	require.Equal(t, 0, len(NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()))
+func TestWebsiteMonitoringConfigShouldHaveOneStateUpgrader(t *testing.T) {
+	require.Equal(t, 1, len(NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()))
+}
+
+func TestWebsiteMonitoringConfigShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, WebsiteMonitoringConfigFieldFullName)
+	require.Contains(t, result, WebsiteMonitoringConfigFieldName)
+	require.Equal(t, "test", result[WebsiteMonitoringConfigFieldName])
+}
+
+func TestWebsiteMonitoringConfigShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnCorrectResourceNameForWebsiteMonitoringConfig(t *testing.T) {
