@@ -54,7 +54,7 @@ func createWebsiteMonitoringConfigTestCheckFunctions(iteration int) []resource.T
 	testCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(websiteMonitoringConfigDefinition, "id"),
 		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldName, fmt.Sprintf("name %d", iteration)),
-		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldAppName, fmt.Sprintf("prefix name %d suffix", iteration)),
+		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldAppName, fmt.Sprintf("name %d", iteration)),
 	}
 	return testCheckFunctions
 }
