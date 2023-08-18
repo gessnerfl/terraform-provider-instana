@@ -25,7 +25,6 @@ resource "instana_website_monitoring_config" "example_website_monitoring_config"
 const (
 	websiteMonitoringConfigApiPath    = restapi.WebsiteMonitoringConfigResourcePath + "/{id}"
 	websiteMonitoringConfigDefinition = "instana_website_monitoring_config.example_website_monitoring_config"
-	websiteMonitoringConfigFullName   = resourceFullName
 )
 
 func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
@@ -185,11 +184,11 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 	testHelper := NewTestHelper[*restapi.WebsiteMonitoringConfig](t)
 	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	fullname := resourceFullName
+	name := resourceName
 	appname := "appname"
 	data := restapi.WebsiteMonitoringConfig{
 		ID:      "id",
-		Name:    fullname,
+		Name:    name,
 		AppName: appname,
 	}
 
@@ -197,8 +196,7 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id(), "id should be equal")
-	require.Equal(t, "name", resourceData.Get(WebsiteMonitoringConfigFieldName))
-	require.Equal(t, fullname, resourceData.Get(WebsiteMonitoringConfigFieldFullName))
+	require.Equal(t, resourceName, resourceData.Get(WebsiteMonitoringConfigFieldName))
 	require.Equal(t, appname, resourceData.Get(WebsiteMonitoringConfigFieldAppName))
 }
 
@@ -208,14 +206,13 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, WebsiteMonitoringConfigFieldName, "name")
-	setValueOnResourceData(t, resourceData, WebsiteMonitoringConfigFieldFullName, websiteMonitoringConfigFullName)
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.WebsiteMonitoringConfig{}, model)
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, websiteMonitoringConfigFullName, model.Name)
+	require.Equal(t, resourceName, model.Name)
 }
 
 func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {
