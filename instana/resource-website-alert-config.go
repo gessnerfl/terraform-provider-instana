@@ -1,6 +1,7 @@
 package instana
 
 import (
+	"context"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
@@ -31,6 +32,7 @@ const (
 	//WebsiteAlertConfigFieldName constant value for field name of resource instana_website_alert_config
 	WebsiteAlertConfigFieldName = "name"
 	//WebsiteAlertConfigFieldFullName constant value for field full_name of resource instana_website_alert_config
+	//Deprecated
 	WebsiteAlertConfigFieldFullName = "full_name"
 
 	//WebsiteAlertConfigFieldRule constant value for field rule of resource instana_website_alert_config
@@ -80,55 +82,7 @@ const (
 )
 
 var (
-	websiteAlertRuleTypeKeys = []string{
-		"rule.0.specific_js_error",
-		"rule.0.slowness",
-		"rule.0.status_code",
-		"rule.0.throughput",
-	}
-
-	websiteAlertSchemaRuleMetricName = &schema.Schema{
-		Type:        schema.TypeString,
-		Required:    true,
-		Description: "The metric name of the website alert rule",
-	}
-
-	websiteAlertSchemaRequiredRuleAggregation = &schema.Schema{
-		Type:         schema.TypeString,
-		Required:     true,
-		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), true),
-		Description:  "The aggregation function of the website alert rule",
-	}
-
-	websiteAlertSchemaOptionalRuleAggregation = &schema.Schema{
-		Type:         schema.TypeString,
-		Optional:     true,
-		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), true),
-		Description:  "The aggregation function of the website alert rule",
-	}
-
-	websiteAlertSchemaRuleOperator = &schema.Schema{
-		Type:         schema.TypeString,
-		Required:     true,
-		Description:  "The operator which will be applied to evaluate this rule",
-		ValidateFunc: validation.StringInSlice(restapi.SupportedExpressionOperators.ToStringSlice(), true),
-	}
-
-	websiteAlertTimeThresholdTypeKeys = []string{
-		"time_threshold.0.user_impact_of_violations_in_sequence",
-		"time_threshold.0.violations_in_period",
-		"time_threshold.0.violations_in_sequence",
-	}
-
-	websiteAlertSchemaOptionalTimeThresholdTimeWindow = &schema.Schema{
-		Type:        schema.TypeInt,
-		Optional:    true,
-		Description: "The time window if the time threshold",
-	}
-)
-
-var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
-	WebsiteAlertConfigFieldAlertChannelIDs: {
+	websiteAlertConfigSchemaAlertChannelIDs = &schema.Schema{
 		Type:     schema.TypeSet,
 		MinItems: 0,
 		MaxItems: 1024,
@@ -137,8 +91,8 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 		},
 		Optional:    true,
 		Description: "List of IDs of alert channels defined in Instana.",
-	},
-	WebsiteAlertConfigFieldCustomPayloadFields: {
+	}
+	websiteAlertConfigSchemaCustomPayloadFields = &schema.Schema{
 		Type: schema.TypeSet,
 		Set: func(i interface{}) int {
 			return schema.HashString(i.(map[string]interface{})[WebsiteAlertConfigFieldCustomPayloadFieldsKey])
@@ -161,32 +115,33 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 			},
 		},
 		Description: "An optional list of custom payload fields (static key/value pairs added to the event)",
-	},
-	WebsiteAlertConfigFieldDescription: {
+	}
+	websiteAlertConfigSchemaDescription = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		Description:  "The description text of the website alert config",
 		ValidateFunc: validation.StringLenBetween(0, 65536),
-	},
-	WebsiteAlertConfigFieldGranularity: {
+	}
+	websiteAlertConfigSchemaGranularity = &schema.Schema{
 		Type:         schema.TypeInt,
 		Optional:     true,
 		Default:      restapi.Granularity600000,
 		ValidateFunc: validation.IntInSlice(restapi.SupportedGranularities.ToIntSlice()),
 		Description:  "The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used",
-	},
-	WebsiteAlertConfigFieldName: {
+	}
+	websiteAlertConfigSchemaName = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		Description:  "Name for the website alert configuration",
 		ValidateFunc: validation.StringLenBetween(0, 256),
-	},
-	WebsiteAlertConfigFieldFullName: {
+	}
+	//Deprecated
+	websiteAlertConfigSchemaFullName = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The full name field of the website alert config. The field is computed and contains the name which is sent to Instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
-	},
-	WebsiteAlertConfigFieldRule: {
+	}
+	websiteAlertConfigSchemaRule = &schema.Schema{
 		Type:        schema.TypeList,
 		MinItems:    1,
 		MaxItems:    1,
@@ -202,11 +157,11 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 					Description: "Rule based on the slowness of the configured alert configuration target",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							WebsiteAlertConfigFieldRuleMetricName:  websiteAlertSchemaRuleMetricName,
-							WebsiteAlertConfigFieldRuleAggregation: websiteAlertSchemaRequiredRuleAggregation,
+							WebsiteAlertConfigFieldRuleMetricName:  websiteAlertConfigSchemaRuleMetricName,
+							WebsiteAlertConfigFieldRuleAggregation: websiteAlertConfigSchemaRequiredRuleAggregation,
 						},
 					},
-					ExactlyOneOf: websiteAlertRuleTypeKeys,
+					ExactlyOneOf: websiteAlertConfigRuleTypeKeys,
 				},
 				WebsiteAlertConfigFieldRuleSpecificJsError: {
 					Type:        schema.TypeList,
@@ -216,9 +171,9 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 					Description: "Rule based on a specific javascript error of the configured alert configuration target",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							WebsiteAlertConfigFieldRuleMetricName:  websiteAlertSchemaRuleMetricName,
-							WebsiteAlertConfigFieldRuleAggregation: websiteAlertSchemaOptionalRuleAggregation,
-							WebsiteAlertConfigFieldRuleOperator:    websiteAlertSchemaRuleOperator,
+							WebsiteAlertConfigFieldRuleMetricName:  websiteAlertConfigSchemaRuleMetricName,
+							WebsiteAlertConfigFieldRuleAggregation: websiteAlertConfigSchemaOptionalRuleAggregation,
+							WebsiteAlertConfigFieldRuleOperator:    websiteAlertConfigSchemaRuleOperator,
 							WebsiteAlertConfigFieldRuleValue: {
 								Type:        schema.TypeString,
 								Optional:    true,
@@ -226,7 +181,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 							},
 						},
 					},
-					ExactlyOneOf: websiteAlertRuleTypeKeys,
+					ExactlyOneOf: websiteAlertConfigRuleTypeKeys,
 				},
 				WebsiteAlertConfigFieldRuleStatusCode: {
 					Type:        schema.TypeList,
@@ -236,9 +191,9 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 					Description: "Rule based on the HTTP status code of the configured alert configuration target",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							WebsiteAlertConfigFieldRuleMetricName:  websiteAlertSchemaRuleMetricName,
-							WebsiteAlertConfigFieldRuleAggregation: websiteAlertSchemaOptionalRuleAggregation,
-							WebsiteAlertConfigFieldRuleOperator:    websiteAlertSchemaRuleOperator,
+							WebsiteAlertConfigFieldRuleMetricName:  websiteAlertConfigSchemaRuleMetricName,
+							WebsiteAlertConfigFieldRuleAggregation: websiteAlertConfigSchemaOptionalRuleAggregation,
+							WebsiteAlertConfigFieldRuleOperator:    websiteAlertConfigSchemaRuleOperator,
 							WebsiteAlertConfigFieldRuleValue: {
 								Type:        schema.TypeString,
 								Required:    true,
@@ -246,7 +201,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 							},
 						},
 					},
-					ExactlyOneOf: websiteAlertRuleTypeKeys,
+					ExactlyOneOf: websiteAlertConfigRuleTypeKeys,
 				},
 				WebsiteAlertConfigFieldRuleThroughput: {
 					Type:        schema.TypeList,
@@ -256,22 +211,22 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 					Description: "Rule based on the throughput of the configured alert configuration target",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							WebsiteAlertConfigFieldRuleMetricName:  websiteAlertSchemaRuleMetricName,
-							WebsiteAlertConfigFieldRuleAggregation: websiteAlertSchemaOptionalRuleAggregation,
+							WebsiteAlertConfigFieldRuleMetricName:  websiteAlertConfigSchemaRuleMetricName,
+							WebsiteAlertConfigFieldRuleAggregation: websiteAlertConfigSchemaOptionalRuleAggregation,
 						},
 					},
-					ExactlyOneOf: websiteAlertRuleTypeKeys,
+					ExactlyOneOf: websiteAlertConfigRuleTypeKeys,
 				},
 			},
 		},
-	},
-	WebsiteAlertConfigFieldSeverity: {
+	}
+	websiteAlertConfigSchemaSeverity = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
 		Description:  "The severity of the alert when triggered",
-	},
-	WebsiteAlertConfigFieldTagFilter: {
+	}
+	websiteAlertConfigSchemaTagFilter = &schema.Schema{
 		Type:        schema.TypeString,
 		Optional:    true,
 		Description: "The tag filter of the website alert config",
@@ -297,9 +252,8 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 
 			return
 		},
-	},
-	ResourceFieldThreshold: thresholdSchema,
-	WebsiteAlertConfigFieldTimeThreshold: {
+	}
+	websiteAlertConfigSchemaTimeThreshold = &schema.Schema{
 		Type:        schema.TypeList,
 		MinItems:    1,
 		MaxItems:    1,
@@ -315,7 +269,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 					Description: "Time threshold base on user impact of violations in sequence",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							WebsiteAlertConfigFieldTimeThresholdTimeWindow: websiteAlertSchemaOptionalTimeThresholdTimeWindow,
+							WebsiteAlertConfigFieldTimeThresholdTimeWindow: websiteAlertConfigSchemaOptionalTimeThresholdTimeWindow,
 							WebsiteAlertConfigFieldTimeThresholdUserImpactOfViolationsInSequenceImpactMeasurementMethod: {
 								Type:         schema.TypeString,
 								Required:     true,
@@ -336,7 +290,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 							},
 						},
 					},
-					ExactlyOneOf: websiteAlertTimeThresholdTypeKeys,
+					ExactlyOneOf: websiteAlertConfigTimeThresholdTypeKeys,
 				},
 				WebsiteAlertConfigFieldTimeThresholdViolationsInPeriod: {
 					Type:        schema.TypeList,
@@ -346,7 +300,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 					Description: "Time threshold base on violations in period",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							WebsiteAlertConfigFieldTimeThresholdTimeWindow: websiteAlertSchemaOptionalTimeThresholdTimeWindow,
+							WebsiteAlertConfigFieldTimeThresholdTimeWindow: websiteAlertConfigSchemaOptionalTimeThresholdTimeWindow,
 							WebsiteAlertConfigFieldTimeThresholdViolationsInPeriodViolations: {
 								Type:         schema.TypeInt,
 								Optional:     true,
@@ -355,7 +309,7 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 							},
 						},
 					},
-					ExactlyOneOf: websiteAlertTimeThresholdTypeKeys,
+					ExactlyOneOf: websiteAlertConfigTimeThresholdTypeKeys,
 				},
 				WebsiteAlertConfigFieldTimeThresholdViolationsInSequence: {
 					Type:        schema.TypeList,
@@ -365,26 +319,80 @@ var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
 					Description: "Time threshold base on violations in sequence",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							WebsiteAlertConfigFieldTimeThresholdTimeWindow: websiteAlertSchemaOptionalTimeThresholdTimeWindow,
+							WebsiteAlertConfigFieldTimeThresholdTimeWindow: websiteAlertConfigSchemaOptionalTimeThresholdTimeWindow,
 						},
 					},
-					ExactlyOneOf: websiteAlertTimeThresholdTypeKeys,
+					ExactlyOneOf: websiteAlertConfigTimeThresholdTypeKeys,
 				},
 			},
 		},
-	},
-	WebsiteAlertConfigFieldTriggering: {
+	}
+	websiteAlertConfigSchemaTriggering = &schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
 		Description: "Optional flag to indicate whether also an Incident is triggered or not. The default is false",
-	},
-	WebsiteAlertConfigFieldWebsiteID: {
+	}
+	websiteAlertConfigSchemaWebsiteID = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		Description:  "Unique ID of the website",
 		ValidateFunc: validation.StringLenBetween(0, 64),
-	},
+	}
+	websiteAlertConfigRuleTypeKeys = []string{
+		"rule.0.specific_js_error",
+		"rule.0.slowness",
+		"rule.0.status_code",
+		"rule.0.throughput",
+	}
+	websiteAlertConfigSchemaRuleMetricName = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The metric name of the website alert rule",
+	}
+	websiteAlertConfigSchemaRequiredRuleAggregation = &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), true),
+		Description:  "The aggregation function of the website alert rule",
+	}
+	websiteAlertConfigSchemaOptionalRuleAggregation = &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), true),
+		Description:  "The aggregation function of the website alert rule",
+	}
+	websiteAlertConfigSchemaRuleOperator = &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		Description:  "The operator which will be applied to evaluate this rule",
+		ValidateFunc: validation.StringInSlice(restapi.SupportedExpressionOperators.ToStringSlice(), true),
+	}
+	websiteAlertConfigTimeThresholdTypeKeys = []string{
+		"time_threshold.0.user_impact_of_violations_in_sequence",
+		"time_threshold.0.violations_in_period",
+		"time_threshold.0.violations_in_sequence",
+	}
+	websiteAlertConfigSchemaOptionalTimeThresholdTimeWindow = &schema.Schema{
+		Type:        schema.TypeInt,
+		Optional:    true,
+		Description: "The time window if the time threshold",
+	}
+)
+
+var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
+	WebsiteAlertConfigFieldAlertChannelIDs:     websiteAlertConfigSchemaAlertChannelIDs,
+	WebsiteAlertConfigFieldCustomPayloadFields: websiteAlertConfigSchemaCustomPayloadFields,
+	WebsiteAlertConfigFieldDescription:         websiteAlertConfigSchemaDescription,
+	WebsiteAlertConfigFieldGranularity:         websiteAlertConfigSchemaGranularity,
+	WebsiteAlertConfigFieldName:                websiteAlertConfigSchemaName,
+	WebsiteAlertConfigFieldRule:                websiteAlertConfigSchemaRule,
+	WebsiteAlertConfigFieldSeverity:            websiteAlertConfigSchemaSeverity,
+	WebsiteAlertConfigFieldTagFilter:           websiteAlertConfigSchemaTagFilter,
+	ResourceFieldThreshold:                     thresholdSchema,
+	WebsiteAlertConfigFieldTimeThreshold:       websiteAlertConfigSchemaTimeThreshold,
+	WebsiteAlertConfigFieldTriggering:          websiteAlertConfigSchemaTriggering,
+	WebsiteAlertConfigFieldWebsiteID:           websiteAlertConfigSchemaWebsiteID,
 }
 
 // NewWebsiteAlertConfigResourceHandle creates the resource handle for Website Alert Configs
@@ -394,6 +402,7 @@ func NewWebsiteAlertConfigResourceHandle() ResourceHandle[*restapi.WebsiteAlertC
 			ResourceName:     ResourceInstanaWebsiteAlertConfig,
 			Schema:           websiteAlertConfigResourceSchema,
 			SkipIDGeneration: true,
+			SchemaVersion:    1,
 		},
 	}
 }
@@ -407,7 +416,13 @@ func (r *websiteAlertConfigResource) MetaData() *ResourceMetaData {
 }
 
 func (r *websiteAlertConfigResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.websiteAlertConfigSchemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.websiteAlertConfigStateUpgradeV0,
+			Version: 0,
+		},
+	}
 }
 
 func (r *websiteAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.WebsiteAlertConfig] {
@@ -418,8 +433,7 @@ func (r *websiteAlertConfigResource) SetComputedFields(_ *schema.ResourceData) e
 	return nil
 }
 
-func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteAlertConfig, formatter utils.ResourceNameFormatter) error {
-	name := formatter.UndoFormat(config.Name)
+func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteAlertConfig, _ utils.ResourceNameFormatter) error {
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(config.Severity)
 	if err != nil {
 		return err
@@ -438,8 +452,7 @@ func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, config 
 		WebsiteAlertConfigFieldCustomPayloadFields: r.mapCustomPayloadFieldsToSchema(config),
 		WebsiteAlertConfigFieldDescription:         config.Description,
 		WebsiteAlertConfigFieldGranularity:         config.Granularity,
-		WebsiteAlertConfigFieldName:                name,
-		WebsiteAlertConfigFieldFullName:            config.Name,
+		WebsiteAlertConfigFieldName:                config.Name,
 		WebsiteAlertConfigFieldRule:                r.mapRuleToSchema(config),
 		WebsiteAlertConfigFieldSeverity:            severity,
 		WebsiteAlertConfigFieldTagFilter:           normalizedTagFilterString,
@@ -530,8 +543,7 @@ func (r *websiteAlertConfigResource) mapTimeThresholdTypeToSchema(input string) 
 	return input
 }
 
-func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.WebsiteAlertConfig, error) {
-	fullName := r.mapFullNameStringFromSchema(d, formatter)
+func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.WebsiteAlertConfig, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(WebsiteAlertConfigFieldSeverity).(string))
 	if err != nil {
 		return nil, err
@@ -554,7 +566,7 @@ func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData
 		CustomerPayloadFields: r.mapCustomPayloadFieldsFromSchema(d),
 		Description:           d.Get(WebsiteAlertConfigFieldDescription).(string),
 		Granularity:           restapi.Granularity(d.Get(WebsiteAlertConfigFieldGranularity).(int)),
-		Name:                  fullName,
+		Name:                  d.Get(WebsiteMonitoringConfigFieldName).(string),
 		Rule:                  *r.mapRuleFromSchema(d),
 		Severity:              severity,
 		TagFilterExpression:   tagFilter,
@@ -563,13 +575,6 @@ func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData
 		Triggering:            d.Get(WebsiteAlertConfigFieldTriggering).(bool),
 		WebsiteID:             d.Get(WebsiteAlertConfigFieldWebsiteID).(string),
 	}, nil
-}
-
-func (r *websiteAlertConfigResource) mapFullNameStringFromSchema(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(WebsiteAlertConfigFieldName) {
-		return formatter.Format(d.Get(WebsiteAlertConfigFieldName).(string))
-	}
-	return d.Get(WebsiteAlertConfigFieldFullName).(string)
 }
 
 func (r *websiteAlertConfigResource) mapTagFilterExpressionFromSchema(input string) (restapi.TagFilterExpressionElement, error) {
@@ -705,4 +710,32 @@ func (r *websiteAlertConfigResource) mapTimeThresholdTypeFromSchema(input string
 		return "violationsInSequence"
 	}
 	return input
+}
+
+func (r *websiteAlertConfigResource) websiteAlertConfigStateUpgradeV0(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[WebsiteAlertConfigFieldFullName]; ok {
+		state[WebsiteAlertConfigFieldName] = state[WebsiteAlertConfigFieldFullName]
+		delete(state, WebsiteAlertConfigFieldFullName)
+	}
+	return state, nil
+}
+
+func (r *websiteAlertConfigResource) websiteAlertConfigSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			WebsiteAlertConfigFieldAlertChannelIDs:     websiteAlertConfigSchemaAlertChannelIDs,
+			WebsiteAlertConfigFieldCustomPayloadFields: websiteAlertConfigSchemaCustomPayloadFields,
+			WebsiteAlertConfigFieldDescription:         websiteAlertConfigSchemaDescription,
+			WebsiteAlertConfigFieldGranularity:         websiteAlertConfigSchemaGranularity,
+			WebsiteAlertConfigFieldName:                websiteAlertConfigSchemaName,
+			WebsiteAlertConfigFieldFullName:            websiteAlertConfigSchemaFullName,
+			WebsiteAlertConfigFieldRule:                websiteAlertConfigSchemaRule,
+			WebsiteAlertConfigFieldSeverity:            websiteAlertConfigSchemaSeverity,
+			WebsiteAlertConfigFieldTagFilter:           websiteAlertConfigSchemaTagFilter,
+			ResourceFieldThreshold:                     thresholdSchema,
+			WebsiteAlertConfigFieldTimeThreshold:       websiteAlertConfigSchemaTimeThreshold,
+			WebsiteAlertConfigFieldTriggering:          websiteAlertConfigSchemaTriggering,
+			WebsiteAlertConfigFieldWebsiteID:           websiteAlertConfigSchemaWebsiteID,
+		},
+	}
 }
