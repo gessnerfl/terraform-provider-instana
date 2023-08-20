@@ -155,8 +155,8 @@ func TestSliConfigShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndF
 	require.NoError(t, err)
 	require.Len(t, result, 1)
 	require.NotContains(t, result, SliConfigFieldFullName)
-	require.Contains(t, result, WebsiteMonitoringConfigFieldName)
-	require.Equal(t, "test", result[WebsiteMonitoringConfigFieldName])
+	require.Contains(t, result, SliConfigFieldName)
+	require.Equal(t, "test", result[SliConfigFieldName])
 }
 
 func TestSliConfigShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
