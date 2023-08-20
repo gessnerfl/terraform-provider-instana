@@ -142,6 +142,8 @@ func testStepImportWithCustomID(resourceName string, resourceID string) resource
 }
 
 const resourceName = "name"
+
+// Deprecated
 const resourceFullName = "prefix name suffix"
 
 func formatResourceName(iteration int) string {

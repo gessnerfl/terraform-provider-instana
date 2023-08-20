@@ -11,9 +11,6 @@ Both are optional in the Instana API. Usually configurations define a **window**
 
 API Documentation: <https://instana.github.io/openapi/#operation/putCustomEventSpecification>
 
-Custom event resources support `default_name_prefix` and `default_name_suffix`. The string will be appended automatically
-to the name of the custom event.
-
 ## Example Usage
 
 ### Built in metric

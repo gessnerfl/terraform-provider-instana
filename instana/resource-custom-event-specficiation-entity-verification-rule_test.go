@@ -36,7 +36,6 @@ const (
 
 	customEntityVerificationEventID                      = "custom-entity-verification-event-id"
 	customEntityVerificationEventName                    = resourceName
-	customEntityVerificationEventFullName                = resourceFullName
 	customEntityVerificationEventQuery                   = "query"
 	customEntityVerificationEventExpirationTime          = 60000
 	customEntityVerificationEventDescription             = "description"
@@ -55,7 +54,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithEntityVerificationRuleR
 	responseTemplate := `
 	{
 		"id" : "%s",
-		"name" : "prefix name %d suffix",
+		"name" : "name %d",
 		"query" : "query",
 		"entityType" : "host",
 		"enabled" : true,
@@ -87,7 +86,6 @@ func createCustomEventSpecificationWithEntityVerificationRuleResourceTestStep(ht
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithEntityVerificationRuleDefinition, "id"),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldQuery, customEntityVerificationEventQuery),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithEntityVerificationRuleDefinition, CustomEventSpecificationFieldTriggering, trueAsString),
@@ -108,7 +106,6 @@ func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsVal
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldFullName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldEntityType)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldQuery)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldTriggering, false)
@@ -122,17 +119,18 @@ func TestCustomEventSpecificationWithEntityVerificationRuleSchemaDefinitionIsVal
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(EntityVerificationRuleFieldOfflineDuration)
 }
 
-func TestCustomEventSpecificationWithEntityVerificationRuleResourceShouldHaveSchemaVersionThree(t *testing.T) {
-	require.Equal(t, 3, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().MetaData().SchemaVersion)
+func TestCustomEventSpecificationWithEntityVerificationRuleResourceShouldHaveSchemaVersionFour(t *testing.T) {
+	require.Equal(t, 4, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestCustomEventSpecificationWithEntityVerificationRuleShouldHaveThreeStateUpgraderForVersionZeroToTwo(t *testing.T) {
+func TestCustomEventSpecificationWithEntityVerificationRuleShouldHaveFourStateUpgraderForVersionZeroToThree(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 
-	require.Equal(t, 3, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 4, len(resourceHandler.StateUpgraders()))
 	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 	require.Equal(t, 2, resourceHandler.StateUpgraders()[2].Version)
+	require.Equal(t, 3, resourceHandler.StateUpgraders()[3].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithEntityVerificationRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -218,7 +216,7 @@ func TestShouldDoNothingWhenMigratingCustomEventSpecificationWithEntityVerificat
 	require.Nil(t, result[EntityVerificationRuleFieldMatchingOperator])
 }
 
-func TestShouldReturnErrorWhenCustomEventSpecificationWithEntityVerificationRuleCannotBeMigratedToVersion3BecuaseOfUnsupportedMatchingOperatorInState(t *testing.T) {
+func TestShouldReturnErrorWhenCustomEventSpecificationWithEntityVerificationRuleCannotBeMigratedToVersion3BecauseOfUnsupportedMatchingOperatorInState(t *testing.T) {
 	rawData := make(map[string]interface{})
 	rawData[EntityVerificationRuleFieldMatchingOperator] = "invalid"
 	meta := "dummy"
@@ -229,6 +227,29 @@ func TestShouldReturnErrorWhenCustomEventSpecificationWithEntityVerificationRule
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "not a supported matching operator")
 	require.Equal(t, rawData, result)
+}
+
+func TestCustomEventSpecificationWithEntityVerificationRuleShouldMigrateFullnameToNameWhenExecutingForthStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[3].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, CustomEventSpecificationFieldFullName)
+	require.Contains(t, result, CustomEventSpecificationFieldName)
+	require.Equal(t, "test", result[CustomEventSpecificationFieldName])
+}
+
+func TestCustomEventSpecificationWithEntityVerificationRuleShouldDoNothingWhenExecutingForthStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle().StateUpgraders()[3].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithEntityVerificationRuleResource(t *testing.T) {
@@ -243,7 +264,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 	query := customEntityVerificationEventQuery
 	spec := &restapi.CustomEventSpecification{
 		ID:             customEntityVerificationEventID,
-		Name:           customEntityVerificationEventFullName,
+		Name:           customEntityVerificationEventName,
 		EntityType:     EntityVerificationRuleEntityType,
 		Query:          &query,
 		Description:    &description,
@@ -268,7 +289,6 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 	require.Nil(t, err)
 	require.Equal(t, customEntityVerificationEventID, resourceData.Id())
 	require.Equal(t, customEntityVerificationEventName, resourceData.Get(CustomEventSpecificationFieldName))
-	require.Equal(t, customEntityVerificationEventFullName, resourceData.Get(CustomEventSpecificationFieldFullName))
 	require.Equal(t, EntityVerificationRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
 	require.Equal(t, customEntityVerificationEventQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
@@ -288,7 +308,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithEntityVe
 	query := customEntityVerificationEventQuery
 	spec := &restapi.CustomEventSpecification{
 		ID:             customEntityVerificationEventID,
-		Name:           customEntityVerificationEventFullName,
+		Name:           customEntityVerificationEventName,
 		EntityType:     EntityVerificationRuleEntityType,
 		Query:          &query,
 		Description:    &description,
@@ -321,7 +341,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	resourceData.SetId(customEntityVerificationEventID)
-	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldFullName, customEntityVerificationEventName)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldName, customEntityVerificationEventName)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldQuery, customEntityVerificationEventQuery)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldTriggering, true)
@@ -334,7 +354,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldMatchingOperator, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue())
 	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldOfflineDuration, customEntityVerificationEventRuleOfflineDuration)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
+	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("foo", "bar"))
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)

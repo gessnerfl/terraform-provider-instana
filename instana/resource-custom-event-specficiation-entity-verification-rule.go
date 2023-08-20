@@ -67,7 +67,7 @@ func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() Resou
 		metaData: ResourceMetaData{
 			ResourceName:  ResourceInstanaCustomEventSpecificationEntityVerificationRule,
 			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, entityVerificationRuleSchemaFields),
-			SchemaVersion: 3,
+			SchemaVersion: 4,
 		},
 		commons: commons,
 	}
@@ -99,6 +99,11 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) StateUpgrad
 			Upgrade: r.migrateCustomEventConfigWithEntityVerificationRuleToVersion3ByChangingMatchingOperatorToInstanaRepresentation,
 			Version: 2,
 		},
+		{
+			Type:    r.schemaV3().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.commons.migrateCustomEventConfigFullStateFromV2toV3AndRemoveFullname,
+			Version: 3,
+		},
 	}
 }
 
@@ -110,8 +115,8 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) SetComputed
 	return d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
-	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
+func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, _ utils.ResourceNameFormatter) error {
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification)
 
 	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
@@ -132,7 +137,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState
 	return tfutils.UpdateState(d, data)
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err
@@ -149,7 +154,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToD
 
 	rule := restapi.NewEntityVerificationRuleSpecification(entityLabel, entityType, matchingOperator.InstanaAPIValue(), offlineDuration, severity)
 
-	customEventSpecification := r.commons.createCustomEventSpecificationFromResourceData(d, formatter)
+	customEventSpecification := r.commons.createCustomEventSpecificationFromResourceData(d)
 	customEventSpecification.Rules = []restapi.RuleSpecification{rule}
 	return customEventSpecification, nil
 }
@@ -182,4 +187,10 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) migrateCust
 		rawState[EntityVerificationRuleFieldMatchingOperator] = operator.InstanaAPIValue()
 	}
 	return rawState, nil
+}
+
+func (r *customEventSpecificationWithEntityVerificationRuleResource) schemaV3() *schema.Resource {
+	return &schema.Resource{
+		Schema: MergeSchemaMap(defaultCustomEventSchemaFieldsV2, entityVerificationRuleSchemaFields),
+	}
 }

@@ -32,7 +32,6 @@ const (
 
 	customSystemEventID               = "custom-system-event-id"
 	customSystemEventName             = resourceName
-	customSystemEventFullName         = resourceFullName
 	customSystemEventQuery            = "query"
 	customSystemEventExpirationTime   = 60000
 	customSystemEventDescription      = "description"
@@ -45,7 +44,7 @@ func TestCRUDOfCreateResourceCustomEventSpecificationWithSystemdRuleResourceWith
 	responseTemplate := `
 	{
 		"id" : "%s",
-		"name" : "prefix name %d suffix",
+		"name" : "name %d",
 		"entityType" : "any",
 		"query" : "query",
 		"enabled" : true,
@@ -77,7 +76,6 @@ func createCustomEventSpecificationWithSystemRuleResourceTestStep(httpPort int64
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testCustomEventSpecificationWithSystemRuleDefinition, "id"),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldEntityType, SystemRuleEntityType),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldQuery, customSystemEventQuery),
 			resource.TestCheckResourceAttr(testCustomEventSpecificationWithSystemRuleDefinition, CustomEventSpecificationFieldTriggering, trueAsString),
@@ -95,7 +93,6 @@ func TestCustomEventSpecificationWithSystemRuleSchemaDefinitionIsValid(t *testin
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldFullName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(CustomEventSpecificationFieldEntityType)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldQuery)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldTriggering, false)
@@ -106,16 +103,17 @@ func TestCustomEventSpecificationWithSystemRuleSchemaDefinitionIsValid(t *testin
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SystemRuleSpecificationSystemRuleID)
 }
 
-func TestCustomEventSpecificationWithSystemRuleResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	require.Equal(t, 2, NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().SchemaVersion)
+func TestCustomEventSpecificationWithSystemRuleResourceShouldHaveSchemaVersionThree(t *testing.T) {
+	require.Equal(t, 3, NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestCustomEventSpecificationWithSystemRuleShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+func TestCustomEventSpecificationWithSystemRuleShouldHaveThreeStateUpgraderForVersionZeroToTwo(t *testing.T) {
 	resourceHandler := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 
-	require.Equal(t, 2, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 3, len(resourceHandler.StateUpgraders()))
 	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
+	require.Equal(t, 2, resourceHandler.StateUpgraders()[2].Version)
 }
 
 func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateAndAddFullNameWithSameValueAsNameWhenMigratingFromVersion0To1(t *testing.T) {
@@ -168,6 +166,29 @@ func TestShouldMigrateCustomEventSpecificationWithSystemRuleStateToVersion2WhenN
 	require.Nil(t, result["downstream_broadcast_to_all_alerting_configs"])
 }
 
+func TestCustomEventSpecificationWithSystemRuleShouldMigrateFullnameToNameWhenExecutingThirdStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[2].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, CustomEventSpecificationFieldFullName)
+	require.Contains(t, result, CustomEventSpecificationFieldName)
+	require.Equal(t, "test", result[CustomEventSpecificationFieldName])
+}
+
+func TestCustomEventSpecificationWithSystemRuleShouldDoNothingWhenExecutingThirdStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewCustomEventSpecificationWithSystemRuleResourceHandle().StateUpgraders()[2].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
+}
+
 func TestShouldReturnCorrectResourceNameForCustomEventSpecificationWithSystemRuleResource(t *testing.T) {
 	name := NewCustomEventSpecificationWithSystemRuleResourceHandle().MetaData().ResourceName
 
@@ -180,7 +201,7 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 	query := customSystemEventQuery
 	spec := restapi.CustomEventSpecification{
 		ID:             customSystemEventID,
-		Name:           customSystemEventFullName,
+		Name:           customSystemEventName,
 		EntityType:     SystemRuleEntityType,
 		Query:          &query,
 		Description:    &description,
@@ -201,7 +222,6 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 	require.Nil(t, err)
 	require.Equal(t, customSystemEventID, resourceData.Id())
 	require.Equal(t, customSystemEventName, resourceData.Get(CustomEventSpecificationFieldName))
-	require.Equal(t, customSystemEventFullName, resourceData.Get(CustomEventSpecificationFieldFullName))
 	require.Equal(t, SystemRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
 	require.Equal(t, customSystemEventQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
@@ -219,7 +239,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	resourceData.SetId(customSystemEventID)
-	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldFullName, customSystemEventName)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldName, customSystemEventName)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldQuery, customSystemEventQuery)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldTriggering, true)
