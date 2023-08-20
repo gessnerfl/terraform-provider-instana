@@ -1,6 +1,7 @@
 package instana
 
 import (
+	"context"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
@@ -17,6 +18,7 @@ const (
 	//SliConfigFieldName constant value for the schema field name
 	SliConfigFieldName = "name"
 	//SliConfigFieldFullName constant value for schema field full_name
+	//Deprecated
 	SliConfigFieldFullName = "full_name"
 	//SliConfigFieldInitialEvaluationTimestamp constant value for the schema field initial_evaluation_timestamp
 	SliConfigFieldInitialEvaluationTimestamp = "initial_evaluation_timestamp"
@@ -52,6 +54,7 @@ var (
 	}
 
 	//SliConfigFullName schema field definition of instana_sli_config field full_name
+	//Deprecated
 	SliConfigFullName = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
@@ -156,12 +159,11 @@ func NewSliConfigResourceHandle() ResourceHandle[*restapi.SliConfig] {
 			ResourceName: ResourceInstanaSliConfig,
 			Schema: map[string]*schema.Schema{
 				SliConfigFieldName:                       SliConfigName,
-				SliConfigFieldFullName:                   SliConfigFullName,
 				SliConfigFieldInitialEvaluationTimestamp: SliConfigInitialEvaluationTimestamp,
 				SliConfigFieldMetricConfiguration:        SliConfigMetricConfiguration,
 				SliConfigFieldSliEntity:                  SliConfigSliEntity,
 			},
-			SchemaVersion: 0,
+			SchemaVersion: 1,
 		},
 	}
 }
@@ -175,7 +177,13 @@ func (r *sliConfigResource) MetaData() *ResourceMetaData {
 }
 
 func (r *sliConfigResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.sliConfigSchemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.sliConfigStateUpgradeV0,
+			Version: 0,
+		},
+	}
 }
 
 func (r *sliConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.SliConfig] {
@@ -186,7 +194,7 @@ func (r *sliConfigResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *restapi.SliConfig, formatter utils.ResourceNameFormatter) error {
+func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *restapi.SliConfig, _ utils.ResourceNameFormatter) error {
 	metricConfiguration := map[string]interface{}{
 		SliConfigFieldMetricName:        sliConfig.MetricConfiguration.Name,
 		SliConfigFieldMetricAggregation: sliConfig.MetricConfiguration.Aggregation,
@@ -202,8 +210,7 @@ func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *resta
 	}
 
 	data := map[string]interface{}{
-		SliConfigFieldName:                       formatter.UndoFormat(sliConfig.Name),
-		SliConfigFieldFullName:                   sliConfig.Name,
+		SliConfigFieldName:                       sliConfig.Name,
 		SliConfigFieldInitialEvaluationTimestamp: sliConfig.InitialEvaluationTimestamp,
 		SliConfigFieldMetricConfiguration:        []map[string]interface{}{metricConfiguration},
 		SliConfigFieldSliEntity:                  []map[string]interface{}{sliEntity},
@@ -213,7 +220,7 @@ func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *resta
 	return tfutils.UpdateState(d, data)
 }
 
-func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.SliConfig, error) {
+func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.SliConfig, error) {
 	metricConfigurationsStateObject := d.Get(SliConfigFieldMetricConfiguration).([]interface{})
 	var metricConfiguration restapi.MetricConfiguration
 	if len(metricConfigurationsStateObject) > 0 {
@@ -226,10 +233,9 @@ func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData, formatt
 		sliEntity = r.mapSliEntityListFromState(sliEntitiesStateObject)
 	}
 
-	name := r.computeFullSliConfigNameString(d, formatter)
 	return &restapi.SliConfig{
 		ID:                         d.Id(),
-		Name:                       name,
+		Name:                       d.Get(SliConfigFieldName).(string),
 		InitialEvaluationTimestamp: d.Get(SliConfigFieldInitialEvaluationTimestamp).(int),
 		MetricConfiguration:        metricConfiguration,
 		SliEntity:                  sliEntity,
@@ -262,9 +268,22 @@ func (r *sliConfigResource) mapSliEntityListFromState(stateObject []interface{})
 	return restapi.SliEntity{}
 }
 
-func (r *sliConfigResource) computeFullSliConfigNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(SliConfigFieldName) {
-		return formatter.Format(d.Get(SliConfigFieldName).(string))
+func (r *sliConfigResource) sliConfigStateUpgradeV0(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[SliConfigFieldFullName]; ok {
+		state[SliConfigFieldName] = state[SliConfigFieldFullName]
+		delete(state, SliConfigFieldFullName)
 	}
-	return d.Get(SliConfigFieldFullName).(string)
+	return state, nil
+}
+
+func (r *sliConfigResource) sliConfigSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			SliConfigFieldName:                       SliConfigName,
+			SliConfigFieldFullName:                   SliConfigFullName,
+			SliConfigFieldInitialEvaluationTimestamp: SliConfigInitialEvaluationTimestamp,
+			SliConfigFieldMetricConfiguration:        SliConfigMetricConfiguration,
+			SliConfigFieldSliEntity:                  SliConfigSliEntity,
+		},
+	}
 }

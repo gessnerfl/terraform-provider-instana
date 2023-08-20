@@ -35,7 +35,7 @@ resource "instana_sli_config" "example_sli_config" {
 const sliConfigServerResponseTemplate = `
 {
 	"id"						: "%s",
-	"sliName"					: "prefix name %d suffix",
+	"sliName"					: "name %d",
 	"initialEvaluationTimestamp": 0,
 	"metricConfiguration": {
 		"metricName"		: "metric_name_example",
@@ -93,7 +93,6 @@ func createSliConfigTestCheckFunctions(httpPort int64, iteration int) resource.T
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
 			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
 			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
 			resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(nestedResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
@@ -114,7 +113,6 @@ func TestResourceSliConfigDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SliConfigFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(SliConfigFieldFullName)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(SliConfigFieldInitialEvaluationTimestamp)
 
 	metricConfigurationSchemaMap := schemaMap[SliConfigFieldMetricConfiguration].Elem.(*schema.Resource).Schema
@@ -140,8 +138,35 @@ func TestShouldReturnCorrectResourceNameForSliConfigs(t *testing.T) {
 	require.Equal(t, "instana_sli_config", name, "Expected resource name to be instana_sli_config")
 }
 
-func TestSliConfigResourceShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewSliConfigResourceHandle().MetaData().SchemaVersion)
+func TestSliConfigResourceShouldHaveSchemaVersionOne(t *testing.T) {
+	require.Equal(t, 1, NewSliConfigResourceHandle().MetaData().SchemaVersion)
+}
+
+func TestSliConfigShouldHaveOneStateUpgrader(t *testing.T) {
+	require.Equal(t, 1, len(NewSliConfigResourceHandle().StateUpgraders()))
+}
+
+func TestSliConfigShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewSliConfigResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, SliConfigFieldFullName)
+	require.Contains(t, result, WebsiteMonitoringConfigFieldName)
+	require.Equal(t, "test", result[WebsiteMonitoringConfigFieldName])
+}
+
+func TestSliConfigShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewSliConfigResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
@@ -150,7 +175,7 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.SliConfig{
 		ID:   sliConfigID,
-		Name: sliConfigFullName,
+		Name: sliConfigName,
 	}
 
 	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
@@ -160,7 +185,6 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, sliConfigID, resourceData.Id())
 	require.Equal(t, sliConfigName, resourceData.Get(SliConfigFieldName))
-	require.Equal(t, sliConfigFullName, resourceData.Get(SliConfigFieldFullName))
 }
 
 func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
@@ -169,7 +193,6 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(sliConfigID)
 	setValueOnResourceData(t, resourceData, SliConfigFieldName, sliConfigName)
-	setValueOnResourceData(t, resourceData, SliConfigFieldFullName, sliConfigFullName)
 	setValueOnResourceData(t, resourceData, SliConfigFieldInitialEvaluationTimestamp, 0)
 
 	metricConfigurationStateObject := []map[string]interface{}{
@@ -197,7 +220,7 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.SliConfig{}, model, "Model should be an sli config")
 	require.Equal(t, sliConfigID, model.GetIDForResourcePath())
-	require.Equal(t, sliConfigFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, sliConfigName, model.Name, "name should be equal to name")
 	require.Equal(t, sliConfigInitialEvaluationTimestamp, model.InitialEvaluationTimestamp, "initial evaluation timestamp should be 0")
 	require.Equal(t, sliConfigMetricName, model.MetricConfiguration.Name)
 	require.Equal(t, sliConfigMetricAggregation, model.MetricConfiguration.Aggregation)
@@ -215,7 +238,6 @@ func TestShouldRequireMetricConfigurationThresholdToBeHigherThanZero(t *testing.
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(sliConfigID)
 	setValueOnResourceData(t, resourceData, SliConfigFieldName, sliConfigName)
-	setValueOnResourceData(t, resourceData, SliConfigFieldFullName, sliConfigFullName)
 	setValueOnResourceData(t, resourceData, SliConfigFieldInitialEvaluationTimestamp, 0)
 
 	metricConfigurationStateObject := []map[string]interface{}{
