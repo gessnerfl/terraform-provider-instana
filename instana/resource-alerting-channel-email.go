@@ -60,7 +60,7 @@ func (r *alertingChannelEmailResource) StateUpgraders() []schema.StateUpgrader {
 		},
 		{
 			Type:    r.schemaV1().CoreConfigSchema().ImpliedType(),
-			Upgrade: r.stateUpgradeV1,
+			Upgrade: migrateFullNameToName,
 			Version: 1,
 		},
 	}
@@ -108,14 +108,6 @@ func (r *alertingChannelEmailResource) schemaV0() *schema.Resource {
 			},
 		},
 	}
-}
-
-func (r *alertingChannelEmailResource) stateUpgradeV1(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
-	if _, ok := state[AlertingChannelFieldFullName]; ok {
-		state[AlertingChannelFieldName] = state[AlertingChannelFieldFullName]
-		delete(state, AlertingChannelFieldFullName)
-	}
-	return state, nil
 }
 
 func (r *alertingChannelEmailResource) schemaV1() *schema.Resource {

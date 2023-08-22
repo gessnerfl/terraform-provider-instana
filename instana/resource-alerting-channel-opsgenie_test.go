@@ -25,7 +25,7 @@ resource "instana_alerting_channel_ops_genie" "example" {
 const alertingChannelOpsGenieServerResponseTemplate = `
 {
 	"id"     : "%s",
-	"name"   : "prefix name %d suffix",
+	"name"   : "name %d",
 	"kind"   : "OPS_GENIE",
 	"apiKey" : "api-key",
 	"region" : "EU",
@@ -58,7 +58,6 @@ func createAlertingChannelOpsGenielResourceTestStep(httpPort int64, iteration in
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testAlertingChannelOpsGenieDefinition, "id"),
 			resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelOpsGenieFieldTags+".0", "tag1"),
 			resource.TestCheckResourceAttr(testAlertingChannelOpsGenieDefinition, AlertingChannelOpsGenieFieldTags+".1", "tag2"),
 		),
@@ -72,7 +71,6 @@ func TestResourceAlertingChannelOpsGenieDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelOpsGenieFieldAPIKey)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelOpsGenieFieldRegion)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfStrings(AlertingChannelOpsGenieFieldTags)
@@ -111,7 +109,6 @@ func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenMultipleTagsAreP
 func requireBasicAlertingChannelEmailsFieldsSet(t *testing.T, resourceData *schema.ResourceData) {
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, "apiKey", resourceData.Get(AlertingChannelOpsGenieFieldAPIKey))
 	require.Equal(t, "EU", resourceData.Get(AlertingChannelOpsGenieFieldRegion))
 }
@@ -121,7 +118,7 @@ func createAlertingChannelEmailModelForResourceUpdateWithoutTags() *restapi.Aler
 	region := restapi.EuOpsGenieRegion
 	return &restapi.AlertingChannel{
 		ID:     "id",
-		Name:   resourceFullName,
+		Name:   resourceName,
 		APIKey: &apiKey,
 		Region: &region,
 	}
@@ -134,7 +131,6 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
 	setValueOnResourceData(t, resourceData, AlertingChannelOpsGenieFieldAPIKey, "api key")
 	setValueOnResourceData(t, resourceData, AlertingChannelOpsGenieFieldRegion, "EU")
 	setValueOnResourceData(t, resourceData, AlertingChannelOpsGenieFieldTags, tags)
@@ -144,18 +140,42 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, resourceName, model.Name, "name should be equal to full name")
 	require.Equal(t, "api key", *model.APIKey, "api key should be equal")
 	require.Equal(t, restapi.EuOpsGenieRegion, *model.Region, "region should be EU")
 	require.Equal(t, "tag1,tag2", *model.Tags, "tags should be equal")
 }
 
-func TestAlertingChannelOpsGenieShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewAlertingChannelOpsGenieResourceHandle().MetaData().SchemaVersion)
+func TestAlertingChannelOpsGenieShouldHaveSchemaVersionOne(t *testing.T) {
+	require.Equal(t, 1, NewAlertingChannelOpsGenieResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestAlertingChannelOpsGenieShouldHaveNoStateUpgrader(t *testing.T) {
-	require.Equal(t, 0, len(NewAlertingChannelOpsGenieResourceHandle().StateUpgraders()))
+func TestAlertingChannelOpsGenieShouldHaveOneStateUpgrader(t *testing.T) {
+	require.Equal(t, 1, len(NewAlertingChannelOpsGenieResourceHandle().StateUpgraders()))
+	require.Equal(t, 0, NewAlertingChannelOpsGenieResourceHandle().StateUpgraders()[0].Version)
+}
+
+func TestAlertingChannelOpsGenieShouldMigrateFullNameToNameWhenExecutingFirstStateUpgraderAndFullNameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewAlertingChannelOpsGenieResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, AlertingChannelFieldFullName)
+	require.Contains(t, result, AlertingChannelFieldName)
+	require.Equal(t, "test", result[AlertingChannelFieldName])
+}
+
+func TestAlertingChannelOpsGenieShouldDoNothingWhenExecutingFirstStateUpgraderAndFullNameIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewAlertingChannelOpsGenieResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelOpsGenie(t *testing.T) {

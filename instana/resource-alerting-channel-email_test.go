@@ -90,6 +90,23 @@ func TestAlertingChannelEmailShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *t
 	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 }
 
+func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
+	emails := []interface{}{"email1", "email2"}
+	name := resourceName
+	fullname := "fullname"
+	rawData := make(map[string]interface{})
+	rawData[AlertingChannelFieldName] = name
+	rawData[AlertingChannelFieldFullName] = fullname
+	rawData[AlertingChannelEmailFieldEmails] = emails
+	meta := "dummy"
+	ctx := context.Background()
+
+	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
+
+	require.Nil(t, err)
+	require.Equal(t, rawData, result)
+}
+
 func TestAlertingChannelEmailShouldMigrateFullNameToNameWhenExecutingSecondStateUpgraderAndFullNameIsAvailable(t *testing.T) {
 	input := map[string]interface{}{
 		"full_name": "test",
@@ -111,23 +128,6 @@ func TestAlertingChannelEmailShouldDoNothingWhenExecutingSecondStateUpgraderAndF
 
 	require.NoError(t, err)
 	require.Equal(t, input, result)
-}
-
-func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
-	emails := []interface{}{"email1", "email2"}
-	name := resourceName
-	fullname := "fullname"
-	rawData := make(map[string]interface{})
-	rawData[AlertingChannelFieldName] = name
-	rawData[AlertingChannelFieldFullName] = fullname
-	rawData[AlertingChannelEmailFieldEmails] = emails
-	meta := "dummy"
-	ctx := context.Background()
-
-	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders()[0].Upgrade(ctx, rawData, meta)
-
-	require.Nil(t, err)
-	require.Equal(t, rawData, result)
 }
 
 func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
