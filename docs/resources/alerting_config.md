@@ -7,9 +7,6 @@ API Documentation: <https://instana.github.io/openapi/#operation/putAlert>
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
 
-Alerting configurations support `default_name_prefix` and `default_name_suffix`. The string will be appended automatically
-to the alert_name.
-
 ---
 **Note:**
 

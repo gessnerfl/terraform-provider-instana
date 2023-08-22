@@ -18,6 +18,7 @@ const (
 	//AlertingConfigFieldAlertName constant value for the schema field alert_name
 	AlertingConfigFieldAlertName = "alert_name"
 	//AlertingConfigFieldFullAlertName constant value for the schema field full_alert_name
+	//Deprecated
 	AlertingConfigFieldFullAlertName = "full_alert_name"
 	//AlertingConfigFieldIntegrationIds constant value for the schema field integration_ids
 	AlertingConfigFieldIntegrationIds = "integration_ids"
@@ -48,6 +49,7 @@ var AlertingConfigSchemaAlertName = &schema.Schema{
 }
 
 // AlertingConfigSchemaFullAlertName schema field definition of instana_alerting_config field full_alert_name
+// Deprecated
 var AlertingConfigSchemaFullAlertName = &schema.Schema{
 	Type:        schema.TypeString,
 	Computed:    true,
@@ -111,13 +113,12 @@ func NewAlertingConfigResourceHandle() ResourceHandle[*restapi.AlertingConfigura
 			ResourceName: ResourceInstanaAlertingConfig,
 			Schema: map[string]*schema.Schema{
 				AlertingConfigFieldAlertName:             AlertingConfigSchemaAlertName,
-				AlertingConfigFieldFullAlertName:         AlertingConfigSchemaFullAlertName,
 				AlertingConfigFieldIntegrationIds:        AlertingConfigSchemaIntegrationIds,
 				AlertingConfigFieldEventFilterQuery:      AlertingConfigSchemaEventFilterQuery,
 				AlertingConfigFieldEventFilterEventTypes: AlertingConfigSchemaEventFilterEventTypes,
 				AlertingConfigFieldEventFilterRuleIDs:    AlertingConfigSchemaEventFilterRuleIDs,
 			},
-			SchemaVersion: 1,
+			SchemaVersion: 2,
 		},
 	}
 }
@@ -133,11 +134,16 @@ func (r *alertingConfigResource) MetaData() *ResourceMetaData {
 func (r *alertingConfigResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{
 		{
-			Type: r.alertingChannelConfigSchemaV0().CoreConfigSchema().ImpliedType(),
+			Type: r.schemaV0().CoreConfigSchema().ImpliedType(),
 			Upgrade: func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 				return rawState, nil
 			},
 			Version: 0,
+		},
+		{
+			Type:    r.schemaV1().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.stateUpgradeV1,
+			Version: 1,
 		},
 	}
 }
@@ -150,11 +156,10 @@ func (r *alertingConfigResource) SetComputedFields(_ *schema.ResourceData) error
 	return nil
 }
 
-func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, config *restapi.AlertingConfiguration, formatter utils.ResourceNameFormatter) error {
+func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, config *restapi.AlertingConfiguration, _ utils.ResourceNameFormatter) error {
 	d.SetId(config.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		AlertingConfigFieldAlertName:             formatter.UndoFormat(config.AlertName),
-		AlertingConfigFieldFullAlertName:         config.AlertName,
+		AlertingConfigFieldAlertName:             config.AlertName,
 		AlertingConfigFieldIntegrationIds:        config.IntegrationIDs,
 		AlertingConfigFieldEventFilterQuery:      config.EventFilteringConfiguration.Query,
 		AlertingConfigFieldEventFilterEventTypes: r.convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes),
@@ -171,13 +176,12 @@ func (r *alertingConfigResource) convertEventTypesToHarmonizedStringRepresentati
 	return result
 }
 
-func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingConfiguration, error) {
-	name := r.computeFullAlertingConfigAlertNameString(d, formatter)
+func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.AlertingConfiguration, error) {
 	query := GetStringPointerFromResourceData(d, AlertingConfigFieldEventFilterQuery)
 
 	return &restapi.AlertingConfiguration{
 		ID:             d.Id(),
-		AlertName:      name,
+		AlertName:      d.Get(AlertingConfigFieldAlertName).(string),
 		IntegrationIDs: ReadStringSetParameterFromResource(d, AlertingConfigFieldIntegrationIds),
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:      query,
@@ -197,14 +201,7 @@ func (r *alertingConfigResource) readEventTypesFromResourceData(d *schema.Resour
 	return result
 }
 
-func (r *alertingConfigResource) computeFullAlertingConfigAlertNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(AlertingConfigFieldAlertName) {
-		return formatter.Format(d.Get(AlertingConfigFieldAlertName).(string))
-	}
-	return d.Get(AlertingConfigFieldFullAlertName).(string)
-}
-
-func (r *alertingConfigResource) alertingChannelConfigSchemaV0() *schema.Resource {
+func (r *alertingConfigResource) schemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			AlertingConfigFieldAlertName:     AlertingConfigSchemaAlertName,
@@ -245,6 +242,27 @@ func (r *alertingConfigResource) alertingChannelConfigSchemaV0() *schema.Resourc
 				ConflictsWith: []string{AlertingConfigFieldEventFilterEventTypes},
 				Description:   "Configures the list of Rule IDs which should trigger an alert.",
 			},
+		},
+	}
+}
+
+func (r *alertingConfigResource) stateUpgradeV1(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[AlertingConfigFieldFullAlertName]; ok {
+		state[AlertingConfigFieldAlertName] = state[AlertingConfigFieldFullAlertName]
+		delete(state, AlertingConfigFieldFullAlertName)
+	}
+	return state, nil
+}
+
+func (r *alertingConfigResource) schemaV1() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			AlertingConfigFieldAlertName:             AlertingConfigSchemaAlertName,
+			AlertingConfigFieldFullAlertName:         AlertingConfigSchemaFullAlertName,
+			AlertingConfigFieldIntegrationIds:        AlertingConfigSchemaIntegrationIds,
+			AlertingConfigFieldEventFilterQuery:      AlertingConfigSchemaEventFilterQuery,
+			AlertingConfigFieldEventFilterEventTypes: AlertingConfigSchemaEventFilterEventTypes,
+			AlertingConfigFieldEventFilterRuleIDs:    AlertingConfigSchemaEventFilterRuleIDs,
 		},
 	}
 }
