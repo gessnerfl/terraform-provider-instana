@@ -61,7 +61,7 @@ const issue141Template = `
 const issue141JsonResponse = `
 {
   "id": "%s",
-  "name": "prefix name %d suffix",
+  "name": "name %d",
   "description": "issue 141 description",
   "boundaryScope": "INBOUND",
   "applicationId": "application-id-1",
@@ -180,7 +180,6 @@ func createIssue141TestStep(terraformResourceInstanceName string, httpPort int64
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(terraformResourceInstanceName, "id", id),
 			resource.TestCheckResourceAttr(terraformResourceInstanceName, ApplicationAlertConfigFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(terraformResourceInstanceName, ApplicationAlertConfigFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(terraformResourceInstanceName, ApplicationAlertConfigFieldDescription, "issue 141 description"),
 			resource.TestCheckResourceAttr(terraformResourceInstanceName, ApplicationAlertConfigFieldBoundaryScope, string(restapi.BoundaryScopeInbound)),
 			resource.TestCheckResourceAttr(terraformResourceInstanceName, ApplicationAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation()),

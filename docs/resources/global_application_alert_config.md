@@ -5,8 +5,6 @@ Management of global application alert configurations (Global Application Smart 
 API Documentation: <https://instana.github.io/openapi/#tag/Global-Application-Alert-Configuration>
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
-The resource supports `default_name_prefix` and `default_name_suffix`. The configured strings
-will be appended automatically to the name of the alert when activated.
 
 ## Example Usage
 
