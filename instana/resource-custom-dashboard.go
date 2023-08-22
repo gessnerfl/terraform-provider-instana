@@ -1,6 +1,7 @@
 package instana
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
@@ -16,6 +17,7 @@ const (
 	//CustomDashboardFieldTitle constant value for the schema field title
 	CustomDashboardFieldTitle = "title"
 	//CustomDashboardFieldFullTitle constant value for the computed schema field full_title
+	//Deprecated
 	CustomDashboardFieldFullTitle = "full_title"
 	//CustomDashboardFieldAccessRule constant value for the schema field access_rule
 	CustomDashboardFieldAccessRule = "access_rule"
@@ -29,64 +31,71 @@ const (
 	CustomDashboardFieldWidgets = "widgets"
 )
 
+var (
+	customDashboardSchemaTitle = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The title of the custom dashboard",
+	}
+	//Deprecated
+	customDashboardSchemaFullTitle = &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "The full title of the custom dashboard. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
+	}
+	customDashboardSchemaAccessRule = &schema.Schema{
+		Type:        schema.TypeList,
+		Required:    true,
+		Description: "The access rules applied to the custom dashboard",
+		MinItems:    1,
+		MaxItems:    64,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				CustomDashboardFieldAccessRuleAccessType: {
+					Type:         schema.TypeString,
+					Required:     true,
+					Description:  "The access type of the given access rule",
+					ValidateFunc: validation.StringInSlice(restapi.SupportedAccessTypes.ToStringSlice(), false),
+				},
+				CustomDashboardFieldAccessRuleRelatedID: {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Description:  "The id of the related entity (user, api_token, etc.) of the given access rule",
+					ValidateFunc: validation.StringLenBetween(0, 64),
+				},
+				CustomDashboardFieldAccessRuleRelationType: {
+					Type:         schema.TypeString,
+					Required:     true,
+					Description:  "The relation type of the given access rule",
+					ValidateFunc: validation.StringInSlice(restapi.SupportedRelationTypes.ToStringSlice(), false),
+				},
+			},
+		},
+	}
+	customDashboardSchemaWidgets = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The json array containing the widgets configured for the custom dashboard",
+		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+			return NormalizeJSONString(old) == NormalizeJSONString(new)
+		},
+		StateFunc: func(val interface{}) string {
+			return NormalizeJSONString(val.(string))
+		},
+	}
+)
+
 // NewCustomDashboardResourceHandle creates the resource handle for RBAC Groups
 func NewCustomDashboardResourceHandle() ResourceHandle[*restapi.CustomDashboard] {
 	return &customDashboardResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaCustomDashboard,
 			Schema: map[string]*schema.Schema{
-				CustomDashboardFieldTitle: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The title of the custom dashboard",
-				},
-				CustomDashboardFieldFullTitle: {
-					Type:        schema.TypeString,
-					Computed:    true,
-					Description: "The full title of the custom dashboard. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
-				},
-				CustomDashboardFieldAccessRule: {
-					Type:        schema.TypeList,
-					Required:    true,
-					Description: "The access rules applied to the custom dashboard",
-					MinItems:    1,
-					MaxItems:    64,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							CustomDashboardFieldAccessRuleAccessType: {
-								Type:         schema.TypeString,
-								Required:     true,
-								Description:  "The access type of the given access rule",
-								ValidateFunc: validation.StringInSlice(restapi.SupportedAccessTypes.ToStringSlice(), false),
-							},
-							CustomDashboardFieldAccessRuleRelatedID: {
-								Type:         schema.TypeString,
-								Optional:     true,
-								Description:  "The id of the related entity (user, api_token, etc.) of the given access rule",
-								ValidateFunc: validation.StringLenBetween(0, 64),
-							},
-							CustomDashboardFieldAccessRuleRelationType: {
-								Type:         schema.TypeString,
-								Required:     true,
-								Description:  "The relation type of the given access rule",
-								ValidateFunc: validation.StringInSlice(restapi.SupportedRelationTypes.ToStringSlice(), false),
-							},
-						},
-					},
-				},
-				CustomDashboardFieldWidgets: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The json array containing the widgets configured for the custom dashboard",
-					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-						return NormalizeJSONString(old) == NormalizeJSONString(new)
-					},
-					StateFunc: func(val interface{}) string {
-						return NormalizeJSONString(val.(string))
-					},
-				},
+				CustomDashboardFieldTitle:      customDashboardSchemaTitle,
+				CustomDashboardFieldAccessRule: customDashboardSchemaAccessRule,
+				CustomDashboardFieldWidgets:    customDashboardSchemaWidgets,
 			},
-			SchemaVersion: 0,
+			SchemaVersion: 1,
 		},
 	}
 }
@@ -100,7 +109,13 @@ func (r *customDashboardResource) MetaData() *ResourceMetaData {
 }
 
 func (r *customDashboardResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.schemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.stateUpgradeV0,
+			Version: 0,
+		},
+	}
 }
 
 func (r *customDashboardResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomDashboard] {
@@ -111,14 +126,13 @@ func (r *customDashboardResource) SetComputedFields(_ *schema.ResourceData) erro
 	return nil
 }
 
-func (r *customDashboardResource) UpdateState(d *schema.ResourceData, dashboard *restapi.CustomDashboard, formatter utils.ResourceNameFormatter) error {
+func (r *customDashboardResource) UpdateState(d *schema.ResourceData, dashboard *restapi.CustomDashboard, _ utils.ResourceNameFormatter) error {
 	widgetsBytes, _ := dashboard.Widgets.MarshalJSON()
 	widgets := NormalizeJSONString(string(widgetsBytes))
 
 	d.SetId(dashboard.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		CustomDashboardFieldTitle:      formatter.UndoFormat(dashboard.Title),
-		CustomDashboardFieldFullTitle:  dashboard.Title,
+		CustomDashboardFieldTitle:      dashboard.Title,
 		CustomDashboardFieldWidgets:    widgets,
 		CustomDashboardFieldAccessRule: r.mapAccessRuleToState(dashboard),
 	})
@@ -136,24 +150,16 @@ func (r *customDashboardResource) mapAccessRuleToState(dashboard *restapi.Custom
 	return result
 }
 
-func (r *customDashboardResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomDashboard, error) {
-	title := r.computeFullTitleString(d, formatter)
+func (r *customDashboardResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.CustomDashboard, error) {
 	accessRules := r.mapAccessRulesFromState(d)
 
 	widgets := d.Get(CustomDashboardFieldWidgets).(string)
 	return &restapi.CustomDashboard{
 		ID:          d.Id(),
-		Title:       title,
+		Title:       d.Get(CustomDashboardFieldTitle).(string),
 		AccessRules: accessRules,
 		Widgets:     json.RawMessage(widgets),
 	}, nil
-}
-
-func (r *customDashboardResource) computeFullTitleString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(CustomDashboardFieldTitle) {
-		return formatter.Format(d.Get(CustomDashboardFieldTitle).(string))
-	}
-	return d.Get(CustomDashboardFieldFullTitle).(string)
 }
 
 func (r *customDashboardResource) mapAccessRulesFromState(d *schema.ResourceData) []restapi.AccessRule {
@@ -178,4 +184,23 @@ func (r *customDashboardResource) mapAccessRulesFromState(d *schema.ResourceData
 		return result
 	}
 	return []restapi.AccessRule{}
+}
+
+func (r *customDashboardResource) stateUpgradeV0(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[CustomDashboardFieldFullTitle]; ok {
+		state[CustomDashboardFieldTitle] = state[CustomDashboardFieldFullTitle]
+		delete(state, CustomDashboardFieldFullTitle)
+	}
+	return state, nil
+}
+
+func (r *customDashboardResource) schemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			CustomDashboardFieldTitle:      customDashboardSchemaTitle,
+			CustomDashboardFieldFullTitle:  customDashboardSchemaFullTitle,
+			CustomDashboardFieldAccessRule: customDashboardSchemaAccessRule,
+			CustomDashboardFieldWidgets:    customDashboardSchemaWidgets,
+		},
+	}
 }

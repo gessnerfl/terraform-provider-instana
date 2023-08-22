@@ -159,7 +159,7 @@ func TestSliConfigShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndF
 	require.Equal(t, "test", result[SliConfigFieldName])
 }
 
-func TestSliConfigShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+func TestSliConfigShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsNotAvailable(t *testing.T) {
 	input := map[string]interface{}{
 		"name": "test",
 	}
