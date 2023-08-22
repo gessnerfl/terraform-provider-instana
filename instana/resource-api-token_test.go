@@ -56,7 +56,6 @@ const (
 	testAPITokenDefinition      = "instana_api_token.example"
 	apiTokenID                  = "api-token-id"
 	apiTokenNameFieldValue      = resourceName
-	apiTokenFullNameFieldValue  = resourceFullName
 	apiTokenAccessGrantingToken = "api-token-access-granting-token"
 	apiTokenInternalID          = "api-token-internal-id"
 )
@@ -186,7 +185,6 @@ func createAPITokenConfigResourceTestStep(httpPort int64, iteration int, id stri
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldAccessGrantingToken, accessGrantingToken),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldInternalID, internalID),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureServiceMapping, trueAsString),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureEumApplications, trueAsString),
 			resource.TestCheckResourceAttr(testAPITokenDefinition, APITokenFieldCanConfigureMobileAppMonitoring, trueAsString),
@@ -225,7 +223,6 @@ func TestAPITokenSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(APITokenFieldAccessGrantingToken)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(APITokenFieldInternalID)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(APITokenFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(APITokenFieldFullName)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(APITokenFieldCanConfigureServiceMapping, false)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(APITokenFieldCanConfigureEumApplications, false)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(APITokenFieldCanConfigureMobileAppMonitoring, false)
@@ -255,12 +252,35 @@ func TestAPITokenSchemaDefinitionIsValid(t *testing.T) {
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(APITokenFieldCanEditAllAccessibleCustomDashboards, false)
 }
 
-func TestAPITokenResourceShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewAPITokenResourceHandle().MetaData().SchemaVersion)
+func TestAPITokenResourceShouldHaveSchemaVersionOne(t *testing.T) {
+	require.Equal(t, 1, NewAPITokenResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestAPITokenResourceShouldHaveNoStateMigrators(t *testing.T) {
-	require.Equal(t, 0, len(NewAPITokenResourceHandle().StateUpgraders()))
+func TestAPITokenResourceShouldHaveOneStateMigrators(t *testing.T) {
+	require.Equal(t, 1, len(NewAPITokenResourceHandle().StateUpgraders()))
+}
+
+func TestAPITokenResourceShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewAPITokenResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, APITokenFieldFullName)
+	require.Contains(t, result, APITokenFieldName)
+	require.Equal(t, "test", result[APITokenFieldName])
+}
+
+func TestAPITokenResourceShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewAPITokenResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnCorrectResourceNameForUserroleResource(t *testing.T) {
@@ -290,7 +310,7 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 	apiToken := restapi.APIToken{
 		ID:                  apiTokenID,
 		AccessGrantingToken: apiTokenAccessGrantingToken,
-		Name:                apiTokenFullNameFieldValue,
+		Name:                apiTokenNameFieldValue,
 		InternalID:          apiTokenInternalID,
 	}
 
@@ -301,7 +321,6 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 	require.Equal(t, apiTokenAccessGrantingToken, resourceData.Get(APITokenFieldAccessGrantingToken))
 	require.Equal(t, apiTokenInternalID, resourceData.Get(APITokenFieldInternalID))
 	require.Equal(t, apiTokenNameFieldValue, resourceData.Get(APITokenFieldName))
-	require.Equal(t, apiTokenFullNameFieldValue, resourceData.Get(APITokenFieldFullName))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureServiceMapping).(bool))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureEumApplications).(bool))
 	require.False(t, resourceData.Get(APITokenFieldCanConfigureMobileAppMonitoring).(bool))
@@ -679,7 +698,6 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 	setValueOnResourceData(t, resourceData, APITokenFieldAccessGrantingToken, apiTokenAccessGrantingToken)
 	setValueOnResourceData(t, resourceData, APITokenFieldInternalID, apiTokenInternalID)
 	setValueOnResourceData(t, resourceData, APITokenFieldName, apiTokenNameFieldValue)
-	setValueOnResourceData(t, resourceData, APITokenFieldFullName, apiTokenFullNameFieldValue)
 	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureServiceMapping, true)
 	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureEumApplications, true)
 	setValueOnResourceData(t, resourceData, APITokenFieldCanConfigureMobileAppMonitoring, true)
@@ -716,7 +734,7 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 	require.Equal(t, apiTokenAccessGrantingToken, model.AccessGrantingToken)
 	require.Equal(t, apiTokenInternalID, model.GetIDForResourcePath())
 	require.Equal(t, apiTokenInternalID, model.InternalID)
-	require.Equal(t, apiTokenFullNameFieldValue, model.Name)
+	require.Equal(t, apiTokenNameFieldValue, model.Name)
 	require.True(t, model.CanConfigureServiceMapping)
 	require.True(t, model.CanConfigureEumApplications)
 	require.True(t, model.CanConfigureMobileAppMonitoring)

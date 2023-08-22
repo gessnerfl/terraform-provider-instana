@@ -1,6 +1,7 @@
 package instana
 
 import (
+	"context"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/gessnerfl/terraform-provider-instana/utils"
@@ -19,6 +20,7 @@ const (
 	//APITokenFieldName constant value for the schema field name
 	APITokenFieldName = "name"
 	//APITokenFieldFullName constant value for the schema field full_name
+	//Deprecated
 	APITokenFieldFullName = "full_name"
 	//APITokenFieldCanConfigureServiceMapping constant value for the schema field can_configure_service_mapping
 	APITokenFieldCanConfigureServiceMapping = "can_configure_service_mapping"
@@ -92,6 +94,7 @@ var (
 		Required:    true,
 		Description: "The name of the API token",
 	}
+	//Deprecated
 	apiTokenSchemaFullName = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
@@ -271,7 +274,6 @@ func NewAPITokenResourceHandle() ResourceHandle[*restapi.APIToken] {
 				APITokenFieldAccessGrantingToken:                  apiTokenSchemaAccessGrantingToken,
 				APITokenFieldInternalID:                           apiTokenSchemaInternalID,
 				APITokenFieldName:                                 apiTokenSchemaName,
-				APITokenFieldFullName:                             apiTokenSchemaFullName,
 				APITokenFieldCanConfigureServiceMapping:           apiTokenSchemaCanConfigureServiceMapping,
 				APITokenFieldCanConfigureEumApplications:          apiTokenSchemaCanConfigureEumApplications,
 				APITokenFieldCanConfigureMobileAppMonitoring:      apiTokenSchemaCanConfigureMobileAppMonitoring,
@@ -300,7 +302,7 @@ func NewAPITokenResourceHandle() ResourceHandle[*restapi.APIToken] {
 				APITokenFieldCanViewAccountAndBillingInformation:  apiTokenSchemaCanViewAccountAndBillingInformation,
 				APITokenFieldCanEditAllAccessibleCustomDashboards: apiTokenSchemaCanEditAllAccessibleCustomDashboards,
 			},
-			SchemaVersion:    0,
+			SchemaVersion:    1,
 			SkipIDGeneration: true,
 			ResourceIDField:  &internalIDFieldName,
 		},
@@ -316,7 +318,13 @@ func (r *apiTokenResource) MetaData() *ResourceMetaData {
 }
 
 func (r *apiTokenResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.schemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.stateUpgradeV0,
+			Version: 0,
+		},
+	}
 }
 
 func (r *apiTokenResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.APIToken] {
@@ -335,8 +343,7 @@ func (r *apiTokenResource) UpdateState(d *schema.ResourceData, apiToken *restapi
 	return tfutils.UpdateState(d, map[string]interface{}{
 		APITokenFieldAccessGrantingToken:                  apiToken.AccessGrantingToken,
 		APITokenFieldInternalID:                           apiToken.InternalID,
-		APITokenFieldName:                                 formatter.UndoFormat(apiToken.Name),
-		APITokenFieldFullName:                             apiToken.Name,
+		APITokenFieldName:                                 apiToken.Name,
 		APITokenFieldCanConfigureServiceMapping:           apiToken.CanConfigureServiceMapping,
 		APITokenFieldCanConfigureEumApplications:          apiToken.CanConfigureEumApplications,
 		APITokenFieldCanConfigureMobileAppMonitoring:      apiToken.CanConfigureMobileAppMonitoring,
@@ -367,13 +374,12 @@ func (r *apiTokenResource) UpdateState(d *schema.ResourceData, apiToken *restapi
 	})
 }
 
-func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.APIToken, error) {
-	name := r.computeFullNameString(d, formatter)
+func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.APIToken, error) {
 	return &restapi.APIToken{
 		ID:                                   d.Id(),
 		AccessGrantingToken:                  d.Get(APITokenFieldAccessGrantingToken).(string),
 		InternalID:                           d.Get(APITokenFieldInternalID).(string),
-		Name:                                 name,
+		Name:                                 d.Get(AlertingChannelFieldName).(string),
 		CanConfigureServiceMapping:           d.Get(APITokenFieldCanConfigureServiceMapping).(bool),
 		CanConfigureEumApplications:          d.Get(APITokenFieldCanConfigureEumApplications).(bool),
 		CanConfigureMobileAppMonitoring:      d.Get(APITokenFieldCanConfigureMobileAppMonitoring).(bool),
@@ -404,9 +410,48 @@ func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, formatte
 	}, nil
 }
 
-func (r *apiTokenResource) computeFullNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(APITokenFieldName) {
-		return formatter.Format(d.Get(APITokenFieldName).(string))
+func (r *apiTokenResource) stateUpgradeV0(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[APITokenFieldFullName]; ok {
+		state[APITokenFieldName] = state[APITokenFieldFullName]
+		delete(state, APITokenFieldFullName)
 	}
-	return d.Get(APITokenFieldFullName).(string)
+	return state, nil
+}
+
+func (r *apiTokenResource) schemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			APITokenFieldAccessGrantingToken:                  apiTokenSchemaAccessGrantingToken,
+			APITokenFieldInternalID:                           apiTokenSchemaInternalID,
+			APITokenFieldName:                                 apiTokenSchemaName,
+			APITokenFieldFullName:                             apiTokenSchemaFullName,
+			APITokenFieldCanConfigureServiceMapping:           apiTokenSchemaCanConfigureServiceMapping,
+			APITokenFieldCanConfigureEumApplications:          apiTokenSchemaCanConfigureEumApplications,
+			APITokenFieldCanConfigureMobileAppMonitoring:      apiTokenSchemaCanConfigureMobileAppMonitoring,
+			APITokenFieldCanConfigureUsers:                    apiTokenSchemaCanConfigureUsers,
+			APITokenFieldCanInstallNewAgents:                  apiTokenSchemaCanInstallNewAgents,
+			APITokenFieldCanSeeUsageInformation:               apiTokenSchemaCanSeeUsageInformation,
+			APITokenFieldCanConfigureIntegrations:             apiTokenSchemaCanConfigureIntegrations,
+			APITokenFieldCanSeeOnPremiseLicenseInformation:    apiTokenSchemaCanSeeOnPremiseLicenseInformation,
+			APITokenFieldCanConfigureCustomAlerts:             apiTokenSchemaCanConfigureCustomAlerts,
+			APITokenFieldCanConfigureAPITokens:                apiTokenSchemaCanConfigureAPITokens,
+			APITokenFieldCanConfigureAgentRunMode:             apiTokenSchemaCanConfigureAgentRunMode,
+			APITokenFieldCanViewAuditLog:                      apiTokenSchemaCanViewAuditLog,
+			APITokenFieldCanConfigureAgents:                   apiTokenSchemaCanConfigureAgents,
+			APITokenFieldCanConfigureAuthenticationMethods:    apiTokenSchemaCanConfigureAuthenticationMethods,
+			APITokenFieldCanConfigureApplications:             apiTokenSchemaCanConfigureApplications,
+			APITokenFieldCanConfigureTeams:                    apiTokenSchemaCanConfigureTeams,
+			APITokenFieldCanConfigureReleases:                 apiTokenSchemaCanConfigureReleases,
+			APITokenFieldCanConfigureLogManagement:            apiTokenSchemaCanConfigureLogManagement,
+			APITokenFieldCanCreatePublicCustomDashboards:      apiTokenSchemaCanCreatePublicCustomDashboards,
+			APITokenFieldCanViewLogs:                          apiTokenSchemaCanViewLogs,
+			APITokenFieldCanViewTraceDetails:                  apiTokenSchemaCanViewTraceDetails,
+			APITokenFieldCanConfigureSessionSettings:          apiTokenSchemaCanConfigureSessionSettings,
+			APITokenFieldCanConfigureServiceLevelIndicators:   apiTokenSchemaCanConfigureServiceLevelIndicators,
+			APITokenFieldCanConfigureGlobalAlertPayload:       apiTokenSchemaCanConfigureGlobalAlertPayload,
+			APITokenFieldCanConfigureGlobalAlertConfigs:       apiTokenSchemaCanConfigureGlobalAlertConfigs,
+			APITokenFieldCanViewAccountAndBillingInformation:  apiTokenSchemaCanViewAccountAndBillingInformation,
+			APITokenFieldCanEditAllAccessibleCustomDashboards: apiTokenSchemaCanEditAllAccessibleCustomDashboards,
+		},
+	}
 }

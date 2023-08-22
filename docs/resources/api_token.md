@@ -6,10 +6,6 @@ API Documentation: <https://instana.github.io/openapi/#operation/getApiToken>
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
 
-The resource supports the `default_name_prefix` and `default_name_suffix`. The strings are 
-appended to the `name` field and stored in the computed field `full_name`. The `full_name`
-is then used as the name field in the Instana API
-
 ## Example Usage
 
 ```hcl
