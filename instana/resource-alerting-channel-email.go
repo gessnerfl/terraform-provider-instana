@@ -5,7 +5,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -34,10 +33,9 @@ func NewAlertingChannelEmailResourceHandle() ResourceHandle[*restapi.AlertingCha
 			ResourceName: ResourceInstanaAlertingChannelEmail,
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:        alertingChannelNameSchemaField,
-				AlertingChannelFieldFullName:    alertingChannelFullNameSchemaField,
 				AlertingChannelEmailFieldEmails: AlertingChannelEmailEmailsSchemaField,
 			},
-			SchemaVersion: 1,
+			SchemaVersion: 2,
 		},
 	}
 }
@@ -53,11 +51,16 @@ func (r *alertingChannelEmailResource) MetaData() *ResourceMetaData {
 func (r *alertingChannelEmailResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{
 		{
-			Type: r.alertingChannelEmailSchemaV0().CoreConfigSchema().ImpliedType(),
+			Type: r.schemaV0().CoreConfigSchema().ImpliedType(),
 			Upgrade: func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 				return rawState, nil
 			},
 			Version: 0,
+		},
+		{
+			Type:    r.schemaV1().CoreConfigSchema().ImpliedType(),
+			Upgrade: migrateFullNameToName,
+			Version: 1,
 		},
 	}
 }
@@ -70,27 +73,25 @@ func (r *alertingChannelEmailResource) SetComputedFields(_ *schema.ResourceData)
 	return nil
 }
 
-func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
+func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	emails := alertingChannel.Emails
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		AlertingChannelFieldName:        formatter.UndoFormat(alertingChannel.Name),
-		AlertingChannelFieldFullName:    alertingChannel.Name,
+		AlertingChannelFieldName:        alertingChannel.Name,
 		AlertingChannelEmailFieldEmails: emails,
 	})
 }
 
-func (r *alertingChannelEmailResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
-	name := computeFullAlertingChannelNameString(d, formatter)
+func (r *alertingChannelEmailResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	return &restapi.AlertingChannel{
 		ID:     d.Id(),
-		Name:   name,
+		Name:   d.Get(AlertingChannelFieldName).(string),
 		Kind:   restapi.EmailChannelType,
 		Emails: ReadStringSetParameterFromResource(d, AlertingChannelEmailFieldEmails),
 	}, nil
 }
 
-func (r *alertingChannelEmailResource) alertingChannelEmailSchemaV0() *schema.Resource {
+func (r *alertingChannelEmailResource) schemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
@@ -104,6 +105,16 @@ func (r *alertingChannelEmailResource) alertingChannelEmailSchemaV0() *schema.Re
 				Required:    true,
 				Description: "The list of emails of the Email alerting channel",
 			},
+		},
+	}
+}
+
+func (r *alertingChannelEmailResource) schemaV1() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			AlertingChannelFieldName:        alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName:    alertingChannelFullNameSchemaField,
+			AlertingChannelEmailFieldEmails: AlertingChannelEmailEmailsSchemaField,
 		},
 	}
 }

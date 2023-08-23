@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -48,11 +47,10 @@ func NewAlertingChannelWebhookResourceHandle() ResourceHandle[*restapi.AlertingC
 			ResourceName: ResourceInstanaAlertingChannelWebhook,
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:               alertingChannelNameSchemaField,
-				AlertingChannelFieldFullName:           alertingChannelFullNameSchemaField,
 				AlertingChannelWebhookFieldWebhookURLs: AlertingChannelWebhookWebhookURLsSchemaField,
 				AlertingChannelWebhookFieldHTTPHeaders: AlertingChannelWebhookHTTPHeadersSchemaField,
 			},
-			SchemaVersion: 1,
+			SchemaVersion: 2,
 		},
 	}
 }
@@ -68,11 +66,16 @@ func (r *alertingChannelWebhookResource) MetaData() *ResourceMetaData {
 func (r *alertingChannelWebhookResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{
 		{
-			Type: r.alertingChannelWebhookSchemaV0().CoreConfigSchema().ImpliedType(),
+			Type: r.schemaV0().CoreConfigSchema().ImpliedType(),
 			Upgrade: func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 				return rawState, nil
 			},
 			Version: 0,
+		},
+		{
+			Type:    r.schemaV1().CoreConfigSchema().ImpliedType(),
+			Upgrade: migrateFullNameToName,
+			Version: 1,
 		},
 	}
 }
@@ -85,13 +88,12 @@ func (r *alertingChannelWebhookResource) SetComputedFields(_ *schema.ResourceDat
 	return nil
 }
 
-func (r *alertingChannelWebhookResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
+func (r *alertingChannelWebhookResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	urls := alertingChannel.WebhookURLs
 	headers := r.createHTTPHeaderMapFromList(alertingChannel.Headers)
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		AlertingChannelFieldName:               formatter.UndoFormat(alertingChannel.Name),
-		AlertingChannelFieldFullName:           alertingChannel.Name,
+		AlertingChannelFieldName:               alertingChannel.Name,
 		AlertingChannelWebhookFieldWebhookURLs: urls,
 		AlertingChannelWebhookFieldHTTPHeaders: headers,
 	})
@@ -110,12 +112,11 @@ func (r *alertingChannelWebhookResource) createHTTPHeaderMapFromList(headers []s
 	return result
 }
 
-func (r *alertingChannelWebhookResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
-	name := computeFullAlertingChannelNameString(d, formatter)
+func (r *alertingChannelWebhookResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	headers := r.createHTTPHeaderListFromMap(d)
 	return &restapi.AlertingChannel{
 		ID:          d.Id(),
-		Name:        name,
+		Name:        d.Get(AlertingChannelFieldName).(string),
 		Kind:        restapi.WebhookChannelType,
 		WebhookURLs: ReadStringSetParameterFromResource(d, AlertingChannelWebhookFieldWebhookURLs),
 		Headers:     headers,
@@ -138,7 +139,7 @@ func (r *alertingChannelWebhookResource) createHTTPHeaderListFromMap(d *schema.R
 	return []string{}
 }
 
-func (r *alertingChannelWebhookResource) alertingChannelWebhookSchemaV0() *schema.Resource {
+func (r *alertingChannelWebhookResource) schemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			AlertingChannelFieldName:     alertingChannelNameSchemaField,
@@ -152,6 +153,17 @@ func (r *alertingChannelWebhookResource) alertingChannelWebhookSchemaV0() *schem
 				Required:    true,
 				Description: "The list of webhook urls of the Webhook alerting channel",
 			},
+			AlertingChannelWebhookFieldHTTPHeaders: AlertingChannelWebhookHTTPHeadersSchemaField,
+		},
+	}
+}
+
+func (r *alertingChannelWebhookResource) schemaV1() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			AlertingChannelFieldName:               alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName:           alertingChannelFullNameSchemaField,
+			AlertingChannelWebhookFieldWebhookURLs: AlertingChannelWebhookWebhookURLsSchemaField,
 			AlertingChannelWebhookFieldHTTPHeaders: AlertingChannelWebhookHTTPHeadersSchemaField,
 		},
 	}

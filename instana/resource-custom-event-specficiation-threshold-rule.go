@@ -5,7 +5,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -118,7 +117,7 @@ func NewCustomEventSpecificationWithThresholdRuleResourceHandle() ResourceHandle
 		metaData: ResourceMetaData{
 			ResourceName:  ResourceInstanaCustomEventSpecificationThresholdRule,
 			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
-			SchemaVersion: 3,
+			SchemaVersion: 4,
 		},
 		commons: commons,
 	}
@@ -150,6 +149,11 @@ func (r *customEventSpecificationWithThresholdRuleResource) StateUpgraders() []s
 			Upgrade: r.migrateCustomEventConfigWithThreasholdRuleToVersion3ByChangingConditionOperatorToInstanaRepresentation,
 			Version: 2,
 		},
+		{
+			Type:    r.schemaV3().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.commons.migrateCustomEventConfigFullStateFromV2toV3AndRemoveFullname,
+			Version: 3,
+		},
 	}
 }
 
@@ -161,7 +165,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) SetComputedFields(_ 
 	return nil
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
+func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification) error {
 	ruleSpec := customEventSpecification.Rules[0]
 
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
@@ -173,7 +177,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schem
 		return err
 	}
 
-	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification)
 	data[CustomEventSpecificationRuleSeverity] = severity
 	data[ThresholdRuleFieldMetricName] = ruleSpec.MetricName
 	data[ThresholdRuleFieldRollup] = ruleSpec.Rollup
@@ -193,7 +197,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) UpdateState(d *schem
 	return tfutils.UpdateState(d, data)
 }
 
-func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
+func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err
@@ -228,7 +232,7 @@ func (r *customEventSpecificationWithThresholdRuleResource) MapStateToDataObject
 		rule.MetricPattern = &metricPattern
 	}
 
-	customEventSpecification := r.commons.createCustomEventSpecificationFromResourceData(d, formatter)
+	customEventSpecification := r.commons.createCustomEventSpecificationFromResourceData(d)
 	customEventSpecification.Rules = []restapi.RuleSpecification{rule}
 	return customEventSpecification, nil
 }
@@ -270,4 +274,10 @@ func (r *customEventSpecificationWithThresholdRuleResource) migrateCustomEventCo
 		rawState[ThresholdRuleFieldConditionOperator] = operator.InstanaAPIValue()
 	}
 	return rawState, nil
+}
+
+func (r *customEventSpecificationWithThresholdRuleResource) schemaV3() *schema.Resource {
+	return &schema.Resource{
+		Schema: MergeSchemaMap(defaultCustomEventSchemaFieldsV2, thresholdRuleSchemaFields),
+	}
 }

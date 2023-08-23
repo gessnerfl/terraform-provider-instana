@@ -25,7 +25,7 @@ resource "instana_alerting_channel_email" "example" {
 const alertingChannelEmailServerResponseTemplate = `
 {
 	"id"     : "%s",
-	"name"   : "prefix name %d suffix",
+	"name"   : "name %d",
 	"kind"   : "EMAIL",
 	"emails" : [ "EMAIL1", "EMAIL2" ]
 }
@@ -56,7 +56,6 @@ func createAlertingChannelEmailResourceTestStep(httpPort int64, iteration int) r
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testAlertingChannelEmailDefinition, "id"),
 			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 0), "EMAIL1"),
 			resource.TestCheckResourceAttr(testAlertingChannelEmailDefinition, fmt.Sprintf("%s.%d", AlertingChannelEmailFieldEmails, 1), "EMAIL2"),
 		),
@@ -70,7 +69,6 @@ func TestResourceAlertingChannelEmailDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeSetOfStrings(AlertingChannelEmailFieldEmails)
 }
 
@@ -80,15 +78,16 @@ func TestShouldReturnCorrectResourceNameForAlertingChannelEmail(t *testing.T) {
 	require.Equal(t, "instana_alerting_channel_email", name, "Expected resource name to be instana_alerting_channel_email")
 }
 
-func TestAlertingChannelEmailResourceShouldHaveSchemaVersionOne(t *testing.T) {
-	require.Equal(t, 1, NewAlertingChannelEmailResourceHandle().MetaData().SchemaVersion)
+func TestAlertingChannelEmailResourceShouldHaveSchemaVersionTwo(t *testing.T) {
+	require.Equal(t, 2, NewAlertingChannelEmailResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestAlertingChannelEmailShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+func TestAlertingChannelEmailShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *testing.T) {
 	resourceHandler := NewAlertingChannelEmailResourceHandle()
 
-	require.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 2, len(resourceHandler.StateUpgraders()))
 	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 }
 
 func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
@@ -108,22 +107,44 @@ func TestShouldReturnStateOfAlertingChannelEmailUnchangedWhenMigratingFromVersio
 	require.Equal(t, rawData, result)
 }
 
+func TestAlertingChannelEmailShouldMigrateFullNameToNameWhenExecutingSecondStateUpgraderAndFullNameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders()[1].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, AlertingChannelFieldFullName)
+	require.Contains(t, result, AlertingChannelFieldName)
+	require.Equal(t, "test", result[AlertingChannelFieldName])
+}
+
+func TestAlertingChannelEmailShouldDoNothingWhenExecutingSecondStateUpgraderAndFullNameIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewAlertingChannelEmailResourceHandle().StateUpgraders()[1].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
+}
+
 func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelEmailResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	data := restapi.AlertingChannel{
 		ID:     "id",
-		Name:   resourceFullName,
+		Name:   resourceName,
 		Emails: []string{"email1", "email2"},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
-	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
+	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
 	emails := resourceData.Get(AlertingChannelEmailFieldEmails).(*schema.Set)
 	require.Equal(t, 2, emails.Len())
@@ -138,15 +159,14 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
 	setValueOnResourceData(t, resourceData, AlertingChannelEmailFieldEmails, emails)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, resourceName, model.Name, "name should be equal to full name")
 	require.Len(t, model.Emails, 2)
 	require.Contains(t, model.Emails, "email1")
 	require.Contains(t, model.Emails, "email2")

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -42,6 +41,7 @@ var customEventSpecificationSchemaName = &schema.Schema{
 	Required:    true,
 	Description: "Configures the name of the custom event specification",
 }
+
 var customEventSpecificationSchemaFullName = &schema.Schema{
 	Type:        schema.TypeString,
 	Computed:    true,
@@ -126,7 +126,7 @@ var defaultCustomEventSchemaFieldsV1 = map[string]*schema.Schema{
 	CustomEventSpecificationRuleSeverity:                            customEventSpecificationSchemaRuleSeverity,
 }
 
-var defaultCustomEventSchemaFields = map[string]*schema.Schema{
+var defaultCustomEventSchemaFieldsV2 = map[string]*schema.Schema{
 	CustomEventSpecificationFieldName:           customEventSpecificationSchemaName,
 	CustomEventSpecificationFieldFullName:       customEventSpecificationSchemaFullName,
 	CustomEventSpecificationFieldQuery:          customEventSpecificationSchemaQuery,
@@ -137,13 +137,22 @@ var defaultCustomEventSchemaFields = map[string]*schema.Schema{
 	CustomEventSpecificationRuleSeverity:        customEventSpecificationSchemaRuleSeverity,
 }
 
+var defaultCustomEventSchemaFields = map[string]*schema.Schema{
+	CustomEventSpecificationFieldName:           customEventSpecificationSchemaName,
+	CustomEventSpecificationFieldQuery:          customEventSpecificationSchemaQuery,
+	CustomEventSpecificationFieldTriggering:     customEventSpecificationSchemaTriggering,
+	CustomEventSpecificationFieldDescription:    customEventSpecificationSchemaDescription,
+	CustomEventSpecificationFieldExpirationTime: customEventSpecificationSchemaExpirationTime,
+	CustomEventSpecificationFieldEnabled:        customEventSpecificationSchemaEnabled,
+	CustomEventSpecificationRuleSeverity:        customEventSpecificationSchemaRuleSeverity,
+}
+
 type customEventSpecificationCommons struct{}
 
-func (c *customEventSpecificationCommons) createCustomEventSpecificationFromResourceData(d *schema.ResourceData, formatter utils.ResourceNameFormatter) *restapi.CustomEventSpecification {
-	name := c.computeFullCustomEventNameString(d, formatter)
+func (c *customEventSpecificationCommons) createCustomEventSpecificationFromResourceData(d *schema.ResourceData) *restapi.CustomEventSpecification {
 	apiModel := restapi.CustomEventSpecification{
 		ID:             d.Id(),
-		Name:           name,
+		Name:           d.Get(CustomEventSpecificationFieldName).(string),
 		EntityType:     d.Get(CustomEventSpecificationFieldEntityType).(string),
 		Query:          GetStringPointerFromResourceData(d, CustomEventSpecificationFieldQuery),
 		Triggering:     d.Get(CustomEventSpecificationFieldTriggering).(bool),
@@ -154,17 +163,9 @@ func (c *customEventSpecificationCommons) createCustomEventSpecificationFromReso
 	return &apiModel
 }
 
-func (c *customEventSpecificationCommons) computeFullCustomEventNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(CustomEventSpecificationFieldName) {
-		return formatter.Format(d.Get(CustomEventSpecificationFieldName).(string))
-	}
-	return d.Get(CustomEventSpecificationFieldFullName).(string)
-}
-
-func (c *customEventSpecificationCommons) getDataForBasicCustomEventSpecification(spec *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) map[string]interface{} {
+func (c *customEventSpecificationCommons) getDataForBasicCustomEventSpecification(spec *restapi.CustomEventSpecification) map[string]interface{} {
 	return map[string]interface{}{
-		CustomEventSpecificationFieldName:           formatter.UndoFormat(spec.Name),
-		CustomEventSpecificationFieldFullName:       spec.Name,
+		CustomEventSpecificationFieldName:           spec.Name,
 		CustomEventSpecificationFieldQuery:          spec.Query,
 		CustomEventSpecificationFieldEntityType:     spec.EntityType,
 		CustomEventSpecificationFieldTriggering:     spec.Triggering,
@@ -183,4 +184,12 @@ func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV
 	delete(rawState, customEventSpecificationDownstreamIntegrationIds)
 	delete(rawState, customEventSpecificationDownstreamBroadcastToAllAlertingConfigs)
 	return rawState, nil
+}
+
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV2toV3AndRemoveFullname(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[CustomEventSpecificationFieldFullName]; ok {
+		state[CustomEventSpecificationFieldName] = state[CustomEventSpecificationFieldFullName]
+		delete(state, CustomEventSpecificationFieldFullName)
+	}
+	return state, nil
 }

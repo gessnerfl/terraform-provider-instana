@@ -28,7 +28,7 @@ resource "instana_alerting_channel_webhook" "example" {
 const alertingChannelWebhookServerResponseTemplate = `
 {
 	"id"     : "%s",
-	"name"   : "prefix name %d suffix",
+	"name"   : "name %d",
 	"kind"   : "WEB_HOOK",
 	"webhookUrls" : [ "url1", "url2" ],
 	"headers" : [ "key1: value1", "key2: value2" ]
@@ -60,7 +60,6 @@ func createAlertingChannelWebhookResourceTestStep(httpPort int64, iteration int)
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testAlertingChannelWebhookDefinition, "id"),
 			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 0), "url1"),
 			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, fmt.Sprintf("%s.%d", AlertingChannelWebhookFieldWebhookURLs, 1), "url2"),
 			resource.TestCheckResourceAttr(testAlertingChannelWebhookDefinition, AlertingChannelWebhookFieldHTTPHeaders+".key1", "value1"),
@@ -76,7 +75,6 @@ func TestResourceAlertingChannelWebhookDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeSetOfStrings(AlertingChannelWebhookFieldWebhookURLs)
 }
 
@@ -86,15 +84,16 @@ func TestShouldReturnCorrectResourceNameForAlertingChannelWebhook(t *testing.T) 
 	require.Equal(t, name, "instana_alerting_channel_webhook")
 }
 
-func TestAlertingChannelWebhookShouldHaveSchemaVersionOne(t *testing.T) {
-	require.Equal(t, 1, NewAlertingChannelWebhookResourceHandle().MetaData().SchemaVersion)
+func TestAlertingChannelWebhookShouldHaveSchemaVersionTwo(t *testing.T) {
+	require.Equal(t, 2, NewAlertingChannelWebhookResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestAlertingChannelWebhookShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+func TestAlertingChannelWebhookShouldHaveTwopStateUpgraderForVersionZeroAndOne(t *testing.T) {
 	resourceHandler := NewAlertingChannelWebhookResourceHandle()
 
-	require.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 2, len(resourceHandler.StateUpgraders()))
 	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 }
 
 func TestShouldReturnStateOfAlertingChannelWebhookUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
@@ -115,11 +114,34 @@ func TestShouldReturnStateOfAlertingChannelWebhookUnchangedWhenMigratingFromVers
 	require.Equal(t, rawData, result)
 }
 
-func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenNoHeaderIsProvided(t *testing.T) {
+func TestAlertingChannelWebhookShouldMigrateFullNameToNameWhenExecutingSecondStateUpgraderAndFullNameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewAlertingChannelWebhookResourceHandle().StateUpgraders()[1].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, AlertingChannelFieldFullName)
+	require.Contains(t, result, AlertingChannelFieldName)
+	require.Equal(t, "test", result[AlertingChannelFieldName])
+}
+
+func TestAlertingChannelWebhookShouldDoNothingWhenExecutingSecondStateUpgraderAndFullNameIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewAlertingChannelWebhookResourceHandle().StateUpgraders()[1].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
+}
+
+func TestShouldUpdateResourceStateForAlertingChannelWebhookWhenNoHeaderIsProvided(t *testing.T) {
 	testShouldUpdateResourceStateForAlertingChanneWebhook(t, []string{}, make(map[string]interface{}))
 }
 
-func TestShouldUpdateResourceStateForAlertingChanneWebhookWhenHeadersAreProvided(t *testing.T) {
+func TestShouldUpdateResourceStateForAlertingChannelWebhookWhenHeadersAreProvided(t *testing.T) {
 	headers := []string{"key1: value1", "key2: value2"}
 	expectedHeaderMap := map[string]interface{}{
 		"key1": "value1",
@@ -144,17 +166,16 @@ func testShouldUpdateResourceStateForAlertingChanneWebhook(t *testing.T, headers
 	webhookURLs := []string{"url1", "url2"}
 	data := restapi.AlertingChannel{
 		ID:          "id",
-		Name:        resourceFullName,
+		Name:        resourceName,
 		WebhookURLs: webhookURLs,
 		Headers:     headersFromApi,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, headersMapped, resourceData.Get(AlertingChannelWebhookFieldHTTPHeaders))
 	urls := resourceData.Get(AlertingChannelWebhookFieldWebhookURLs).(*schema.Set)
 	require.Equal(t, 2, urls.Len())
@@ -169,15 +190,14 @@ func TestShouldConvertStateOfAlertingChannelWebhookToDataModelWhenNoHeaderIsAvai
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
 	setValueOnResourceData(t, resourceData, AlertingChannelWebhookFieldWebhookURLs, webhookURLs)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, resourceName, model.Name, "name should be equal to full name")
 	require.Len(t, model.WebhookURLs, 2)
 	require.Contains(t, model.WebhookURLs, "url1")
 	require.Contains(t, model.WebhookURLs, "url2")

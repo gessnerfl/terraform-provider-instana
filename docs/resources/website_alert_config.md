@@ -5,8 +5,6 @@ Management of website alert configurations (Website Smart Alerts).
 API Documentation: <https://instana.github.io/openapi/#operation/findActiveWebsiteAlertConfigs>
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
-The resource supports `default_name_prefix` and `default_name_suffix`. The configured strings
-will be appended automatically to the name of the alert when activated.
 
 ## Example Usage
 

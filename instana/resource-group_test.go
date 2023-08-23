@@ -62,7 +62,6 @@ const (
 	testGroupDefinition       = "instana_rbac_group.example"
 	defaultGroupID            = "group_id"
 	defaultGroupName          = "group_name"
-	defaultGroupFullName      = "prefix group_name suffix"
 	defaultGroupMember1UserID = "user_1_id"
 	defaultGroupMember1Email  = "user_1_email"
 	defaultGroupMember2UserID = "user_2_id"
@@ -75,7 +74,7 @@ func TestCRUDOfMinimalRBACGroupResourceWithMockServer(t *testing.T) {
 	serverResponseTemplate := `
 		{
 			"id" : "%s",
-			"name" : "prefix name %d suffix",
+			"name" : "name %d",
 			"members": [],
 		    "permissionSet": {
 				"permissions": [],
@@ -110,7 +109,6 @@ func createMinimalRbacGroupResourceTestStep(httpPort int64, iteration int, id st
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
 			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldFullName, formatResourceFullName(iteration)),
 		),
 	}
 }
@@ -119,7 +117,7 @@ func TestCRUDOfRBACGroupResourceWithPermissionsAndApplicationIdsAssignedUsingMoc
 	serverResponseTemplate := `
 		{
 			"id" : "%s",
-			"name" : "prefix name %d suffix",
+			"name" : "name %d",
 			"members": [],
 		    "permissionSet": {
 				"permissions": [ "CAN_CONFIGURE_APPLICATIONS", "CAN_CONFIGURE_AGENTS" ],
@@ -146,7 +144,6 @@ func createRbacGroupResourceWithPermissionsAndApplicationIdsAssignedTestStep(htt
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
 			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldFullName, formatResourceFullName(iteration)),
 			testCheckPermissionSetStringSetField(GroupFieldPermissionSetApplicationIDs, 0, "app_id1"),
 			testCheckPermissionSetStringSetField(GroupFieldPermissionSetApplicationIDs, 1, "app_id2"),
 			testCheckPermissionSetStringSetField(GroupFieldPermissionSetPermissions, 0, string(restapi.PermissionCanConfigureAgents)),
@@ -159,7 +156,7 @@ func TestCRUDOfFullRBACGroupResourceWithMockServer(t *testing.T) {
 	serverResponseTemplate := `
 		{
 			"id" : "%s",
-			"name" : "prefix name %d suffix",
+			"name" : "name %d",
 			"members" : [ 
 				{ "userId" : "user_1_id", "email" : "user_1_email" }, 
 				{ "userId" : "user_2_id", "email" : "user_2_email" } 
@@ -194,7 +191,6 @@ func createFullRbacGroupResourceTestStep(httpPort int64, iteration int, id strin
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(testGroupDefinition, "id", id),
 			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testGroupDefinition, GroupFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.%d.%s", GroupFieldMembers, 0, GroupFieldMemberUserID), defaultGroupMember1UserID),
 			resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.%d.%s", GroupFieldMembers, 0, GroupFieldMemberEmail), defaultGroupMember1Email),
 			resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.%d.%s", GroupFieldMembers, 1, GroupFieldMemberUserID), defaultGroupMember2UserID),
@@ -272,7 +268,6 @@ func TestResourceGroupDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(GroupFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(GroupFieldFullName)
 	verifyGroupMemberSchema(t, schemaMap[GroupFieldMembers])
 	verifyGroupPermissionSetSchema(t, schemaMap[GroupFieldPermissionSet])
 }
@@ -326,8 +321,35 @@ func TestShouldReturnCorrectResourceNameForGroups(t *testing.T) {
 	require.Equal(t, "instana_rbac_group", name)
 }
 
-func TestGroupResourceShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewGroupResourceHandle().MetaData().SchemaVersion)
+func TestGroupResourceShouldHaveSchemaVersionOne(t *testing.T) {
+	require.Equal(t, 1, NewGroupResourceHandle().MetaData().SchemaVersion)
+}
+
+func TestGroupResourceShouldHaveOneStateUpgrader(t *testing.T) {
+	require.Equal(t, 1, len(NewGroupResourceHandle().StateUpgraders()))
+}
+
+func TestGroupResourceShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewGroupResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, GroupFieldFullName)
+	require.Contains(t, result, GroupFieldName)
+	require.Equal(t, "test", result[GroupFieldName])
+}
+
+func TestGroupResourceShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewGroupResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestUpdateStateOfGroupResource(t *testing.T) {
@@ -357,7 +379,7 @@ func TestUpdateStateOfGroupResource(t *testing.T) {
 		},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &group, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &group)
 
 	require.NoError(t, err)
 	require.Equal(t, defaultGroupID, resourceData.Id())
@@ -398,7 +420,7 @@ func TestShouldUpdateStateWhenNoGroupMembersAndAnEmptyPermissionSetIsProvided(t 
 		Name: defaultGroupName,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &group, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &group)
 
 	require.NoError(t, err)
 	require.Equal(t, defaultGroupID, resourceData.Id())
@@ -437,17 +459,16 @@ func TestGroupResourceShouldReadModelFromState(t *testing.T) {
 	}
 	resourceData.SetId(defaultGroupID)
 	setValueOnResourceData(t, resourceData, GroupFieldName, defaultGroupName)
-	setValueOnResourceData(t, resourceData, GroupFieldFullName, defaultGroupFullName)
 	setValueOnResourceData(t, resourceData, GroupFieldMembers, members)
 	setValueOnResourceData(t, resourceData, GroupFieldPermissionSet, permissionSet)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NoError(t, err)
 	require.IsType(t, &restapi.Group{}, result)
 	require.Equal(t, defaultGroupID, result.GetIDForResourcePath())
 	require.Equal(t, defaultGroupID, result.ID)
-	require.Equal(t, defaultGroupFullName, result.Name)
+	require.Equal(t, defaultGroupName, result.Name)
 	member1Email := defaultGroupMember1Email
 	member2Email := defaultGroupMember2Email
 	expectedMembers := []restapi.APIMember{

@@ -102,7 +102,7 @@ resource "%s" "example" {
 var applicationAlertConfigServerResponseTemplate = `
 	{
     "id": "%s",
-    "name": "prefix name %d suffix",
+    "name": "name %d",
     "description": "test-alert-description",
     "boundaryScope": "ALL",
     "applicationId": "app-id",
@@ -186,8 +186,10 @@ func (f *anyApplicationConfigTest) run(t *testing.T) {
 	t.Run(fmt.Sprintf("StateFunc of TagFilter of %s should return provided value when value cannot be normalized", f.terraformResourceName), f.createTestOfStateFuncOfTagFilterShouldReturnProvidedValueWhenValueCannotBeNormalized())
 	t.Run(fmt.Sprintf("ValidateFunc of TagFilter of %s should return no errors and warnings when value can be parsed", f.terraformResourceName), f.createTestOfValidateFuncOfTagFilterShouldReturnNoErrorsAndWarningsWhenValueCanBeParsed())
 	t.Run(fmt.Sprintf("ValidateFunc of TagFilter of %s should return one error and no warnings when value can be parsed", f.terraformResourceName), f.createTestOfValidateFuncOfTagFilterShouldReturnOneErrorAndNoWarningsWhenValueCannotBeParsed())
-	t.Run(fmt.Sprintf("%s should have schema version zero", f.terraformResourceName), f.createTetResourceShouldHaveSchemaVersionZero())
-	t.Run(fmt.Sprintf("%s should have no state upgrader", f.terraformResourceName), f.createTetResourceShouldHaveNoStateUpgrader())
+	t.Run(fmt.Sprintf("%s should have schema version zero", f.terraformResourceName), f.createTetResourceShouldHaveSchemaVersionOne())
+	t.Run(fmt.Sprintf("%s should have no state upgrader", f.terraformResourceName), f.createTetResourceShouldHaveOneStateUpgrader())
+	t.Run(fmt.Sprintf("%s should migrate full_name to name when executing first state upgrader and full_name is available", ResourceInstanaCustomDashboard), f.createTestResourceShouldMigrateFullNameToNameWhenExecutingFirstStateUpgraderAndFullNameIsAvailable())
+	t.Run(fmt.Sprintf("%s should do nothing when executing first state upgrader and full_name is not available", ResourceInstanaCustomDashboard), f.createTestResourceShouldDoNothingWhenExecutingFirstStateUpgraderAndFullNameIsNotAvailable())
 	t.Run(fmt.Sprintf("%s should have correct resouce name", f.terraformResourceName), f.createTetResourceShouldHaveCorrectResourceName())
 	f.createTestCasesForUpdatesOfTerraformResourceStateFromModel(t)
 	f.createTestCasesForMappingOfTerraformResourceStateToModel(t)
@@ -266,7 +268,6 @@ func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int64, ite
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, "id", id),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, ApplicationAlertConfigFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, ApplicationAlertConfigFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, ApplicationAlertConfigFieldDescription, "test-alert-description"),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, ApplicationAlertConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, ApplicationAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation()),
@@ -377,15 +378,42 @@ func (f *anyApplicationConfigTest) createTestOfValidateFuncOfTagFilterShouldRetu
 	}
 }
 
-func (f *anyApplicationConfigTest) createTetResourceShouldHaveSchemaVersionZero() func(t *testing.T) {
+func (f *anyApplicationConfigTest) createTetResourceShouldHaveSchemaVersionOne() func(t *testing.T) {
 	return func(t *testing.T) {
-		require.Equal(t, 0, f.resourceHandle.MetaData().SchemaVersion)
+		require.Equal(t, 1, f.resourceHandle.MetaData().SchemaVersion)
 	}
 }
 
-func (f *anyApplicationConfigTest) createTetResourceShouldHaveNoStateUpgrader() func(t *testing.T) {
+func (f *anyApplicationConfigTest) createTetResourceShouldHaveOneStateUpgrader() func(t *testing.T) {
 	return func(t *testing.T) {
-		require.Empty(t, f.resourceHandle.StateUpgraders())
+		require.Len(t, f.resourceHandle.StateUpgraders(), 1)
+	}
+}
+
+func (f *anyApplicationConfigTest) createTestResourceShouldMigrateFullNameToNameWhenExecutingFirstStateUpgraderAndFullNameIsAvailable() func(t *testing.T) {
+	return func(t *testing.T) {
+		input := map[string]interface{}{
+			"full_name": "test",
+		}
+		result, err := f.resourceHandle.StateUpgraders()[0].Upgrade(nil, input, nil)
+
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.NotContains(t, result, ApplicationAlertConfigFieldFullName)
+		require.Contains(t, result, ApplicationAlertConfigFieldName)
+		require.Equal(t, "test", result[ApplicationAlertConfigFieldName])
+	}
+}
+
+func (f *anyApplicationConfigTest) createTestResourceShouldDoNothingWhenExecutingFirstStateUpgraderAndFullNameIsNotAvailable() func(t *testing.T) {
+	return func(t *testing.T) {
+		input := map[string]interface{}{
+			"name": "test",
+		}
+		result, err := f.resourceHandle.StateUpgraders()[0].Upgrade(nil, input, nil)
+
+		require.NoError(t, err)
+		require.Equal(t, input, result)
 	}
 }
 
@@ -667,7 +695,7 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 	thresholdTestPair testPair[restapi.Threshold, []interface{}],
 	timeThresholdTestPair testPair[restapi.TimeThreshold, []interface{}]) func(t *testing.T) {
 	return func(t *testing.T) {
-		fullName := "prefix application-alert-config-name suffix"
+		name := "application-alert-config-name"
 		applicationAlertConfigID := "application-alert-config-id"
 		applicationConfig := restapi.ApplicationAlertConfig{
 			ID:              applicationAlertConfigID,
@@ -703,7 +731,7 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},
 			},
-			Name:                fullName,
+			Name:                name,
 			Rule:                ruleTestPair.input,
 			Severity:            restapi.SeverityCritical.GetAPIRepresentation(),
 			TagFilterExpression: restapi.NewStringTagFilter(restapi.TagFilterEntitySource, "service.name", restapi.EqualsOperator, "test"),
@@ -716,7 +744,7 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 		sut := f.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &applicationConfig)
 
 		require.NoError(t, err)
 		require.Equal(t, applicationAlertConfigID, resourceData.Id())
@@ -724,8 +752,7 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 		f.requireApplicationAlertConfigApplicationSetOnSchema(t, resourceData)
 		require.Equal(t, string(restapi.BoundaryScopeInbound), resourceData.Get(ApplicationAlertConfigFieldBoundaryScope))
 		require.Equal(t, "application-alert-config-description", resourceData.Get(ApplicationAlertConfigFieldDescription))
-		require.Equal(t, "application-alert-config-name", resourceData.Get(ApplicationAlertConfigFieldName))
-		require.Equal(t, fullName, resourceData.Get(ApplicationAlertConfigFieldFullName))
+		require.Equal(t, name, resourceData.Get(ApplicationAlertConfigFieldName))
 		require.Equal(t, string(restapi.EvaluationTypePerApplication), resourceData.Get(ApplicationAlertConfigFieldEvaluationType))
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeInternal).(bool))
 		require.False(t, resourceData.Get(ApplicationAlertConfigFieldIncludeSynthetic).(bool))
@@ -1065,8 +1092,8 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 	thresholdTestPair testPair[[]map[string]interface{}, restapi.Threshold],
 	timeThresholdTestPair testPair[[]map[string]interface{}, restapi.TimeThreshold]) func(t *testing.T) {
 	return func(t *testing.T) {
-		fullName := "prefix application-alert-config-name suffix"
 		applicationAlertConfigID := "application-alert-config-id"
+		name := "application-alert-config-name"
 		expectedApplicationConfig := restapi.ApplicationAlertConfig{
 			ID:              applicationAlertConfigID,
 			AlertChannelIDs: []string{"channel-2", "channel-1"},
@@ -1101,7 +1128,7 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},
 			},
-			Name:                fullName,
+			Name:                name,
 			Rule:                ruleTestPair.expected,
 			Severity:            restapi.SeverityCritical.GetAPIRepresentation(),
 			TagFilterExpression: restapi.NewStringTagFilter(restapi.TagFilterEntitySource, "service.name", restapi.EqualsOperator, "test"),
@@ -1141,8 +1168,7 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldGranularity, restapi.Granularity600000)
 		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldIncludeInternal, false)
 		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldIncludeSynthetic, false)
-		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldName, "application-alert-config-name")
-		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldFullName, fullName)
+		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldName, name)
 		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldRule, ruleTestPair.input)
 		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldSeverity, restapi.SeverityCritical.GetTerraformRepresentation())
 		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
@@ -1151,7 +1177,7 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldTriggering, true)
 		resourceData.SetId(applicationAlertConfigID)
 
-		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		result, err := sut.MapStateToDataObject(resourceData)
 
 		require.NoError(t, err)
 		require.Equal(t, &expectedApplicationConfig, result)

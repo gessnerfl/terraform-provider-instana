@@ -19,13 +19,11 @@ func TestProviderShouldContainValidSchemaDefinition(t *testing.T) {
 	config := Provider()
 
 	assert.NotNil(t, config.Schema)
-	assert.Equal(t, 5, len(config.Schema))
+	assert.Equal(t, 3, len(config.Schema))
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(config.Schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldAPIToken)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SchemaFieldEndpoint)
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(SchemaFieldDefaultNamePrefix, "")
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(SchemaFieldDefaultNameSuffix, "(TF managed)")
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(SchemaFieldTlsSkipVerify, false)
 }
 

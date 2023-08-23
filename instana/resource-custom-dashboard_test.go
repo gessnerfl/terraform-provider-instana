@@ -30,8 +30,10 @@ type customDashboardResourceTest struct {
 
 func (test *customDashboardResourceTest) run(t *testing.T) {
 	t.Run(fmt.Sprintf("CRUD integration test of %s", ResourceInstanaCustomDashboard), test.createIntegrationTest())
-	t.Run(fmt.Sprintf("%s should have schema version zero", ResourceInstanaCustomDashboard), test.createTestResourceShouldHaveSchemaVersionZero())
-	t.Run(fmt.Sprintf("%s should have no state upgrader", ResourceInstanaCustomDashboard), test.createTestResourceShouldHaveNoStateUpgrader())
+	t.Run(fmt.Sprintf("%s should have schema version zero", ResourceInstanaCustomDashboard), test.createTestResourceShouldHaveSchemaVersionOne())
+	t.Run(fmt.Sprintf("%s should have no state upgrader", ResourceInstanaCustomDashboard), test.createTestResourceShouldHaveOneStateUpgrader())
+	t.Run(fmt.Sprintf("%s should migrate full_title to title when executing first state upgrader and full_title is available", ResourceInstanaCustomDashboard), test.createTestResourceShouldMigrateFullTitleToTitleWhenExecutingFirstStateUpgraderAndFullTitleIsAvailable())
+	t.Run(fmt.Sprintf("%s should do nothing when executing first state upgrader and full_title is not available", ResourceInstanaCustomDashboard), test.createTestResourceShouldDoNothingWhenExecutingFirstStateUpgraderAndFullTitleIsNotAvailable())
 	t.Run(fmt.Sprintf("%s should have correct resouce name", ResourceInstanaCustomDashboard), test.createTestResourceShouldHaveCorrectResourceName())
 	t.Run(fmt.Sprintf("%s should successfully update state from model", ResourceInstanaCustomDashboard), test.createTestShouldSuccessfullyUpdateTerraformStateFromModel())
 	t.Run(fmt.Sprintf("%s should successfully map state to model", ResourceInstanaCustomDashboard), test.createTestShouldSuccessfullyMapTerraformStateFromModel())
@@ -107,7 +109,7 @@ const customDashboardWidgetsJson = `[
 const customDashboardResponseJson = `
 {
   "id": "%s",
-  "title": "prefix name %d suffix",
+  "title": "name %d",
   "accessRules": [
     {
       "accessType": "READ_WRITE",
@@ -217,7 +219,6 @@ func (test *customDashboardResourceTest) createIntegrationTestStep(httpPort int6
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, "id", id),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, CustomDashboardFieldTitle, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, CustomDashboardFieldFullTitle, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, CustomDashboardFieldWidgets, normalizedWidgetsDefinition),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, CustomDashboardFieldAccessRule+".0."+CustomDashboardFieldAccessRuleAccessType, "READ_WRITE"),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, CustomDashboardFieldAccessRule+".0."+CustomDashboardFieldAccessRuleRelatedID, "user-id-1"),
@@ -232,15 +233,42 @@ func (test *customDashboardResourceTest) createIntegrationTestStep(httpPort int6
 	}
 }
 
-func (test *customDashboardResourceTest) createTestResourceShouldHaveSchemaVersionZero() func(t *testing.T) {
+func (test *customDashboardResourceTest) createTestResourceShouldHaveSchemaVersionOne() func(t *testing.T) {
 	return func(t *testing.T) {
-		require.Equal(t, 0, test.resourceHandle.MetaData().SchemaVersion)
+		require.Equal(t, 1, test.resourceHandle.MetaData().SchemaVersion)
 	}
 }
 
-func (test *customDashboardResourceTest) createTestResourceShouldHaveNoStateUpgrader() func(t *testing.T) {
+func (test *customDashboardResourceTest) createTestResourceShouldHaveOneStateUpgrader() func(t *testing.T) {
 	return func(t *testing.T) {
-		require.Empty(t, test.resourceHandle.StateUpgraders())
+		require.Len(t, test.resourceHandle.StateUpgraders(), 1)
+	}
+}
+
+func (test *customDashboardResourceTest) createTestResourceShouldMigrateFullTitleToTitleWhenExecutingFirstStateUpgraderAndFullTitleIsAvailable() func(t *testing.T) {
+	return func(t *testing.T) {
+		input := map[string]interface{}{
+			"full_title": "test",
+		}
+		result, err := NewCustomDashboardResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.NotContains(t, result, CustomDashboardFieldFullTitle)
+		require.Contains(t, result, CustomDashboardFieldTitle)
+		require.Equal(t, "test", result[CustomDashboardFieldTitle])
+	}
+}
+
+func (test *customDashboardResourceTest) createTestResourceShouldDoNothingWhenExecutingFirstStateUpgraderAndFullTitleIsNotAvailable() func(t *testing.T) {
+	return func(t *testing.T) {
+		input := map[string]interface{}{
+			"title": "test",
+		}
+		result, err := NewCustomDashboardResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+		require.NoError(t, err)
+		require.Equal(t, input, result)
 	}
 }
 
@@ -255,7 +283,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyUpdateTerra
 		userID := "user-id"
 		dashboard := restapi.CustomDashboard{
 			ID:      "dashboard-id",
-			Title:   "prefix dashboard-title suffix",
+			Title:   "dashboard-title",
 			Widgets: json.RawMessage("dashboard-widgets"),
 			AccessRules: []restapi.AccessRule{
 				{AccessType: restapi.AccessTypeReadWrite, RelationType: restapi.RelationTypeUser, RelatedID: &userID},
@@ -267,11 +295,10 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyUpdateTerra
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &dashboard, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &dashboard)
 
 		require.NoError(t, err)
 		require.Equal(t, "dashboard-id", resourceData.Id())
-		require.Equal(t, "prefix dashboard-title suffix", resourceData.Get(CustomDashboardFieldFullTitle).(string))
 		require.Equal(t, "dashboard-title", resourceData.Get(CustomDashboardFieldTitle).(string))
 		require.Equal(t, "dashboard-widgets", resourceData.Get(CustomDashboardFieldWidgets).(string))
 		require.Len(t, resourceData.Get(CustomDashboardFieldAccessRule).([]interface{}), 2)
@@ -299,7 +326,6 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 		userID := "user-id"
 		resourceData.SetId("dashboard-id")
 		setValueOnResourceData(t, resourceData, CustomDashboardFieldTitle, "dashboard-title")
-		setValueOnResourceData(t, resourceData, CustomDashboardFieldFullTitle, "prefix dashboard-title suffix")
 		setValueOnResourceData(t, resourceData, CustomDashboardFieldAccessRule, []interface{}{
 			map[string]interface{}{
 				CustomDashboardFieldAccessRuleAccessType:   "READ_WRITE",
@@ -313,12 +339,12 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 		})
 		setValueOnResourceData(t, resourceData, CustomDashboardFieldWidgets, "dashboard-widgets")
 
-		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		result, err := sut.MapStateToDataObject(resourceData)
 
 		require.NoError(t, err)
 		require.Equal(t, &restapi.CustomDashboard{
 			ID:      "dashboard-id",
-			Title:   "prefix dashboard-title suffix",
+			Title:   "dashboard-title",
 			Widgets: json.RawMessage("dashboard-widgets"),
 			AccessRules: []restapi.AccessRule{
 				{AccessType: restapi.AccessTypeReadWrite, RelatedID: &userID, RelationType: restapi.RelationTypeUser},
@@ -337,15 +363,14 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 
 		resourceData.SetId("dashboard-id")
 		setValueOnResourceData(t, resourceData, CustomDashboardFieldTitle, "dashboard-title")
-		setValueOnResourceData(t, resourceData, CustomDashboardFieldFullTitle, "prefix dashboard-title suffix")
 		setValueOnResourceData(t, resourceData, CustomDashboardFieldWidgets, "dashboard-widgets")
 
-		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		result, err := sut.MapStateToDataObject(resourceData)
 
 		require.NoError(t, err)
 		require.Equal(t, &restapi.CustomDashboard{
 			ID:          "dashboard-id",
-			Title:       "prefix dashboard-title suffix",
+			Title:       "dashboard-title",
 			Widgets:     json.RawMessage("dashboard-widgets"),
 			AccessRules: []restapi.AccessRule{},
 		}, result)

@@ -26,7 +26,7 @@ resource "instana_alerting_config" "rule_ids" {
 const alertingConfigServerResponseTemplateWithRuleIds = `
 {
 	"id" : "%s",
-	"alertName" : "prefix name %d suffix",
+	"alertName" : "name %d",
 	"integrationIds" : [ "integration_id2", "integration_id1" ],
 	"eventFilteringConfiguration" : {
 		"query" : "query",
@@ -47,7 +47,7 @@ resource "instana_alerting_config" "event_types" {
 const alertingConfigServerResponseTemplateWithEventTypes = `
 {
 	"id" : "%s",
-	"alertName" : "prefix name %d suffix",
+	"alertName" : "name %d",
 	"integrationIds" : [ "integration_id2", "integration_id1" ],
 	"eventFilteringConfiguration" : {
 		"query" : "query",
@@ -121,7 +121,6 @@ func CreateTestCheckFunctionForComonResourceAttributes(config string, iteration 
 	return resource.ComposeTestCheckFunc(
 		resource.TestCheckResourceAttrSet(config, "id"),
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldAlertName, fmt.Sprintf("name %d", iteration)),
-		resource.TestCheckResourceAttr(config, AlertingConfigFieldFullAlertName, fmt.Sprintf("prefix name %d suffix", iteration)),
 		resource.TestCheckResourceAttr(config, fmt.Sprintf("%s.%d", AlertingConfigFieldIntegrationIds, 0), integrationId1),
 		resource.TestCheckResourceAttr(config, fmt.Sprintf("%s.%d", AlertingConfigFieldIntegrationIds, 1), integrationId2),
 		resource.TestCheckResourceAttr(config, AlertingConfigFieldEventFilterQuery, "query"),
@@ -135,7 +134,6 @@ func TestResourceAlertingConfigDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingConfigFieldAlertName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingConfigFieldFullAlertName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeSetOfStrings(AlertingConfigFieldIntegrationIds)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(AlertingConfigFieldEventFilterQuery)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeSetOfStrings(AlertingConfigFieldEventFilterEventTypes)
@@ -148,15 +146,39 @@ func TestShouldReturnCorrectResourceNameForAlertingConfig(t *testing.T) {
 	require.Equal(t, "instana_alerting_config", name, "Expected resource name to be instana_alerting_config")
 }
 
-func TestAlertingConfigShouldHaveSchemaVersionOne(t *testing.T) {
-	require.Equal(t, 1, NewAlertingConfigResourceHandle().MetaData().SchemaVersion)
+func TestAlertingConfigShouldHaveSchemaVersionTwo(t *testing.T) {
+	require.Equal(t, 2, NewAlertingConfigResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestAlertingConfigShouldHaveOneStateUpgraderForVersionZero(t *testing.T) {
+func TestAlertingConfigShouldHaveTwoStateUpgraderForVersionZeroAndOne(t *testing.T) {
 	resourceHandler := NewAlertingConfigResourceHandle()
 
-	require.Equal(t, 1, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 2, len(resourceHandler.StateUpgraders()))
 	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
+	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
+}
+
+func TestAlertingConfigResourceShouldMigrateFullAlertNameToAlertNameWhenExecutingSecondStateUpgraderAndFullAlertNameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_alert_name": "test",
+	}
+	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[1].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, AlertingConfigFieldFullAlertName)
+	require.Contains(t, result, AlertingConfigFieldAlertName)
+	require.Equal(t, "test", result[AlertingConfigFieldAlertName])
+}
+
+func TestAlertingConfigResourceShouldDoNothingWhenExecutingSecondStateUpgraderAndFullAlertNameIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"alert_name": "test",
+	}
+	result, err := NewAlertingConfigResourceHandle().StateUpgraders()[1].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnStateOfAlertingConfigWithRuleIdsUnchangedWhenMigratingFromVersion0ToVersion1(t *testing.T) {
@@ -194,7 +216,6 @@ func TestShouldReturnStateOfAlertingConfigWithEventTypesUnchangedWhenMigratingFr
 const (
 	alertingConfigID             = "alerting-id"
 	alertingConfigName           = "alerting-name"
-	alertingConfigFullName       = "prefix alerting-name suffix"
 	alertingConfigIntegrationId1 = "alerting-integration-id1"
 	alertingConfigIntegrationId2 = "alerting-integration-id2"
 	alertingConfigRuleId1        = "alerting-rule-id1"
@@ -211,7 +232,7 @@ func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
 
 	data := restapi.AlertingConfiguration{
 		ID:             alertingConfigID,
-		AlertName:      alertingConfigFullName,
+		AlertName:      alertingConfigName,
 		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:   &query,
@@ -219,12 +240,11 @@ func TestShouldUpdateResourceStateForAlertingConfigWithRuleIds(t *testing.T) {
 		},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, alertingConfigID, resourceData.Id())
 	require.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldAlertName))
-	require.Equal(t, alertingConfigFullName, resourceData.Get(AlertingConfigFieldFullAlertName))
 	require.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
 	requireIntegrationIdOFAlertingConfigResourceDataUpdated(t, resourceData)
 
@@ -241,7 +261,7 @@ func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) 
 
 	data := restapi.AlertingConfiguration{
 		ID:             alertingConfigID,
-		AlertName:      alertingConfigFullName,
+		AlertName:      alertingConfigName,
 		IntegrationIDs: []string{alertingConfigIntegrationId1, alertingConfigIntegrationId2},
 		EventFilteringConfiguration: restapi.EventFilteringConfiguration{
 			Query:      &query,
@@ -249,12 +269,11 @@ func TestShouldUpdateResourceStateForAlertingConfigWithEventTypes(t *testing.T) 
 		},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, alertingConfigID, resourceData.Id())
 	require.Equal(t, alertingConfigName, resourceData.Get(AlertingConfigFieldAlertName))
-	require.Equal(t, alertingConfigFullName, resourceData.Get(AlertingConfigFieldFullAlertName))
 	require.Equal(t, alertingConfigQuery, resourceData.Get(AlertingConfigFieldEventFilterQuery))
 	requireIntegrationIdOFAlertingConfigResourceDataUpdated(t, resourceData)
 
@@ -282,12 +301,11 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithRuleIds(t *testing.T) 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(alertingConfigID)
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldAlertName, alertingConfigName)
-	setValueOnResourceData(t, resourceData, AlertingConfigFieldFullAlertName, alertingConfigName)
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldIntegrationIds, integrationIds)
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterRuleIDs, ruleIds)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingConfiguration{}, model)
@@ -306,12 +324,11 @@ func TestShouldConvertStateOfAlertingConfigToDataModelWithEventTypes(t *testing.
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(alertingConfigID)
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldAlertName, alertingConfigName)
-	setValueOnResourceData(t, resourceData, AlertingConfigFieldFullAlertName, alertingConfigName)
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldIntegrationIds, integrationIds)
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingConfiguration{}, model)

@@ -23,8 +23,6 @@ var providerConfig = `
 provider "instana" {
 	api_token 			= "test-token"
 	endpoint 			= "localhost:%d"
-	default_name_prefix = "prefix"
-	default_name_suffix = "suffix"
     tls_skip_verify     = true
 }
 `
@@ -142,14 +140,9 @@ func testStepImportWithCustomID(resourceName string, resourceID string) resource
 }
 
 const resourceName = "name"
-const resourceFullName = "prefix name suffix"
 
 func formatResourceName(iteration int) string {
 	return fmt.Sprintf("name %d", iteration)
-}
-
-func formatResourceFullName(iteration int) string {
-	return fmt.Sprintf("prefix name %d suffix", iteration)
 }
 
 func copyMap(input map[string]interface{}) map[string]interface{} {

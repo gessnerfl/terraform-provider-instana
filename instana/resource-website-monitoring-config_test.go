@@ -25,7 +25,6 @@ resource "instana_website_monitoring_config" "example_website_monitoring_config"
 const (
 	websiteMonitoringConfigApiPath    = restapi.WebsiteMonitoringConfigResourcePath + "/{id}"
 	websiteMonitoringConfigDefinition = "instana_website_monitoring_config.example_website_monitoring_config"
-	websiteMonitoringConfigFullName   = resourceFullName
 )
 
 func TestCRUDOfWebsiteMonitoringConfiguration(t *testing.T) {
@@ -54,8 +53,7 @@ func createWebsiteMonitoringConfigTestCheckFunctions(iteration int) []resource.T
 	testCheckFunctions := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(websiteMonitoringConfigDefinition, "id"),
 		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldName, fmt.Sprintf("name %d", iteration)),
-		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldFullName, fmt.Sprintf("prefix name %d suffix", iteration)),
-		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldAppName, fmt.Sprintf("prefix name %d suffix", iteration)),
+		resource.TestCheckResourceAttr(websiteMonitoringConfigDefinition, WebsiteMonitoringConfigFieldAppName, fmt.Sprintf("name %d", iteration)),
 	}
 	return testCheckFunctions
 }
@@ -179,7 +177,6 @@ func TestResourceWebsiteMonitoringConfigDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(WebsiteMonitoringConfigFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(WebsiteMonitoringConfigFieldFullName)
 	schemaAssert.AssertSchemaIsComputedAndOfTypeString(WebsiteMonitoringConfigFieldAppName)
 }
 
@@ -187,20 +184,19 @@ func TestShouldUpdateResourceStateForWebsiteMonitoringConfig(t *testing.T) {
 	testHelper := NewTestHelper[*restapi.WebsiteMonitoringConfig](t)
 	resourceHandle := NewWebsiteMonitoringConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	fullname := resourceFullName
+	name := resourceName
 	appname := "appname"
 	data := restapi.WebsiteMonitoringConfig{
 		ID:      "id",
-		Name:    fullname,
+		Name:    name,
 		AppName: appname,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id(), "id should be equal")
-	require.Equal(t, "name", resourceData.Get(WebsiteMonitoringConfigFieldName))
-	require.Equal(t, fullname, resourceData.Get(WebsiteMonitoringConfigFieldFullName))
+	require.Equal(t, resourceName, resourceData.Get(WebsiteMonitoringConfigFieldName))
 	require.Equal(t, appname, resourceData.Get(WebsiteMonitoringConfigFieldAppName))
 }
 
@@ -210,22 +206,44 @@ func TestShouldConvertStateOfWebsiteMonitoringConfigToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, WebsiteMonitoringConfigFieldName, "name")
-	setValueOnResourceData(t, resourceData, WebsiteMonitoringConfigFieldFullName, websiteMonitoringConfigFullName)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.WebsiteMonitoringConfig{}, model)
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, websiteMonitoringConfigFullName, model.Name)
+	require.Equal(t, resourceName, model.Name)
 }
 
 func TestWebsiteMonitoringConfigkShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewWebsiteMonitoringConfigResourceHandle().MetaData().SchemaVersion)
+	require.Equal(t, 1, NewWebsiteMonitoringConfigResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestWebsiteMonitoringConfigShouldHaveNoStateUpgrader(t *testing.T) {
-	require.Equal(t, 0, len(NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()))
+func TestWebsiteMonitoringConfigShouldHaveOneStateUpgrader(t *testing.T) {
+	require.Equal(t, 1, len(NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()))
+}
+
+func TestWebsiteMonitoringConfigShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, WebsiteMonitoringConfigFieldFullName)
+	require.Contains(t, result, WebsiteMonitoringConfigFieldName)
+	require.Equal(t, "test", result[WebsiteMonitoringConfigFieldName])
+}
+
+func TestWebsiteMonitoringConfigShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewWebsiteMonitoringConfigResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnCorrectResourceNameForWebsiteMonitoringConfig(t *testing.T) {

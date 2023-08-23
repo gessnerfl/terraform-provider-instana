@@ -3,7 +3,6 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -38,7 +37,7 @@ func NewCustomEventSpecificationWithSystemRuleResourceHandle() ResourceHandle[*r
 		metaData: ResourceMetaData{
 			ResourceName:  ResourceInstanaCustomEventSpecificationSystemRule,
 			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, systemRuleSchemaFields),
-			SchemaVersion: 2,
+			SchemaVersion: 3,
 		},
 		commons: commons,
 	}
@@ -65,6 +64,11 @@ func (r *customEventSpecificationWithSystemRuleResource) StateUpgraders() []sche
 			Upgrade: r.commons.migrateCustomEventConfigFullStateFromV1toV2AndRemoveDownstreamConfiguration,
 			Version: 1,
 		},
+		{
+			Type:    r.schemaV2().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.commons.migrateCustomEventConfigFullStateFromV2toV3AndRemoveFullname,
+			Version: 2,
+		},
 	}
 }
 
@@ -76,8 +80,8 @@ func (r *customEventSpecificationWithSystemRuleResource) SetComputedFields(d *sc
 	return d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, formatter utils.ResourceNameFormatter) error {
-	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification, formatter)
+func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification) error {
+	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification)
 
 	ruleSpec := customEventSpecification.Rules[0]
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(ruleSpec.Severity)
@@ -91,7 +95,7 @@ func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.R
 	return tfutils.UpdateState(d, data)
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
+func (r *customEventSpecificationWithSystemRuleResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err
@@ -99,7 +103,7 @@ func (r *customEventSpecificationWithSystemRuleResource) MapStateToDataObject(d 
 	systemRuleID := d.Get(SystemRuleSpecificationSystemRuleID).(string)
 	rule := restapi.NewSystemRuleSpecification(systemRuleID, severity)
 
-	customEventSpecification := r.commons.createCustomEventSpecificationFromResourceData(d, formatter)
+	customEventSpecification := r.commons.createCustomEventSpecificationFromResourceData(d)
 	customEventSpecification.Rules = []restapi.RuleSpecification{rule}
 	return customEventSpecification, nil
 }
@@ -113,5 +117,11 @@ func (r *customEventSpecificationWithSystemRuleResource) schemaV0() *schema.Reso
 func (r *customEventSpecificationWithSystemRuleResource) schemaV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: MergeSchemaMap(defaultCustomEventSchemaFieldsV1, systemRuleSchemaFields),
+	}
+}
+
+func (r *customEventSpecificationWithSystemRuleResource) schemaV2() *schema.Resource {
+	return &schema.Resource{
+		Schema: MergeSchemaMap(defaultCustomEventSchemaFieldsV2, systemRuleSchemaFields),
 	}
 }

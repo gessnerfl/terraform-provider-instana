@@ -3,7 +3,6 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -14,20 +13,22 @@ const (
 	ResourceInstanaAlertingChannelPagerDuty = "instana_alerting_channel_pager_duty"
 )
 
+var alertingChannelPagerDutySchemaServiceIntegrationKey = &schema.Schema{
+	Type:        schema.TypeString,
+	Required:    true,
+	Description: "The Service Integration Key of the PagerDuty alerting channel",
+}
+
 // NewAlertingChannelPagerDutyResourceHandle creates the resource handle for Alerting Channels of type PagerDuty
 func NewAlertingChannelPagerDutyResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelPagerDutyResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelPagerDuty,
 			Schema: map[string]*schema.Schema{
-				AlertingChannelFieldName:     alertingChannelNameSchemaField,
-				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-				AlertingChannelPagerDutyFieldServiceIntegrationKey: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The Service Integration Key of the PagerDuty alerting channel",
-				},
+				AlertingChannelFieldName:                           alertingChannelNameSchemaField,
+				AlertingChannelPagerDutyFieldServiceIntegrationKey: alertingChannelPagerDutySchemaServiceIntegrationKey,
 			},
+			SchemaVersion: 1,
 		},
 	}
 }
@@ -41,7 +42,13 @@ func (r *alertingChannelPagerDutyResource) MetaData() *ResourceMetaData {
 }
 
 func (r *alertingChannelPagerDutyResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.schemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: migrateFullNameToName,
+			Version: 0,
+		},
+	}
 }
 
 func (r *alertingChannelPagerDutyResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
@@ -52,22 +59,30 @@ func (r *alertingChannelPagerDutyResource) SetComputedFields(_ *schema.ResourceD
 	return nil
 }
 
-func (r *alertingChannelPagerDutyResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
+func (r *alertingChannelPagerDutyResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		AlertingChannelFieldName:                           formatter.UndoFormat(alertingChannel.Name),
-		AlertingChannelFieldFullName:                       alertingChannel.Name,
+		AlertingChannelFieldName:                           alertingChannel.Name,
 		AlertingChannelPagerDutyFieldServiceIntegrationKey: alertingChannel.ServiceIntegrationKey,
 	})
 }
 
-func (r *alertingChannelPagerDutyResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
-	name := computeFullAlertingChannelNameString(d, formatter)
+func (r *alertingChannelPagerDutyResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	serviceIntegrationKey := d.Get(AlertingChannelPagerDutyFieldServiceIntegrationKey).(string)
 	return &restapi.AlertingChannel{
 		ID:                    d.Id(),
-		Name:                  name,
+		Name:                  d.Get(AlertingChannelFieldName).(string),
 		Kind:                  restapi.PagerDutyChannelType,
 		ServiceIntegrationKey: &serviceIntegrationKey,
 	}, nil
+}
+
+func (r *alertingChannelPagerDutyResource) schemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			AlertingChannelFieldName:                           alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName:                       alertingChannelFullNameSchemaField,
+			AlertingChannelPagerDutyFieldServiceIntegrationKey: alertingChannelPagerDutySchemaServiceIntegrationKey,
+		},
+	}
 }

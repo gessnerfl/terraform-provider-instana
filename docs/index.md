@@ -49,8 +49,6 @@ resource.
 provider "instana" {
   api_token = "secure-api-token"  
   endpoint = "<tenant>-<org>.instana.io"
-  default_name_prefix = ""
-  default_name_suffix = "(TF managed)"
   tls_skip_verify     = false
 }
 ```
@@ -63,20 +61,8 @@ resources with this provider. E.g. when User Roles should be provisioned by terr
 then the permission 'Access role configuration' must be activated. (Defaults to the environment variable `INSTANA_API_TOKEN`).
 * `endpoint` - Required - The endpoint of the instana backend. For SaaS the endpoint URL has the pattern
 `<tenant>-<organization>.instana.io`. For onPremise installation the endpoint URL depends on your local setup. (Defaults to the environment variable `INSTANA_ENDPOINT`).
-* `default_name_prefix` - Optional - string will be added in front the resource UI name or label by default
-(not supported by all resources). For existing resources the string will only be added when the name/label is changed.
-* `default_name_suffix` - `Optional` - Default value " (TF managed)" - string will be appended to the resource UI name or 
-label by default (not supported by all resources). For existing resources the string will only be appended when the 
-name/label is changed.
 * `tls_skip_verify` - `Òptional` - Default `false` - If set to true, TLS verification will be skipped when calling Instana API
 
 ## Import support
 
-All resources of the terraform provider instana support resource import. 
-
-*Note:* During import the `default prefix` and `suffix` will be removed from the `name` when
-available. If the `name` as received from the Instana API does not contain the `default
-prefix` and `suffix` the name will be stored as is. The `default prefix` and `suffix` will not
-be appended automatically. In this case `default prefix` and `suffix` will be appended with the
-first change of the name attribute in the resource definition.
-
+All resources of the terraform provider instana support resource import.

@@ -71,7 +71,7 @@ resource "instana_website_alert_config" "example" {
 var websiteAlertConfigServerResponseTemplate = `
 	{
     "id": "%s",
-    "name": "prefix name %d suffix",
+    "name": "name %d",
     "description": "test-alert-description",
     "websiteId": "website-id",
     "severity": 5,
@@ -129,8 +129,10 @@ func (test *websiteAlertConfigTest) run(t *testing.T) {
 	t.Run(fmt.Sprintf("StateFunc of TagFilter of %s should return provided value when value cannot be normalized", ResourceInstanaWebsiteAlertConfig), test.createTestOfStateFuncOfTagFilterShouldReturnProvidedValueWhenValueCannotBeNormalized())
 	t.Run(fmt.Sprintf("ValidateFunc of TagFilter of %s should return no errors and warnings when value can be parsed", ResourceInstanaWebsiteAlertConfig), test.createTestOfValidateFuncOfTagFilterShouldReturnNoErrorsAndWarningsWhenValueCanBeParsed())
 	t.Run(fmt.Sprintf("ValidateFunc of TagFilter of %s should return one error and no warnings when value can be parsed", ResourceInstanaWebsiteAlertConfig), test.createTestOfValidateFuncOfTagFilterShouldReturnOneErrorAndNoWarningsWhenValueCannotBeParsed())
-	t.Run(fmt.Sprintf("%s should have schema version zero", ResourceInstanaWebsiteAlertConfig), test.createTestResourceShouldHaveSchemaVersionZero())
-	t.Run(fmt.Sprintf("%s should have no state upgrader", ResourceInstanaWebsiteAlertConfig), test.createTestResourceShouldHaveNoStateUpgrader())
+	t.Run(fmt.Sprintf("%s should have schema version one", ResourceInstanaWebsiteAlertConfig), test.createTestResourceShouldHaveSchemaVersionOne())
+	t.Run(fmt.Sprintf("%s should have one state upgrader", ResourceInstanaWebsiteAlertConfig), test.createTestResourceShouldHaveOneStateUpgrader())
+	t.Run(fmt.Sprintf("%s should migrate fullname to name when executing first state migration and fullname is available", ResourceInstanaWebsiteAlertConfig), test.createTestWebsiteAlertConfigShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndFullnameIsAvailable())
+	t.Run(fmt.Sprintf("%s should do nothing when executing first state migration and fullname is not available", ResourceInstanaWebsiteAlertConfig), test.createTestWebsiteAlertConfigShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsAvailable())
 	t.Run(fmt.Sprintf("%s should have correct resouce name", ResourceInstanaWebsiteAlertConfig), test.createTestResourceShouldHaveCorrectResourceName())
 	test.createTestCasesForUpdatesOfTerraformResourceStateFromModel(t)
 	t.Run(fmt.Sprintf("%s should fail to update state from model when severity is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCasesShouldFailToUpdateTerraformResourceStateFromModeWhenSeverityIsNotValid())
@@ -208,7 +210,6 @@ func (test *websiteAlertConfigTest) createIntegrationTestStep(httpPort int64, it
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, "id", id),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, WebsiteAlertConfigFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, WebsiteAlertConfigFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, WebsiteAlertConfigFieldDescription, "test-alert-description"),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, WebsiteAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation()),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, WebsiteAlertConfigFieldTriggering, falseAsString),
@@ -308,15 +309,42 @@ func (test *websiteAlertConfigTest) createTestOfValidateFuncOfTagFilterShouldRet
 	}
 }
 
-func (test *websiteAlertConfigTest) createTestResourceShouldHaveSchemaVersionZero() func(t *testing.T) {
+func (test *websiteAlertConfigTest) createTestResourceShouldHaveSchemaVersionOne() func(t *testing.T) {
 	return func(t *testing.T) {
-		require.Equal(t, 0, test.resourceHandle.MetaData().SchemaVersion)
+		require.Equal(t, 1, test.resourceHandle.MetaData().SchemaVersion)
 	}
 }
 
-func (test *websiteAlertConfigTest) createTestResourceShouldHaveNoStateUpgrader() func(t *testing.T) {
+func (test *websiteAlertConfigTest) createTestResourceShouldHaveOneStateUpgrader() func(t *testing.T) {
 	return func(t *testing.T) {
-		require.Empty(t, test.resourceHandle.StateUpgraders())
+		require.Len(t, test.resourceHandle.StateUpgraders(), 1)
+	}
+}
+
+func (test *websiteAlertConfigTest) createTestWebsiteAlertConfigShouldMigrateFullnameToNameWhenExecutingFirstStateUpgraderAndFullnameIsAvailable() func(t *testing.T) {
+	return func(t *testing.T) {
+		input := map[string]interface{}{
+			"full_name": "test",
+		}
+		result, err := NewWebsiteAlertConfigResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.NotContains(t, result, WebsiteAlertConfigFieldFullName)
+		require.Contains(t, result, WebsiteAlertConfigFieldName)
+		require.Equal(t, "test", result[WebsiteAlertConfigFieldName])
+	}
+}
+
+func (test *websiteAlertConfigTest) createTestWebsiteAlertConfigShouldDoNothingWhenExecutingFirstStateUpgraderAndFullnameIsAvailable() func(t *testing.T) {
+	return func(t *testing.T) {
+		input := map[string]interface{}{
+			"name": "test",
+		}
+		result, err := NewWebsiteAlertConfigResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+		require.NoError(t, err)
+		require.Equal(t, input, result)
 	}
 }
 
@@ -564,7 +592,7 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 	thresholdTestPair testPair[restapi.Threshold, []interface{}],
 	timeThresholdTestPair testPair[restapi.WebsiteTimeThreshold, []interface{}]) func(t *testing.T) {
 	return func(t *testing.T) {
-		fullName := "prefix website-alert-config-name suffix"
+		fullName := "website-alert-config-name"
 		websiteAlertConfigID := "website-alert-config-id"
 		websiteID := "website-id"
 		websiteConfig := restapi.WebsiteAlertConfig{
@@ -593,7 +621,7 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &websiteConfig, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &websiteConfig)
 
 		require.NoError(t, err)
 		require.Equal(t, websiteAlertConfigID, resourceData.Id())
@@ -601,7 +629,6 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 		require.Equal(t, websiteID, resourceData.Get(WebsiteAlertConfigFieldWebsiteID))
 		require.Equal(t, "website-alert-config-description", resourceData.Get(WebsiteAlertConfigFieldDescription))
 		require.Equal(t, "website-alert-config-name", resourceData.Get(WebsiteAlertConfigFieldName))
-		require.Equal(t, fullName, resourceData.Get(WebsiteAlertConfigFieldFullName))
 		require.Equal(t, []interface{}{
 			map[string]interface{}{WebsiteAlertConfigFieldCustomPayloadFieldsKey: "static-key", WebsiteAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
 		}, resourceData.Get(WebsiteAlertConfigFieldCustomPayloadFields).(*schema.Set).List())
@@ -659,7 +686,7 @@ func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformRe
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &websiteConfig, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &websiteConfig)
 
 		require.Error(t, err)
 		require.Equal(t, "-1 is not a valid severity", err.Error())
@@ -686,7 +713,7 @@ func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformRe
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &websiteConfig, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &websiteConfig)
 
 		require.Error(t, err)
 		require.Equal(t, "unsupported tag filter expression of type invalid", err.Error())
@@ -931,7 +958,6 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 	thresholdTestPair testPair[[]map[string]interface{}, restapi.Threshold],
 	timeThresholdTestPair testPair[[]map[string]interface{}, restapi.WebsiteTimeThreshold]) func(t *testing.T) {
 	return func(t *testing.T) {
-		fullName := "prefix website-alert-config-name suffix"
 		websiteAlertConfigID := "website-alert-config-id"
 		websiteID := "website-id"
 		expectedWebsiteConfig := restapi.WebsiteAlertConfig{
@@ -947,7 +973,7 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},
 			},
-			Name:                fullName,
+			Name:                "website-alert-config-name",
 			Rule:                ruleTestPair.expected,
 			Severity:            restapi.SeverityCritical.GetAPIRepresentation(),
 			TagFilterExpression: restapi.NewStringTagFilter(restapi.TagFilterEntitySource, "service.name", restapi.EqualsOperator, "test"),
@@ -967,7 +993,6 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldDescription, "website-alert-config-description")
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldGranularity, restapi.Granularity600000)
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldName, "website-alert-config-name")
-		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldFullName, fullName)
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldRule, ruleTestPair.input)
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, restapi.SeverityCritical.GetTerraformRepresentation())
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
@@ -976,7 +1001,7 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTriggering, true)
 		resourceData.SetId(websiteAlertConfigID)
 
-		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		result, err := sut.MapStateToDataObject(resourceData)
 
 		require.NoError(t, err)
 		require.Equal(t, &expectedWebsiteConfig, result)
@@ -991,7 +1016,7 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldName, "website-alert-config-name")
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, "invalid")
 
-		_, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		_, err := sut.MapStateToDataObject(resourceData)
 
 		require.Error(t, err)
 		require.Equal(t, "invalid is not a valid severity", err.Error())
@@ -1007,7 +1032,7 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTagFilter, "invalid invalid invalid")
 
-		_, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		_, err := sut.MapStateToDataObject(resourceData)
 
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unexpected token")

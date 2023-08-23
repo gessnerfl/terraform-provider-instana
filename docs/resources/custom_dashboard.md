@@ -9,8 +9,6 @@ Requires permission `canCreatePublicCustomDashboards` (Creation of public custom
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
 
-Custom Dashboards support `default_name_prefix` and `default_name_suffix`. The string will be appended automatically to the title.
-
 ## Example Usage
 
 ```hcl

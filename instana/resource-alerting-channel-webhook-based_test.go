@@ -23,7 +23,7 @@ resource "instana_alerting_channel_%s" "example" {
 const alertingChannelWebhookBasedServerResponseTemplate = `
 {
 	"id"     	 : "%s",
-	"name"   	 : "prefix name %d suffix",
+	"name"   	 : "name %d",
 	"kind"   	 : "%s",
 	"webhookUrl" : "webhook url"
 }
@@ -62,7 +62,6 @@ func createAlertingChannelWebhookBasedResourceTestStep(resourceDefinition string
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(resourceDefinition, "id"),
 			resource.TestCheckResourceAttr(resourceDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(resourceDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(resourceDefinition, AlertingChannelWebhookBasedFieldWebhookURL, alertingChannelWebhookBasedWebhookUrl),
 		),
 	}
@@ -73,7 +72,7 @@ func TestResourceAlertingChannelGoogleChatDefinition(t *testing.T) {
 }
 
 func TestResourceAlertingChannelOffice365Definition(t *testing.T) {
-	testResourceAlertingChannelWebhookBasedDefinition(t, NewAlertingChannelOffice356ResourceHandle())
+	testResourceAlertingChannelWebhookBasedDefinition(t, NewAlertingChannelOffice365ResourceHandle())
 }
 
 func testResourceAlertingChannelWebhookBasedDefinition[T restapi.InstanaDataObject](t *testing.T, resourceHandle ResourceHandle[T]) {
@@ -81,7 +80,6 @@ func testResourceAlertingChannelWebhookBasedDefinition[T restapi.InstanaDataObje
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelWebhookBasedFieldWebhookURL)
 }
 
@@ -98,16 +96,15 @@ func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {
 	webhookURL := alertingChannelWebhookBasedWebhookUrl
 	data := restapi.AlertingChannel{
 		ID:         "id",
-		Name:       resourceFullName,
+		Name:       resourceName,
 		WebhookURL: &webhookURL,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, webhookURL, resourceData.Get(AlertingChannelWebhookBasedFieldWebhookURL))
 }
 
@@ -118,28 +115,51 @@ func TestShouldConvertStateOfAlertingChannelWebhookBasedToDataModel(t *testing.T
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
 	setValueOnResourceData(t, resourceData, AlertingChannelWebhookBasedFieldWebhookURL, webhookURL)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, resourceName, model.Name, "name should be equal to full name")
 	require.Equal(t, webhookURL, *model.WebhookURL, "webhook url should be equal")
 }
 
-func TestAlertingChannelWebhookBasedShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewAlertingChannelOffice356ResourceHandle().MetaData().SchemaVersion)
+func TestAlertingChannelWebhookBasedShouldHaveSchemaVersionOne(t *testing.T) {
+	require.Equal(t, 1, NewAlertingChannelOffice365ResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestAlertingChannelWebhookBasedShouldHaveNoStateUpgrader(t *testing.T) {
-	require.Equal(t, 0, len(NewAlertingChannelOffice356ResourceHandle().StateUpgraders()))
+func TestAlertingChannelWebhookBasedShouldHaveOneStateUpgrader(t *testing.T) {
+	require.Len(t, NewAlertingChannelOffice365ResourceHandle().StateUpgraders(), 1)
+	require.Equal(t, 0, NewAlertingChannelOffice365ResourceHandle().StateUpgraders()[0].Version)
+}
+
+func TestAlertingChannelWebhookBasedShouldMigrateFullNameToNameWhenExecutingFirstStateUpgraderAndFullNameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewAlertingChannelOffice365ResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, AlertingChannelFieldFullName)
+	require.Contains(t, result, AlertingChannelFieldName)
+	require.Equal(t, "test", result[AlertingChannelFieldName])
+}
+
+func TestAlertingChannelWebhookBasedShouldDoNothingWhenExecutingFirstStateUpgraderAndFullNameIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewAlertingChannelOffice365ResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelOffice365(t *testing.T) {
-	name := NewAlertingChannelOffice356ResourceHandle().MetaData().ResourceName
+	name := NewAlertingChannelOffice365ResourceHandle().MetaData().ResourceName
 
 	require.Equal(t, name, "instana_alerting_channel_office_365")
 }

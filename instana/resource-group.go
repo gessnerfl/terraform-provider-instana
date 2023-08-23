@@ -1,9 +1,9 @@
 package instana
 
 import (
+	"context"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
@@ -12,6 +12,7 @@ import (
 // ResourceInstanaGroup the name of the terraform-provider-instana resource to manage groups for role based access control
 const ResourceInstanaGroup = "instana_rbac_group"
 
+//nolint:gosec
 const (
 	//GroupFieldName constant value for the schema field name
 	GroupFieldName = "name"
@@ -119,35 +120,40 @@ var groupMemberSchema = map[string]*schema.Schema{
 	},
 }
 
+var groupSchemaName = &schema.Schema{
+	Type:        schema.TypeString,
+	Required:    true,
+	Description: "The name of the Group",
+}
+
+var groupSchemaFullName = &schema.Schema{
+	Type:        schema.TypeString,
+	Computed:    true,
+	Description: "The full name of the group. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
+}
+var groupSchemaMembers = &schema.Schema{
+	Type:        schema.TypeSet,
+	Optional:    true,
+	Description: "The members of the group",
+	MaxItems:    1024,
+	Elem: &schema.Resource{
+		Schema: groupMemberSchema,
+	},
+}
+var groupSchemaPermissionSet = &schema.Schema{
+	Type:        schema.TypeList,
+	Optional:    true,
+	MaxItems:    1,
+	Description: "The permission set of the group",
+	Elem: &schema.Resource{
+		Schema: groupPermissionSet,
+	},
+}
+
 var groupSchema = map[string]*schema.Schema{
-	GroupFieldName: {
-		Type:        schema.TypeString,
-		Required:    true,
-		Description: "The name of the Group",
-	},
-	GroupFieldFullName: {
-		Type:        schema.TypeString,
-		Computed:    true,
-		Description: "The full name of the group. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
-	},
-	GroupFieldMembers: {
-		Type:        schema.TypeSet,
-		Optional:    true,
-		Description: "The members of the group",
-		MaxItems:    1024,
-		Elem: &schema.Resource{
-			Schema: groupMemberSchema,
-		},
-	},
-	GroupFieldPermissionSet: {
-		Type:        schema.TypeList,
-		Optional:    true,
-		MaxItems:    1,
-		Description: "The permission set of the group",
-		Elem: &schema.Resource{
-			Schema: groupPermissionSet,
-		},
-	},
+	GroupFieldName:          groupSchemaName,
+	GroupFieldMembers:       groupSchemaMembers,
+	GroupFieldPermissionSet: groupSchemaPermissionSet,
 }
 
 // NewGroupResourceHandle creates the resource handle for RBAC Groups
@@ -156,7 +162,7 @@ func NewGroupResourceHandle() ResourceHandle[*restapi.Group] {
 		metaData: ResourceMetaData{
 			ResourceName:     ResourceInstanaGroup,
 			Schema:           groupSchema,
-			SchemaVersion:    0,
+			SchemaVersion:    1,
 			SkipIDGeneration: true,
 		},
 	}
@@ -171,7 +177,13 @@ func (r *groupResource) MetaData() *ResourceMetaData {
 }
 
 func (r *groupResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.groupSchemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.groupStateUpgradeV0,
+			Version: 0,
+		},
+	}
 }
 
 func (r *groupResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.Group] {
@@ -182,10 +194,9 @@ func (r *groupResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *groupResource) UpdateState(d *schema.ResourceData, group *restapi.Group, formatter utils.ResourceNameFormatter) error {
+func (r *groupResource) UpdateState(d *schema.ResourceData, group *restapi.Group) error {
 	data := map[string]interface{}{
-		GroupFieldName:     formatter.UndoFormat(group.Name),
-		GroupFieldFullName: group.Name,
+		GroupFieldName: group.Name,
 	}
 
 	members := r.convertGroupMembersToState(group)
@@ -244,23 +255,15 @@ func (r *groupResource) convertScopeBindingSliceToState(value []restapi.ScopeBin
 	return schema.NewSet(schema.HashString, result)
 }
 
-func (r *groupResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.Group, error) {
-	name := r.computeFullNameString(d, formatter)
+func (r *groupResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.Group, error) {
 	members := r.convertStateToGroupMembers(d)
-	permissionSet := convertStateToPermissionSet(d)
+	permissionSet := r.convertStateToPermissionSet(d)
 	return &restapi.Group{
 		ID:            d.Id(),
-		Name:          name,
+		Name:          d.Get(GroupFieldName).(string),
 		Members:       members,
 		PermissionSet: *permissionSet,
 	}, nil
-}
-
-func (r *groupResource) computeFullNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(GroupFieldName) {
-		return formatter.Format(d.Get(GroupFieldName).(string))
-	}
-	return d.Get(GroupFieldFullName).(string)
 }
 
 func (r *groupResource) convertStateToGroupMembers(d *schema.ResourceData) []restapi.APIMember {
@@ -286,18 +289,18 @@ func (r *groupResource) convertStateToGroupMembers(d *schema.ResourceData) []res
 	return []restapi.APIMember{}
 }
 
-func convertStateToPermissionSet(d *schema.ResourceData) *restapi.APIPermissionSetWithRoles {
+func (r *groupResource) convertStateToPermissionSet(d *schema.ResourceData) *restapi.APIPermissionSetWithRoles {
 	if val, ok := d.GetOk(GroupFieldPermissionSet); ok {
 		if permissionSetSlice, ok := val.([]interface{}); ok && len(permissionSetSlice) == 1 {
 			if permissionSet, ok := permissionSetSlice[0].(map[string]interface{}); ok {
 				return &restapi.APIPermissionSetWithRoles{
-					ApplicationIDs:          convertStateToSliceOfScopeBinding(GroupFieldPermissionSetApplicationIDs, permissionSet[GroupFieldPermissionSetApplicationIDs]),
-					InfraDFQFilter:          convertStateToScopeBindingPointer(GroupFieldPermissionSetInfraDFQFilter, permissionSet[GroupFieldPermissionSetInfraDFQFilter]),
-					KubernetesClusterUUIDs:  convertStateToSliceOfScopeBinding(GroupFieldPermissionSetKubernetesClusterUUIDs, permissionSet[GroupFieldPermissionSetKubernetesClusterUUIDs]),
-					KubernetesNamespaceUIDs: convertStateToSliceOfScopeBinding(GroupFieldPermissionSetKubernetesNamespaceUIDs, permissionSet[GroupFieldPermissionSetKubernetesNamespaceUIDs]),
-					MobileAppIDs:            convertStateToSliceOfScopeBinding(GroupFieldPermissionSetMobileAppIDs, permissionSet[GroupFieldPermissionSetMobileAppIDs]),
-					WebsiteIDs:              convertStateToSliceOfScopeBinding(GroupFieldPermissionSetWebsiteIDs, permissionSet[GroupFieldPermissionSetWebsiteIDs]),
-					Permissions:             convertStateToPermissions(GroupFieldPermissionSetPermissions, permissionSet[GroupFieldPermissionSetPermissions]),
+					ApplicationIDs:          r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetApplicationIDs, permissionSet[GroupFieldPermissionSetApplicationIDs]),
+					InfraDFQFilter:          r.convertStateToScopeBindingPointer(GroupFieldPermissionSetInfraDFQFilter, permissionSet[GroupFieldPermissionSetInfraDFQFilter]),
+					KubernetesClusterUUIDs:  r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetKubernetesClusterUUIDs, permissionSet[GroupFieldPermissionSetKubernetesClusterUUIDs]),
+					KubernetesNamespaceUIDs: r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetKubernetesNamespaceUIDs, permissionSet[GroupFieldPermissionSetKubernetesNamespaceUIDs]),
+					MobileAppIDs:            r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetMobileAppIDs, permissionSet[GroupFieldPermissionSetMobileAppIDs]),
+					WebsiteIDs:              r.convertStateToSliceOfScopeBinding(GroupFieldPermissionSetWebsiteIDs, permissionSet[GroupFieldPermissionSetWebsiteIDs]),
+					Permissions:             r.convertStateToPermissions(GroupFieldPermissionSetPermissions, permissionSet[GroupFieldPermissionSetPermissions]),
 				}
 			}
 		}
@@ -314,7 +317,7 @@ func convertStateToPermissionSet(d *schema.ResourceData) *restapi.APIPermissionS
 	}
 }
 
-func convertStateToSliceOfScopeBinding(attribute string, val interface{}) []restapi.ScopeBinding {
+func (r *groupResource) convertStateToSliceOfScopeBinding(attribute string, val interface{}) []restapi.ScopeBinding {
 	if set, ok := val.(*schema.Set); ok {
 		slice := set.List()
 		result := make([]restapi.ScopeBinding, len(slice))
@@ -327,7 +330,7 @@ func convertStateToSliceOfScopeBinding(attribute string, val interface{}) []rest
 	return make([]restapi.ScopeBinding, 0)
 }
 
-func convertStateToScopeBindingPointer(attribute string, val interface{}) *restapi.ScopeBinding {
+func (r *groupResource) convertStateToScopeBindingPointer(attribute string, val interface{}) *restapi.ScopeBinding {
 	if v, ok := val.(string); ok {
 		return &restapi.ScopeBinding{ScopeID: v}
 	}
@@ -335,7 +338,7 @@ func convertStateToScopeBindingPointer(attribute string, val interface{}) *resta
 	return nil
 }
 
-func convertStateToPermissions(attribute string, val interface{}) []restapi.InstanaPermission {
+func (r *groupResource) convertStateToPermissions(attribute string, val interface{}) []restapi.InstanaPermission {
 	if set, ok := val.(*schema.Set); ok {
 		slice := set.List()
 		result := make([]restapi.InstanaPermission, len(slice))
@@ -346,4 +349,23 @@ func convertStateToPermissions(attribute string, val interface{}) []restapi.Inst
 	}
 	log.Printf("WARN: %s state cannot be read\n", attribute)
 	return make([]restapi.InstanaPermission, 0)
+}
+
+func (r *groupResource) groupStateUpgradeV0(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[GroupFieldFullName]; ok {
+		state[GroupFieldName] = state[GroupFieldFullName]
+		delete(state, GroupFieldFullName)
+	}
+	return state, nil
+}
+
+func (r *groupResource) groupSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			GroupFieldName:          groupSchemaName,
+			GroupFieldFullName:      groupSchemaFullName,
+			GroupFieldMembers:       groupSchemaMembers,
+			GroupFieldPermissionSet: groupSchemaPermissionSet,
+		},
+	}
 }

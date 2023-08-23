@@ -9,7 +9,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -140,13 +139,12 @@ func NewApplicationConfigResourceHandle() ResourceHandle[*restapi.ApplicationCon
 			ResourceName: ResourceInstanaApplicationConfig,
 			Schema: map[string]*schema.Schema{
 				ApplicationConfigFieldLabel:              ApplicationConfigLabel,
-				ApplicationConfigFieldFullLabel:          ApplicationConfigFullLabel,
 				ApplicationConfigFieldScope:              ApplicationConfigScope,
 				ApplicationConfigFieldBoundaryScope:      ApplicationConfigBoundaryScope,
 				ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
 				ApplicationConfigFieldTagFilter:          ApplicationConfigTagFilter,
 			},
-			SchemaVersion: 3,
+			SchemaVersion: 4,
 		},
 	}
 }
@@ -162,19 +160,24 @@ func (r *applicationConfigResource) MetaData() *ResourceMetaData {
 func (r *applicationConfigResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{
 		{
-			Type:    r.applicationConfigSchemaV0().CoreConfigSchema().ImpliedType(),
-			Upgrade: r.applicationConfigStateUpgradeV0,
+			Type:    r.schemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.stateUpgradeV0,
 			Version: 0,
 		},
 		{
-			Type:    r.applicationConfigSchemaV1().CoreConfigSchema().ImpliedType(),
+			Type:    r.schemaV1().CoreConfigSchema().ImpliedType(),
 			Upgrade: r.updateToVersion1AndRecalculateNormalizedMatchSpecification,
 			Version: 1,
 		},
 		{
-			Type:    r.applicationConfigSchemaV2().CoreConfigSchema().ImpliedType(),
+			Type:    r.schemaV2().CoreConfigSchema().ImpliedType(),
 			Upgrade: r.updateToVersion2AndRemoveNormalizedMatchSpecification,
 			Version: 2,
+		},
+		{
+			Type:    r.schemaV3().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.stateUpgradeV3,
+			Version: 3,
 		},
 	}
 }
@@ -187,7 +190,7 @@ func (r *applicationConfigResource) SetComputedFields(_ *schema.ResourceData) er
 	return nil
 }
 
-func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicationConfig *restapi.ApplicationConfig, formatter utils.ResourceNameFormatter) error {
+func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicationConfig *restapi.ApplicationConfig) error {
 	data := make(map[string]interface{})
 	if applicationConfig.MatchSpecification != nil {
 		normalizedExpressionString, err := r.mapMatchSpecificationToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
@@ -202,8 +205,7 @@ func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicat
 		}
 		data[ApplicationConfigFieldTagFilter] = normalizedTagFilterString
 	}
-	data[ApplicationConfigFieldLabel] = formatter.UndoFormat(applicationConfig.Label)
-	data[ApplicationConfigFieldFullLabel] = applicationConfig.Label
+	data[ApplicationConfigFieldLabel] = applicationConfig.Label
 	data[ApplicationConfigFieldScope] = string(applicationConfig.Scope)
 	data[ApplicationConfigFieldBoundaryScope] = string(applicationConfig.BoundaryScope)
 
@@ -221,7 +223,7 @@ func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepre
 	return &renderedExpression, nil
 }
 
-func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.ApplicationConfig, error) {
+func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.ApplicationConfig, error) {
 	var matchSpecification restapi.MatchExpression
 	var tagFilter restapi.TagFilterExpressionElement
 	var err error
@@ -240,10 +242,9 @@ func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData,
 		}
 	}
 
-	label := r.computeFullApplicationConfigLabelString(d, formatter)
 	return &restapi.ApplicationConfig{
 		ID:                  d.Id(),
-		Label:               label,
+		Label:               d.Get(ApplicationConfigFieldLabel).(string),
 		Scope:               restapi.ApplicationConfigScope(d.Get(ApplicationConfigFieldScope).(string)),
 		BoundaryScope:       restapi.BoundaryScope(d.Get(ApplicationConfigFieldBoundaryScope).(string)),
 		MatchSpecification:  matchSpecification,
@@ -273,14 +274,7 @@ func (r *applicationConfigResource) mapTagFilterStringToAPIModel(input string) (
 	return mapper.ToAPIModel(expr), nil
 }
 
-func (r *applicationConfigResource) computeFullApplicationConfigLabelString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(ApplicationConfigFieldLabel) {
-		return formatter.Format(d.Get(ApplicationConfigFieldLabel).(string))
-	}
-	return d.Get(ApplicationConfigFieldFullLabel).(string)
-}
-
-func (r *applicationConfigResource) applicationConfigSchemaV0() *schema.Resource {
+func (r *applicationConfigResource) schemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
@@ -290,12 +284,12 @@ func (r *applicationConfigResource) applicationConfigSchemaV0() *schema.Resource
 	}
 }
 
-func (r *applicationConfigResource) applicationConfigStateUpgradeV0(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func (r *applicationConfigResource) stateUpgradeV0(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	rawState[ApplicationConfigFieldFullLabel] = rawState[ApplicationConfigFieldLabel]
 	return rawState, nil
 }
 
-func (r *applicationConfigResource) applicationConfigSchemaV1() *schema.Resource {
+func (r *applicationConfigResource) schemaV1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
@@ -323,7 +317,7 @@ func (r *applicationConfigResource) updateToVersion1AndRecalculateNormalizedMatc
 	return rawState, nil
 }
 
-func (r *applicationConfigResource) applicationConfigSchemaV2() *schema.Resource {
+func (r *applicationConfigResource) schemaV2() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			ApplicationConfigFieldLabel:                        ApplicationConfigLabel,
@@ -339,4 +333,25 @@ func (r *applicationConfigResource) applicationConfigSchemaV2() *schema.Resource
 func (r *applicationConfigResource) updateToVersion2AndRemoveNormalizedMatchSpecification(_ context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	delete(rawState, ApplicationConfigFieldNormalizedMatchSpecification)
 	return rawState, nil
+}
+
+func (r *applicationConfigResource) stateUpgradeV3(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[ApplicationConfigFieldFullLabel]; ok {
+		state[ApplicationConfigFieldLabel] = state[ApplicationConfigFieldFullLabel]
+		delete(state, ApplicationConfigFieldFullLabel)
+	}
+	return state, nil
+}
+
+func (r *applicationConfigResource) schemaV3() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			ApplicationConfigFieldLabel:              ApplicationConfigLabel,
+			ApplicationConfigFieldFullLabel:          ApplicationConfigFullLabel,
+			ApplicationConfigFieldScope:              ApplicationConfigScope,
+			ApplicationConfigFieldBoundaryScope:      ApplicationConfigBoundaryScope,
+			ApplicationConfigFieldMatchSpecification: ApplicationConfigMatchSpecification,
+			ApplicationConfigFieldTagFilter:          ApplicationConfigTagFilter,
+		},
+	}
 }

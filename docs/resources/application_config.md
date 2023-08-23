@@ -5,8 +5,6 @@ Management of application configurations (definition of application perspectives
 API Documentation: <https://instana.github.io/openapi/#operation/putApplicationConfig>
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
-The resource supports `default_name_prefix` and `default_name_suffix` and will append the string automatically
-to the application config label when active.
 
 ## Example Usage
 

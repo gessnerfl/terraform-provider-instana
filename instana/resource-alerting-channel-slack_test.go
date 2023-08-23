@@ -24,7 +24,7 @@ resource "instana_alerting_channel_slack" "example" {
 const alertingChannelSlackServerResponseTemplate = `
 {
 	"id"     	   : "%s",
-	"name"   	   : "prefix name %d suffix",
+	"name"   	   : "name %d",
 	"kind"   	   : "SLACK",
 	"webhookUrl" : "webhook url",
 	"iconUrl"    : "icon url",
@@ -60,7 +60,6 @@ func createAlertingChannelSlackResourceTestStep(httpPort int64, iteration int) r
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testAlertingChannelSlackDefinition, "id"),
 			resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldWebhookURL, testAlertingChannelSlackWebhookURL),
 			resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldIconURL, testAlertingChannelSlackIconURL),
 			resource.TestCheckResourceAttr(testAlertingChannelSlackDefinition, AlertingChannelSlackFieldChannel, testAlertingChannelSlackChannel),
@@ -75,7 +74,6 @@ func TestResourceAlertingChannelSlackDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelSlackFieldWebhookURL)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(AlertingChannelSlackFieldIconURL)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(AlertingChannelSlackFieldChannel)
@@ -90,18 +88,17 @@ func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
 	channel := testAlertingChannelSlackChannel
 	data := restapi.AlertingChannel{
 		ID:         "id",
-		Name:       resourceFullName,
+		Name:       resourceName,
 		WebhookURL: &webhookURL,
 		IconURL:    &iconURL,
 		Channel:    &channel,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, webhookURL, resourceData.Get(AlertingChannelSlackFieldWebhookURL))
 	require.Equal(t, iconURL, resourceData.Get(AlertingChannelSlackFieldIconURL))
 	require.Equal(t, channel, resourceData.Get(AlertingChannelSlackFieldChannel))
@@ -116,28 +113,51 @@ func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
 	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldWebhookURL, webhookURL)
 	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldIconURL, iconURL)
 	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldChannel, channel)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, resourceName, model.Name, "name should be equal to full name")
 	require.Equal(t, webhookURL, *model.WebhookURL, "webhook url should be equal")
 	require.Equal(t, iconURL, *model.IconURL, "icon url should be equal")
 	require.Equal(t, channel, *model.Channel, "channel should be equal")
 }
 
-func TestAlertingChannelSlackShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewAlertingChannelSlackResourceHandle().MetaData().SchemaVersion)
+func TestAlertingChannelSlackShouldHaveSchemaVersionOne(t *testing.T) {
+	require.Equal(t, 1, NewAlertingChannelSlackResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestAlertingChannelSlackShouldHaveNoStateUpgrader(t *testing.T) {
-	require.Equal(t, 0, len(NewAlertingChannelSlackResourceHandle().StateUpgraders()))
+func TestAlertingChannelSlackShouldHaveOneStateUpgrader(t *testing.T) {
+	require.Len(t, NewAlertingChannelSlackResourceHandle().StateUpgraders(), 1)
+	require.Equal(t, 0, NewAlertingChannelSlackResourceHandle().StateUpgraders()[0].Version)
+}
+
+func TestAlertingChannelSlackShouldMigrateFullNameToNameWhenExecutingFirstStateUpgraderAndFullNameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewAlertingChannelSlackResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, AlertingChannelFieldFullName)
+	require.Contains(t, result, AlertingChannelFieldName)
+	require.Equal(t, "test", result[AlertingChannelFieldName])
+}
+
+func TestAlertingChannelSlackShouldDoNothingWhenExecutingFirstStateUpgraderAndFullNameIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewAlertingChannelSlackResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelSlack(t *testing.T) {

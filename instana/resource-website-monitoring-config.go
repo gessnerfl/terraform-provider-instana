@@ -1,9 +1,9 @@
 package instana
 
 import (
+	"context"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -48,10 +48,10 @@ func NewWebsiteMonitoringConfigResourceHandle() ResourceHandle[*restapi.WebsiteM
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaWebsiteMonitoringConfig,
 			Schema: map[string]*schema.Schema{
-				WebsiteMonitoringConfigFieldName:     WebsiteMonitoringConfigSchemaName,
-				WebsiteMonitoringConfigFieldFullName: WebsiteMonitoringConfigSchemaFullName,
-				WebsiteMonitoringConfigFieldAppName:  WebsiteMonitoringConfigSchemaAppName,
+				WebsiteMonitoringConfigFieldName:    WebsiteMonitoringConfigSchemaName,
+				WebsiteMonitoringConfigFieldAppName: WebsiteMonitoringConfigSchemaAppName,
 			},
+			SchemaVersion: 1,
 		},
 	}
 }
@@ -65,7 +65,13 @@ func (r *websiteMonitoringConfigResource) MetaData() *ResourceMetaData {
 }
 
 func (r *websiteMonitoringConfigResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.websiteMonitoringConfigSchemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.websiteMonitoringConfigStateUpgradeV0,
+			Version: 0,
+		},
+	}
 }
 
 func (r *websiteMonitoringConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.WebsiteMonitoringConfig] {
@@ -76,27 +82,35 @@ func (r *websiteMonitoringConfigResource) SetComputedFields(_ *schema.ResourceDa
 	return nil
 }
 
-func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteMonitoringConfig, formatter utils.ResourceNameFormatter) error {
+func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteMonitoringConfig) error {
 	d.SetId(config.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		WebsiteMonitoringConfigFieldName:     formatter.UndoFormat(config.Name),
-		WebsiteMonitoringConfigFieldFullName: config.Name,
-		WebsiteMonitoringConfigFieldAppName:  config.AppName,
+		WebsiteMonitoringConfigFieldName:    config.Name,
+		WebsiteMonitoringConfigFieldAppName: config.AppName,
 	})
 }
 
-func (r *websiteMonitoringConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.WebsiteMonitoringConfig, error) {
-	name := r.computeFullWebsiteMonitoringNameString(d, formatter)
-
+func (r *websiteMonitoringConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.WebsiteMonitoringConfig, error) {
 	return &restapi.WebsiteMonitoringConfig{
 		ID:   d.Id(),
-		Name: name,
+		Name: d.Get(WebsiteMonitoringConfigFieldName).(string),
 	}, nil
 }
 
-func (r *websiteMonitoringConfigResource) computeFullWebsiteMonitoringNameString(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(WebsiteMonitoringConfigFieldName) {
-		return formatter.Format(d.Get(WebsiteMonitoringConfigFieldName).(string))
+func (r *websiteMonitoringConfigResource) websiteMonitoringConfigStateUpgradeV0(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[WebsiteMonitoringConfigFieldFullName]; ok {
+		state[WebsiteMonitoringConfigFieldName] = state[WebsiteMonitoringConfigFieldFullName]
+		delete(state, WebsiteMonitoringConfigFieldFullName)
 	}
-	return d.Get(WebsiteMonitoringConfigFieldFullName).(string)
+	return state, nil
+}
+
+func (r *websiteMonitoringConfigResource) websiteMonitoringConfigSchemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			WebsiteMonitoringConfigFieldName:     WebsiteMonitoringConfigSchemaName,
+			WebsiteMonitoringConfigFieldFullName: WebsiteMonitoringConfigSchemaFullName,
+			WebsiteMonitoringConfigFieldAppName:  WebsiteMonitoringConfigSchemaAppName,
+		},
+	}
 }

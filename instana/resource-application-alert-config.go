@@ -1,11 +1,11 @@
 package instana
 
 import (
+	"context"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -171,8 +171,8 @@ func applicationAlertConfigApplicationServiceEndpointSchemaSetFunc(i interface{}
 	return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID])
 }
 
-var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
-	ApplicationAlertConfigFieldAlertChannelIDs: {
+var (
+	applicationAlertConfigSchemaAlertChannelIDs = &schema.Schema{
 		Type:     schema.TypeSet,
 		MinItems: 0,
 		MaxItems: 1024,
@@ -181,8 +181,8 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 		},
 		Optional:    true,
 		Description: "List of IDs of alert channels defined in Instana.",
-	},
-	ApplicationAlertConfigFieldApplications: {
+	}
+	applicationAlertConfigSchemaApplications = &schema.Schema{
 		Type:     schema.TypeSet,
 		Required: true,
 		Set:      applicationAlertConfigApplicationSchemaSetFunc,
@@ -244,14 +244,14 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 			},
 		},
 		Description: "Selection of applications in scope.",
-	},
-	ApplicationAlertConfigFieldBoundaryScope: {
+	}
+	applicationAlertConfigSchemaBoundaryScope = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationAlertConfigBoundaryScopes.ToStringSlice(), false),
 		Description:  "The boundary scope of the application alert config",
-	},
-	ApplicationAlertConfigFieldCustomPayloadFields: {
+	}
+	applicationAlertConfigSchemaCustomPayloadFields = &schema.Schema{
 		Type: schema.TypeSet,
 		Set: func(i interface{}) int {
 			return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldCustomPayloadFieldsKey])
@@ -282,50 +282,50 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 			},
 		},
 		Description: "An optional list of custom payload fields (static key/value pairs added to the event)",
-	},
-	ApplicationAlertConfigFieldDescription: {
+	}
+	applicationAlertConfigSchemaDescription = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		Description:  "The description text of the application alert config",
 		ValidateFunc: validation.StringLenBetween(0, 65536),
-	},
-	ApplicationAlertConfigFieldEvaluationType: {
+	}
+	applicationAlertConfigSchemaEvaluationType = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationAlertEvaluationTypes.ToStringSlice(), false),
 		Description:  "The evaluation type of the application alert config",
-	},
-	ApplicationAlertConfigFieldGranularity: {
+	}
+	applicationAlertConfigSchemaGranularity = &schema.Schema{
 		Type:         schema.TypeInt,
 		Optional:     true,
 		Default:      restapi.Granularity600000,
 		ValidateFunc: validation.IntInSlice(restapi.SupportedGranularities.ToIntSlice()),
 		Description:  "The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used",
-	},
-	ApplicationAlertConfigFieldIncludeInternal: {
+	}
+	applicationAlertConfigSchemaIncludeInternal = &schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
 		Description: "Optional flag to indicate whether also internal calls are included in the scope or not. The default is false",
-	},
-	ApplicationAlertConfigFieldIncludeSynthetic: {
+	}
+	applicationAlertConfigSchemaIncludeSynthetic = &schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
 		Description: "Optional flag to indicate whether also synthetic calls are included in the scope or not. The default is false",
-	},
-	ApplicationAlertConfigFieldName: {
+	}
+	applicationAlertConfigSchemaName = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		Description:  "Name for the application alert configuration",
 		ValidateFunc: validation.StringLenBetween(0, 256),
-	},
-	ApplicationAlertConfigFieldFullName: {
+	}
+	applicationAlertConfigSchemaFullName = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,
 		Description: "The full name field of the application alert config. The field is computed and contains the name which is sent to Instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level",
-	},
-	ApplicationAlertConfigFieldRule: {
+	}
+	applicationAlertConfigSchemaRule = &schema.Schema{
 		Type:        schema.TypeList,
 		MinItems:    1,
 		MaxItems:    1,
@@ -434,14 +434,14 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 				},
 			},
 		},
-	},
-	ApplicationAlertConfigFieldSeverity: {
+	}
+	applicationAlertConfigSchemaSeverity = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
 		Description:  "The severity of the alert when triggered",
-	},
-	ApplicationAlertConfigFieldTagFilter: {
+	}
+	applicationAlertConfigSchemaTagFilter = &schema.Schema{
 		Type:        schema.TypeString,
 		Optional:    true,
 		Description: "The tag filter of the application alert config",
@@ -467,9 +467,8 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 
 			return
 		},
-	},
-	ResourceFieldThreshold: thresholdSchema,
-	ApplicationAlertConfigFieldTimeThreshold: {
+	}
+	applicationAlertConfigSchemaTimeThreshold = &schema.Schema{
 		Type:        schema.TypeList,
 		MinItems:    1,
 		MaxItems:    1,
@@ -530,13 +529,32 @@ var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
 				},
 			},
 		},
-	},
-	ApplicationAlertConfigFieldTriggering: {
+	}
+	applicationAlertConfigSchemaTriggering = &schema.Schema{
 		Type:        schema.TypeBool,
 		Optional:    true,
 		Default:     false,
 		Description: "Optional flag to indicate whether also an Incident is triggered or not. The default is false",
-	},
+	}
+)
+
+var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
+	ApplicationAlertConfigFieldAlertChannelIDs:     applicationAlertConfigSchemaAlertChannelIDs,
+	ApplicationAlertConfigFieldApplications:        applicationAlertConfigSchemaApplications,
+	ApplicationAlertConfigFieldBoundaryScope:       applicationAlertConfigSchemaBoundaryScope,
+	ApplicationAlertConfigFieldCustomPayloadFields: applicationAlertConfigSchemaCustomPayloadFields,
+	ApplicationAlertConfigFieldDescription:         applicationAlertConfigSchemaDescription,
+	ApplicationAlertConfigFieldEvaluationType:      applicationAlertConfigSchemaEvaluationType,
+	ApplicationAlertConfigFieldGranularity:         applicationAlertConfigSchemaGranularity,
+	ApplicationAlertConfigFieldIncludeInternal:     applicationAlertConfigSchemaIncludeInternal,
+	ApplicationAlertConfigFieldIncludeSynthetic:    applicationAlertConfigSchemaIncludeSynthetic,
+	ApplicationAlertConfigFieldName:                applicationAlertConfigSchemaName,
+	ApplicationAlertConfigFieldRule:                applicationAlertConfigSchemaRule,
+	ApplicationAlertConfigFieldSeverity:            applicationAlertConfigSchemaSeverity,
+	ApplicationAlertConfigFieldTagFilter:           applicationAlertConfigSchemaTagFilter,
+	ResourceFieldThreshold:                         thresholdSchema,
+	ApplicationAlertConfigFieldTimeThreshold:       applicationAlertConfigSchemaTimeThreshold,
+	ApplicationAlertConfigFieldTriggering:          applicationAlertConfigSchemaTriggering,
 }
 
 // NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
@@ -546,6 +564,7 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle[*restapi.Applicati
 			ResourceName:     ResourceInstanaApplicationAlertConfig,
 			Schema:           applicationAlertConfigResourceSchema,
 			SkipIDGeneration: true,
+			SchemaVersion:    1,
 		},
 		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationAlertConfig] {
 			return api.ApplicationAlertConfigs()
@@ -557,8 +576,9 @@ func NewApplicationAlertConfigResourceHandle() ResourceHandle[*restapi.Applicati
 func NewGlobalApplicationAlertConfigResourceHandle() ResourceHandle[*restapi.ApplicationAlertConfig] {
 	return &applicationAlertConfigResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaGlobalApplicationAlertConfig,
-			Schema:       applicationAlertConfigResourceSchema,
+			ResourceName:  ResourceInstanaGlobalApplicationAlertConfig,
+			Schema:        applicationAlertConfigResourceSchema,
+			SchemaVersion: 1,
 		},
 		resourceProvider: func(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationAlertConfig] {
 			return api.GlobalApplicationAlertConfigs()
@@ -576,7 +596,13 @@ func (r *applicationAlertConfigResource) MetaData() *ResourceMetaData {
 }
 
 func (r *applicationAlertConfigResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.schemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: r.stateUpgradeV0,
+			Version: 0,
+		},
+	}
 }
 
 func (r *applicationAlertConfigResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.ApplicationAlertConfig] {
@@ -587,8 +613,7 @@ func (r *applicationAlertConfigResource) SetComputedFields(_ *schema.ResourceDat
 	return nil
 }
 
-func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.ApplicationAlertConfig, formatter utils.ResourceNameFormatter) error {
-	name := formatter.UndoFormat(config.Name)
+func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.ApplicationAlertConfig) error {
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(config.Severity)
 	if err != nil {
 		return err
@@ -612,8 +637,7 @@ func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, con
 		ApplicationAlertConfigFieldGranularity:         config.Granularity,
 		ApplicationAlertConfigFieldIncludeInternal:     config.IncludeInternal,
 		ApplicationAlertConfigFieldIncludeSynthetic:    config.IncludeSynthetic,
-		ApplicationAlertConfigFieldName:                name,
-		ApplicationAlertConfigFieldFullName:            config.Name,
+		ApplicationAlertConfigFieldName:                config.Name,
 		ApplicationAlertConfigFieldRule:                r.mapRuleToSchema(config),
 		ApplicationAlertConfigFieldSeverity:            severity,
 		ApplicationAlertConfigFieldTagFilter:           normalizedTagFilterString,
@@ -763,8 +787,7 @@ func (r *applicationAlertConfigResource) mapTimeThresholdTypeToSchema(input stri
 	return input
 }
 
-func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.ApplicationAlertConfig, error) {
-	fullName := r.mapFullNameStringFromSchema(d, formatter)
+func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.ApplicationAlertConfig, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(ApplicationAlertConfigFieldSeverity).(string))
 	if err != nil {
 		return nil, err
@@ -792,7 +815,7 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 		Granularity:           restapi.Granularity(d.Get(ApplicationAlertConfigFieldGranularity).(int)),
 		IncludeInternal:       d.Get(ApplicationAlertConfigFieldIncludeInternal).(bool),
 		IncludeSynthetic:      d.Get(ApplicationAlertConfigFieldIncludeSynthetic).(bool),
-		Name:                  fullName,
+		Name:                  d.Get(ApplicationAlertConfigFieldName).(string),
 		Rule:                  r.mapRuleFromSchema(d),
 		Severity:              severity,
 		TagFilterExpression:   tagFilter,
@@ -800,13 +823,6 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 		TimeThreshold:         r.mapTimeThresholdFromSchema(d),
 		Triggering:            d.Get(ApplicationAlertConfigFieldTriggering).(bool),
 	}, nil
-}
-
-func (r *applicationAlertConfigResource) mapFullNameStringFromSchema(d *schema.ResourceData, formatter utils.ResourceNameFormatter) string {
-	if d.HasChange(ApplicationAlertConfigFieldName) {
-		return formatter.Format(d.Get(ApplicationAlertConfigFieldName).(string))
-	}
-	return d.Get(ApplicationAlertConfigFieldFullName).(string)
 }
 
 func (r *applicationAlertConfigResource) mapApplicationsFromSchema(d *schema.ResourceData) map[string]restapi.IncludedApplication {
@@ -1011,4 +1027,36 @@ func (r *applicationAlertConfigResource) mapTimeThresholdTypeFromSchema(input st
 		return "violationsInSequence"
 	}
 	return input
+}
+
+func (r *applicationAlertConfigResource) stateUpgradeV0(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+	if _, ok := state[ApplicationAlertConfigFieldFullName]; ok {
+		state[ApplicationAlertConfigFieldName] = state[ApplicationAlertConfigFieldFullName]
+		delete(state, ApplicationAlertConfigFieldFullName)
+	}
+	return state, nil
+}
+
+func (r *applicationAlertConfigResource) schemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			ApplicationAlertConfigFieldAlertChannelIDs:     applicationAlertConfigSchemaAlertChannelIDs,
+			ApplicationAlertConfigFieldApplications:        applicationAlertConfigSchemaApplications,
+			ApplicationAlertConfigFieldBoundaryScope:       applicationAlertConfigSchemaBoundaryScope,
+			ApplicationAlertConfigFieldCustomPayloadFields: applicationAlertConfigSchemaCustomPayloadFields,
+			ApplicationAlertConfigFieldDescription:         applicationAlertConfigSchemaDescription,
+			ApplicationAlertConfigFieldEvaluationType:      applicationAlertConfigSchemaEvaluationType,
+			ApplicationAlertConfigFieldGranularity:         applicationAlertConfigSchemaGranularity,
+			ApplicationAlertConfigFieldIncludeInternal:     applicationAlertConfigSchemaIncludeInternal,
+			ApplicationAlertConfigFieldIncludeSynthetic:    applicationAlertConfigSchemaIncludeSynthetic,
+			ApplicationAlertConfigFieldName:                applicationAlertConfigSchemaName,
+			ApplicationAlertConfigFieldFullName:            applicationAlertConfigSchemaFullName,
+			ApplicationAlertConfigFieldRule:                applicationAlertConfigSchemaRule,
+			ApplicationAlertConfigFieldSeverity:            applicationAlertConfigSchemaSeverity,
+			ApplicationAlertConfigFieldTagFilter:           applicationAlertConfigSchemaTagFilter,
+			ResourceFieldThreshold:                         thresholdSchema,
+			ApplicationAlertConfigFieldTimeThreshold:       applicationAlertConfigSchemaTimeThreshold,
+			ApplicationAlertConfigFieldTriggering:          applicationAlertConfigSchemaTriggering,
+		},
+	}
 }

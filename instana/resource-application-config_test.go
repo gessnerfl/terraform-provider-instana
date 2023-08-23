@@ -26,7 +26,7 @@ resource "instana_application_config" "example" {
 const serverResponseWithMatchSpecificationTemplate = `
 {
 	"id" : "%s",
-	"label" : "prefix name %d suffix",
+	"label" : "name %d",
 	"scope" : "INCLUDE_ALL_DOWNSTREAM",
 	"boundaryScope" : "ALL",
 	"matchSpecification" : {
@@ -111,7 +111,7 @@ resource "instana_application_config" "example" {
 const serverResponseWithTagFilterTemplate = `
 {
 	"id" : "%s",
-	"label" : "prefix name %d suffix",
+	"label" : "name %d",
 	"scope" : "INCLUDE_ALL_DOWNSTREAM",
 	"boundaryScope" : "ALL",
 	"tagFilterExpression" : {
@@ -212,7 +212,6 @@ func createApplicationConfigWithMatchSpecificationResourceTestStep(httpPort int6
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeAllDownstream)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldMatchSpecification, defaultNormalizedMatchSpecification),
@@ -244,7 +243,6 @@ func createApplicationConfigWithTagFilterResourceTestStep(httpPort int64, iterat
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testApplicationConfigDefinition, "id"),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldLabel, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldFullLabel, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeAllDownstream)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll)),
 			resource.TestCheckResourceAttr(testApplicationConfigDefinition, ApplicationConfigFieldTagFilter, defaultNormalizedTagFilter),
@@ -258,7 +256,6 @@ func TestApplicationConfigSchemaDefinitionIsValid(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schema, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(ApplicationConfigFieldLabel)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(ApplicationConfigFieldFullLabel)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeStringWithDefault(ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeDefault))
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(ApplicationConfigFieldMatchSpecification)
@@ -411,17 +408,18 @@ func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfTagFilterOfApplication
 	require.Len(t, errs, 1)
 }
 
-func TestApplicationConfigResourceShouldHaveSchemaVersionTwo(t *testing.T) {
-	require.Equal(t, 3, NewApplicationConfigResourceHandle().MetaData().SchemaVersion)
+func TestApplicationConfigResourceShouldHaveSchemaVersionFour(t *testing.T) {
+	require.Equal(t, 4, NewApplicationConfigResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestApplicationConfigResourceShouldHaveTwoStateUpgraderForVersionZeroToOne(t *testing.T) {
+func TestApplicationConfigResourceShouldHaveFourStateUpgraderForVersionZeroToThree(t *testing.T) {
 	resourceHandler := NewApplicationConfigResourceHandle()
 
-	require.Equal(t, 3, len(resourceHandler.StateUpgraders()))
+	require.Equal(t, 4, len(resourceHandler.StateUpgraders()))
 	require.Equal(t, 0, resourceHandler.StateUpgraders()[0].Version)
 	require.Equal(t, 1, resourceHandler.StateUpgraders()[1].Version)
 	require.Equal(t, 2, resourceHandler.StateUpgraders()[2].Version)
+	require.Equal(t, 3, resourceHandler.StateUpgraders()[3].Version)
 }
 
 func TestShouldMigrateApplicationConfigStateAndAddFullLabelWithSameValueAsLabelWhenMigratingFromVersion0To1(t *testing.T) {
@@ -524,6 +522,29 @@ func TestShouldRemoveHarmonizedMatchSpecificationWhenMigratingApplicationConfigS
 	require.Equal(t, expectedResult, result)
 }
 
+func TestApplicationConfigShouldMigrateFullLabelToLabelWhenExecutingThirdStateUpgraderAndFullLabelIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_label": "test",
+	}
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[3].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, ApplicationConfigFieldFullLabel)
+	require.Contains(t, result, ApplicationConfigFieldLabel)
+	require.Equal(t, "test", result[ApplicationConfigFieldLabel])
+}
+
+func TestApplicationConfigShouldDoNothingWhenExecutingThirdStateUpgraderAndFullLabelIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"label": "test",
+	}
+	result, err := NewApplicationConfigResourceHandle().StateUpgraders()[3].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
+}
+
 func TestShouldReturnCorrectResourceNameForApplicationConfigResource(t *testing.T) {
 	name := NewApplicationConfigResourceHandle().MetaData().ResourceName
 
@@ -531,10 +552,9 @@ func TestShouldReturnCorrectResourceNameForApplicationConfigResource(t *testing.
 }
 
 func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSpecificationIsProvided(t *testing.T) {
-	fullLabel := "prefix label suffix"
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                 applicationConfigID,
-		Label:              fullLabel,
+		Label:              defaultLabel,
 		MatchSpecification: defaultMatchSpecificationModel,
 		Scope:              restapi.ApplicationConfigScopeIncludeNoDownstream,
 		BoundaryScope:      restapi.BoundaryScopeAll,
@@ -544,12 +564,11 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSp
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	require.NoError(t, err)
 	require.Equal(t, applicationConfigID, resourceData.Id())
 	require.Equal(t, defaultLabel, resourceData.Get(ApplicationConfigFieldLabel))
-	require.Equal(t, fullLabel, resourceData.Get(ApplicationConfigFieldFullLabel))
 	require.Equal(t, defaultNormalizedMatchSpecification, resourceData.Get(ApplicationConfigFieldMatchSpecification))
 	_, tagFilterSet := resourceData.GetOk(ApplicationConfigFieldTagFilter)
 	require.False(t, tagFilterSet)
@@ -570,16 +589,15 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenM
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	require.Error(t, err)
 }
 
 func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenTagFilterIsProvided(t *testing.T) {
-	fullLabel := "prefix label suffix"
 	applicationConfig := restapi.ApplicationConfig{
 		ID:                  applicationConfigID,
-		Label:               fullLabel,
+		Label:               defaultLabel,
 		TagFilterExpression: defaultTagFilterModel,
 		Scope:               restapi.ApplicationConfigScopeIncludeNoDownstream,
 		BoundaryScope:       restapi.BoundaryScopeAll,
@@ -589,12 +607,11 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenTagFilt
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	require.NoError(t, err)
 	require.Equal(t, applicationConfigID, resourceData.Id())
 	require.Equal(t, defaultLabel, resourceData.Get(ApplicationConfigFieldLabel))
-	require.Equal(t, fullLabel, resourceData.Get(ApplicationConfigFieldFullLabel))
 	_, matchSpecificationSet := resourceData.GetOk(ApplicationConfigFieldMatchSpecification)
 	require.False(t, matchSpecificationSet)
 	require.Equal(t, defaultNormalizedTagFilter, resourceData.Get(ApplicationConfigFieldTagFilter))
@@ -615,7 +632,7 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenT
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	require.Error(t, err)
 }
@@ -626,12 +643,12 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenMatchSpec
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
-	setValueOnResourceData(t, resourceData, ApplicationConfigFieldFullLabel, defaultLabel)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldLabel, defaultLabel)
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldMatchSpecification, defaultMatchSpecification)
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.ApplicationConfig{}, result)
@@ -649,12 +666,12 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificat
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
-	setValueOnResourceData(t, resourceData, ApplicationConfigFieldFullLabel, defaultLabel)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldLabel, defaultLabel)
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldMatchSpecification, "INVALID")
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NotNil(t, err)
 }
@@ -665,12 +682,12 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenTagFilter
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
-	setValueOnResourceData(t, resourceData, ApplicationConfigFieldFullLabel, defaultLabel)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldLabel, defaultLabel)
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldTagFilter, defaultTagFilter)
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.ApplicationConfig{}, result)
@@ -688,12 +705,12 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenTagFilterIsNotV
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId(applicationConfigID)
-	setValueOnResourceData(t, resourceData, ApplicationConfigFieldFullLabel, defaultLabel)
+	setValueOnResourceData(t, resourceData, ApplicationConfigFieldLabel, defaultLabel)
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldTagFilter, "INVALID")
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NotNil(t, err)
 }

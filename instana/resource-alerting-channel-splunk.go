@@ -3,7 +3,6 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -16,25 +15,30 @@ const (
 	ResourceInstanaAlertingChannelSplunk = "instana_alerting_channel_splunk"
 )
 
+var (
+	alertingChannelSplunkSchemaURL = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The URL of the Splunk alerting channel",
+	}
+	alertingChannelSplunkSchemaToken = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The token of the Splunk alerting channel",
+	}
+)
+
 // NewAlertingChannelSplunkResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelSplunkResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelSplunkResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelSplunk,
 			Schema: map[string]*schema.Schema{
-				AlertingChannelFieldName:     alertingChannelNameSchemaField,
-				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-				AlertingChannelSplunkFieldURL: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The URL of the Splunk alerting channel",
-				},
-				AlertingChannelSplunkFieldToken: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The token of the Splunk alerting channel",
-				},
+				AlertingChannelFieldName:        alertingChannelNameSchemaField,
+				AlertingChannelSplunkFieldURL:   alertingChannelSplunkSchemaURL,
+				AlertingChannelSplunkFieldToken: alertingChannelSplunkSchemaToken,
 			},
+			SchemaVersion: 1,
 		},
 	}
 }
@@ -48,7 +52,13 @@ func (r *alertingChannelSplunkResource) MetaData() *ResourceMetaData {
 }
 
 func (r *alertingChannelSplunkResource) StateUpgraders() []schema.StateUpgrader {
-	return []schema.StateUpgrader{}
+	return []schema.StateUpgrader{
+		{
+			Type:    r.schemaV0().CoreConfigSchema().ImpliedType(),
+			Upgrade: migrateFullNameToName,
+			Version: 0,
+		},
+	}
 }
 
 func (r *alertingChannelSplunkResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
@@ -59,25 +69,34 @@ func (r *alertingChannelSplunkResource) SetComputedFields(_ *schema.ResourceData
 	return nil
 }
 
-func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, formatter utils.ResourceNameFormatter) error {
+func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		AlertingChannelFieldName:        formatter.UndoFormat(alertingChannel.Name),
-		AlertingChannelFieldFullName:    alertingChannel.Name,
+		AlertingChannelFieldName:        alertingChannel.Name,
 		AlertingChannelSplunkFieldURL:   alertingChannel.URL,
 		AlertingChannelSplunkFieldToken: alertingChannel.Token,
 	})
 }
 
-func (r *alertingChannelSplunkResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
-	name := computeFullAlertingChannelNameString(d, formatter)
+func (r *alertingChannelSplunkResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	url := d.Get(AlertingChannelSplunkFieldURL).(string)
 	token := d.Get(AlertingChannelSplunkFieldToken).(string)
 	return &restapi.AlertingChannel{
 		ID:    d.Id(),
-		Name:  name,
+		Name:  d.Get(AlertingChannelFieldName).(string),
 		Kind:  restapi.SplunkChannelType,
 		URL:   &url,
 		Token: &token,
 	}, nil
+}
+
+func (r *alertingChannelSplunkResource) schemaV0() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			AlertingChannelFieldName:        alertingChannelNameSchemaField,
+			AlertingChannelFieldFullName:    alertingChannelFullNameSchemaField,
+			AlertingChannelSplunkFieldURL:   alertingChannelSplunkSchemaURL,
+			AlertingChannelSplunkFieldToken: alertingChannelSplunkSchemaToken,
+		},
+	}
 }
