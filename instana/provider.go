@@ -86,7 +86,7 @@ func providerResources() map[string]*schema.Resource {
 	bindResourceHandle(resources, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelEmailResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelGoogleChatResourceHandle())
-	bindResourceHandle(resources, NewAlertingChannelOffice356ResourceHandle())
+	bindResourceHandle(resources, NewAlertingChannelOffice365ResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelSlackResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelOpsGenieResourceHandle())
 	bindResourceHandle(resources, NewAlertingChannelPagerDutyResourceHandle())
