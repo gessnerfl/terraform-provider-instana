@@ -25,6 +25,7 @@ var (
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The token of the Splunk alerting channel",
+		Sensitive:   true,
 	}
 )
 

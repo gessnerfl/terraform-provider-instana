@@ -24,10 +24,12 @@ var AlertingChannelWebhookWebhookURLsSchemaField = &schema.Schema{
 	Type:     schema.TypeSet,
 	MinItems: 1,
 	Elem: &schema.Schema{
-		Type: schema.TypeString,
+		Type:      schema.TypeString,
+		Sensitive: true,
 	},
 	Required:    true,
 	Description: "The list of webhook urls of the Webhook alerting channel",
+	Sensitive:   true,
 }
 
 // AlertingChannelWebhookHTTPHeadersSchemaField schema field definition of instana_alerting_channel_webhook field http_headers

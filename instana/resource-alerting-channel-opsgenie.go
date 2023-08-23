@@ -35,6 +35,7 @@ var (
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The OpsGenie API Key of the OpsGenie alerting channel",
+		Sensitive:   true,
 	}
 	alertingChannelOpsGenieSchemaTags = &schema.Schema{
 		Type:     schema.TypeList,
