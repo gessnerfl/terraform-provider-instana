@@ -1,7 +1,6 @@
 package instana
 
 import (
-	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -20,7 +19,7 @@ const (
 var alertingChannelWebhookBasedSchemaWebhookURL = &schema.Schema{
 	Type:        schema.TypeString,
 	Required:    true,
-	Description: fmt.Sprintf("The webhook URL of the alerting channel"),
+	Description: "The webhook URL of the alerting channel",
 }
 
 // NewAlertingChannelGoogleChatResourceHandle creates the terraform resource for Alerting Channels of type Google Chat
