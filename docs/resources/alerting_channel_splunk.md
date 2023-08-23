@@ -4,9 +4,6 @@ Alerting channel configuration to integrate with Splunk.
 
 API Documentation: <https://instana.github.io/openapi/#operation/getAlertingChannels>
 
-The resource supports `default_name_prefix` and `default_name_suffix`. The string will be appended automatically
-to the name of the alerting channel.
-
 ## Example Usage
 
 ```hcl
