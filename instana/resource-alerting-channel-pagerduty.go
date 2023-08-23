@@ -17,6 +17,7 @@ var alertingChannelPagerDutySchemaServiceIntegrationKey = &schema.Schema{
 	Type:        schema.TypeString,
 	Required:    true,
 	Description: "The Service Integration Key of the PagerDuty alerting channel",
+	Sensitive:   true,
 }
 
 // NewAlertingChannelPagerDutyResourceHandle creates the resource handle for Alerting Channels of type PagerDuty

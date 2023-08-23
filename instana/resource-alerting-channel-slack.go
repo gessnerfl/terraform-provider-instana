@@ -22,6 +22,7 @@ var (
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The webhook URL of the Slack alerting channel",
+		Sensitive:   true,
 	}
 	alertingChannelSlackSchemaIconURL = &schema.Schema{
 		Type:        schema.TypeString,

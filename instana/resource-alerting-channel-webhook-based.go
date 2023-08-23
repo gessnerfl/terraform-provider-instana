@@ -20,6 +20,7 @@ var alertingChannelWebhookBasedSchemaWebhookURL = &schema.Schema{
 	Type:        schema.TypeString,
 	Required:    true,
 	Description: "The webhook URL of the alerting channel",
+	Sensitive:   true,
 }
 
 // NewAlertingChannelGoogleChatResourceHandle creates the terraform resource for Alerting Channels of type Google Chat

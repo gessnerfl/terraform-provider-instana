@@ -20,6 +20,7 @@ var (
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The API Key of the VictorOps alerting channel",
+		Sensitive:   true,
 	}
 	alertingChannelVictorOpsSchemaRoutingKey = &schema.Schema{
 		Type:        schema.TypeString,
