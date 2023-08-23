@@ -9,7 +9,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/filterexpression"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -193,7 +192,7 @@ func (r *applicationConfigResource) SetComputedFields(_ *schema.ResourceData) er
 	return nil
 }
 
-func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicationConfig *restapi.ApplicationConfig, _ utils.ResourceNameFormatter) error {
+func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicationConfig *restapi.ApplicationConfig) error {
 	data := make(map[string]interface{})
 	if applicationConfig.MatchSpecification != nil {
 		normalizedExpressionString, err := r.mapMatchSpecificationToNormalizedStringRepresentation(applicationConfig.MatchSpecification.(restapi.MatchExpression))
@@ -226,7 +225,7 @@ func (r *applicationConfigResource) mapMatchSpecificationToNormalizedStringRepre
 	return &renderedExpression, nil
 }
 
-func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.ApplicationConfig, error) {
+func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.ApplicationConfig, error) {
 	var matchSpecification restapi.MatchExpression
 	var tagFilter restapi.TagFilterExpressionElement
 	var err error

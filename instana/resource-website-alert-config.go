@@ -6,7 +6,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -433,7 +432,7 @@ func (r *websiteAlertConfigResource) SetComputedFields(_ *schema.ResourceData) e
 	return nil
 }
 
-func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteAlertConfig, _ utils.ResourceNameFormatter) error {
+func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteAlertConfig) error {
 	severity, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(config.Severity)
 	if err != nil {
 		return err
@@ -543,7 +542,7 @@ func (r *websiteAlertConfigResource) mapTimeThresholdTypeToSchema(input string) 
 	return input
 }
 
-func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.WebsiteAlertConfig, error) {
+func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.WebsiteAlertConfig, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(WebsiteAlertConfigFieldSeverity).(string))
 	if err != nil {
 		return nil, err

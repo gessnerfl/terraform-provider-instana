@@ -3,7 +3,6 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -81,7 +80,7 @@ func (r *customEventSpecificationWithSystemRuleResource) SetComputedFields(d *sc
 	return d.Set(CustomEventSpecificationFieldEntityType, SystemRuleEntityType)
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, _ utils.ResourceNameFormatter) error {
+func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification) error {
 	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification)
 
 	ruleSpec := customEventSpecification.Rules[0]
@@ -96,7 +95,7 @@ func (r *customEventSpecificationWithSystemRuleResource) UpdateState(d *schema.R
 	return tfutils.UpdateState(d, data)
 }
 
-func (r *customEventSpecificationWithSystemRuleResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
+func (r *customEventSpecificationWithSystemRuleResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err

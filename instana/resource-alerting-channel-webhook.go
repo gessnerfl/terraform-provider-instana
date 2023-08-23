@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -89,7 +88,7 @@ func (r *alertingChannelWebhookResource) SetComputedFields(_ *schema.ResourceDat
 	return nil
 }
 
-func (r *alertingChannelWebhookResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, _ utils.ResourceNameFormatter) error {
+func (r *alertingChannelWebhookResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	urls := alertingChannel.WebhookURLs
 	headers := r.createHTTPHeaderMapFromList(alertingChannel.Headers)
 	d.SetId(alertingChannel.ID)
@@ -113,7 +112,7 @@ func (r *alertingChannelWebhookResource) createHTTPHeaderMapFromList(headers []s
 	return result
 }
 
-func (r *alertingChannelWebhookResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
+func (r *alertingChannelWebhookResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	headers := r.createHTTPHeaderListFromMap(d)
 	return &restapi.AlertingChannel{
 		ID:          d.Id(),

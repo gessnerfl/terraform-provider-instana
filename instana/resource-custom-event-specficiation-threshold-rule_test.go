@@ -435,7 +435,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformDataModelToS
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.Nil(t, err)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
@@ -470,7 +470,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThreshol
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "is not a valid severity")
@@ -493,7 +493,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithThreshol
 	sut := NewCustomEventSpecificationWithThresholdRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "invalid is not a supported condition operator")
@@ -551,7 +551,7 @@ func testMappingOfCustomEventSpecificationWithThresholdRuleTerraformStateToDataM
 	setValueOnResourceData(t, resourceData, ThresholdRuleFieldConditionOperator, restapi.ConditionOperatorEquals.InstanaAPIValue())
 	setValueOnResourceData(t, resourceData, ThresholdRuleFieldConditionValue, customEventSpecificationWithThresholdRuleConditionValue)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)
@@ -581,7 +581,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToData
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, "INVALID")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Error(t, err)
 }
@@ -594,7 +594,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithThresholdRuleStateToData
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
 	setValueOnResourceData(t, resourceData, ThresholdRuleFieldConditionOperator, "invalid")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "is not a supported condition operator of the Instana Terraform provider")

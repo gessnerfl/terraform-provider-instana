@@ -621,7 +621,7 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &websiteConfig, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &websiteConfig)
 
 		require.NoError(t, err)
 		require.Equal(t, websiteAlertConfigID, resourceData.Id())
@@ -686,7 +686,7 @@ func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformRe
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &websiteConfig, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &websiteConfig)
 
 		require.Error(t, err)
 		require.Equal(t, "-1 is not a valid severity", err.Error())
@@ -713,7 +713,7 @@ func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformRe
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &websiteConfig, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &websiteConfig)
 
 		require.Error(t, err)
 		require.Equal(t, "unsupported tag filter expression of type invalid", err.Error())
@@ -1001,7 +1001,7 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTriggering, true)
 		resourceData.SetId(websiteAlertConfigID)
 
-		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		result, err := sut.MapStateToDataObject(resourceData)
 
 		require.NoError(t, err)
 		require.Equal(t, &expectedWebsiteConfig, result)
@@ -1016,7 +1016,7 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldName, "website-alert-config-name")
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, "invalid")
 
-		_, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		_, err := sut.MapStateToDataObject(resourceData)
 
 		require.Error(t, err)
 		require.Equal(t, "invalid is not a valid severity", err.Error())
@@ -1032,7 +1032,7 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTagFilter, "invalid invalid invalid")
 
-		_, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		_, err := sut.MapStateToDataObject(resourceData)
 
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unexpected token")

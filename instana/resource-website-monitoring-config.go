@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -84,7 +83,7 @@ func (r *websiteMonitoringConfigResource) SetComputedFields(_ *schema.ResourceDa
 	return nil
 }
 
-func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteMonitoringConfig, _ utils.ResourceNameFormatter) error {
+func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, config *restapi.WebsiteMonitoringConfig) error {
 	d.SetId(config.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		WebsiteMonitoringConfigFieldName:    config.Name,
@@ -92,7 +91,7 @@ func (r *websiteMonitoringConfigResource) UpdateState(d *schema.ResourceData, co
 	})
 }
 
-func (r *websiteMonitoringConfigResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.WebsiteMonitoringConfig, error) {
+func (r *websiteMonitoringConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.WebsiteMonitoringConfig, error) {
 	return &restapi.WebsiteMonitoringConfig{
 		ID:   d.Id(),
 		Name: d.Get(WebsiteMonitoringConfigFieldName).(string),

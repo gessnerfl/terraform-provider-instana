@@ -5,7 +5,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -75,7 +74,7 @@ func (r *alertingChannelWebhookBasedResource) SetComputedFields(_ *schema.Resour
 	return nil
 }
 
-func (r *alertingChannelWebhookBasedResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, _ utils.ResourceNameFormatter) error {
+func (r *alertingChannelWebhookBasedResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		AlertingChannelFieldName:                   alertingChannel.Name,
@@ -83,7 +82,7 @@ func (r *alertingChannelWebhookBasedResource) UpdateState(d *schema.ResourceData
 	})
 }
 
-func (r *alertingChannelWebhookBasedResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
+func (r *alertingChannelWebhookBasedResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	webhookURL := d.Get(AlertingChannelWebhookBasedFieldWebhookURL).(string)
 	return &restapi.AlertingChannel{
 		ID:         d.Id(),

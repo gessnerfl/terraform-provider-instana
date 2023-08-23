@@ -94,7 +94,7 @@ func TestShouldUpdateResourceStateForAlertingChanneSlack(t *testing.T) {
 		Channel:    &channel,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -117,7 +117,7 @@ func TestShouldConvertStateOfAlertingChannelSlackToDataModel(t *testing.T) {
 	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldIconURL, iconURL)
 	setValueOnResourceData(t, resourceData, AlertingChannelSlackFieldChannel, channel)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")

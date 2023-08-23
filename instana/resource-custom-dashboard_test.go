@@ -295,7 +295,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyUpdateTerra
 		sut := test.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &dashboard, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &dashboard)
 
 		require.NoError(t, err)
 		require.Equal(t, "dashboard-id", resourceData.Id())
@@ -339,7 +339,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 		})
 		setValueOnResourceData(t, resourceData, CustomDashboardFieldWidgets, "dashboard-widgets")
 
-		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		result, err := sut.MapStateToDataObject(resourceData)
 
 		require.NoError(t, err)
 		require.Equal(t, &restapi.CustomDashboard{
@@ -365,7 +365,7 @@ func (test *customDashboardResourceTest) createTestShouldSuccessfullyMapTerrafor
 		setValueOnResourceData(t, resourceData, CustomDashboardFieldTitle, "dashboard-title")
 		setValueOnResourceData(t, resourceData, CustomDashboardFieldWidgets, "dashboard-widgets")
 
-		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		result, err := sut.MapStateToDataObject(resourceData)
 
 		require.NoError(t, err)
 		require.Equal(t, &restapi.CustomDashboard{

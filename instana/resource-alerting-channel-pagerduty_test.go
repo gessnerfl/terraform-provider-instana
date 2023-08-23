@@ -79,7 +79,7 @@ func TestShouldUpdateResourceStateForAlertingChannePagerDuty(t *testing.T) {
 		ServiceIntegrationKey: &integrationKey,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -96,7 +96,7 @@ func TestShouldConvertStateOfAlertingChannelPagerDutyToDataModel(t *testing.T) {
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
 	setValueOnResourceData(t, resourceData, AlertingChannelPagerDutyFieldServiceIntegrationKey, integrationKey)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")

@@ -285,7 +285,7 @@ func TestShouldUpdateResourceStateForSyntheticTests(t *testing.T) {
 		Active: syntheticTestActive,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 
@@ -310,7 +310,7 @@ func TestShouldConvertStateOfSyntheticTestsToDataModel(t *testing.T) {
 	}
 	setValueOnResourceData(t, resourceData, SyntheticTestFieldConfiguration, syntheticConfigurationStateObject)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.SyntheticTest{}, model, "Model should be an synthetic test")

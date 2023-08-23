@@ -744,7 +744,7 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 		sut := f.resourceHandle
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-		err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+		err := sut.UpdateState(resourceData, &applicationConfig)
 
 		require.NoError(t, err)
 		require.Equal(t, applicationAlertConfigID, resourceData.Id())
@@ -1177,7 +1177,7 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 		setValueOnResourceData(t, resourceData, ApplicationAlertConfigFieldTriggering, true)
 		resourceData.SetId(applicationAlertConfigID)
 
-		result, err := sut.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+		result, err := sut.MapStateToDataObject(resourceData)
 
 		require.NoError(t, err)
 		require.Equal(t, &expectedApplicationConfig, result)

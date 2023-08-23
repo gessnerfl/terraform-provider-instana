@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"log"
@@ -196,7 +195,7 @@ func (r *groupResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *groupResource) UpdateState(d *schema.ResourceData, group *restapi.Group, _ utils.ResourceNameFormatter) error {
+func (r *groupResource) UpdateState(d *schema.ResourceData, group *restapi.Group) error {
 	data := map[string]interface{}{
 		GroupFieldName: group.Name,
 	}
@@ -257,7 +256,7 @@ func (r *groupResource) convertScopeBindingSliceToState(value []restapi.ScopeBin
 	return schema.NewSet(schema.HashString, result)
 }
 
-func (r *groupResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.Group, error) {
+func (r *groupResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.Group, error) {
 	members := r.convertStateToGroupMembers(d)
 	permissionSet := r.convertStateToPermissionSet(d)
 	return &restapi.Group{

@@ -140,7 +140,7 @@ func TestShouldUpdateResourceStateForAlertingChannelEmail(t *testing.T) {
 		Emails: []string{"email1", "email2"},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -161,7 +161,7 @@ func TestShouldConvertStateOfAlertingChannelEmailToDataModel(t *testing.T) {
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
 	setValueOnResourceData(t, resourceData, AlertingChannelEmailFieldEmails, emails)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")

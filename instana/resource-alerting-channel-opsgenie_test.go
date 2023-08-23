@@ -84,7 +84,7 @@ func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenSingleTagIsProvi
 	data := createAlertingChannelEmailModelForResourceUpdateWithoutTags()
 	data.Tags = &tags
 
-	err := resourceHandle.UpdateState(resourceData, data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, data)
 
 	require.Nil(t, err)
 	requireBasicAlertingChannelEmailsFieldsSet(t, resourceData)
@@ -99,7 +99,7 @@ func TestShouldUpdateResourceStateForAlertingChannelOpsGenieWhenMultipleTagsAreP
 	data := createAlertingChannelEmailModelForResourceUpdateWithoutTags()
 	data.Tags = &tags
 
-	err := resourceHandle.UpdateState(resourceData, data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, data)
 
 	require.Nil(t, err)
 	requireBasicAlertingChannelEmailsFieldsSet(t, resourceData)
@@ -135,7 +135,7 @@ func TestShouldConvertStateOfAlertingChannelOpsGenieToDataModel(t *testing.T) {
 	setValueOnResourceData(t, resourceData, AlertingChannelOpsGenieFieldRegion, "EU")
 	setValueOnResourceData(t, resourceData, AlertingChannelOpsGenieFieldTags, tags)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")

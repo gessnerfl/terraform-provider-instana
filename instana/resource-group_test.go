@@ -379,7 +379,7 @@ func TestUpdateStateOfGroupResource(t *testing.T) {
 		},
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &group, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &group)
 
 	require.NoError(t, err)
 	require.Equal(t, defaultGroupID, resourceData.Id())
@@ -420,7 +420,7 @@ func TestShouldUpdateStateWhenNoGroupMembersAndAnEmptyPermissionSetIsProvided(t 
 		Name: defaultGroupName,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &group, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &group)
 
 	require.NoError(t, err)
 	require.Equal(t, defaultGroupID, resourceData.Id())
@@ -462,7 +462,7 @@ func TestGroupResourceShouldReadModelFromState(t *testing.T) {
 	setValueOnResourceData(t, resourceData, GroupFieldMembers, members)
 	setValueOnResourceData(t, resourceData, GroupFieldPermissionSet, permissionSet)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NoError(t, err)
 	require.IsType(t, &restapi.Group{}, result)

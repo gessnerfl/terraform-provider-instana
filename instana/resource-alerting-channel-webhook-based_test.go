@@ -100,7 +100,7 @@ func TestShouldUpdateResourceStateForAlertingChanneWebhookBased(t *testing.T) {
 		WebhookURL: &webhookURL,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -117,7 +117,7 @@ func TestShouldConvertStateOfAlertingChannelWebhookBasedToDataModel(t *testing.T
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
 	setValueOnResourceData(t, resourceData, AlertingChannelWebhookBasedFieldWebhookURL, webhookURL)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")

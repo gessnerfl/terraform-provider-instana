@@ -5,7 +5,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -115,7 +114,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) SetComputed
 	return d.Set(CustomEventSpecificationFieldEntityType, EntityVerificationRuleEntityType)
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification, _ utils.ResourceNameFormatter) error {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification) error {
 	data := r.commons.getDataForBasicCustomEventSpecification(customEventSpecification)
 
 	ruleSpec := customEventSpecification.Rules[0]
@@ -137,7 +136,7 @@ func (r *customEventSpecificationWithEntityVerificationRuleResource) UpdateState
 	return tfutils.UpdateState(d, data)
 }
 
-func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.CustomEventSpecification, error) {
+func (r *customEventSpecificationWithEntityVerificationRuleResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.CustomEventSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
 	if err != nil {
 		return &restapi.CustomEventSpecification{}, err

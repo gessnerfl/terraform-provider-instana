@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -96,7 +95,7 @@ func (r *alertingChannelOpsGenieResource) SetComputedFields(_ *schema.ResourceDa
 	return nil
 }
 
-func (r *alertingChannelOpsGenieResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, _ utils.ResourceNameFormatter) error {
+func (r *alertingChannelOpsGenieResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	tags := r.convertCommaSeparatedListToSlice(*alertingChannel.Tags)
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
@@ -107,7 +106,7 @@ func (r *alertingChannelOpsGenieResource) UpdateState(d *schema.ResourceData, al
 	})
 }
 
-func (r *alertingChannelOpsGenieResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
+func (r *alertingChannelOpsGenieResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	apiKey := d.Get(AlertingChannelOpsGenieFieldAPIKey).(string)
 	region := restapi.OpsGenieRegionType(d.Get(AlertingChannelOpsGenieFieldRegion).(string))
 	tags := strings.Join(ReadStringArrayParameterFromResource(d, AlertingChannelOpsGenieFieldTags), ",")

@@ -12,7 +12,6 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const resourceCustomEventSpecificationWithEntityVerificationRuleDefinitionTemplate = `
@@ -42,9 +41,6 @@ const (
 	customEntityVerificationEventRuleMatchingEntityLabel = "matching-entity-label"
 	customEntityVerificationEventRuleMatchingEntityType  = "matching-entity-type"
 	customEntityVerificationEventRuleOfflineDuration     = 60000
-
-	suffixString = " suffix"
-	prefixString = "prefix "
 )
 
 var customEntityVerificationEventRuleMatchingOperator = restapi.MatchingOperatorStartsWith
@@ -284,7 +280,7 @@ func TestShouldUpdateCustomEventSpecificationWithEntityVerificationRuleTerraform
 	sut := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.Nil(t, err)
 	require.Equal(t, customEntityVerificationEventID, resourceData.Id())
@@ -328,7 +324,7 @@ func TestShouldFailToUpdateTerraformStateForCustomEventSpecificationWithEntityVe
 	sut := NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "invalid is not a supported matching operator")
@@ -354,7 +350,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithEntityVerification
 	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldMatchingOperator, customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue())
 	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldOfflineDuration, customEntityVerificationEventRuleOfflineDuration)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter("foo", "bar"))
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)
@@ -382,7 +378,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, "INVALID")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NotNil(t, err)
 }
@@ -394,7 +390,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "is not a supported matching operator")
@@ -408,7 +404,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithEntityVerificationRuleSt
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, customEntityVerificationEventRuleSeverity)
 	setValueOnResourceData(t, resourceData, EntityVerificationRuleFieldMatchingOperator, "invalid")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, utils.NewResourceNameFormatter(prefixString, suffixString))
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "invalid is not a supported matching operator")

@@ -3,7 +3,6 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -78,7 +77,7 @@ func (r *alertingChannelSlackResource) SetComputedFields(_ *schema.ResourceData)
 	return nil
 }
 
-func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, _ utils.ResourceNameFormatter) error {
+func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		AlertingChannelFieldName:            alertingChannel.Name,
@@ -88,7 +87,7 @@ func (r *alertingChannelSlackResource) UpdateState(d *schema.ResourceData, alert
 	})
 }
 
-func (r *alertingChannelSlackResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
+func (r *alertingChannelSlackResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	webhookURL := d.Get(AlertingChannelSlackFieldWebhookURL).(string)
 	iconURL := d.Get(AlertingChannelSlackFieldIconURL).(string)
 	channel := d.Get(AlertingChannelSlackFieldChannel).(string)

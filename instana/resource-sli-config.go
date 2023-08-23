@@ -6,7 +6,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -194,7 +193,7 @@ func (r *sliConfigResource) SetComputedFields(_ *schema.ResourceData) error {
 	return nil
 }
 
-func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *restapi.SliConfig, _ utils.ResourceNameFormatter) error {
+func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *restapi.SliConfig) error {
 	metricConfiguration := map[string]interface{}{
 		SliConfigFieldMetricName:        sliConfig.MetricConfiguration.Name,
 		SliConfigFieldMetricAggregation: sliConfig.MetricConfiguration.Aggregation,
@@ -220,7 +219,7 @@ func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *resta
 	return tfutils.UpdateState(d, data)
 }
 
-func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.SliConfig, error) {
+func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.SliConfig, error) {
 	metricConfigurationsStateObject := d.Get(SliConfigFieldMetricConfiguration).([]interface{})
 	var metricConfiguration restapi.MetricConfiguration
 	if len(metricConfigurationsStateObject) > 0 {

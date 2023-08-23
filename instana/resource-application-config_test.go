@@ -564,7 +564,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenMatchSp
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	require.NoError(t, err)
 	require.Equal(t, applicationConfigID, resourceData.Id())
@@ -589,7 +589,7 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenM
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	require.Error(t, err)
 }
@@ -607,7 +607,7 @@ func TestShouldUpdateApplicationConfigTerraformResourceStateFromModelWhenTagFilt
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	require.NoError(t, err)
 	require.Equal(t, applicationConfigID, resourceData.Id())
@@ -632,7 +632,7 @@ func TestShouldFailToUpdateApplicationConfigTerraformResourceStateFromModelWhenT
 	sut := NewApplicationConfigResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &applicationConfig, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &applicationConfig)
 
 	require.Error(t, err)
 }
@@ -648,7 +648,7 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenMatchSpec
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.ApplicationConfig{}, result)
@@ -671,7 +671,7 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenMatchSpecificat
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NotNil(t, err)
 }
@@ -687,7 +687,7 @@ func TestShouldSuccessfullyConvertApplicationConfigStateToDataModelWhenTagFilter
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.ApplicationConfig{}, result)
@@ -710,7 +710,7 @@ func TestShouldFailToConvertApplicationConfigStateToDataModelWhenTagFilterIsNotV
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldScope, string(restapi.ApplicationConfigScopeIncludeNoDownstream))
 	setValueOnResourceData(t, resourceData, ApplicationConfigFieldBoundaryScope, string(restapi.BoundaryScopeAll))
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NotNil(t, err)
 }

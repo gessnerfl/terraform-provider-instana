@@ -314,7 +314,7 @@ func TestShouldUpdateBasicFieldsOfTerraformResourceStateFromModelForAPIToken(t *
 		InternalID:          apiTokenInternalID,
 	}
 
-	err := sut.UpdateState(resourceData, &apiToken, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &apiToken)
 
 	require.Nil(t, err)
 	require.Equal(t, apiTokenID, resourceData.Id())
@@ -678,7 +678,7 @@ func testSingleAPITokenPermissionSet(t *testing.T, apiToken restapi.APIToken, ex
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &apiToken, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &apiToken)
 
 	require.Nil(t, err)
 	require.True(t, resourceData.Get(expectedPermissionField).(bool))
@@ -726,7 +726,7 @@ func TestShouldConvertStateOfAPITokenTerraformResourceToDataModel(t *testing.T) 
 	setValueOnResourceData(t, resourceData, APITokenFieldCanViewAccountAndBillingInformation, true)
 	setValueOnResourceData(t, resourceData, APITokenFieldCanEditAllAccessibleCustomDashboards, true)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.APIToken{}, model, "Model should be an alerting channel")

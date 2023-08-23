@@ -3,7 +3,6 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -245,7 +244,7 @@ func (r *syntheticTestResource) SetComputedFields(_ *schema.ResourceData) error 
 	return nil
 }
 
-func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTest *restapi.SyntheticTest, _ utils.ResourceNameFormatter) error {
+func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTest *restapi.SyntheticTest) error {
 	d.SetId(syntheticTest.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		SyntheticTestFieldLabel:            syntheticTest.Label,
@@ -259,7 +258,7 @@ func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTes
 	})
 }
 
-func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (*restapi.SyntheticTest, error) {
+func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.SyntheticTest, error) {
 	appID, ok := d.GetOk(SyntheticTestFieldApplicationID)
 	var applicationID *string
 	if ok {

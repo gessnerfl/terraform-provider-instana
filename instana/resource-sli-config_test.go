@@ -177,7 +177,7 @@ func TestShouldUpdateResourceStateForSliConfigs(t *testing.T) {
 		Name: sliConfigName,
 	}
 
-	err := resourceHandle.UpdateState(resourceData, &data, testHelper.ResourceFormatter())
+	err := resourceHandle.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 
@@ -214,7 +214,7 @@ func TestShouldConvertStateOfSliConfigsToDataModel(t *testing.T) {
 	}
 	setValueOnResourceData(t, resourceData, SliConfigFieldSliEntity, sliEntityStateObject)
 
-	model, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.SliConfig{}, model, "Model should be an sli config")

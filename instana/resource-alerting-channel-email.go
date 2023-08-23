@@ -5,7 +5,6 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -74,7 +73,7 @@ func (r *alertingChannelEmailResource) SetComputedFields(_ *schema.ResourceData)
 	return nil
 }
 
-func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, _ utils.ResourceNameFormatter) error {
+func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	emails := alertingChannel.Emails
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
@@ -83,7 +82,7 @@ func (r *alertingChannelEmailResource) UpdateState(d *schema.ResourceData, alert
 	})
 }
 
-func (r *alertingChannelEmailResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
+func (r *alertingChannelEmailResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	return &restapi.AlertingChannel{
 		ID:     d.Id(),
 		Name:   d.Get(AlertingChannelFieldName).(string),

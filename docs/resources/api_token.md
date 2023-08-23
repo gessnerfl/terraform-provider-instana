@@ -45,7 +45,6 @@ resource "instana_api_token" "example" {
 
 * `access_granting_token`-  Calculated - The token used for the api Client used in the Authorization header to authenticate the client
 * `name` - Required - the name of the alerting channel
-* `full_name` - Calculated - The resource name including prefix and suffix.
 * `can_configure_service_mapping` - Optional - default false - enables permission to configure service mappings
 * `can_configure_eum_applications` - Optional - default false - enables permission to configure EUM applications
 * `can_configure_mobile_app_monitoring` - Optional - default false - enables permission to configure mobile app monitoring

@@ -3,7 +3,6 @@ package instana
 import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -70,7 +69,7 @@ func (r *alertingChannelSplunkResource) SetComputedFields(_ *schema.ResourceData
 	return nil
 }
 
-func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel, _ utils.ResourceNameFormatter) error {
+func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	d.SetId(alertingChannel.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		AlertingChannelFieldName:        alertingChannel.Name,
@@ -79,7 +78,7 @@ func (r *alertingChannelSplunkResource) UpdateState(d *schema.ResourceData, aler
 	})
 }
 
-func (r *alertingChannelSplunkResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.AlertingChannel, error) {
+func (r *alertingChannelSplunkResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	url := d.Get(AlertingChannelSplunkFieldURL).(string)
 	token := d.Get(AlertingChannelSplunkFieldToken).(string)
 	return &restapi.AlertingChannel{

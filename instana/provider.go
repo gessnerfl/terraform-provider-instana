@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -14,19 +13,12 @@ const SchemaFieldAPIToken = "api_token"
 // SchemaFieldEndpoint the name of the provider configuration option for the instana endpoint
 const SchemaFieldEndpoint = "endpoint"
 
-// SchemaFieldDefaultNamePrefix the default prefix which should be added to all resource names/labels
-const SchemaFieldDefaultNamePrefix = "default_name_prefix"
-
-// SchemaFieldDefaultNameSuffix the default prefix which should be added to all resource names/labels
-const SchemaFieldDefaultNameSuffix = "default_name_suffix"
-
 // SchemaFieldTlsSkipVerify flag to deactivate skip tls verification
 const SchemaFieldTlsSkipVerify = "tls_skip_verify"
 
 // ProviderMeta data structure for the metadata which is configured and provided to the resources by this provider
 type ProviderMeta struct {
-	InstanaAPI            restapi.InstanaAPI
-	ResourceNameFormatter utils.ResourceNameFormatter
+	InstanaAPI restapi.InstanaAPI
 }
 
 // Provider interface implementation of hashicorp terraform provider
@@ -53,18 +45,6 @@ func providerSchema() map[string]*schema.Schema {
 			Required:    true,
 			DefaultFunc: schema.EnvDefaultFunc("INSTANA_ENDPOINT", nil),
 			Description: "The DNS Name of the Instana Endpoint (eg. saas-eu-west-1.instana.io)",
-		},
-		SchemaFieldDefaultNamePrefix: {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "",
-			Description: "The default prefix which should be added to all resource names/labels",
-		},
-		SchemaFieldDefaultNameSuffix: {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "(TF managed)",
-			Description: "The default suffix which should be added to all resource names/labels - default '(TF managed)'",
 		},
 		SchemaFieldTlsSkipVerify: {
 			Type:        schema.TypeBool,
@@ -110,14 +90,10 @@ func bindResourceHandle[T restapi.InstanaDataObject](resources map[string]*schem
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	apiToken := strings.TrimSpace(d.Get(SchemaFieldAPIToken).(string))
 	endpoint := strings.TrimSpace(d.Get(SchemaFieldEndpoint).(string))
-	defaultNamePrefix := d.Get(SchemaFieldDefaultNamePrefix).(string)
-	defaultNameSuffix := d.Get(SchemaFieldDefaultNameSuffix).(string)
 	skipTlsVerify := d.Get(SchemaFieldTlsSkipVerify).(bool)
 	instanaAPI := restapi.NewInstanaAPI(apiToken, endpoint, skipTlsVerify)
-	formatter := utils.NewResourceNameFormatter(defaultNamePrefix, defaultNameSuffix)
 	return &ProviderMeta{
-		InstanaAPI:            instanaAPI,
-		ResourceNameFormatter: formatter,
+		InstanaAPI: instanaAPI,
 	}, nil
 }
 

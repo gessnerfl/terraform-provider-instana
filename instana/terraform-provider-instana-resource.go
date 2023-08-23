@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -30,9 +29,9 @@ type ResourceHandle[T restapi.InstanaDataObject] interface {
 	//GetRestResource provides the restapi.RestResource used by the ResourceHandle
 	GetRestResource(api restapi.InstanaAPI) restapi.RestResource[T]
 	//UpdateState updates the state of the resource provided as schema.ResourceData with the input data from the Instana API provided as restapi.InstanaDataObject
-	UpdateState(d *schema.ResourceData, obj T, formatter utils.ResourceNameFormatter) error
+	UpdateState(d *schema.ResourceData, obj T) error
 	//MapStateToDataObject maps the current state of the resource provided as schema.ResourceData to the API model of the Instana API represented as an implementation of restapi.InstanaDataObject
-	MapStateToDataObject(d *schema.ResourceData, formatter utils.ResourceNameFormatter) (T, error)
+	MapStateToDataObject(d *schema.ResourceData) (T, error)
 	//SetComputedFields calculate and set the calculated value of computed fields of the given resource
 	SetComputedFields(d *schema.ResourceData) error
 }
@@ -70,7 +69,7 @@ func (r *terraformResourceImpl[T]) Create(_ context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	createRequest, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	createRequest, err := r.resourceHandle.MapStateToDataObject(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -78,7 +77,7 @@ func (r *terraformResourceImpl[T]) Create(_ context.Context, d *schema.ResourceD
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = r.resourceHandle.UpdateState(d, createdObject, providerMeta.ResourceNameFormatter)
+	err = r.resourceHandle.UpdateState(d, createdObject)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -101,7 +100,7 @@ func (r *terraformResourceImpl[T]) Read(_ context.Context, d *schema.ResourceDat
 		}
 		return diag.FromErr(err)
 	}
-	err = r.resourceHandle.UpdateState(d, obj, providerMeta.ResourceNameFormatter)
+	err = r.resourceHandle.UpdateState(d, obj)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -120,7 +119,7 @@ func (r *terraformResourceImpl[T]) Update(_ context.Context, d *schema.ResourceD
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
-	obj, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	obj, err := r.resourceHandle.MapStateToDataObject(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -128,7 +127,7 @@ func (r *terraformResourceImpl[T]) Update(_ context.Context, d *schema.ResourceD
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = r.resourceHandle.UpdateState(d, updatedObject, providerMeta.ResourceNameFormatter)
+	err = r.resourceHandle.UpdateState(d, updatedObject)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -140,7 +139,7 @@ func (r *terraformResourceImpl[T]) Delete(_ context.Context, d *schema.ResourceD
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
-	object, err := r.resourceHandle.MapStateToDataObject(d, providerMeta.ResourceNameFormatter)
+	object, err := r.resourceHandle.MapStateToDataObject(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}

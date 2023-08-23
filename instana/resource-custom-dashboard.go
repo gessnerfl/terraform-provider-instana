@@ -126,7 +126,7 @@ func (r *customDashboardResource) SetComputedFields(_ *schema.ResourceData) erro
 	return nil
 }
 
-func (r *customDashboardResource) UpdateState(d *schema.ResourceData, dashboard *restapi.CustomDashboard, _ utils.ResourceNameFormatter) error {
+func (r *customDashboardResource) UpdateState(d *schema.ResourceData, dashboard *restapi.CustomDashboard) error {
 	widgetsBytes, _ := dashboard.Widgets.MarshalJSON()
 	widgets := NormalizeJSONString(string(widgetsBytes))
 
@@ -150,7 +150,7 @@ func (r *customDashboardResource) mapAccessRuleToState(dashboard *restapi.Custom
 	return result
 }
 
-func (r *customDashboardResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.CustomDashboard, error) {
+func (r *customDashboardResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.CustomDashboard, error) {
 	accessRules := r.mapAccessRulesFromState(d)
 
 	widgets := d.Get(CustomDashboardFieldWidgets).(string)

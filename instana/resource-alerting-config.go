@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -156,7 +155,7 @@ func (r *alertingConfigResource) SetComputedFields(_ *schema.ResourceData) error
 	return nil
 }
 
-func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, config *restapi.AlertingConfiguration, _ utils.ResourceNameFormatter) error {
+func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, config *restapi.AlertingConfiguration) error {
 	d.SetId(config.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		AlertingConfigFieldAlertName:             config.AlertName,
@@ -176,7 +175,7 @@ func (r *alertingConfigResource) convertEventTypesToHarmonizedStringRepresentati
 	return result
 }
 
-func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.AlertingConfiguration, error) {
+func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingConfiguration, error) {
 	query := GetStringPointerFromResourceData(d, AlertingConfigFieldEventFilterQuery)
 
 	return &restapi.AlertingConfiguration{

@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -338,7 +337,7 @@ func (r *apiTokenResource) SetComputedFields(d *schema.ResourceData) error {
 	})
 }
 
-func (r *apiTokenResource) UpdateState(d *schema.ResourceData, apiToken *restapi.APIToken, formatter utils.ResourceNameFormatter) error {
+func (r *apiTokenResource) UpdateState(d *schema.ResourceData, apiToken *restapi.APIToken) error {
 	d.SetId(apiToken.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		APITokenFieldAccessGrantingToken:                  apiToken.AccessGrantingToken,
@@ -374,7 +373,7 @@ func (r *apiTokenResource) UpdateState(d *schema.ResourceData, apiToken *restapi
 	})
 }
 
-func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (*restapi.APIToken, error) {
+func (r *apiTokenResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.APIToken, error) {
 	return &restapi.APIToken{
 		ID:                                   d.Id(),
 		AccessGrantingToken:                  d.Get(APITokenFieldAccessGrantingToken).(string),

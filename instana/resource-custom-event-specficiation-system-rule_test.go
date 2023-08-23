@@ -217,7 +217,7 @@ func TestShouldUpdateCustomEventSpecificationWithSystemRuleTerraformStateFromApi
 	sut := NewCustomEventSpecificationWithSystemRuleResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, &spec)
 
 	require.Nil(t, err)
 	require.Equal(t, customSystemEventID, resourceData.Id())
@@ -249,7 +249,7 @@ func TestShouldSuccessfullyConvertCustomEventSpecificationWithSystemRuleStateToD
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, customSystemEventRuleSeverity)
 	setValueOnResourceData(t, resourceData, SystemRuleSpecificationSystemRuleID, customSystemEventRuleSystemRuleId)
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
 	require.IsType(t, &restapi.CustomEventSpecification{}, result)
@@ -274,7 +274,7 @@ func TestShouldFailToConvertCustomEventSpecificationWithSystemRuleStateToDataMod
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationRuleSeverity, "INVALID")
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.NotNil(t, err)
 }
