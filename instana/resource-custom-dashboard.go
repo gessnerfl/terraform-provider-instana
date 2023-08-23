@@ -17,7 +17,6 @@ const (
 	//CustomDashboardFieldTitle constant value for the schema field title
 	CustomDashboardFieldTitle = "title"
 	//CustomDashboardFieldFullTitle constant value for the computed schema field full_title
-	//Deprecated
 	CustomDashboardFieldFullTitle = "full_title"
 	//CustomDashboardFieldAccessRule constant value for the schema field access_rule
 	CustomDashboardFieldAccessRule = "access_rule"
@@ -37,7 +36,6 @@ var (
 		Required:    true,
 		Description: "The title of the custom dashboard",
 	}
-	//Deprecated
 	customDashboardSchemaFullTitle = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,

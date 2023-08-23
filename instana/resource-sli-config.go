@@ -17,7 +17,6 @@ const (
 	//SliConfigFieldName constant value for the schema field name
 	SliConfigFieldName = "name"
 	//SliConfigFieldFullName constant value for schema field full_name
-	//Deprecated
 	SliConfigFieldFullName = "full_name"
 	//SliConfigFieldInitialEvaluationTimestamp constant value for the schema field initial_evaluation_timestamp
 	SliConfigFieldInitialEvaluationTimestamp = "initial_evaluation_timestamp"
@@ -53,7 +52,6 @@ var (
 	}
 
 	//SliConfigFullName schema field definition of instana_sli_config field full_name
-	//Deprecated
 	SliConfigFullName = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,

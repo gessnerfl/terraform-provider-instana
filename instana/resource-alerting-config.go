@@ -17,7 +17,6 @@ const (
 	//AlertingConfigFieldAlertName constant value for the schema field alert_name
 	AlertingConfigFieldAlertName = "alert_name"
 	//AlertingConfigFieldFullAlertName constant value for the schema field full_alert_name
-	//Deprecated
 	AlertingConfigFieldFullAlertName = "full_alert_name"
 	//AlertingConfigFieldIntegrationIds constant value for the schema field integration_ids
 	AlertingConfigFieldIntegrationIds = "integration_ids"
@@ -48,7 +47,6 @@ var AlertingConfigSchemaAlertName = &schema.Schema{
 }
 
 // AlertingConfigSchemaFullAlertName schema field definition of instana_alerting_config field full_alert_name
-// Deprecated
 var AlertingConfigSchemaFullAlertName = &schema.Schema{
 	Type:        schema.TypeString,
 	Computed:    true,

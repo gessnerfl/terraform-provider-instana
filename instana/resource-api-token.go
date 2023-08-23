@@ -19,7 +19,6 @@ const (
 	//APITokenFieldName constant value for the schema field name
 	APITokenFieldName = "name"
 	//APITokenFieldFullName constant value for the schema field full_name
-	//Deprecated
 	APITokenFieldFullName = "full_name"
 	//APITokenFieldCanConfigureServiceMapping constant value for the schema field can_configure_service_mapping
 	APITokenFieldCanConfigureServiceMapping = "can_configure_service_mapping"
@@ -93,7 +92,6 @@ var (
 		Required:    true,
 		Description: "The name of the API token",
 	}
-	//Deprecated
 	apiTokenSchemaFullName = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,

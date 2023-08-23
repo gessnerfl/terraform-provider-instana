@@ -55,7 +55,6 @@ const (
 	//ApplicationAlertConfigFieldName constant value for field name of resource instana_application_alert_config
 	ApplicationAlertConfigFieldName = "name"
 	//ApplicationAlertConfigFieldFullName constant value for field full_name of resource instana_application_alert_config
-	//Deprecated
 	ApplicationAlertConfigFieldFullName = "full_name"
 	//ApplicationAlertConfigFieldRule constant value for field rule of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRule = "rule"
@@ -321,7 +320,6 @@ var (
 		Description:  "Name for the application alert configuration",
 		ValidateFunc: validation.StringLenBetween(0, 256),
 	}
-	//Deprecated
 	applicationAlertConfigSchemaFullName = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,

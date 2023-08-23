@@ -12,7 +12,6 @@ const (
 	//CustomEventSpecificationFieldName constant value for the schema field name
 	CustomEventSpecificationFieldName = "name"
 	//CustomEventSpecificationFieldFullName constant value for the schema field full_name. The field is computed and contains the name which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level
-	//Deprecated
 	CustomEventSpecificationFieldFullName = "full_name"
 	//CustomEventSpecificationFieldEntityType constant value for the schema field entity type
 	CustomEventSpecificationFieldEntityType = "entity_type"
@@ -43,7 +42,6 @@ var customEventSpecificationSchemaName = &schema.Schema{
 	Description: "Configures the name of the custom event specification",
 }
 
-// Deprecated
 var customEventSpecificationSchemaFullName = &schema.Schema{
 	Type:        schema.TypeString,
 	Computed:    true,

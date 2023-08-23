@@ -20,7 +20,6 @@ const (
 	//ApplicationConfigFieldLabel const for the label field of the application config
 	ApplicationConfigFieldLabel = "label"
 	//ApplicationConfigFieldFullLabel const for the full label field of the application config. The field is computed and contains the label which is sent to instana. The computation depends on the configured default_name_prefix and default_name_suffix at provider level
-	//Deprecated
 	ApplicationConfigFieldFullLabel = "full_label"
 	//ApplicationConfigFieldScope const for the scope field of the application config
 	ApplicationConfigFieldScope = "scope"
@@ -42,7 +41,6 @@ var (
 		Description: "The label of the application config",
 	}
 	//ApplicationConfigFullLabel schema for the application config field full_label
-	//Deprecated
 	ApplicationConfigFullLabel = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,

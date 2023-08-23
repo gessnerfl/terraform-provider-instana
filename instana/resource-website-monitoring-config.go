@@ -14,7 +14,6 @@ const (
 	//WebsiteMonitoringConfigFieldName constant value for the schema field name
 	WebsiteMonitoringConfigFieldName = "name"
 	//WebsiteMonitoringConfigFieldFullName constant value for the schema field full_name
-	//Deprecated: not supported anymore with version 2.0
 	WebsiteMonitoringConfigFieldFullName = "full_name"
 	//WebsiteMonitoringConfigFieldAppName constant value for the schema field app_name
 	WebsiteMonitoringConfigFieldAppName = "app_name"

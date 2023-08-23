@@ -31,7 +31,6 @@ const (
 	//WebsiteAlertConfigFieldName constant value for field name of resource instana_website_alert_config
 	WebsiteAlertConfigFieldName = "name"
 	//WebsiteAlertConfigFieldFullName constant value for field full_name of resource instana_website_alert_config
-	//Deprecated
 	WebsiteAlertConfigFieldFullName = "full_name"
 
 	//WebsiteAlertConfigFieldRule constant value for field rule of resource instana_website_alert_config
@@ -134,7 +133,6 @@ var (
 		Description:  "Name for the website alert configuration",
 		ValidateFunc: validation.StringLenBetween(0, 256),
 	}
-	//Deprecated
 	websiteAlertConfigSchemaFullName = &schema.Schema{
 		Type:        schema.TypeString,
 		Computed:    true,

@@ -16,7 +16,6 @@ const (
 	//GroupFieldName constant value for the schema field name
 	GroupFieldName = "name"
 	//GroupFieldFullName constant value for the schema field full_name
-	//Deprecated
 	GroupFieldFullName = "full_name"
 	//GroupFieldMembers constant value for the schema field members
 	GroupFieldMembers = "member"
@@ -126,7 +125,6 @@ var groupSchemaName = &schema.Schema{
 	Description: "The name of the Group",
 }
 
-// Deprecated
 var groupSchemaFullName = &schema.Schema{
 	Type:        schema.TypeString,
 	Computed:    true,

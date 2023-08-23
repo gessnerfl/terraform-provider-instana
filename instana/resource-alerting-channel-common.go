@@ -9,7 +9,6 @@ const (
 	//AlertingChannelFieldName constant value for the schema field name
 	AlertingChannelFieldName = "name"
 	//AlertingChannelFieldFullName constant value for the schema field full_name
-	//Deprecated
 	AlertingChannelFieldFullName = "full_name"
 )
 
@@ -19,7 +18,6 @@ var alertingChannelNameSchemaField = &schema.Schema{
 	Description: "Configures the name of the alerting channel",
 }
 
-// Deprecated
 var alertingChannelFullNameSchemaField = &schema.Schema{
 	Type:        schema.TypeString,
 	Computed:    true,
