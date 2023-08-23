@@ -23,7 +23,7 @@ resource "instana_alerting_channel_victor_ops" "example" {
 const alertingChannelVictorOpsServerResponseTemplate = `
 {
 	"id"         : "%s",
-	"name"       : "prefix name %d suffix",
+	"name"       : "name %d",
 	"kind"       : "VICTOR_OPS",
 	"apiKey"     : "api key",
 	"routingKey" : "routing key"
@@ -57,7 +57,6 @@ func createAlertingChannelVictorOpsResourceTestStep(httpPort int64, iteration in
 		Check: resource.ComposeTestCheckFunc(
 			resource.TestCheckResourceAttrSet(testAlertingChannelVictorOpsDefinition, "id"),
 			resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldName, formatResourceName(iteration)),
-			resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelFieldFullName, formatResourceFullName(iteration)),
 			resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldAPIKey, testAlertingChannelVictorOpsApiKey),
 			resource.TestCheckResourceAttr(testAlertingChannelVictorOpsDefinition, AlertingChannelVictorOpsFieldRoutingKey, testAlertingChannelVictorOpsRoutingKey),
 		),
@@ -71,7 +70,6 @@ func TestResourceAlertingChannelVictorOpsDefinition(t *testing.T) {
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
-	schemaAssert.AssertSchemaIsComputedAndOfTypeString(AlertingChannelFieldFullName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelVictorOpsFieldAPIKey)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelVictorOpsFieldRoutingKey)
 }
@@ -84,7 +82,7 @@ func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
 	routingKey := testAlertingChannelVictorOpsRoutingKey
 	data := restapi.AlertingChannel{
 		ID:         "id",
-		Name:       resourceFullName,
+		Name:       resourceName,
 		APIKey:     &apiKey,
 		RoutingKey: &routingKey,
 	}
@@ -94,7 +92,6 @@ func TestShouldUpdateResourceStateForAlertingChanneVictorOps(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, "name", resourceData.Get(AlertingChannelFieldName))
-	require.Equal(t, resourceFullName, resourceData.Get(AlertingChannelFieldFullName))
 	require.Equal(t, apiKey, resourceData.Get(AlertingChannelVictorOpsFieldAPIKey))
 	require.Equal(t, routingKey, resourceData.Get(AlertingChannelVictorOpsFieldRoutingKey))
 }
@@ -107,7 +104,6 @@ func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, "name")
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldFullName, resourceFullName)
 	setValueOnResourceData(t, resourceData, AlertingChannelVictorOpsFieldAPIKey, apiKey)
 	setValueOnResourceData(t, resourceData, AlertingChannelVictorOpsFieldRoutingKey, routingKey)
 
@@ -116,17 +112,37 @@ func TestShouldConvertStateOfAlertingChannelVictorOpsToDataModel(t *testing.T) {
 	require.Nil(t, err)
 	require.IsType(t, &restapi.AlertingChannel{}, model, "Model should be an alerting channel")
 	require.Equal(t, "id", model.GetIDForResourcePath())
-	require.Equal(t, resourceFullName, model.Name, "name should be equal to full name")
+	require.Equal(t, resourceName, model.Name, "name should be equal to full name")
 	require.Equal(t, apiKey, *model.APIKey, "api key should be equal")
 	require.Equal(t, routingKey, *model.RoutingKey, "routing key should be equal")
 }
 
-func TestAlertingChannelVictorOpskShouldHaveSchemaVersionZero(t *testing.T) {
-	require.Equal(t, 0, NewAlertingChannelVictorOpsResourceHandle().MetaData().SchemaVersion)
+func TestAlertingChannelVictorOpsShouldHaveSchemaVersionOne(t *testing.T) {
+	require.Len(t, NewAlertingChannelVictorOpsResourceHandle().StateUpgraders(), 1)
+	require.Equal(t, 0, NewAlertingChannelVictorOpsResourceHandle().StateUpgraders()[0].Version)
 }
 
-func TestAlertingChannelVictorOpsShouldHaveNoStateUpgrader(t *testing.T) {
-	require.Equal(t, 0, len(NewAlertingChannelVictorOpsResourceHandle().StateUpgraders()))
+func TestAlertingChannelVictorOpsShouldMigrateFullNameToNameWhenExecutingFirstStateUpgraderAndFullNameIsAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"full_name": "test",
+	}
+	result, err := NewAlertingChannelVictorOpsResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Len(t, result, 1)
+	require.NotContains(t, result, AlertingChannelFieldFullName)
+	require.Contains(t, result, AlertingChannelFieldName)
+	require.Equal(t, "test", result[AlertingChannelFieldName])
+}
+
+func TestAlertingChannelVictorOpsShouldDoNothingWhenExecutingFirstStateUpgraderAndFullNameIsNotAvailable(t *testing.T) {
+	input := map[string]interface{}{
+		"name": "test",
+	}
+	result, err := NewAlertingChannelVictorOpsResourceHandle().StateUpgraders()[0].Upgrade(nil, input, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, input, result)
 }
 
 func TestShouldReturnCorrectResourceNameForAlertingChannelVictorOps(t *testing.T) {
