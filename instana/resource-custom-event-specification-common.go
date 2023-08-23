@@ -186,7 +186,7 @@ func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV
 	return rawState, nil
 }
 
-func (r *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV2toV3AndRemoveFullname(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func (c *customEventSpecificationCommons) migrateCustomEventConfigFullStateFromV2toV3AndRemoveFullname(_ context.Context, state map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	if _, ok := state[CustomEventSpecificationFieldFullName]; ok {
 		state[CustomEventSpecificationFieldName] = state[CustomEventSpecificationFieldFullName]
 		delete(state, CustomEventSpecificationFieldFullName)
