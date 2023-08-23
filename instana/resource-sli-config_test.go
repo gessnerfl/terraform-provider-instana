@@ -59,7 +59,6 @@ const (
 
 	sliConfigID                         = "id"
 	sliConfigName                       = resourceName
-	sliConfigFullName                   = resourceFullName
 	sliConfigInitialEvaluationTimestamp = 0
 	sliConfigMetricName                 = "metric_name_example"
 	sliConfigMetricAggregation          = "SUM"
