@@ -116,6 +116,14 @@ func GetStringPointerFromResourceData(d *schema.ResourceData, key string) *strin
 	return nil
 }
 
+func GetPointerFromMap[T any](key string, data map[string]interface{}) *T {
+	if val, ok := data[key]; ok && val != nil {
+		typedValue := val.(T)
+		return &typedValue
+	}
+	return nil
+}
+
 // MergeSchemaMap merges the provided maps into a single map
 func MergeSchemaMap(mapA map[string]*schema.Schema, mapB map[string]*schema.Schema) map[string]*schema.Schema {
 	mergedMap := make(map[string]*schema.Schema)

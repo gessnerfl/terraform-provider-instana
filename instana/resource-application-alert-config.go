@@ -2,7 +2,6 @@ package instana
 
 import (
 	"context"
-	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
@@ -441,33 +440,7 @@ var (
 		ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
 		Description:  "The severity of the alert when triggered",
 	}
-	applicationAlertConfigSchemaTagFilter = &schema.Schema{
-		Type:        schema.TypeString,
-		Optional:    true,
-		Description: "The tag filter of the application alert config",
-		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-			normalized, err := tagfilter.Normalize(new)
-			if err == nil {
-				return normalized == old
-			}
-			return old == new
-		},
-		StateFunc: func(val interface{}) string {
-			normalized, err := tagfilter.Normalize(val.(string))
-			if err == nil {
-				return normalized
-			}
-			return val.(string)
-		},
-		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-			v := val.(string)
-			if _, err := tagfilter.NewParser().Parse(v); err != nil {
-				errs = append(errs, fmt.Errorf("%q is not a valid tag filter; %s", key, err))
-			}
-
-			return
-		},
-	}
+	applicationAlertConfigSchemaTagFilter     = OptionalTagFilterExpressionSchema
 	applicationAlertConfigSchemaTimeThreshold = &schema.Schema{
 		Type:        schema.TypeList,
 		MinItems:    1,

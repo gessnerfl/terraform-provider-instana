@@ -103,32 +103,13 @@ var (
 	}
 	//ApplicationConfigTagFilter schema for the application config field tag_filter
 	ApplicationConfigTagFilter = &schema.Schema{
-		Type:         schema.TypeString,
-		Optional:     true,
-		ExactlyOneOf: []string{ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter},
-		Description:  "The tag filter of the application config",
-		DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-			normalized, err := tagfilter.Normalize(new)
-			if err == nil {
-				return normalized == old
-			}
-			return old == new
-		},
-		StateFunc: func(val interface{}) string {
-			normalized, err := tagfilter.Normalize(val.(string))
-			if err == nil {
-				return normalized
-			}
-			return val.(string)
-		},
-		ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-			v := val.(string)
-			if _, err := tagfilter.NewParser().Parse(v); err != nil {
-				errs = append(errs, fmt.Errorf("%q is not a valid tag filter; %s", key, err))
-			}
-
-			return
-		},
+		Type:             schema.TypeString,
+		Optional:         true,
+		Description:      "The tag filter expression",
+		ExactlyOneOf:     []string{ApplicationConfigFieldMatchSpecification, ApplicationConfigFieldTagFilter},
+		DiffSuppressFunc: tagFilterDiffSuppressFunc,
+		StateFunc:        tagFilterStateFunc,
+		ValidateFunc:     tagFilterValidateFunc,
 	}
 )
 
