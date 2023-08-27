@@ -377,7 +377,7 @@ func (r *sliConfigResource) mapSliAvailabilityEntityToState(sliEntity restapi.Sl
 	return result, nil
 }
 
-func (r *sliConfigResource) mapSliWebsiteTimeBasedEntityToState(sliEntity restapi.SliEntity) (map[string]interface{}, error) {
+func (r *sliConfigResource) mapSliWebsiteEventBasedEntityToState(sliEntity restapi.SliEntity) (map[string]interface{}, error) {
 	var goodEventFilterExpression *string
 	var badEventFilterExpression *string
 	var err error
@@ -407,7 +407,7 @@ func (r *sliConfigResource) mapSliWebsiteTimeBasedEntityToState(sliEntity restap
 	return result, nil
 }
 
-func (r *sliConfigResource) mapSliWebsiteEventBasedEntityToState(sliEntity restapi.SliEntity) (map[string]interface{}, error) {
+func (r *sliConfigResource) mapSliWebsiteTimeBasedEntityToState(sliEntity restapi.SliEntity) (map[string]interface{}, error) {
 	var tagFilterExpression *string
 	var err error
 	if sliEntity.FilterExpression != nil {
@@ -418,7 +418,7 @@ func (r *sliConfigResource) mapSliWebsiteEventBasedEntityToState(sliEntity resta
 	}
 
 	result := map[string]interface{}{
-		SliConfigFieldSliEntityWebsiteEventBased: []interface{}{
+		SliConfigFieldSliEntityWebsiteTimeBased: []interface{}{
 			map[string]interface{}{
 				SliConfigFieldWebsiteID:        sliEntity.WebsiteId,
 				SliConfigFieldFilterExpression: tagFilterExpression,
@@ -541,7 +541,7 @@ func (r *sliConfigResource) mapSliEntityWebsiteTimeBasedFromState(data map[strin
 	}
 
 	return restapi.SliEntity{
-		Type:             "websiteEventBased",
+		Type:             "websiteTimeBased",
 		WebsiteId:        GetPointerFromMap[string](SliConfigFieldWebsiteID, data),
 		FilterExpression: tagFilter,
 		BeaconType:       GetPointerFromMap[string](SliConfigFieldBeaconType, data),

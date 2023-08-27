@@ -8,9 +8,9 @@ import (
 	"testing"
 )
 
-const tagFilterExpressionKey = "entity.type EQUALS 'foo'"
-const validTagFilterExpression = "entity.type EQUALS 'foo'"
-const invalidTagFilterExpression = "entity.type bla bla bla"
+const tagFilterExpression = "entity.type EQUALS 'foo'"
+const validTagFilterExpressionString = "entity.type EQUALS 'foo'"
+const invalidTagFilterExpressionString = "entity.type bla bla bla"
 
 func TestTagFilterSchema(t *testing.T) {
 	for k, tagFilterExpressionSchema := range map[string]*schema.Schema{"optional": instana.OptionalTagFilterExpressionSchema, "required": instana.RequiredTagFilterExpressionSchema} {
@@ -30,40 +30,40 @@ func createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCanBeNormal
 		oldValue := expressionEntityTypeDestEqValue
 		newValue := "entity.type  EQUALS    'foo'"
 
-		require.True(t, tagFilterSchema.DiffSuppressFunc(tagFilterExpressionKey, oldValue, newValue, nil))
+		require.True(t, tagFilterSchema.DiffSuppressFunc(tagFilterExpression, oldValue, newValue, nil))
 	}
 }
 
 func createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual(tagFilterSchema *schema.Schema) func(t *testing.T) {
 	return func(t *testing.T) {
 		oldValue := expressionEntityTypeSrcEqValue
-		newValue := validTagFilterExpression
+		newValue := validTagFilterExpressionString
 
-		require.False(t, tagFilterSchema.DiffSuppressFunc(tagFilterExpressionKey, oldValue, newValue, nil))
+		require.False(t, tagFilterSchema.DiffSuppressFunc(tagFilterExpression, oldValue, newValue, nil))
 	}
 }
 
 func createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCannotBeNormalizedAndOldAndNewValueAreEqual(tagFilterSchema *schema.Schema) func(t *testing.T) {
 	return func(t *testing.T) {
-		invalidValue := invalidTagFilterExpression
+		invalidValue := invalidTagFilterExpressionString
 
-		require.True(t, tagFilterSchema.DiffSuppressFunc(tagFilterExpressionKey, invalidValue, invalidValue, nil))
+		require.True(t, tagFilterSchema.DiffSuppressFunc(tagFilterExpression, invalidValue, invalidValue, nil))
 	}
 }
 
 func createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCannotBeNormalizedAndOldAndNewValueAreNotEqual(tagFilterSchema *schema.Schema) func(t *testing.T) {
 	return func(t *testing.T) {
-		oldValue := invalidTagFilterExpression
+		oldValue := invalidTagFilterExpressionString
 		newValue := "entity.type foo foo foo"
 
-		require.False(t, tagFilterSchema.DiffSuppressFunc(tagFilterExpressionKey, oldValue, newValue, nil))
+		require.False(t, tagFilterSchema.DiffSuppressFunc(tagFilterExpression, oldValue, newValue, nil))
 	}
 }
 
 func createTestOfStateFuncOfTagFilterShouldReturnNormalizedValueWhenValueCanBeNormalized(tagFilterSchema *schema.Schema) func(t *testing.T) {
 	return func(t *testing.T) {
 		expectedValue := expressionEntityTypeDestEqValue
-		newValue := validTagFilterExpression
+		newValue := validTagFilterExpressionString
 
 		require.Equal(t, expectedValue, tagFilterSchema.StateFunc(newValue))
 	}
@@ -71,7 +71,7 @@ func createTestOfStateFuncOfTagFilterShouldReturnNormalizedValueWhenValueCanBeNo
 
 func createTestOfStateFuncOfTagFilterShouldReturnProvidedValueWhenValueCannotBeNormalized(tagFilterSchema *schema.Schema) func(t *testing.T) {
 	return func(t *testing.T) {
-		value := invalidTagFilterExpression
+		value := invalidTagFilterExpressionString
 
 		require.Equal(t, value, tagFilterSchema.StateFunc(value))
 	}
@@ -79,9 +79,9 @@ func createTestOfStateFuncOfTagFilterShouldReturnProvidedValueWhenValueCannotBeN
 
 func createTestOfValidateFuncOfTagFilterShouldReturnNoErrorsAndWarningsWhenValueCanBeParsed(tagFilterSchema *schema.Schema) func(t *testing.T) {
 	return func(t *testing.T) {
-		value := validTagFilterExpression
+		value := validTagFilterExpressionString
 
-		warns, errs := tagFilterSchema.ValidateFunc(value, tagFilterExpressionKey)
+		warns, errs := tagFilterSchema.ValidateFunc(value, tagFilterExpression)
 		require.Empty(t, warns)
 		require.Empty(t, errs)
 	}
@@ -89,9 +89,9 @@ func createTestOfValidateFuncOfTagFilterShouldReturnNoErrorsAndWarningsWhenValue
 
 func createTestOfValidateFuncOfTagFilterShouldReturnOneErrorAndNoWarningsWhenValueCannotBeParsed(tagFilterSchema *schema.Schema) func(t *testing.T) {
 	return func(t *testing.T) {
-		value := invalidTagFilterExpression
+		value := invalidTagFilterExpressionString
 
-		warns, errs := tagFilterSchema.ValidateFunc(value, tagFilterExpressionKey)
+		warns, errs := tagFilterSchema.ValidateFunc(value, tagFilterExpression)
 		require.Empty(t, warns)
 		require.Len(t, errs, 1)
 	}

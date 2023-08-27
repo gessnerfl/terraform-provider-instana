@@ -162,8 +162,6 @@ const (
 	invalidMatchSpecification           = "entity.type bla bla bla"
 	defaultTagFilter                    = "entity.name CONTAINS 'foo' AND agent.tag:environment EQUALS 'dev-speedboot-local-gessnerfl' OR call.http.status@na EQUALS 404"
 	defaultNormalizedTagFilter          = "((entity.name@dest CONTAINS 'foo' AND agent.tag:environment@dest EQUALS 'dev-speedboot-local-gessnerfl') OR call.http.status@na EQUALS 404)"
-	validTagFilter                      = "entity.type EQUALS 'foo'"
-	invalidTagFilter                    = "entity.type bla bla bla"
 	defaultLabel                        = "label"
 	entityName                          = "entity.name"
 	expressionEntityTypeDestEqValue     = "entity.type@dest EQUALS 'foo'"
