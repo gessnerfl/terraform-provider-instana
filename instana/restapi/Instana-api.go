@@ -93,7 +93,7 @@ func (api *baseInstanaAPI) AlertingConfigurations() RestResource[*AlertingConfig
 }
 
 func (api *baseInstanaAPI) SliConfigs() RestResource[*SliConfig] {
-	return NewCreatePUTUpdatePUTRestResource(SliConfigResourcePath, NewDefaultJSONUnmarshaller(&SliConfig{}), api.client)
+	return NewCreatePUTUpdatePUTRestResource(SliConfigResourcePath, NewSliConfigUnmarshaller(), api.client)
 }
 
 func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource[*WebsiteMonitoringConfig] {

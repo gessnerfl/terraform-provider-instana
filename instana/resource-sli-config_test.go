@@ -16,6 +16,9 @@ import (
 func TestSliConfigTest(t *testing.T) {
 	unitTest := &sliConfigUnitTest{}
 	t.Run("CRUD integration test of with SLI Entity of type application", sliConfigIntegrationTestWithSliEntityOfTypeApplication().testCRUD())
+	t.Run("CRUD integration test of with SLI Entity of type availability", sliConfigIntegrationTestWithSliEntityOfTypeAvailability().testCRUD())
+	t.Run("CRUD integration test of with SLI Entity of type WebsiteEventBased", sliConfigIntegrationTestWithSliEntityOfTypeWebsiteEventBased().testCRUD())
+	t.Run("CRUD integration test of with SLI Entity of type WebsiteTimeBased", sliConfigIntegrationTestWithSliEntityOfTypeWebsiteTimeBased().testCRUD())
 	t.Run("should have valid resource schema", unitTest.shouldHaveValidResourceSchema())
 	t.Run("should return correct resource name", unitTest.shouldReturnCorrectResourceNameForSliConfigs())
 	t.Run("should have schema version one", unitTest.shouldHaveSchemaVersionOne())
@@ -55,13 +58,13 @@ const (
 	sliConfigID                               = "id"
 	sliConfigName                             = resourceName
 	sliConfigInitialEvaluationTimestamp       = 0
-	sliConfigMetricName                       = "metric_name_example"
+	sliConfigMetricName                       = "metric_name"
 	sliConfigMetricAggregation                = "SUM"
 	sliConfigMetricThreshold                  = 1.0
-	sliConfigEntityApplicationID              = "application_id_example"
-	sliConfigEntityWebsiteID                  = "website_id_example"
-	sliConfigEntityServiceID                  = "service_id_example"
-	sliConfigEntityEndpointID                 = "endpoint_id_example"
+	sliConfigEntityApplicationID              = "application_id"
+	sliConfigEntityWebsiteID                  = "website_id"
+	sliConfigEntityServiceID                  = "service_id"
+	sliConfigEntityEndpointID                 = "endpoint_id"
 	sliConfigEntityBoundaryScope              = "ALL"
 	sliConfigEntityBeaconType                 = "pageLoad"
 	sliConfigTagFilterExpressionString        = "request.path@dest EQUALS '/home'"
@@ -85,15 +88,15 @@ resource "instana_sli_config" "example_sli_config" {
 	name = "name %d"
 	initial_evaluation_timestamp = 0
 	metric_configuration {
-		metric_name = "metric_name_example"
+		metric_name = "metric_name"
 		aggregation = "SUM"
 		threshold = 1.0
 	}
 	sli_entity {
 		application {
-			application_id = "application_id_example"
-			service_id = "service_id_example"
-			endpoint_id = "endpoint_id_example"
+			application_id = "application_id"
+			service_id     = "service_id"
+			endpoint_id    = "endpoint_id"
 			boundary_scope = "ALL"
 		}
 	}
@@ -101,19 +104,19 @@ resource "instana_sli_config" "example_sli_config" {
 `
 	serverResponseTemplate := `
 {
-	"id"						: "%s",
-	"sliName"					: "name %d",
+	"id" : "%s",
+	"sliName" : "name %d",
 	"initialEvaluationTimestamp": 0,
 	"metricConfiguration": {
-		"metricName"		: "metric_name_example",
+		"metricName" : "metric_name",
 		"metricAggregation"	: "SUM",
-		"threshold"			: 1.0
+		"threshold" : 1.0
 	},
 	"sliEntity": {
-		"sliType"		: "application",
-		"applicationId"	: "application_id_example",
-		"serviceId"		: "service_id_example",
-		"endpointId"	: "endpoint_id_example",
+		"sliType" : "application",
+		"applicationId"	: "application_id",
+		"serviceId" : "service_id",
+		"endpointId" : "endpoint_id",
 		"boundaryScope"	: "ALL"
 	}
 }
@@ -123,6 +126,188 @@ resource "instana_sli_config" "example_sli_config" {
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplication, SliConfigFieldServiceID), sliConfigEntityServiceID),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplication, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplication, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+	}
+	return newSliConfigIntegrationTest(resourceTemplate, serverResponseTemplate, useCaseSpecificChecks)
+}
+
+func sliConfigIntegrationTestWithSliEntityOfTypeAvailability() *sliConfigIntegrationTest {
+	resourceTemplate := `
+resource "instana_sli_config" "example_sli_config" {
+	name = "name %d"
+	initial_evaluation_timestamp = 0
+	metric_configuration {
+		metric_name = "metric_name"
+		aggregation = "SUM"
+		threshold = 1.0
+	}
+	sli_entity {
+		availability {
+			application_id               = "application_id"
+			boundary_scope               = "ALL"
+			include_internal             = true
+			include_synthetic            = true
+			good_event_filter_expression = "request.path@dest EQUALS '/home'"
+			bad_event_filter_expression  = "request.path@dest EQUALS '/404'"
+		}
+	}
+}
+`
+	serverResponseTemplate := `
+{
+	"id" : "%s",
+	"sliName" : "name %d",
+	"initialEvaluationTimestamp": 0,
+	"metricConfiguration": {
+		"metricName" : "metric_name",
+		"metricAggregation"	: "SUM",
+		"threshold" : 1.0
+	},
+	"sliEntity": {
+		"sliType" : "availability",
+		"applicationId" : "application_id",
+		"boundaryScope" : "ALL",
+        "includeInternal" : true,
+        "includeSynthetic" : true,
+		"goodEventFilterExpression" : {
+			"type" : "TAG_FILTER",
+			"name" : "request.path",
+			"entity" : "DESTINATION",
+			"operator" : "EQUALS",
+			"stringValue" : "/home",
+			"value" : "/home"
+		},
+		"badEventFilterExpression" : {
+			"type" : "TAG_FILTER",
+			"name" : "request.path",
+			"entity" : "DESTINATION",
+			"operator" : "EQUALS",
+			"stringValue" : "/404",
+			"value" : "/404"
+		}
+	}
+}
+`
+	useCaseSpecificChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldIncludeSynthetic), "true"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldIncludeInternal), "true"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldGoodEventFilterExpression), "request.path@dest EQUALS '/home'"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldBadEventFilterExpression), "request.path@dest EQUALS '/404'"),
+	}
+	return newSliConfigIntegrationTest(resourceTemplate, serverResponseTemplate, useCaseSpecificChecks)
+}
+
+func sliConfigIntegrationTestWithSliEntityOfTypeWebsiteEventBased() *sliConfigIntegrationTest {
+	resourceTemplate := `
+resource "instana_sli_config" "example_sli_config" {
+	name = "name %d"
+	initial_evaluation_timestamp = 0
+	metric_configuration {
+		metric_name = "metric_name"
+		aggregation = "SUM"
+		threshold = 1.0
+	}
+	sli_entity {
+		website_event_based {
+			website_id                   = "website_id"
+			beacon_type                  = "pageLoad"
+			good_event_filter_expression = "request.path@dest EQUALS '/home'"
+			bad_event_filter_expression  = "request.path@dest EQUALS '/404'"
+		}
+	}
+}
+`
+	serverResponseTemplate := `
+{
+	"id" : "%s",
+	"sliName" : "name %d",
+	"initialEvaluationTimestamp": 0,
+	"metricConfiguration": {
+		"metricName" : "metric_name",
+		"metricAggregation"	: "SUM",
+		"threshold" : 1.0
+	},
+	"sliEntity": {
+		"sliType" : "websiteEventBased",
+		"websiteId" : "website_id",
+		"beaconType" : "pageLoad",
+		"goodEventFilterExpression" : {
+			"type" : "TAG_FILTER",
+			"name" : "request.path",
+			"entity" : "DESTINATION",
+			"operator" : "EQUALS",
+			"stringValue" : "/home",
+			"value" : "/home"
+		},
+		"badEventFilterExpression" : {
+			"type" : "TAG_FILTER",
+			"name" : "request.path",
+			"entity" : "DESTINATION",
+			"operator" : "EQUALS",
+			"stringValue" : "/404",
+			"value" : "/404"
+		}
+	}
+}
+`
+	useCaseSpecificChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteEventBased, SliConfigFieldWebsiteID), sliConfigEntityWebsiteID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteEventBased, SliConfigFieldBeaconType), sliConfigEntityBeaconType),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteEventBased, SliConfigFieldGoodEventFilterExpression), "request.path@dest EQUALS '/home'"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteEventBased, SliConfigFieldBadEventFilterExpression), "request.path@dest EQUALS '/404'"),
+	}
+	return newSliConfigIntegrationTest(resourceTemplate, serverResponseTemplate, useCaseSpecificChecks)
+}
+
+func sliConfigIntegrationTestWithSliEntityOfTypeWebsiteTimeBased() *sliConfigIntegrationTest {
+	resourceTemplate := `
+resource "instana_sli_config" "example_sli_config" {
+	name = "name %d"
+	initial_evaluation_timestamp = 0
+	metric_configuration {
+		metric_name = "metric_name"
+		aggregation = "SUM"
+		threshold = 1.0
+	}
+	sli_entity {
+		website_time_based {
+			website_id        = "website_id"
+			beacon_type       = "pageLoad"
+			filter_expression = "request.path@dest EQUALS '/home'"
+		}
+	}
+}
+`
+	serverResponseTemplate := `
+{
+	"id" : "%s",
+	"sliName" : "name %d",
+	"initialEvaluationTimestamp": 0,
+	"metricConfiguration": {
+		"metricName" : "metric_name",
+		"metricAggregation"	: "SUM",
+		"threshold"	 : 1.0
+	},
+	"sliEntity": {
+		"sliType" : "websiteTimeBased",
+		"websiteId" : "website_id",
+		"beaconType" : "pageLoad",
+		"filterExpression" : {
+			"type" : "TAG_FILTER",
+			"name" : "request.path",
+			"entity" : "DESTINATION",
+			"operator" : "EQUALS",
+			"stringValue" : "/home",
+			"value" : "/home"
+		}
+	}
+}
+`
+	useCaseSpecificChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteTimeBased, SliConfigFieldWebsiteID), sliConfigEntityWebsiteID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteTimeBased, SliConfigFieldBeaconType), sliConfigEntityBeaconType),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteTimeBased, SliConfigFieldFilterExpression), "request.path@dest EQUALS '/home'"),
 	}
 	return newSliConfigIntegrationTest(resourceTemplate, serverResponseTemplate, useCaseSpecificChecks)
 }
