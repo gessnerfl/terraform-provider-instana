@@ -265,6 +265,7 @@ func NewSliConfigResourceHandle() ResourceHandle[*restapi.SliConfig] {
 				SliConfigFieldSliEntity:                  SliConfigSliEntity,
 			},
 			SchemaVersion: 1,
+			CreateOnly:    true,
 		},
 	}
 }

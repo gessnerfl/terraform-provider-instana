@@ -2,6 +2,7 @@ package instana_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -337,8 +338,7 @@ func (r *sliConfigIntegrationTest) testCRUD() func(t *testing.T) {
 			Steps: []resource.TestStep{
 				r.createTestCheckFunction(httpServer.GetPort(), 0),
 				testStepImport(sliConfigDefinition),
-				r.createTestCheckFunction(httpServer.GetPort(), 1),
-				//testStepImport(sliConfigDefinition),
+				r.createUpdateNotSupportedTestCheckFunction(httpServer.GetPort(), 1),
 			},
 		})
 	}
@@ -357,6 +357,13 @@ func (r *sliConfigIntegrationTest) createTestCheckFunction(httpPort int64, itera
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(r.resourceTemplate, iteration), httpPort),
 		Check:  resource.ComposeTestCheckFunc(checks...),
+	}
+}
+
+func (r *sliConfigIntegrationTest) createUpdateNotSupportedTestCheckFunction(httpPort int64, iteration int) resource.TestStep {
+	return resource.TestStep{
+		Config:      appendProviderConfig(fmt.Sprintf(r.resourceTemplate, iteration), httpPort),
+		ExpectError: regexp.MustCompile("update operations not supported for instana_sli_config resources"),
 	}
 }
 
