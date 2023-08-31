@@ -202,7 +202,7 @@ func createTestSliConfigWithSliEntityOfTypeApplication() *SliConfig {
 		ID:                         "sli-config-id",
 		Name:                       "sli-config-name",
 		InitialEvaluationTimestamp: 10,
-		MetricConfiguration: MetricConfiguration{
+		MetricConfiguration: &MetricConfiguration{
 			Name:        "metric-config-name",
 			Aggregation: "SUM",
 			Threshold:   0.5,
@@ -227,11 +227,6 @@ func createTestSliConfigWithSliEntityOfTypeAvailability() *SliConfig {
 		ID:                         "sli-config-id",
 		Name:                       "sli-config-name",
 		InitialEvaluationTimestamp: 10,
-		MetricConfiguration: MetricConfiguration{
-			Name:        "metric-config-name",
-			Aggregation: "SUM",
-			Threshold:   0.5,
-		},
 		SliEntity: SliEntity{
 			Type:                      "availability",
 			ApplicationID:             &applicationID,
@@ -252,11 +247,6 @@ func createTestSliConfigWithSliEntityOfTypeWebsiteEventBased() *SliConfig {
 		ID:                         "sli-config-id",
 		Name:                       "sli-config-name",
 		InitialEvaluationTimestamp: 10,
-		MetricConfiguration: MetricConfiguration{
-			Name:        "metric-config-name",
-			Aggregation: "SUM",
-			Threshold:   0.5,
-		},
 		SliEntity: SliEntity{
 			Type:                      "availability",
 			WebsiteId:                 &WebsiteID,
@@ -276,7 +266,7 @@ func createTestSliConfigWithSliEntityOfTypeWebsiteTimeBased() *SliConfig {
 		ID:                         "sli-config-id",
 		Name:                       "sli-config-name",
 		InitialEvaluationTimestamp: 10,
-		MetricConfiguration: MetricConfiguration{
+		MetricConfiguration: &MetricConfiguration{
 			Name:        "metric-config-name",
 			Aggregation: "SUM",
 			Threshold:   0.5,

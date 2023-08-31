@@ -123,6 +123,9 @@ resource "instana_sli_config" "example_sli_config" {
 }
 `
 	useCaseSpecificChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationTimeBased, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationTimeBased, SliConfigFieldServiceID), sliConfigEntityServiceID),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationTimeBased, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
@@ -136,11 +139,6 @@ func sliConfigIntegrationTestWithSliEntityOfTypeApplicationEventBased() *sliConf
 resource "instana_sli_config" "example_sli_config" {
 	name = "name %d"
 	initial_evaluation_timestamp = 0
-	metric_configuration {
-		metric_name = "metric_name"
-		aggregation = "SUM"
-		threshold = 1.0
-	}
 	sli_entity {
 		application_event_based {
 			application_id               = "application_id"
@@ -158,11 +156,6 @@ resource "instana_sli_config" "example_sli_config" {
 	"id" : "%s",
 	"sliName" : "name %d",
 	"initialEvaluationTimestamp": 0,
-	"metricConfiguration": {
-		"metricName" : "metric_name",
-		"metricAggregation"	: "SUM",
-		"threshold" : 1.0
-	},
 	"sliEntity": {
 		"sliType" : "availability",
 		"applicationId" : "application_id",
@@ -204,11 +197,6 @@ func sliConfigIntegrationTestWithSliEntityOfTypeWebsiteEventBased() *sliConfigIn
 resource "instana_sli_config" "example_sli_config" {
 	name = "name %d"
 	initial_evaluation_timestamp = 0
-	metric_configuration {
-		metric_name = "metric_name"
-		aggregation = "SUM"
-		threshold = 1.0
-	}
 	sli_entity {
 		website_event_based {
 			website_id                   = "website_id"
@@ -224,11 +212,6 @@ resource "instana_sli_config" "example_sli_config" {
 	"id" : "%s",
 	"sliName" : "name %d",
 	"initialEvaluationTimestamp": 0,
-	"metricConfiguration": {
-		"metricName" : "metric_name",
-		"metricAggregation"	: "SUM",
-		"threshold" : 1.0
-	},
 	"sliEntity": {
 		"sliType" : "websiteEventBased",
 		"websiteId" : "website_id",
@@ -306,6 +289,9 @@ resource "instana_sli_config" "example_sli_config" {
 }
 `
 	useCaseSpecificChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteTimeBased, SliConfigFieldWebsiteID), sliConfigEntityWebsiteID),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteTimeBased, SliConfigFieldBeaconType), sliConfigEntityBeaconType),
 		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityWebsiteTimeBased, SliConfigFieldFilterExpression), "request.path@dest EQUALS '/home'"),
@@ -349,9 +335,6 @@ func (r *sliConfigIntegrationTest) createTestCheckFunction(httpPort int64, itera
 		resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
 		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, formatResourceName(iteration)),
 		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricName), sliConfigMetricName),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricAggregation), sliConfigMetricAggregation),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliMetricResourceFieldPattern, SliConfigFieldMetricConfiguration, SliConfigFieldMetricThreshold), "1"),
 	}
 	checks := append(defaultChecks, r.useCaseSpecificChecks...)
 	return resource.TestStep{

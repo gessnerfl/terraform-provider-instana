@@ -30,11 +30,11 @@ type SliEntity struct {
 
 // SliConfig represents the REST resource of sli configuration at Instana
 type SliConfig struct {
-	ID                         string              `json:"id"`
-	Name                       string              `json:"sliName"`
-	InitialEvaluationTimestamp int                 `json:"initialEvaluationTimestamp"`
-	MetricConfiguration        MetricConfiguration `json:"metricConfiguration"`
-	SliEntity                  SliEntity           `json:"sliEntity"`
+	ID                         string               `json:"id"`
+	Name                       string               `json:"sliName"`
+	InitialEvaluationTimestamp int                  `json:"initialEvaluationTimestamp"`
+	MetricConfiguration        *MetricConfiguration `json:"metricConfiguration"`
+	SliEntity                  SliEntity            `json:"sliEntity"`
 }
 
 // GetIDForResourcePath implementation of the interface InstanaDataObject

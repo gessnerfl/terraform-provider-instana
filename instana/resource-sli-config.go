@@ -98,7 +98,7 @@ var (
 	//SliConfigMetricConfiguration schema field definition of instana_sli_config field metric_configuration
 	SliConfigMetricConfiguration = &schema.Schema{
 		Type:        schema.TypeList,
-		Required:    true,
+		Optional:    true,
 		Description: "Metric configuration for the SLI config",
 		MaxItems:    1,
 		Elem: &schema.Resource{
@@ -297,10 +297,14 @@ func (r *sliConfigResource) SetComputedFields(_ *schema.ResourceData) error {
 }
 
 func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *restapi.SliConfig) error {
-	metricConfiguration := map[string]interface{}{
-		SliConfigFieldMetricName:        sliConfig.MetricConfiguration.Name,
-		SliConfigFieldMetricAggregation: sliConfig.MetricConfiguration.Aggregation,
-		SliConfigFieldMetricThreshold:   sliConfig.MetricConfiguration.Threshold,
+	var metricConfiguration []map[string]interface{}
+	if sliConfig.MetricConfiguration != nil {
+		metricConfigurationData := map[string]interface{}{
+			SliConfigFieldMetricName:        sliConfig.MetricConfiguration.Name,
+			SliConfigFieldMetricAggregation: sliConfig.MetricConfiguration.Aggregation,
+			SliConfigFieldMetricThreshold:   sliConfig.MetricConfiguration.Threshold,
+		}
+		metricConfiguration = []map[string]interface{}{metricConfigurationData}
 	}
 
 	sliEntity, err := r.mapSliEntityToState(sliConfig)
@@ -311,7 +315,7 @@ func (r *sliConfigResource) UpdateState(d *schema.ResourceData, sliConfig *resta
 	data := map[string]interface{}{
 		SliConfigFieldName:                       sliConfig.Name,
 		SliConfigFieldInitialEvaluationTimestamp: sliConfig.InitialEvaluationTimestamp,
-		SliConfigFieldMetricConfiguration:        []map[string]interface{}{metricConfiguration},
+		SliConfigFieldMetricConfiguration:        metricConfiguration,
 		SliConfigFieldSliEntity:                  []interface{}{sliEntity},
 	}
 
@@ -431,9 +435,8 @@ func (r *sliConfigResource) mapSliWebsiteTimeBasedEntityToState(sliEntity restap
 }
 
 func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.SliConfig, error) {
-	metricConfigurationsStateObject := d.Get(SliConfigFieldMetricConfiguration).([]interface{})
 	var metricConfiguration restapi.MetricConfiguration
-	if len(metricConfigurationsStateObject) > 0 {
+	if metricConfigurationsStateObject, ok := d.Get(SliConfigFieldMetricConfiguration).([]interface{}); ok && len(metricConfigurationsStateObject) > 0 {
 		metricConfiguration = r.mapMetricConfigurationEntityFromState(metricConfigurationsStateObject)
 	}
 
@@ -453,7 +456,7 @@ func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData) (*resta
 		ID:                         d.Id(),
 		Name:                       d.Get(SliConfigFieldName).(string),
 		InitialEvaluationTimestamp: d.Get(SliConfigFieldInitialEvaluationTimestamp).(int),
-		MetricConfiguration:        metricConfiguration,
+		MetricConfiguration:        &metricConfiguration,
 		SliEntity:                  sliEntity,
 	}, nil
 }

@@ -33,8 +33,10 @@ resource "instana_sli_config" "example" {
 
 * `name` - Required - the name of the SLI configuration
 * `initial_evaluation_timestamp` - Optional - the initial evaluation timestamp for the SLI config
-* `metric_configuration` - Required - resource block to describe the metric the SLI config is based
-  on [Details](#metric-configuration-reference)
+* `metric_configuration` - Optional - resource block to describe the metric the SLI config is based
+  on [Details](#metric-configuration-reference), Required
+  for [application_time_based](#application-time-based-sli-entity-reference)
+  and [website_time_based](#website-time-based-sli-entity-reference) sli entities
 * `sli_entity` - Required - resource block to describe the entity the SLI config is based
   on. [Details](#sli-entity-reference)
 
@@ -49,19 +51,27 @@ resource "instana_sli_config" "example" {
 
 Exactly one of the elements below must be configured:
 
-* `application_event_based` - Optional - event-base sli entity configuration for applications [Details](#application-event-based-sli-entity-reference)
-* `application_time_based` - Optional - time-base sli entity configuration for applications [Details](#application-time-based-sli-entity-reference)
-* `website_event_based` - Optional - event-base sli entity configuration for websites [Details](#website-event-based-sli-entity-reference)
-* `website_time_based` - Optional - time-base sli entity configuration for websites [Details](#website-time-based-sli-entity-reference)
+* `application_event_based` - Optional - event-base sli entity configuration for
+  applications [Details](#application-event-based-sli-entity-reference)
+* `application_time_based` - Optional - time-base sli entity configuration for
+  applications [Details](#application-time-based-sli-entity-reference)
+* `website_event_based` - Optional - event-base sli entity configuration for
+  websites [Details](#website-event-based-sli-entity-reference)
+* `website_time_based` - Optional - time-base sli entity configuration for
+  websites [Details](#website-time-based-sli-entity-reference)
 
 #### Application event-based Sli Entity Reference
 
 * `application_id` - Required - the application ID of the entity
 * `boundary_scope` - Required - the boundary scope of the entity. Allowed values: `ALL`, `INBOUND`
-* `includes_internal` - Optional - flag to indicate whether also internal calls are included in the scope or not. The default is `false`
-* `includes_synthetic` - Optional - flag to indicate whether also synthetic calls are included in the scope or not. The default is `false`
-* `good_event_filter_expression` - Required - tag filter expression to match good events / calls [Details](#tag-filter-expression-reference)
-* `bad_event_filter_expression` - Required - tag filter expression to match bad events / calls [Details](#tag-filter-expression-reference)
+* `includes_internal` - Optional - flag to indicate whether also internal calls are included in the scope or not. The
+  default is `false`
+* `includes_synthetic` - Optional - flag to indicate whether also synthetic calls are included in the scope or not. The
+  default is `false`
+* `good_event_filter_expression` - Required - tag filter expression to match good events /
+  calls [Details](#tag-filter-expression-reference)
+* `bad_event_filter_expression` - Required - tag filter expression to match bad events /
+  calls [Details](#tag-filter-expression-reference)
 
 #### Application time-based Sli Entity Reference
 
@@ -73,15 +83,20 @@ Exactly one of the elements below must be configured:
 #### Website event-based Sli Entity Reference
 
 * `website_id` - Required - the website ID of the entity
-* `beacon_type` - Required - the beacon type of the entity. Allowed values: `pageLoad`, `resourceLoad`, `httpRequest`, `error`, `custom`, `pageChange`
-* `good_event_filter_expression` - Required - tag filter expression to match good events / calls [Details](#tag-filter-expression-reference)
-* `bad_event_filter_expression` - Required - tag filter expression to match bad events / calls [Details](#tag-filter-expression-reference)
+* `beacon_type` - Required - the beacon type of the entity. Allowed
+  values: `pageLoad`, `resourceLoad`, `httpRequest`, `error`, `custom`, `pageChange`
+* `good_event_filter_expression` - Required - tag filter expression to match good events /
+  calls [Details](#tag-filter-expression-reference)
+* `bad_event_filter_expression` - Required - tag filter expression to match bad events /
+  calls [Details](#tag-filter-expression-reference)
 
 #### Website time-based Sli Entity Reference
 
 * `website_id` - Required - the website ID of the entity
-* `beacon_type` - Required - the beacon type of the entity. Allowed values: `pageLoad`, `resourceLoad`, `httpRequest`, `error`, `custom`, `pageChange`
-* `filter_expression` - Optional - tag filter expression to match events / calls [Details](#tag-filter-expression-reference)
+* `beacon_type` - Required - the beacon type of the entity. Allowed
+  values: `pageLoad`, `resourceLoad`, `httpRequest`, `error`, `custom`, `pageChange`
+* `filter_expression` - Optional - tag filter expression to match events /
+  calls [Details](#tag-filter-expression-reference)
 
 #### Tag Filter Expression Reference
 
