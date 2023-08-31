@@ -2,6 +2,8 @@ package instana_test
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"regexp"
 	"testing"
 
@@ -315,14 +317,31 @@ type sliConfigIntegrationTest struct {
 
 func (r *sliConfigIntegrationTest) testCRUD() func(t *testing.T) {
 	return func(t *testing.T) {
-		httpServer := createMockHttpServerForResource(restapi.SliConfigResourcePath, r.serverResponseTemplate)
+		resourcePath := restapi.SliConfigResourcePath
+		serverResponseTemplate := r.serverResponseTemplate
+		pathTemplate := resourcePath + "/{id}"
+		httpServer := testutils.NewTestHTTPServer()
+		id := RandomID()
+		responseHandler := func(w http.ResponseWriter, r *http.Request) {
+			callCount := getZeroBasedCallCount(httpServer, http.MethodPost, resourcePath)
+			json := formatResponseTemplate(serverResponseTemplate, id, callCount)
+			w.Header().Set(contentType, r.Header.Get(contentType))
+			w.WriteHeader(http.StatusOK)
+			_, err := w.Write([]byte(json))
+			if err != nil {
+				log.Fatalf("failed to write response: %s", err)
+			}
+		}
+		httpServer.AddRoute(http.MethodPost, resourcePath, responseHandler)
+		httpServer.AddRoute(http.MethodDelete, pathTemplate, responseHandler)
+		httpServer.AddRoute(http.MethodGet, pathTemplate, responseHandler)
 		httpServer.Start()
 		defer httpServer.Close()
 
 		resource.UnitTest(t, resource.TestCase{
 			ProviderFactories: testProviderFactory,
 			Steps: []resource.TestStep{
-				r.createTestCheckFunction(httpServer.GetPort(), 0),
+				r.createTestCheckFunction(httpServer.GetPort(), 0, id),
 				testStepImport(sliConfigDefinition),
 				r.createUpdateNotSupportedTestCheckFunction(httpServer.GetPort(), 1),
 			},
@@ -330,9 +349,10 @@ func (r *sliConfigIntegrationTest) testCRUD() func(t *testing.T) {
 	}
 }
 
-func (r *sliConfigIntegrationTest) createTestCheckFunction(httpPort int64, iteration int) resource.TestStep {
+func (r *sliConfigIntegrationTest) createTestCheckFunction(httpPort int64, iteration int, id string) resource.TestStep {
 	defaultChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, "id", id),
 		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldName, formatResourceName(iteration)),
 		resource.TestCheckResourceAttr(sliConfigDefinition, SliConfigFieldInitialEvaluationTimestamp, "0"),
 	}

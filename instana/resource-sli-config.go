@@ -435,7 +435,7 @@ func (r *sliConfigResource) mapSliWebsiteTimeBasedEntityToState(sliEntity restap
 }
 
 func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.SliConfig, error) {
-	var metricConfiguration restapi.MetricConfiguration
+	var metricConfiguration *restapi.MetricConfiguration
 	if metricConfigurationsStateObject, ok := d.Get(SliConfigFieldMetricConfiguration).([]interface{}); ok && len(metricConfigurationsStateObject) > 0 {
 		metricConfiguration = r.mapMetricConfigurationEntityFromState(metricConfigurationsStateObject)
 	}
@@ -456,21 +456,21 @@ func (r *sliConfigResource) MapStateToDataObject(d *schema.ResourceData) (*resta
 		ID:                         d.Id(),
 		Name:                       d.Get(SliConfigFieldName).(string),
 		InitialEvaluationTimestamp: d.Get(SliConfigFieldInitialEvaluationTimestamp).(int),
-		MetricConfiguration:        &metricConfiguration,
+		MetricConfiguration:        metricConfiguration,
 		SliEntity:                  sliEntity,
 	}, nil
 }
 
-func (r *sliConfigResource) mapMetricConfigurationEntityFromState(stateObject []interface{}) restapi.MetricConfiguration {
+func (r *sliConfigResource) mapMetricConfigurationEntityFromState(stateObject []interface{}) *restapi.MetricConfiguration {
 	metricConfigurationState := stateObject[0].(map[string]interface{})
 	if len(metricConfigurationState) != 0 {
-		return restapi.MetricConfiguration{
+		return &restapi.MetricConfiguration{
 			Name:        metricConfigurationState[SliConfigFieldMetricName].(string),
 			Aggregation: metricConfigurationState[SliConfigFieldMetricAggregation].(string),
 			Threshold:   metricConfigurationState[SliConfigFieldMetricThreshold].(float64),
 		}
 	}
-	return restapi.MetricConfiguration{}
+	return nil
 }
 
 func (r *sliConfigResource) mapSliEntityListFromState(stateObject map[string]interface{}) (restapi.SliEntity, error) {
