@@ -32,10 +32,10 @@ const (
 	SliConfigFieldMetricThreshold = "threshold"
 	//SliConfigFieldSliEntity constant value for the schema field sli_entity
 	SliConfigFieldSliEntity = "sli_entity"
-	//SliConfigFieldSliEntityApplication constant value for the schema field sli_entity.application
-	SliConfigFieldSliEntityApplication = "application"
-	//SliConfigFieldSliEntityAvailability constant value for the schema field sli_entity.availability
-	SliConfigFieldSliEntityAvailability = "availability"
+	//SliConfigFieldSliEntityApplicationTimeBased constant value for the schema field sli_entity.application
+	SliConfigFieldSliEntityApplicationTimeBased = "application_time_based"
+	//SliConfigFieldSliEntityApplicationEventBased constant value for the schema field sli_entity.availability
+	SliConfigFieldSliEntityApplicationEventBased = "application_event_based"
 	//SliConfigFieldSliEntityWebsiteEventBased constant value for the schema field sli_entity.website_event_based
 	SliConfigFieldSliEntityWebsiteEventBased = "website_event_based"
 	//SliConfigFieldSliEntityWebsiteTimeBased constant value for the schema field sli_entity.website_time_based
@@ -65,8 +65,8 @@ const (
 )
 
 var sliConfigSliEntityTypeKeys = []string{
-	"sli_entity.0.application",
-	"sli_entity.0.availability",
+	"sli_entity.0.application_event_based",
+	"sli_entity.0.application_time_based",
 	"sli_entity.0.website_event_based",
 	"sli_entity.0.website_time_based",
 }
@@ -187,7 +187,7 @@ var (
 		Description: "The entity to use for the SLI config.",
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				SliConfigFieldSliEntityApplication: {
+				SliConfigFieldSliEntityApplicationTimeBased: {
 					Type:        schema.TypeList,
 					Optional:    true,
 					Description: "The SLI entity of type application to use for the SLI config",
@@ -202,7 +202,7 @@ var (
 					},
 					ExactlyOneOf: sliConfigSliEntityTypeKeys,
 				},
-				SliConfigFieldSliEntityAvailability: {
+				SliConfigFieldSliEntityApplicationEventBased: {
 					Type:        schema.TypeList,
 					Optional:    true,
 					Description: "The SLI entity of type availability to use for the SLI config",
@@ -334,7 +334,7 @@ func (r *sliConfigResource) mapSliEntityToState(sliConfig *restapi.SliConfig) (m
 
 func (r *sliConfigResource) mapSliApplicationEntityToState(sliEntity restapi.SliEntity) (map[string]interface{}, error) {
 	result := map[string]interface{}{
-		SliConfigFieldSliEntityApplication: []interface{}{
+		SliConfigFieldSliEntityApplicationTimeBased: []interface{}{
 			map[string]interface{}{
 				SliConfigFieldApplicationID: sliEntity.ApplicationID,
 				SliConfigFieldServiceID:     sliEntity.ServiceID,
@@ -364,7 +364,7 @@ func (r *sliConfigResource) mapSliAvailabilityEntityToState(sliEntity restapi.Sl
 	}
 
 	result := map[string]interface{}{
-		SliConfigFieldSliEntityAvailability: []interface{}{
+		SliConfigFieldSliEntityApplicationEventBased: []interface{}{
 			map[string]interface{}{
 				SliConfigFieldApplicationID:             sliEntity.ApplicationID,
 				SliConfigFieldBoundaryScope:             sliEntity.BoundaryScope,
@@ -472,10 +472,10 @@ func (r *sliConfigResource) mapMetricConfigurationEntityFromState(stateObject []
 
 func (r *sliConfigResource) mapSliEntityListFromState(stateObject map[string]interface{}) (restapi.SliEntity, error) {
 	if len(stateObject) > 0 {
-		if details, ok := stateObject[SliConfigFieldSliEntityApplication]; ok && r.isSliEntitySet(details) {
+		if details, ok := stateObject[SliConfigFieldSliEntityApplicationTimeBased]; ok && r.isSliEntitySet(details) {
 			return r.mapSliEntityApplicationFromState(details.([]interface{})[0].(map[string]interface{}))
 		}
-		if details, ok := stateObject[SliConfigFieldSliEntityAvailability]; ok && r.isSliEntitySet(details) {
+		if details, ok := stateObject[SliConfigFieldSliEntityApplicationEventBased]; ok && r.isSliEntitySet(details) {
 			return r.mapSliEntityAvailabilityFromState(details.([]interface{})[0].(map[string]interface{}))
 		}
 		if details, ok := stateObject[SliConfigFieldSliEntityWebsiteEventBased]; ok && r.isSliEntitySet(details) {
@@ -485,7 +485,7 @@ func (r *sliConfigResource) mapSliEntityListFromState(stateObject map[string]int
 			return r.mapSliEntityWebsiteTimeBasedFromState(details.([]interface{})[0].(map[string]interface{}))
 		}
 	}
-	return restapi.SliEntity{}, fmt.Errorf("exactly one sli entity configuration of type %s, %s, %s or %s, is required", SliConfigFieldSliEntityApplication, SliConfigFieldSliEntityAvailability, SliConfigFieldSliEntityWebsiteEventBased, SliConfigFieldSliEntityWebsiteTimeBased)
+	return restapi.SliEntity{}, fmt.Errorf("exactly one sli entity configuration of type %s, %s, %s or %s, is required", SliConfigFieldSliEntityApplicationTimeBased, SliConfigFieldSliEntityApplicationEventBased, SliConfigFieldSliEntityWebsiteEventBased, SliConfigFieldSliEntityWebsiteTimeBased)
 }
 
 func (r *sliConfigResource) isSliEntitySet(details interface{}) bool {

@@ -16,8 +16,8 @@ import (
 
 func TestSliConfigTest(t *testing.T) {
 	unitTest := &sliConfigUnitTest{}
-	t.Run("CRUD integration test of with SLI Entity of type application", sliConfigIntegrationTestWithSliEntityOfTypeApplication().testCRUD())
-	t.Run("CRUD integration test of with SLI Entity of type availability", sliConfigIntegrationTestWithSliEntityOfTypeAvailability().testCRUD())
+	t.Run("CRUD integration test of with SLI Entity of type applicationTimeBased", sliConfigIntegrationTestWithSliEntityOfTypeApplicationTimeBased().testCRUD())
+	t.Run("CRUD integration test of with SLI Entity of type applicationEventBased", sliConfigIntegrationTestWithSliEntityOfTypeApplicationEventBased().testCRUD())
 	t.Run("CRUD integration test of with SLI Entity of type WebsiteEventBased", sliConfigIntegrationTestWithSliEntityOfTypeWebsiteEventBased().testCRUD())
 	t.Run("CRUD integration test of with SLI Entity of type WebsiteTimeBased", sliConfigIntegrationTestWithSliEntityOfTypeWebsiteTimeBased().testCRUD())
 	t.Run("should have valid resource schema", unitTest.shouldHaveValidResourceSchema())
@@ -83,7 +83,7 @@ var (
 	sliConfigTagFilterExpression = restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, "request.path", restapi.EqualsOperator, "/home")
 )
 
-func sliConfigIntegrationTestWithSliEntityOfTypeApplication() *sliConfigIntegrationTest {
+func sliConfigIntegrationTestWithSliEntityOfTypeApplicationTimeBased() *sliConfigIntegrationTest {
 	resourceTemplate := `
 resource "instana_sli_config" "example_sli_config" {
 	name = "name %d"
@@ -94,7 +94,7 @@ resource "instana_sli_config" "example_sli_config" {
 		threshold = 1.0
 	}
 	sli_entity {
-		application {
+		application_time_based {
 			application_id = "application_id"
 			service_id     = "service_id"
 			endpoint_id    = "endpoint_id"
@@ -123,15 +123,15 @@ resource "instana_sli_config" "example_sli_config" {
 }
 `
 	useCaseSpecificChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplication, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplication, SliConfigFieldServiceID), sliConfigEntityServiceID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplication, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplication, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationTimeBased, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationTimeBased, SliConfigFieldServiceID), sliConfigEntityServiceID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationTimeBased, SliConfigFieldEndpointID), sliConfigEntityEndpointID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationTimeBased, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
 	}
 	return newSliConfigIntegrationTest(resourceTemplate, serverResponseTemplate, useCaseSpecificChecks)
 }
 
-func sliConfigIntegrationTestWithSliEntityOfTypeAvailability() *sliConfigIntegrationTest {
+func sliConfigIntegrationTestWithSliEntityOfTypeApplicationEventBased() *sliConfigIntegrationTest {
 	resourceTemplate := `
 resource "instana_sli_config" "example_sli_config" {
 	name = "name %d"
@@ -142,7 +142,7 @@ resource "instana_sli_config" "example_sli_config" {
 		threshold = 1.0
 	}
 	sli_entity {
-		availability {
+		application_event_based {
 			application_id               = "application_id"
 			boundary_scope               = "ALL"
 			include_internal             = true
@@ -189,12 +189,12 @@ resource "instana_sli_config" "example_sli_config" {
 }
 `
 	useCaseSpecificChecks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldIncludeSynthetic), "true"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldIncludeInternal), "true"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldGoodEventFilterExpression), "request.path@dest EQUALS '/home'"),
-		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityAvailability, SliConfigFieldBadEventFilterExpression), "request.path@dest EQUALS '/404'"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationEventBased, SliConfigFieldApplicationID), sliConfigEntityApplicationID),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationEventBased, SliConfigFieldBoundaryScope), sliConfigEntityBoundaryScope),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationEventBased, SliConfigFieldIncludeSynthetic), "true"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationEventBased, SliConfigFieldIncludeInternal), "true"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationEventBased, SliConfigFieldGoodEventFilterExpression), "request.path@dest EQUALS '/home'"),
+		resource.TestCheckResourceAttr(sliConfigDefinition, fmt.Sprintf(sliEntityResourceFieldPattern, SliConfigFieldSliEntity, SliConfigFieldSliEntityApplicationEventBased, SliConfigFieldBadEventFilterExpression), "request.path@dest EQUALS '/404'"),
 	}
 	return newSliConfigIntegrationTest(resourceTemplate, serverResponseTemplate, useCaseSpecificChecks)
 }
@@ -391,12 +391,12 @@ func (r *sliConfigUnitTest) validateSliEntity(t *testing.T, schemaMap map[string
 	require.Len(t, sliEntitySchemaMap, 4)
 	schemaAssert := testutils.NewTerraformSchemaAssert(sliEntitySchemaMap, t)
 
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(SliConfigFieldSliEntityApplication)
-	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(SliConfigFieldSliEntityAvailability)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(SliConfigFieldSliEntityApplicationTimeBased)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(SliConfigFieldSliEntityApplicationEventBased)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(SliConfigFieldSliEntityWebsiteEventBased)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(SliConfigFieldSliEntityWebsiteTimeBased)
 
-	sliEntityApplicationSchemaMap := sliEntitySchemaMap[SliConfigFieldSliEntityApplication].Elem.(*schema.Resource).Schema
+	sliEntityApplicationSchemaMap := sliEntitySchemaMap[SliConfigFieldSliEntityApplicationTimeBased].Elem.(*schema.Resource).Schema
 	require.Len(t, sliEntityApplicationSchemaMap, 4)
 	schemaAssert = testutils.NewTerraformSchemaAssert(sliEntityApplicationSchemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SliConfigFieldBoundaryScope)
@@ -404,7 +404,7 @@ func (r *sliConfigUnitTest) validateSliEntity(t *testing.T, schemaMap map[string
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SliConfigFieldServiceID)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SliConfigFieldEndpointID)
 
-	sliEntityAvailabilitySchemaMap := sliEntitySchemaMap[SliConfigFieldSliEntityAvailability].Elem.(*schema.Resource).Schema
+	sliEntityAvailabilitySchemaMap := sliEntitySchemaMap[SliConfigFieldSliEntityApplicationEventBased].Elem.(*schema.Resource).Schema
 	require.Len(t, sliEntityAvailabilitySchemaMap, 6)
 	schemaAssert = testutils.NewTerraformSchemaAssert(sliEntityAvailabilitySchemaMap, t)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SliConfigFieldApplicationID)
@@ -538,8 +538,8 @@ func (r *sliConfigUnitTest) shouldUpdateResourceStateForSliConfigWithSliEntityOf
 		sliEntitySlice := resourceData.Get(SliConfigFieldSliEntity).([]interface{})
 		require.IsType(t, map[string]interface{}{}, sliEntitySlice[0])
 		sliEntityData := sliEntitySlice[0].(map[string]interface{})
-		require.IsType(t, []interface{}{}, sliEntityData[SliConfigFieldSliEntityApplication])
-		sliEntityApplicationSlice := sliEntityData[SliConfigFieldSliEntityApplication].([]interface{})
+		require.IsType(t, []interface{}{}, sliEntityData[SliConfigFieldSliEntityApplicationTimeBased])
+		sliEntityApplicationSlice := sliEntityData[SliConfigFieldSliEntityApplicationTimeBased].([]interface{})
 		require.IsType(t, map[string]interface{}{}, sliEntityApplicationSlice[0])
 		sliEntityApplicationData := sliEntityApplicationSlice[0].(map[string]interface{})
 		require.Equal(t, applicationId, sliEntityApplicationData[SliConfigFieldApplicationID])
@@ -585,8 +585,8 @@ func (r *sliConfigUnitTest) shouldUpdateResourceStateForSliConfigWithSliEntityOf
 		sliEntitySlice := resourceData.Get(SliConfigFieldSliEntity).([]interface{})
 		require.IsType(t, map[string]interface{}{}, sliEntitySlice[0])
 		sliEntityData := sliEntitySlice[0].(map[string]interface{})
-		require.IsType(t, []interface{}{}, sliEntityData[SliConfigFieldSliEntityAvailability])
-		sliEntityAvailabilitySlice := sliEntityData[SliConfigFieldSliEntityAvailability].([]interface{})
+		require.IsType(t, []interface{}{}, sliEntityData[SliConfigFieldSliEntityApplicationEventBased])
+		sliEntityAvailabilitySlice := sliEntityData[SliConfigFieldSliEntityApplicationEventBased].([]interface{})
 		require.IsType(t, map[string]interface{}{}, sliEntityAvailabilitySlice[0])
 		sliEntityAvailabilityData := sliEntityAvailabilitySlice[0].(map[string]interface{})
 		require.Equal(t, applicationId, sliEntityAvailabilityData[SliConfigFieldApplicationID])
@@ -847,7 +847,7 @@ func (r *sliConfigUnitTest) shouldMapStateOfSliConfigWithEntityOfTypeApplication
 
 		sliEntityStateObject := []interface{}{
 			map[string]interface{}{
-				SliConfigFieldSliEntityApplication: []interface{}{
+				SliConfigFieldSliEntityApplicationTimeBased: []interface{}{
 					map[string]interface{}{
 						SliConfigFieldApplicationID: sliConfigEntityApplicationID,
 						SliConfigFieldServiceID:     sliConfigEntityServiceID,
@@ -897,7 +897,7 @@ func (r *sliConfigUnitTest) shouldMapStateOfSliConfigWithEntityOfTypeAvailabilit
 
 		sliEntityStateObject := []interface{}{
 			map[string]interface{}{
-				SliConfigFieldSliEntityAvailability: []interface{}{
+				SliConfigFieldSliEntityApplicationEventBased: []interface{}{
 					map[string]interface{}{
 						SliConfigFieldApplicationID:             sliConfigEntityApplicationID,
 						SliConfigFieldIncludeInternal:           true,
@@ -951,7 +951,7 @@ func (r *sliConfigUnitTest) shouldFailToMapStateOfSliConfigWithEntityOfTypeAvail
 
 		sliEntityStateObject := []interface{}{
 			map[string]interface{}{
-				SliConfigFieldSliEntityAvailability: []interface{}{
+				SliConfigFieldSliEntityApplicationEventBased: []interface{}{
 					map[string]interface{}{
 						SliConfigFieldApplicationID:             sliConfigEntityApplicationID,
 						SliConfigFieldIncludeInternal:           true,
@@ -992,7 +992,7 @@ func (r *sliConfigUnitTest) shouldFailToMapStateOfSliConfigWithEntityOfTypeAvail
 
 		sliEntityStateObject := []interface{}{
 			map[string]interface{}{
-				SliConfigFieldSliEntityAvailability: []interface{}{
+				SliConfigFieldSliEntityApplicationEventBased: []interface{}{
 					map[string]interface{}{
 						SliConfigFieldApplicationID:             sliConfigEntityApplicationID,
 						SliConfigFieldIncludeInternal:           true,
@@ -1271,7 +1271,7 @@ func (r *sliConfigUnitTest) shouldFailToMapStateOfSliConfigWhenNoSupportedliEnti
 		setValueOnResourceData(t, resourceData, SliConfigFieldMetricConfiguration, metricConfigurationStateObject)
 
 		sliEntityStateObject := []interface{}{map[string]interface{}{
-			SliConfigFieldSliEntityApplication: []interface{}{},
+			SliConfigFieldSliEntityApplicationTimeBased: []interface{}{},
 		}}
 		setValueOnResourceData(t, resourceData, SliConfigFieldSliEntity, sliEntityStateObject)
 
