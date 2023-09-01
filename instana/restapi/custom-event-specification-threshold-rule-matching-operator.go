@@ -2,7 +2,7 @@ package restapi
 
 import "fmt"
 
-//MatchingOperator representation of a MatchingOperator of a threshold rule of a custom event specification  of the Instana Web REST API
+// MatchingOperator representation of a MatchingOperator of a threshold rule of a custom event specification  of the Instana Web REST API
 type MatchingOperator interface {
 	InstanaAPIValue() string
 	TerraformSupportedValues() []string
@@ -12,26 +12,26 @@ func newBasicMatchingOperator(instanaAPIValue string, additionalSupportedTerrafo
 	return &baseMatchingOperator{instanaAPIValue: instanaAPIValue, terraformSupportedValues: append(additionalSupportedTerraformValues, instanaAPIValue)}
 }
 
-//MatchingOperatorType custom type representing a matching operator of a custom event specification rule
+// MatchingOperatorType custom type representing a matching operator of a custom event specification rule
 type baseMatchingOperator struct {
 	instanaAPIValue          string
 	terraformSupportedValues []string
 }
 
-//InstanaAPIValue implementation of MatchingOperator interace
+// InstanaAPIValue implementation of MatchingOperator interace
 func (b *baseMatchingOperator) InstanaAPIValue() string {
 	return b.instanaAPIValue
 }
 
-//TerraformSupportedValues implementation of MatchingOperator interace
+// TerraformSupportedValues implementation of MatchingOperator interace
 func (b *baseMatchingOperator) TerraformSupportedValues() []string {
 	return b.terraformSupportedValues
 }
 
-//MatchingOperators custom type representing a slice of MatchingOperatorType
+// MatchingOperators custom type representing a slice of MatchingOperatorType
 type MatchingOperators []MatchingOperator
 
-//TerrafromSupportedValues Returns the terraform string representations fo the matching operators
+// TerrafromSupportedValues Returns the terraform string representations fo the matching operators
 func (types MatchingOperators) TerrafromSupportedValues() []string {
 	result := make([]string, 0)
 	for _, v := range types {
@@ -40,7 +40,7 @@ func (types MatchingOperators) TerrafromSupportedValues() []string {
 	return result
 }
 
-//InstanaAPISupportedValues Returns the terraform string representations fo the matching operators
+// InstanaAPISupportedValues Returns the terraform string representations fo the matching operators
 func (types MatchingOperators) InstanaAPISupportedValues() []string {
 	result := make([]string, len(types))
 	for i, v := range types {
@@ -49,17 +49,7 @@ func (types MatchingOperators) InstanaAPISupportedValues() []string {
 	return result
 }
 
-//IsSupportedInstanaAPIMatchingOperator check if the provided matching operator type is a supported instana api value
-func (types MatchingOperators) IsSupportedInstanaAPIMatchingOperator(operator string) bool {
-	for _, t := range types {
-		if t.InstanaAPIValue() == operator {
-			return true
-		}
-	}
-	return false
-}
-
-//FromInstanaAPIValue returns the MatchingOperator for the given instana apistring value or an error if the operator type does not exist
+// FromInstanaAPIValue returns the MatchingOperator for the given instana apistring value or an error if the operator type does not exist
 func (types MatchingOperators) FromInstanaAPIValue(instanaAPIvalue string) (MatchingOperator, error) {
 	for _, t := range types {
 		if t.InstanaAPIValue() == instanaAPIvalue {
@@ -69,7 +59,7 @@ func (types MatchingOperators) FromInstanaAPIValue(instanaAPIvalue string) (Matc
 	return MatchingOperatorIs, fmt.Errorf("%s is not a supported matching operator of the Instana Web REST API", instanaAPIvalue)
 }
 
-//FromTerraformValue returns the MatchingOperator for the given terraform string value or an error if the operator type does not exist
+// FromTerraformValue returns the MatchingOperator for the given terraform string value or an error if the operator type does not exist
 func (types MatchingOperators) FromTerraformValue(terraformRepresentation string) (MatchingOperator, error) {
 	for _, t := range types {
 		for _, v := range t.TerraformSupportedValues() {
@@ -92,5 +82,5 @@ var (
 	MatchingOperatorEndsWith = newBasicMatchingOperator("endsWith", "ends_with")
 )
 
-//SupportedMatchingOperators slice of supported matching operatorTypes types
+// SupportedMatchingOperators slice of supported matching operatorTypes types
 var SupportedMatchingOperators = MatchingOperators{MatchingOperatorIs, MatchingOperatorContains, MatchingOperatorStartsWith, MatchingOperatorEndsWith}

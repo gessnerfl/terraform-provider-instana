@@ -1,7 +1,6 @@
 package restapi_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -148,22 +147,6 @@ func TestShouldConvertSupportedAggregationTypesToSliceOfString(t *testing.T) {
 	result := SupportedAggregationTypes.ToStringSlice()
 
 	assert.Equal(t, expectedResult, result)
-}
-
-func TestShouldReturnTrueForAllSupportedMetricPatternTypes(t *testing.T) {
-	for _, ot := range SupportedMetricPatternOperatorTypes {
-		t.Run(fmt.Sprintf("TestShouldReturnTrueForAllSupportedMetricPatternTypes%s", ot), createTestCaseForVerifyingIfAIsSupportedReturnsTrueForAllSupportedMetricPatternTypes(ot))
-	}
-}
-
-func createTestCaseForVerifyingIfAIsSupportedReturnsTrueForAllSupportedMetricPatternTypes(ot MetricPatternOperatorType) func(*testing.T) {
-	return func(t *testing.T) {
-		assert.True(t, SupportedMetricPatternOperatorTypes.IsSupported(ot))
-	}
-}
-
-func TestShouldReturnFalseWhenMetricPatternOperatorTypeIsNotSupported(t *testing.T) {
-	assert.False(t, SupportedMetricPatternOperatorTypes.IsSupported("invalid"))
 }
 
 func TestShouldConvertMetricPatternOperatorTypesToStringSlice(t *testing.T) {

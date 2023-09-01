@@ -1,22 +1,12 @@
 package restapi
 
-//Aggregation custom type for an Aggregation
+// Aggregation custom type for an Aggregation
 type Aggregation string
 
-//Aggregations custom type for a slice of Aggregation
+// Aggregations custom type for a slice of Aggregation
 type Aggregations []Aggregation
 
-//IsSupported check if the provided Aggregation is supported
-func (aggregations Aggregations) IsSupported(aggregation Aggregation) bool {
-	for _, g := range aggregations {
-		if g == aggregation {
-			return true
-		}
-	}
-	return false
-}
-
-//ToStringSlice Returns the corresponding string representations
+// ToStringSlice Returns the corresponding string representations
 func (aggregations Aggregations) ToStringSlice() []string {
 	result := make([]string, len(aggregations))
 	for i, v := range aggregations {
@@ -60,5 +50,5 @@ const (
 	SumPositiveAggregation = Aggregation("SUM_POSITIVE")
 )
 
-//SupportedAggregations list of all supported Aggregation
+// SupportedAggregations list of all supported Aggregation
 var SupportedAggregations = Aggregations{SumAggregation, MeanAggregation, MaxAggregation, MinAggregation, Percentile25Aggregation, Percentile50Aggregation, Percentile75Aggregation, Percentile90Aggregation, Percentile95Aggregation, Percentile98Aggregation, Percentile99Aggregation, Percentile99_9Aggregation, Percentile99_99Aggregation, DistributionAggregation, DistinctCountAggregation, SumPositiveAggregation}

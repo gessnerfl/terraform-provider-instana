@@ -34,16 +34,6 @@ func (scopes ApplicationConfigScopes) ToStringSlice() []string {
 	return result
 }
 
-// IsSupported checks if the given ApplicationConfigScope is defined as a supported ApplicationConfigScope of the underlying slice
-func (scopes ApplicationConfigScopes) IsSupported(s ApplicationConfigScope) bool {
-	for _, scope := range scopes {
-		if s == scope {
-			return true
-		}
-	}
-	return false
-}
-
 const (
 	//ApplicationConfigScopeIncludeNoDownstream constant for the scope INCLUDE_NO_DOWNSTREAM
 	ApplicationConfigScopeIncludeNoDownstream = ApplicationConfigScope("INCLUDE_NO_DOWNSTREAM")
@@ -138,16 +128,6 @@ const (
 
 // SupportedMatcherExpressionEntities slice of supported matcher expression entity types
 var SupportedMatcherExpressionEntities = MatcherExpressionEntities{MatcherExpressionEntitySource, MatcherExpressionEntityDestination, MatcherExpressionEntityNotApplicable}
-
-// IsSupported check if the provided matcher expression entity is supported
-func (entities MatcherExpressionEntities) IsSupported(entity MatcherExpressionEntity) bool {
-	for _, v := range entities {
-		if v == entity {
-			return true
-		}
-	}
-	return false
-}
 
 // TagMatcherExpression is the representation of a tag matcher expression in Instana
 type TagMatcherExpression struct {

@@ -48,16 +48,6 @@ const (
 // SupportedAggregationTypes slice of supported aggregation types
 var SupportedAggregationTypes = AggregationTypes{AggregationSum, AggregationAvg, AggregationMin, AggregationMax}
 
-// IsSupportedAggregationType check if the provided aggregation type is supported
-func IsSupportedAggregationType(aggregation AggregationType) bool {
-	for _, v := range SupportedAggregationTypes {
-		if v == aggregation {
-			return true
-		}
-	}
-	return false
-}
-
 // MetricPatternOperatorType the operator type of the metric pattern of a dynamic built-in metric
 type MetricPatternOperatorType string
 
@@ -71,16 +61,6 @@ func (types MetricPatternOperatorTypes) ToStringSlice() []string {
 		result[i] = string(v)
 	}
 	return result
-}
-
-// IsSupported checks if the given value is a valid representation of a supported MetricPatternOperatorType
-func (types MetricPatternOperatorTypes) IsSupported(val MetricPatternOperatorType) bool {
-	for _, t := range types {
-		if t == val {
-			return true
-		}
-	}
-	return false
 }
 
 // Constant values of all supported MetricPatternOperatorTypes

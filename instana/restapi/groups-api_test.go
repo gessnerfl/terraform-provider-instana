@@ -1,7 +1,6 @@
 package restapi_test
 
 import (
-	"fmt"
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,18 +12,6 @@ const (
 	groupName              = "group-name"
 	groupPermissionScopeID = "group-permission-scope-id"
 )
-
-func TestShouldReturnTrueWhenTheProvidedInstanaPermissionIsSupported(t *testing.T) {
-	for _, v := range SupportedInstanaPermissions {
-		t.Run(fmt.Sprintf("TestShouldReturnTrueWhenCheckingIfPermission%sIsSupported", v), func(t *testing.T) {
-			require.True(t, SupportedInstanaPermissions.IsSupported(v))
-		})
-	}
-}
-
-func TestShouldReturnFalseWhenTheProvidedInstanaPermissionIsSupported(t *testing.T) {
-	require.False(t, SupportedInstanaPermissions.IsSupported("invalid"))
-}
 
 func TestShouldReturnSupportedInstanaPermissionsAsString(t *testing.T) {
 	expectedResult := []string{

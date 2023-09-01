@@ -1,22 +1,12 @@
 package restapi
 
-//Granularity custom type for an Alter Granularity
+// Granularity custom type for an Alter Granularity
 type Granularity int32
 
-//Granularities custom type for a slice of Granularity
+// Granularities custom type for a slice of Granularity
 type Granularities []Granularity
 
-//IsSupported check if the provided Granularity is supported
-func (granularities Granularities) IsSupported(granularity Granularity) bool {
-	for _, g := range granularities {
-		if g == granularity {
-			return true
-		}
-	}
-	return false
-}
-
-//ToIntSlice Returns the corresponding int representations
+// ToIntSlice Returns the corresponding int representations
 func (granularities Granularities) ToIntSlice() []int {
 	result := make([]int, len(granularities))
 	for i, v := range granularities {
@@ -38,5 +28,5 @@ const (
 	Granularity1800000 = Granularity(1800000)
 )
 
-//SupportedGranularities list of all supported Granularities
+// SupportedGranularities list of all supported Granularities
 var SupportedGranularities = Granularities{Granularity300000, Granularity600000, Granularity900000, Granularity1200000, Granularity1800000}

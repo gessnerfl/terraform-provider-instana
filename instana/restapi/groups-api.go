@@ -72,16 +72,6 @@ func (permissions InstanaPermissions) ToStringSlice() []string {
 	return result
 }
 
-// IsSupported checks if the provided InstanaPermission is a supported Instana permission
-func (permissions InstanaPermissions) IsSupported(toBeChecked InstanaPermission) bool {
-	for _, p := range permissions {
-		if p == toBeChecked {
-			return true
-		}
-	}
-	return false
-}
-
 // SupportedInstanaPermissions slice of all supported Permissions of the Instana API
 var SupportedInstanaPermissions = InstanaPermissions{
 	PermissionCanConfigureApplications,

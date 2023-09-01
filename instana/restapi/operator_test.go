@@ -7,18 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestShouldReturnTrueForAllSupportedLogicalOperatorTypes(t *testing.T) {
-	for _, v := range SupportedLogicalOperatorTypes {
-		require.True(t, SupportedLogicalOperatorTypes.IsSupported(v))
-	}
-}
-
-func TestShouldReturnFalseForAllNonSupportedLogicalOperatorTypes(t *testing.T) {
-	for _, v := range []string{"FOO", "BAR", "INVALID"} {
-		require.False(t, SupportedLogicalOperatorTypes.IsSupported(LogicalOperatorType(v)))
-	}
-}
-
 func TestShouldReturnTrueForAllSupportedComparisonOperators(t *testing.T) {
 	for _, v := range SupportedComparisonOperators {
 		require.True(t, SupportedComparisonOperators.IsSupported(v))

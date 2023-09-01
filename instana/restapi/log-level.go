@@ -1,22 +1,12 @@
 package restapi
 
-//LogLevel custom type for log level
+// LogLevel custom type for log level
 type LogLevel string
 
-//LogLevels custom type for a slice of LogLevel
+// LogLevels custom type for a slice of LogLevel
 type LogLevels []LogLevel
 
-//IsSupported check if the provided LogLevel is supported
-func (levels LogLevels) IsSupported(level LogLevel) bool {
-	for _, g := range levels {
-		if g == level {
-			return true
-		}
-	}
-	return false
-}
-
-//ToStringSlice Returns the corresponding string representations
+// ToStringSlice Returns the corresponding string representations
 func (levels LogLevels) ToStringSlice() []string {
 	result := make([]string, len(levels))
 	for i, v := range levels {
@@ -34,5 +24,5 @@ const (
 	LogLevelAny = LogLevel("ANY")
 )
 
-//SupportedLogLevels list of all supported LogLevel
+// SupportedLogLevels list of all supported LogLevel
 var SupportedLogLevels = LogLevels{LogLevelWarning, LogLevelError, LogLevelAny}
