@@ -12,10 +12,6 @@ func (s Severity) GetAPIRepresentation() int { return s.apiRepresentation }
 // GetTerraformRepresentation returns the string representation of the Terraform Provider
 func (s Severity) GetTerraformRepresentation() string { return s.terraformRepresentation }
 
-func (s Severity) equals(other Severity) bool {
-	return s.apiRepresentation == other.apiRepresentation && s.terraformRepresentation == other.terraformRepresentation
-}
-
 // SeverityCritical representation of the critical severity
 var SeverityCritical = Severity{apiRepresentation: 10, terraformRepresentation: "critical"}
 

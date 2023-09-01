@@ -1,14 +1,7 @@
 package restapi
 
-import "strings"
-
 // AlertEventType type definition of EventTypes of an Instana Alert
 type AlertEventType string
-
-// Equals checks if the alert event type is equal to the provided alert event type. It compares the string representation of both case insensitive
-func (t AlertEventType) Equals(other AlertEventType) bool {
-	return strings.EqualFold(string(t), string(other))
-}
 
 const (
 	//IncidentAlertEventType constant value for alert event type incident

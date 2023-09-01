@@ -10,7 +10,6 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const nameIsMissingError = "Name is missing"
 const websiteMonitoringConfigID = "website-config-id"
 const websiteMonitoringConfigName = "website-config-name"
 const websiteMonitoringConfigAppName = "website-config-app-name"

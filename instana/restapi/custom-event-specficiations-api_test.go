@@ -16,8 +16,6 @@ const (
 	customEventMatchingEntityLabel = "custom-event-matching-entity-label"
 	customEventMatchingEntityType  = "custom-event-matching-entity-type"
 	customEventOfflineDuration     = 60000
-
-	valueInvalid = "invalid"
 )
 
 func TestShouldReturnConditionOperatorTypeOfThresholdRuleWhenValidInstanaWebRestAPIConditionOperatorTypoIsProvided(t *testing.T) {
