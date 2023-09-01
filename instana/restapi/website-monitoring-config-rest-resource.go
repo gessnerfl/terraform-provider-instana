@@ -36,9 +36,6 @@ func (r *websiteMonitoringConfigRestResource) GetOne(id string) (*WebsiteMonitor
 }
 
 func (r *websiteMonitoringConfigRestResource) Create(data *WebsiteMonitoringConfig) (*WebsiteMonitoringConfig, error) {
-	if err := data.Validate(); err != nil {
-		return data, err
-	}
 	response, err := r.client.PostByQuery(r.resourcePath, map[string]string{"name": data.Name})
 	if err != nil {
 		return data, err
@@ -47,9 +44,6 @@ func (r *websiteMonitoringConfigRestResource) Create(data *WebsiteMonitoringConf
 }
 
 func (r *websiteMonitoringConfigRestResource) Update(data *WebsiteMonitoringConfig) (*WebsiteMonitoringConfig, error) {
-	if err := data.Validate(); err != nil {
-		return data, err
-	}
 	response, err := r.client.PutByQuery(r.resourcePath, data.GetIDForResourcePath(), map[string]string{"name": data.Name})
 	if err != nil {
 		return data, err
@@ -61,9 +55,6 @@ func (r *websiteMonitoringConfigRestResource) validateResponseAndConvertToStruct
 	dataObject, err := r.unmarshaller.Unmarshal(data)
 	if err != nil {
 		return nil, err
-	}
-	if err := dataObject.Validate(); err != nil {
-		return dataObject, err
 	}
 	return dataObject, nil
 }

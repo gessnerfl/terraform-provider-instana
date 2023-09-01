@@ -11,6 +11,9 @@ import (
 )
 
 const nameIsMissingError = "Name is missing"
+const websiteMonitoringConfigID = "website-config-id"
+const websiteMonitoringConfigName = "website-config-name"
+const websiteMonitoringConfigAppName = "website-config-app-name"
 
 var websiteMonitoringConfigSerialized = []byte("serialized")
 var nameQueryParameter = map[string]string{"name": websiteMonitoringConfigName}
@@ -167,23 +170,6 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfWebsiteMonitoringConfigRest
 	require.Equal(t, expectedError, err)
 }
 
-func TestShouldReturnErrorWhenExecutingGetOperationOfWebsiteMonitoringConfigRestResourceAndReceivedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
-
-	client.EXPECT().GetOne(websiteMonitoringConfigID, WebsiteMonitoringConfigResourcePath).Times(1).Return(websiteMonitoringConfigSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&WebsiteMonitoringConfig{}, nil)
-
-	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
-
-	_, err := sut.GetOne(websiteMonitoringConfigID)
-
-	require.Error(t, err)
-	require.Contains(t, nameIsMissingError, err.Error())
-}
-
 // ########################################################
 // Create Operation Tests
 // ########################################################
@@ -204,24 +190,6 @@ func TestShouldSuccessfullyExecuteCreateOperationOfWebsiteMonitoringConfigRestRe
 
 	require.NoError(t, err)
 	require.Equal(t, websiteMonitoringConfig, result)
-}
-
-func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigRestResourceAndProvidedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
-	websiteMonitoringConfig := &WebsiteMonitoringConfig{}
-
-	client.EXPECT().PostByQuery(WebsiteMonitoringConfigResourcePath, nameQueryParameter).Times(0)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(0)
-
-	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
-
-	_, err := sut.Create(websiteMonitoringConfig)
-
-	require.Error(t, err)
-	require.Contains(t, nameIsMissingError, err.Error())
 }
 
 func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigRestResourceAndPostOperationFails(t *testing.T) {
@@ -262,24 +230,6 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigR
 	require.Equal(t, expectedError, err)
 }
 
-func TestShouldReturnErrorWhenExecutingCreateOperationOfWebsiteMonitoringConfigRestResourceAndReceivedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
-	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
-
-	client.EXPECT().PostByQuery(WebsiteMonitoringConfigResourcePath, nameQueryParameter).Times(1).Return(websiteMonitoringConfigSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&WebsiteMonitoringConfig{}, nil)
-
-	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
-
-	_, err := sut.Create(websiteMonitoringConfig)
-
-	require.Error(t, err)
-	require.Contains(t, nameIsMissingError, err.Error())
-}
-
 // ########################################################
 // Update Operation Tests
 // ########################################################
@@ -300,24 +250,6 @@ func TestShouldSuccessfullyExecuteUpdateOperationOfWebsiteMonitoringConfigRestRe
 
 	require.NoError(t, err)
 	require.Equal(t, websiteMonitoringConfig, result)
-}
-
-func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigRestResourceAndProvidedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
-	websiteMonitoringConfig := &WebsiteMonitoringConfig{}
-
-	client.EXPECT().PutByQuery(WebsiteMonitoringConfigResourcePath, websiteMonitoringConfigID, nameQueryParameter).Times(0)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(0)
-
-	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
-
-	_, err := sut.Update(websiteMonitoringConfig)
-
-	require.Error(t, err)
-	require.Contains(t, nameIsMissingError, err.Error())
 }
 
 func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigRestResourceAndPutOperationFails(t *testing.T) {
@@ -356,24 +288,6 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigR
 
 	require.Error(t, err)
 	require.Equal(t, expectedError, err)
-}
-
-func TestShouldReturnErrorWhenExecutingUpdateOperationOfWebsiteMonitoringConfigRestResourceAndReceivedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*WebsiteMonitoringConfig](ctrl)
-	websiteMonitoringConfig := makeTestWebsiteMonitoringConfig()
-
-	client.EXPECT().PutByQuery(WebsiteMonitoringConfigResourcePath, websiteMonitoringConfigID, nameQueryParameter).Times(1).Return(websiteMonitoringConfigSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(websiteMonitoringConfigSerialized).Times(1).Return(&WebsiteMonitoringConfig{}, nil)
-
-	sut := NewWebsiteMonitoringConfigRestResource(unmarshaller, client)
-
-	_, err := sut.Update(websiteMonitoringConfig)
-
-	require.Error(t, err)
-	require.Contains(t, nameIsMissingError, err.Error())
 }
 
 // ########################################################

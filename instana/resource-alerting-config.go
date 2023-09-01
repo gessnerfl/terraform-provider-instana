@@ -43,7 +43,7 @@ var AlertingConfigSchemaAlertName = &schema.Schema{
 	Type:         schema.TypeString,
 	Required:     true,
 	Description:  "Configures the alert name of the alerting configuration",
-	ValidateFunc: validation.StringLenBetween(1, 200),
+	ValidateFunc: validation.StringLenBetween(1, 256),
 }
 
 // AlertingConfigSchemaFullAlertName schema field definition of instana_alerting_config field full_alert_name
@@ -74,6 +74,8 @@ var AlertingConfigSchemaEventFilterQuery = &schema.Schema{
 	ValidateFunc: validation.StringLenBetween(0, 2048),
 }
 
+var eventTypesOrRuleIds = []string{AlertingConfigFieldEventFilterRuleIDs, AlertingConfigFieldEventFilterEventTypes}
+
 // AlertingConfigSchemaEventFilterEventTypes schema field definition of instana_alerting_config field event_filter_event_types
 var AlertingConfigSchemaEventFilterEventTypes = &schema.Schema{
 	Type:     schema.TypeSet,
@@ -83,10 +85,10 @@ var AlertingConfigSchemaEventFilterEventTypes = &schema.Schema{
 		Type:         schema.TypeString,
 		ValidateFunc: validation.StringInSlice(supportedEventTypes, false),
 	},
-	Required:      false,
-	Optional:      true,
-	ConflictsWith: []string{AlertingConfigFieldEventFilterRuleIDs},
-	Description:   "Configures the list of Event Types IDs which should trigger an alert.",
+	Required:     false,
+	Optional:     true,
+	ExactlyOneOf: eventTypesOrRuleIds,
+	Description:  "Configures the list of Event Types IDs which should trigger an alert.",
 }
 
 // AlertingConfigSchemaEventFilterRuleIDs schema field definition of instana_alerting_config field event_filter_rule_ids
@@ -97,10 +99,10 @@ var AlertingConfigSchemaEventFilterRuleIDs = &schema.Schema{
 	Elem: &schema.Schema{
 		Type: schema.TypeString,
 	},
-	Required:      false,
-	Optional:      true,
-	ConflictsWith: []string{AlertingConfigFieldEventFilterEventTypes},
-	Description:   "Configures the list of Rule IDs which should trigger an alert.",
+	Required:     false,
+	Optional:     true,
+	ExactlyOneOf: eventTypesOrRuleIds,
+	Description:  "Configures the list of Rule IDs which should trigger an alert.",
 }
 
 // NewAlertingConfigResourceHandle creates the resource handle for Alerting Configuration

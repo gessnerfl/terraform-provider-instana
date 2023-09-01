@@ -3,7 +3,6 @@ package restapi
 // InstanaDataObject is a marker interface for any data object provided by any resource of the Instana REST API
 type InstanaDataObject interface {
 	GetIDForResourcePath() string
-	Validate() error
 }
 
 // RestResource interface definition of a instana REST resource.

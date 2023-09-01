@@ -251,11 +251,6 @@ func (tdo testDataObject) GetIDForResourcePath() string {
 	return tdo.id
 }
 
-// Validate implementation of InstanaDataObject
-func (tdo testDataObject) Validate() error {
-	return nil
-}
-
 func TestShouldReturnNothingForSuccessfulDeleteRequest(t *testing.T) {
 	httpServer := setupAndStartHttpServerWithOKResponseCode(http.MethodDelete, testPathWithID)
 	defer httpServer.Close()

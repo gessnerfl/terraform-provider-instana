@@ -29,13 +29,6 @@ func (t *testObject) GetIDForResourcePath() string {
 	return t.ID
 }
 
-func (t *testObject) Validate() error {
-	if t.Name != testObjectName {
-		return errors.New("Name differs")
-	}
-	return nil
-}
-
 func makeTestObject() *testObject {
 	return &testObject{ID: testObjectID, Name: testObjectName}
 }
@@ -78,21 +71,6 @@ func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenResponseCanno
 
 		assert.Error(t, err)
 		assert.Equal(t, expectedError, err)
-	})
-}
-
-func TestShouldFailToGetOneTestObjectThroughDefaultRestResourceWhenUnmarshalledObjectIsNotValid(t *testing.T) {
-	executeForAllImplementationsOfDefaultRestResource(t, func(t *testing.T, sut RestResource[*testObject], client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
-		response := []byte("[{ \"some\" : \"data\" }]")
-		object := makeTestObject()
-		object.Name = "invalid"
-
-		client.EXPECT().GetOne(gomock.Eq(testObjectID), gomock.Eq(testObjectResourcePath)).Return(response, nil)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(object, nil)
-
-		_, err := sut.GetOne(testObjectID)
-
-		assert.Error(t, err)
 	})
 }
 

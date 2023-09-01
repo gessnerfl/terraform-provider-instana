@@ -121,9 +121,6 @@ func (r *defaultRestResource[T]) Update(data T) (T, error) {
 }
 
 func (r *defaultRestResource[T]) upsert(data T, operation restClientOperation) (T, error) {
-	if err := data.Validate(); err != nil {
-		return data, err
-	}
 	response, err := operation(data, r.resourcePath)
 	if err != nil {
 		return data, err
@@ -135,10 +132,6 @@ func (r *defaultRestResource[T]) validateResponseAndConvertToStruct(data []byte)
 	dataObject, err := r.unmarshaller.Unmarshal(data)
 	if err != nil {
 		return utils.GetZeroValue[T](), err
-	}
-
-	if err := dataObject.Validate(); err != nil {
-		return dataObject, err
 	}
 	return dataObject, nil
 }

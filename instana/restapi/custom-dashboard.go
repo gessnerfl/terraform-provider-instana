@@ -2,7 +2,7 @@ package restapi
 
 import "encoding/json"
 
-//CustomDashboardsResourcePath the API resource path for Custom Dashboards
+// CustomDashboardsResourcePath the API resource path for Custom Dashboards
 const CustomDashboardsResourcePath = InstanaAPIBasePath + "/custom-dashboard"
 
 type CustomDashboard struct {
@@ -12,13 +12,7 @@ type CustomDashboard struct {
 	Widgets     json.RawMessage `json:"widgets"`
 }
 
-//GetIDForResourcePath implementation of the interface InstanaDataObject for CustomDashboard
+// GetIDForResourcePath implementation of the interface InstanaDataObject for CustomDashboard
 func (a *CustomDashboard) GetIDForResourcePath() string {
 	return a.ID
-}
-
-//Validate implementation of the interface InstanaDataObject for CustomDashboard
-func (a *CustomDashboard) Validate() error {
-	//No validation required validation part of terraform schema
-	return nil
 }

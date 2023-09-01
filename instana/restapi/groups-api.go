@@ -1,12 +1,6 @@
 package restapi
 
-import (
-	"errors"
-	"fmt"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
-)
-
-//InstanaPermission data type representing an Instana permission string
+// InstanaPermission data type representing an Instana permission string
 type InstanaPermission string
 
 const (
@@ -66,10 +60,10 @@ const (
 	PermissionCanViewAccountAndBillingInformation = InstanaPermission("CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION")
 )
 
-//InstanaPermissions data type representing a slice of Instana permissions
+// InstanaPermissions data type representing a slice of Instana permissions
 type InstanaPermissions []InstanaPermission
 
-//ToStringSlice converts the slice of InstanaPermissions to its string representation
+// ToStringSlice converts the slice of InstanaPermissions to its string representation
 func (permissions InstanaPermissions) ToStringSlice() []string {
 	result := make([]string, len(permissions))
 	for i, v := range permissions {
@@ -78,7 +72,7 @@ func (permissions InstanaPermissions) ToStringSlice() []string {
 	return result
 }
 
-//IsSupported checks if the provided InstanaPermission is a supported Instana permission
+// IsSupported checks if the provided InstanaPermission is a supported Instana permission
 func (permissions InstanaPermissions) IsSupported(toBeChecked InstanaPermission) bool {
 	for _, p := range permissions {
 		if p == toBeChecked {
@@ -88,7 +82,7 @@ func (permissions InstanaPermissions) IsSupported(toBeChecked InstanaPermission)
 	return false
 }
 
-//SupportedInstanaPermissions slice of all supported Permissions of the Instana API
+// SupportedInstanaPermissions slice of all supported Permissions of the Instana API
 var SupportedInstanaPermissions = InstanaPermissions{
 	PermissionCanConfigureApplications,
 	PermissionCanSeeOnPremLiceneInformation,
@@ -119,16 +113,16 @@ var SupportedInstanaPermissions = InstanaPermissions{
 	PermissionCanViewAccountAndBillingInformation,
 }
 
-//GroupsResourcePath path to Group resource of Instana RESTful API
+// GroupsResourcePath path to Group resource of Instana RESTful API
 const GroupsResourcePath = RBACSettingsBasePath + "/groups"
 
-//ScopeBinding data structure for the Instana API model for scope bindings
+// ScopeBinding data structure for the Instana API model for scope bindings
 type ScopeBinding struct {
 	ScopeID     string  `json:"scopeId"`
 	ScopeRoleID *string `json:"scopeRoleId"`
 }
 
-//APIPermissionSetWithRoles data structure for the Instana API model for permissions with roles
+// APIPermissionSetWithRoles data structure for the Instana API model for permissions with roles
 type APIPermissionSetWithRoles struct {
 	ApplicationIDs          []ScopeBinding      `json:"applicationIds"`
 	InfraDFQFilter          *ScopeBinding       `json:"infraDfqFilter"`
@@ -139,16 +133,7 @@ type APIPermissionSetWithRoles struct {
 	Permissions             []InstanaPermission `json:"permissions"`
 }
 
-func (m *APIPermissionSetWithRoles) validate() error {
-	for _, p := range m.Permissions {
-		if !SupportedInstanaPermissions.IsSupported(p) {
-			return fmt.Errorf("%s is not a supported Instana permission", p)
-		}
-	}
-	return nil
-}
-
-//IsEmpty returns true when no permission or scope is assigned
+// IsEmpty returns true when no permission or scope is assigned
 func (m *APIPermissionSetWithRoles) IsEmpty() bool {
 	if len(m.ApplicationIDs) > 0 {
 		return false
@@ -174,20 +159,13 @@ func (m *APIPermissionSetWithRoles) IsEmpty() bool {
 	return true
 }
 
-//APIMember data structure for the Instana API model for group members
+// APIMember data structure for the Instana API model for group members
 type APIMember struct {
 	UserID string  `json:"userId"`
 	Email  *string `json:"email"`
 }
 
-func (m *APIMember) validate() error {
-	if utils.IsBlank(m.UserID) {
-		return errors.New("userId of group member is missing")
-	}
-	return nil
-}
-
-//Group data structure for the Instana API model for groups
+// Group data structure for the Instana API model for groups
 type Group struct {
 	ID            string                    `json:"id"`
 	Name          string                    `json:"name"`
@@ -195,21 +173,7 @@ type Group struct {
 	PermissionSet APIPermissionSetWithRoles `json:"permissionSet"`
 }
 
-//GetIDForResourcePath implementation of the interface InstanaDataObject
+// GetIDForResourcePath implementation of the interface InstanaDataObject
 func (c *Group) GetIDForResourcePath() string {
 	return c.ID
-}
-
-//Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (c *Group) Validate() error {
-	if utils.IsBlank(c.Name) {
-		return errors.New("name is missing")
-	}
-	for _, m := range c.Members {
-		err := m.validate()
-		if err != nil {
-			return err
-		}
-	}
-	return c.PermissionSet.validate()
 }

@@ -18,8 +18,3 @@ type BuiltinEventSpecification struct {
 func (spec *BuiltinEventSpecification) GetIDForResourcePath() string {
 	return spec.ID
 }
-
-// Validate implementation of the interface InstanaDataObject to verify if data object is correct. As this is read only datasource no validation is applied
-func (spec *BuiltinEventSpecification) Validate() error {
-	return nil
-}
