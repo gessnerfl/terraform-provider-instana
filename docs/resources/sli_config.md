@@ -8,6 +8,9 @@ API Documentation: <https://instana.github.io/openapi/#operation/createSli>
 
 The ID of the resource which is also used as unique identifier in Instana is auto generated!
 
+**Note:** SLI Configurations cannot be changed. An update of the resource will result in an error. To update an SLI you
+need to create a new SLI and delete the old one.
+
 ## Example Usage
 
 ```hcl
