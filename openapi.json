@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.250.634",
+    "version": "1.256.508",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -140,7 +140,8 @@
       "name": "Session Settings"
     },
     {
-      "name": "Maintenance Configuration"
+      "name": "Maintenance Configuration",
+      "description": "### Maintenance Windows\nMaintenance windows allow you to mute alerts.\n\n### Types of Maintenance Configurations\n**One-Time**: Executed once at a fixed scheduled time, after which the configuration expires.\n\n**Recurrent**: Executed on a schedule basis (e.g., daily, weekly, monthly, or yearly).\n\n### Pausing or Resuming Maintenance Configurations\nMaintenance windows can be paused or resumed.\n\nIf a maintenance configuration is paused, alerts for the events matching the scope of the configuration will no longer be muted. \n"
     },
     {
       "name": "Synthetic Calls"
@@ -170,7 +171,7 @@
     },
     {
       "name": "Synthetic Settings",
-      "description": "The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. \n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is public or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript, WebpageAction, WebpageScript, and DNSAction. \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for  WebpageAction and WebpageScript. \n    Currently, only firefox is supported\n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript, WebpageAction,\n      WebpageScript, and DNSAction. The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values in integer followed by time unit (ms, s, m). If timeout is not provided the playback engine will use its own timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration, WebpageActionConfiguration, WebpageScriptConfiguration, and DNSActionConfiguration. Right now, only HTTPActionConfiguration\n      and HTTPScriptConfiguration are supported.\n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=preview-api-script\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. Possible values are Simultaneous or Staggered. Simultaneous\n  Synthetic tests run at all locations simultaneously. Staggered\n  Synthetic tests run from a different location at each interval.\n  This property is optional, and its default value is Simultaneous.\n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes.\n"
+      "description": "The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. \n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is public or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript (Beta), WebpageAction (Beta), and WebpageScript (Beta). \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.\n    Right now, only Chrome and Firefox are supported. \n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript (Beta), WebpageAction (Beta),\n      and WebpageScript (Beta). The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). \n      It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.\n        - If user defined timeout value exceeds the `maxTimeout` or `testFrequency` in test configuration, the timeout value does not take effect \n          and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n        - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. \n          BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration (Beta), WebpageActionConfiguration (Beta), and WebpageScriptConfiguration (Beta). \n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=monitoring-using-api-scripts\n        - **BrowserScriptConfiguration** has the following properties:\n          - **script** A Node.js based test script, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **scriptType** The type of the script, right now, only Basic type is supported. \n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is BrowserScript. It is required.\n        - **WebpageActionConfiguration** has the following properties:\n          - **url** The URL of the Web page being tested. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageAction. It is required.\n        - **WebpageScriptConfiguration** has the following properties:\n          - **script** A Selenium IDE recording script. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageScript. It is required.\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,\n  Synthetic tests run at all locations simultaneously. \n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes.\n"
     },
     {
       "name": "Synthetic Test Playback Results",
@@ -261,6 +262,11 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "traceId": "c606ccf3578135c6"
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -301,6 +307,53 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "group": {
+                  "groupbyTag": "service.name",
+                  "groupbyTagEntity": "DESTINATION"
+                },
+                "metrics": [
+                  {
+                    "aggregation": "P75",
+                    "metric": "latency",
+                    "granularity": 360
+                  }
+                ],
+                "includeInternal": false,
+                "includeSynthetic": false,
+                "order": {
+                  "by": "calls_SUM",
+                  "direction": "DESC"
+                },
+                "pagination": {
+                  "page": 1,
+                  "pageSize": 1
+                },
+                "tagFilterExpression": {
+                  "type": "EXPRESSION",
+                  "logicalOperator": "AND",
+                  "elements": [
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "call.type",
+                      "operator": "EQUALS",
+                      "entity": "NOT_APPLICABLE",
+                      "value": "DATABASE"
+                    },
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "service.name",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION",
+                      "value": "ratings"
+                    }
+                  ]
+                },
+                "timeFrame": {
+                  "to": "1688366990000",
+                  "windowSize": "600000"
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/GetCallGroups"
               }
@@ -311,6 +364,35 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "name": "ratings",
+                      "timestamp": 1688366520000,
+                      "cursor": {
+                        "@class": ".IngestionOffsetCursor",
+                        "ingestionTime": 1688980829000,
+                        "offset": 1
+                      },
+                      "metrics": {
+                        "latency.p75.360": [
+                          [
+                            1688366520000,
+                            1
+                          ]
+                        ]
+                      }
+                    }
+                  ],
+                  "canLoadMore": false,
+                  "totalHits": 1,
+                  "totalRepresentedItemCount": 1,
+                  "totalRetainedItemCount": 1,
+                  "adjustedTimeframe": {
+                    "windowSize": 360000,
+                    "to": 1688366880000
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/CallGroupsResult"
                 }
@@ -348,6 +430,22 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "group": {
+                  "groupbyTag": "trace.endpoint.name",
+                  "groupbyTagEntity": "NOT_APPLICABLE"
+                },
+                "metrics": [
+                  {
+                    "aggregation": "SUM",
+                    "metric": "latency"
+                  }
+                ],
+                "order": {
+                  "by": "traces_SUM",
+                  "direction": "ASC"
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/GetTraceGroups"
               }
@@ -358,6 +456,35 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "name": "GET /api/cart-total",
+                      "timestamp": 1688542673148,
+                      "cursor": {
+                        "@class": ".IngestionOffsetCursor",
+                        "ingestionTime": 1688543264000,
+                        "offset": 1
+                      },
+                      "metrics": {
+                        "latency.sum": [
+                          [
+                            1688543260000,
+                            31
+                          ]
+                        ]
+                      }
+                    }
+                  ],
+                  "canLoadMore": true,
+                  "totalHits": 2595,
+                  "totalRepresentedItemCount": 2595,
+                  "totalRetainedItemCount": 2595,
+                  "adjustedTimeframe": {
+                    "windowSize": 600000,
+                    "to": 1687939110000
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/TraceGroupsResult"
                 }
@@ -384,6 +511,28 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "tagFilterExpression": {
+                  "type": "EXPRESSION",
+                  "logicalOperator": "AND",
+                  "elements": [
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "endpoint.name",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION",
+                      "value": "alerting_integrations"
+                    },
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "service.name",
+                      "operator": "EQUALS",
+                      "entity": "NOT_APPLICABLE",
+                      "value": "catalog"
+                    }
+                  ]
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/GetTraces"
               }
@@ -394,6 +543,41 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "trace": {
+                        "id": "c11d056d778b4202",
+                        "label": "POST /shipping/anonymous-526093",
+                        "startTime": 1688447998665,
+                        "duration": 2,
+                        "erroneous": false,
+                        "service": {
+                          "id": "8bfb4e1aa590eab8f08f837b97acf5803a5737ed",
+                          "label": "cart",
+                          "types": [],
+                          "technologies": [],
+                          "snapshotIds": [],
+                          "entityType": "SERVICE"
+                        },
+                        "endpoint": null
+                      },
+                      "cursor": {
+                        "@class": ".IngestionOffsetCursor",
+                        "ingestionTime": 1688448014000,
+                        "offset": 1
+                      }
+                    }
+                  ],
+                  "canLoadMore": true,
+                  "totalHits": 12393,
+                  "totalRepresentedItemCount": 12393,
+                  "totalRetainedItemCount": 12393,
+                  "adjustedTimeframe": {
+                    "windowSize": 600000,
+                    "to": 1687938300000
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/TraceResult"
                 }
@@ -428,6 +612,8 @@
     },
     "/api/application-monitoring/analyze/traces/{id}": {
       "get": {
+        "deprecated": true,
+        "description": "Replaced by /api/application-monitoring/v2/analyze/traces/{id}",
         "operationId": "getTrace",
         "parameters": [
           {
@@ -444,6 +630,125 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "c606ccf3578135c6",
+                  "totalErrorCount": 0,
+                  "rootSpan": {
+                    "id": "7757e58f78fff3c8",
+                    "parentId": "",
+                    "foreignParentId": "",
+                    "callId": "7757e58f78fff3c8",
+                    "name": "node.http.server",
+                    "label": "GET /products",
+                    "start": 1688365739882,
+                    "duration": 22,
+                    "calculatedSelfTime": 4,
+                    "errorCount": 0,
+                    "batchSize": 1,
+                    "batchSelfTime": 22,
+                    "kind": "ENTRY",
+                    "isSynthetic": false,
+                    "data": {
+                      "http": {
+                        "rawUrl": "/products",
+                        "path": "/products",
+                        "method": "GET",
+                        "host": "localhost:8000",
+                        "path_tpl": "/products",
+                        "status": 200
+                      }
+                    },
+                    "source": {
+                      "applications": [],
+                      "service": {
+                        "id": "ROOT",
+                        "label": "",
+                        "types": [],
+                        "technologies": [],
+                        "snapshotIds": [],
+                        "entityType": "SERVICE"
+                      },
+                      "endpoint": {
+                        "id": "kVZuxJ7SE8F89iXn6dJ6rdEjQzY",
+                        "label": "Robot-Shop",
+                        "type": "HTTP",
+                        "serviceId": "",
+                        "technologies": [],
+                        "syntheticType": "NON_SYNTHETIC",
+                        "entityType": "ENDPOINT"
+                      },
+                      "physicalContext": {}
+                    },
+                    "destination": {
+                      "applications": [
+                        {
+                          "id": "Jv83WpUmSKiiCWIpi-reSQ",
+                          "label": "Robot-Shop",
+                          "boundaryScope": "INBOUND",
+                          "entityType": "APPLICATION"
+                        },
+                        {
+                          "id": "sYoqGlu8SVy2ILv-4lh5aw",
+                          "label": "All Services",
+                          "boundaryScope": "INBOUND",
+                          "entityType": "APPLICATION"
+                        },
+                        {
+                          "id": "R0ZWCcK1ShiFXEW4JHjTZg",
+                          "label": "node.js Services",
+                          "boundaryScope": "INBOUND",
+                          "entityType": "APPLICATION"
+                        }
+                      ],
+                      "service": {
+                        "id": "8939fc2f4b7a964c5c7d40e881daa9d883478be7",
+                        "label": "eum-sim",
+                        "types": [],
+                        "technologies": [],
+                        "snapshotIds": [],
+                        "entityType": "SERVICE"
+                      },
+                      "endpoint": {
+                        "id": "dIgIisQFGd-eVZmYaAwhM5sesPA",
+                        "label": "GET /products",
+                        "type": "HTTP",
+                        "serviceId": "",
+                        "technologies": [],
+                        "syntheticType": "NON_SYNTHETIC",
+                        "entityType": "ENDPOINT"
+                      },
+                      "physicalContext": {
+                        "process": {
+                          "id": "dzP4kVCxYu9o8pcesl2WRAc_lJc",
+                          "time": 1687520911000,
+                          "label": "eum-sim v2.0.0",
+                          "plugin": "nodeJsRuntimePlatform",
+                          "data": null
+                        },
+                        "container": {
+                          "id": "3w4-kfSCVJeSsYv5VFf9OCL0s4I",
+                          "time": 1687520634000,
+                          "label": "eum-sim (eum/eum-sim-7549958c6d-pkx98)",
+                          "plugin": "docker",
+                          "data": null
+                        },
+                        "host": {
+                          "id": "dHBz3ZRZdpsKcXGd-cNuwej-j6Y",
+                          "time": 1688187888000,
+                          "label": "Host-1",
+                          "plugin": "host",
+                          "data": {
+                            "cpu.count": 4,
+                            "os.name": "Linux",
+                            "memory.total": 15729750016
+                          }
+                        }
+                      }
+                    },
+                    "stackTrace": [],
+                    "childSpans": []
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/FullTrace"
                 }
@@ -535,6 +840,19 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "boundaryScope": "INBOUND",
+                      "entityType": "APPLICATION",
+                      "id": "e8krH1wNRV6daAo-NEmG8g",
+                      "label": "Robot Shop"
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 1,
+                  "totalHits": 1
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ApplicationResult"
                 }
@@ -635,6 +953,27 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "entityType": "SERVICE",
+                      "id": "79f1430f4a42a707a97621ca00617e40bd51c31d",
+                      "label": "www.paypal.com",
+                      "snapshotIds": [
+                        "CywiRxmGIwtQIKezVs-XMcTX2xg"
+                      ],
+                      "technologies": [
+                        "kafkaCluster"
+                      ],
+                      "types": [
+                        "MESSAGING"
+                      ]
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 1,
+                  "totalHits": 1
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceResult"
                 }
@@ -754,6 +1093,25 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "entityType": "ENDPOINT",
+                      "id": "IWeMKSzcvJHijAQoaA-luyHriDQ",
+                      "label": "websites",
+                      "serviceId": "a25c02069636022456e6139ebfe4f4bfec23ae31",
+                      "synthetic": false,
+                      "syntheticType": "NON_SYNTHETIC",
+                      "technologies": [
+                        "postgreSqlDatabase"
+                      ],
+                      "type": "DATABASE"
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 1,
+                  "totalHits": 1
+                },
                 "schema": {
                   "$ref": "#/components/schemas/EndpointResult"
                 }
@@ -823,6 +1181,37 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "tagTree": [
+                    {
+                      "label": "Agent",
+                      "description": null,
+                      "icon": null,
+                      "children": [
+                        {
+                          "label": "Zone",
+                          "icon": "lib_views_tag",
+                          "tagName": "agent.zone",
+                          "queryable": true,
+                          "type": "TAG"
+                        }
+                      ],
+                      "type": "LEVEL",
+                      "queryable": false
+                    }
+                  ],
+                  "tags": [
+                    {
+                      "name": "marathon.label",
+                      "label": "Label",
+                      "type": "KEY_VALUE_PAIR",
+                      "description": "marathon label",
+                      "canApplyToSource": true,
+                      "canApplyToDestination": true,
+                      "idTag": false
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/TagCatalog"
                 }
@@ -850,6 +1239,19 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "metricId": "calls",
+                    "label": "Call count",
+                    "formatter": "NUMBER",
+                    "description": "Number of received calls",
+                    "aggregations": [
+                      "PER_SECOND",
+                      "SUM"
+                    ],
+                    "defaultAggregation": null
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -966,6 +1368,26 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "metrics": [
+                  {
+                    "aggregation": "MEAN",
+                    "metric": "latency"
+                  }
+                ],
+                "order": {
+                  "by": "calls_SUM",
+                  "direction": "DESC"
+                },
+                "pagination": {
+                  "page": 1,
+                  "pageSize": 1
+                },
+                "timeFrame": {
+                  "to": 1646037122400,
+                  "windowSize": 3600000
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/GetApplications"
               }
@@ -976,6 +1398,33 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "application": {
+                        "id": "Jv83WpUmSKiiCWIpi-reSQ",
+                        "label": "demoApp",
+                        "boundaryScope": "ALL",
+                        "entityType": "APPLICATION"
+                      },
+                      "metrics": {
+                        "latency.mean": [
+                          [
+                            1669190580000,
+                            4
+                          ]
+                        ]
+                      }
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 1,
+                  "totalHits": 1616,
+                  "adjustedTimeframe": {
+                    "windowSize": 3600000,
+                    "to": 1646037120000
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ApplicationMetricResult"
                 }
@@ -1012,6 +1461,29 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "applicationBoundaryScope": "ALL",
+                "endpointId": "murzTwzJlGyqc_CFtEKx8INVCfY",
+                "excludeSynthetic": true,
+                "metrics": [
+                  {
+                    "aggregation": "MEAN",
+                    "metric": "latency"
+                  }
+                ],
+                "order": {
+                  "by": "calls_SUM",
+                  "direction": "ASC"
+                },
+                "pagination": {
+                  "page": 1,
+                  "pageSize": 1
+                },
+                "timeFrame": {
+                  "to": 1669190589000,
+                  "windowSize": 3600000
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/GetEndpoints"
               }
@@ -1022,6 +1494,40 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "endpoint": {
+                        "id": "murzTwzJlGyqc_CFtEKx8INVCfY",
+                        "label": "robot-shop",
+                        "type": "MESSAGING",
+                        "serviceId": "05b145cfb6fbc24d08a8e01155c0aa2bf8460c87",
+                        "technologies": [
+                          "golangRuntimePlatform",
+                          "kubernetesService"
+                        ],
+                        "syntheticType": "NON_SYNTHETIC",
+                        "synthetic": false,
+                        "entityType": "ENDPOINT"
+                      },
+                      "metrics": {
+                        "latency.mean": [
+                          [
+                            1669190580000,
+                            2434.5625
+                          ]
+                        ]
+                      }
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 1,
+                  "totalHits": 1,
+                  "adjustedTimeframe": {
+                    "windowSize": 3600000,
+                    "to": 1669190580000
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/EndpointMetricResult"
                 }
@@ -1066,6 +1572,28 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "applicationBoundaryScope": "ALL",
+                "contextScope": "NONE",
+                "metrics": [
+                  {
+                    "aggregation": "DISTINCT_COUNT",
+                    "metric": "endpoints"
+                  }
+                ],
+                "pagination": {
+                  "page": 1,
+                  "pageSize": 1
+                },
+                "serviceId": "c467ca0fa21477fee3cde75a140b2963307388a7",
+                "technologies": [
+                  "springbootApplicationContainer"
+                ],
+                "timeFrame": {
+                  "to": 1669190589000,
+                  "windowSize": 3600000
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/GetServices"
               }
@@ -1076,6 +1604,39 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "service": {
+                        "id": "c467ca0fa21477fee3cde75a140b2963307388a7",
+                        "label": "discount",
+                        "types": [
+                          "HTTP"
+                        ],
+                        "technologies": [
+                          "springbootApplicationContainer"
+                        ],
+                        "snapshotIds": [],
+                        "entityType": "SERVICE"
+                      },
+                      "metrics": {
+                        "endpoints.distinct_count": [
+                          [
+                            1669190580000,
+                            4
+                          ]
+                        ]
+                      }
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 1,
+                  "totalHits": 1,
+                  "adjustedTimeframe": {
+                    "windowSize": 3600000,
+                    "to": 1669190580000
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceMetricResult"
                 }
@@ -1163,6 +1724,27 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "entityType": "SERVICE",
+                      "id": "79f1430f4a42a707a97621ca00617e40bd51c31d",
+                      "label": "Robot Shop",
+                      "snapshotIds": [
+                        "CywiRxmGIwtQIKezVs-XMcTX2xg"
+                      ],
+                      "technologies": [
+                        "kafkaCluster"
+                      ],
+                      "types": [
+                        "MESSAGING"
+                      ]
+                    }
+                  ],
+                  "page": 1,
+                  "pageSize": 1,
+                  "totalHits": 1
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceResult"
                 }
@@ -1190,6 +1772,61 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "CxJ55sRbQwqBIfw5DzpRmQ",
+                    "label": "Discount Canary Build 6987",
+                    "matchSpecification": null,
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "AND",
+                      "elements": [
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "kubernetes.label",
+                          "stringValue": "stage=canary",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": "stage",
+                          "value": "canary",
+                          "operator": "EQUALS",
+                          "entity": "DESTINATION"
+                        },
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "kubernetes.label",
+                          "stringValue": "build=6987",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": "build",
+                          "value": "6987",
+                          "operator": "EQUALS",
+                          "entity": "DESTINATION"
+                        },
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "kubernetes.label",
+                          "stringValue": "app=discount",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": "app",
+                          "value": "discount",
+                          "operator": "EQUALS",
+                          "entity": "DESTINATION"
+                        }
+                      ]
+                    },
+                    "scope": "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING",
+                    "boundaryScope": "INBOUND",
+                    "accessRules": [
+                      {
+                        "accessType": "READ_WRITE",
+                        "relationType": "GLOBAL",
+                        "relatedId": null
+                      }
+                    ]
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -1218,6 +1855,57 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "accessRules": [
+                  {
+                    "accessType": "READ_WRITE",
+                    "relationType": "GLOBAL",
+                    "relatedId": null
+                  }
+                ],
+                "boundaryScope": "INBOUND",
+                "label": "Discount Build 6987",
+                "scope": "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING",
+                "tagFilterExpression": {
+                  "type": "EXPRESSION",
+                  "logicalOperator": "AND",
+                  "elements": [
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "kubernetes.label",
+                      "stringValue": "stage=canary",
+                      "numberValue": null,
+                      "booleanValue": null,
+                      "key": "stage",
+                      "value": "canary",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION"
+                    },
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "kubernetes.label",
+                      "stringValue": "build=6987",
+                      "numberValue": null,
+                      "booleanValue": null,
+                      "key": "build",
+                      "value": "6987",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION"
+                    },
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "kubernetes.label",
+                      "stringValue": "app=discount",
+                      "numberValue": null,
+                      "booleanValue": null,
+                      "key": "app",
+                      "value": "discount",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION"
+                    }
+                  ]
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/NewApplicationConfig"
               }
@@ -1229,6 +1917,59 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "oLyuFtIfQ3eKzAqM5vBGkQ",
+                  "label": "Discount Build 6987",
+                  "matchSpecification": null,
+                  "tagFilterExpression": {
+                    "type": "EXPRESSION",
+                    "logicalOperator": "AND",
+                    "elements": [
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "stage=canary",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "stage",
+                        "value": "canary",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      },
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "build=6987",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "build",
+                        "value": "6987",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      },
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "app=discount",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "app",
+                        "value": "discount",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      }
+                    ]
+                  },
+                  "scope": "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING",
+                  "boundaryScope": "INBOUND",
+                  "accessRules": [
+                    {
+                      "accessType": "READ_WRITE",
+                      "relationType": "GLOBAL",
+                      "relatedId": null
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ApplicationConfig"
                 }
@@ -1301,6 +2042,59 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "CxJ55sRbQwqBIfw5DzpRmQ",
+                  "label": "Discount Canary Build 6987",
+                  "matchSpecification": null,
+                  "tagFilterExpression": {
+                    "type": "EXPRESSION",
+                    "logicalOperator": "AND",
+                    "elements": [
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "stage=canary",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "stage",
+                        "value": "canary",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      },
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "build=6987",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "build",
+                        "value": "6987",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      },
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "app=discount",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "app",
+                        "value": "discount",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      }
+                    ]
+                  },
+                  "scope": "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING",
+                  "boundaryScope": "INBOUND",
+                  "accessRules": [
+                    {
+                      "accessType": "READ_WRITE",
+                      "relationType": "GLOBAL",
+                      "relatedId": null
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ApplicationConfig"
                 }
@@ -1336,6 +2130,57 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "accessRules": [
+                  {
+                    "accessType": "READ",
+                    "relationType": "ROLE"
+                  }
+                ],
+                "boundaryScope": "INBOUND",
+                "id": "CxJ55sRbQwqBIfw5DzpRmQ",
+                "label": "Discount Build 1",
+                "scope": "INCLUDE_NO_DOWNSTREAM",
+                "tagFilterExpression": {
+                  "type": "EXPRESSION",
+                  "logicalOperator": "AND",
+                  "elements": [
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "kubernetes.label",
+                      "stringValue": "stage=canary",
+                      "numberValue": null,
+                      "booleanValue": null,
+                      "key": "stage",
+                      "value": "canary",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION"
+                    },
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "kubernetes.label",
+                      "stringValue": "build=6987",
+                      "numberValue": null,
+                      "booleanValue": null,
+                      "key": "build",
+                      "value": "6987",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION"
+                    },
+                    {
+                      "type": "TAG_FILTER",
+                      "name": "kubernetes.label",
+                      "stringValue": "app=discount",
+                      "numberValue": null,
+                      "booleanValue": null,
+                      "key": "app",
+                      "value": "discount",
+                      "operator": "EQUALS",
+                      "entity": "DESTINATION"
+                    }
+                  ]
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/ApplicationConfig"
               }
@@ -1347,6 +2192,59 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "CxJ55sRbQwqBIfw5DzpRmQ",
+                  "label": "Discount Canary Build 6987",
+                  "matchSpecification": null,
+                  "tagFilterExpression": {
+                    "type": "EXPRESSION",
+                    "logicalOperator": "AND",
+                    "elements": [
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "stage=canary",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "stage",
+                        "value": "canary",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      },
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "build=6987",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "build",
+                        "value": "6987",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      },
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "kubernetes.label",
+                        "stringValue": "app=discount",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": "app",
+                        "value": "discount",
+                        "operator": "EQUALS",
+                        "entity": "DESTINATION"
+                      }
+                    ]
+                  },
+                  "scope": "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING",
+                  "boundaryScope": "INBOUND",
+                  "accessRules": [
+                    {
+                      "accessType": "READ_WRITE",
+                      "relationType": "GLOBAL",
+                      "relatedId": null
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ApplicationConfig"
                 }
@@ -1375,6 +2273,32 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "serviceId": "d0cedae516f2182ede16f57f67476dd4c7dab9cd",
+                  "endpointNameByFirstPathSegmentRuleEnabled": true,
+                  "endpointNameByCollectedPathTemplateRuleEnabled": true,
+                  "rules": [
+                    {
+                      "enabled": true,
+                      "pathSegments": [
+                        {
+                          "name": "api",
+                          "type": "FIXED"
+                        },
+                        {
+                          "name": "version",
+                          "type": "PARAMETER"
+                        },
+                        {
+                          "type": "MATCH_ALL"
+                        }
+                      ],
+                      "testCases": [
+                        "/api/v2/users"
+                      ]
+                    }
+                  ]
+                },
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -1403,6 +2327,24 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "endpointNameByCollectedPathTemplateRuleEnabled": true,
+                "endpointNameByFirstPathSegmentRuleEnabled": true,
+                "rules": [
+                  {
+                    "enabled": true,
+                    "pathSegments": [
+                      {
+                        "type": "MATCH_ALL"
+                      }
+                    ],
+                    "testCases": [
+                      "/api/v2/users"
+                    ]
+                  }
+                ],
+                "serviceId": "20ba31821b079e7d845a08096124880db3eeeb40"
+              },
               "schema": {
                 "$ref": "#/components/schemas/HttpEndpointConfig"
               }
@@ -1414,6 +2356,24 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "serviceId": "20ba31821b079e7d845a08096124880db3eeeb40",
+                  "endpointNameByFirstPathSegmentRuleEnabled": true,
+                  "endpointNameByCollectedPathTemplateRuleEnabled": true,
+                  "rules": [
+                    {
+                      "enabled": true,
+                      "pathSegments": [
+                        {
+                          "type": "MATCH_ALL"
+                        }
+                      ],
+                      "testCases": [
+                        "/api/v2/users"
+                      ]
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/HttpEndpointConfig"
                 }
@@ -1485,6 +2445,32 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "endpointNameByCollectedPathTemplateRuleEnabled": true,
+                  "endpointNameByFirstPathSegmentRuleEnabled": true,
+                  "rules": [
+                    {
+                      "enabled": true,
+                      "pathSegments": [
+                        {
+                          "name": "api",
+                          "type": "FIXED"
+                        },
+                        {
+                          "name": "version",
+                          "type": "PARAMETER"
+                        },
+                        {
+                          "type": "MATCH_ALL"
+                        }
+                      ],
+                      "testCases": [
+                        "/api/v2/users"
+                      ]
+                    }
+                  ],
+                  "serviceId": "20ba31821b079e7d845a08096124880db3eeeb47"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/HttpEndpointConfig"
                 }
@@ -1520,6 +2506,32 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "endpointNameByCollectedPathTemplateRuleEnabled": true,
+                "endpointNameByFirstPathSegmentRuleEnabled": true,
+                "rules": [
+                  {
+                    "enabled": true,
+                    "pathSegments": [
+                      {
+                        "name": "api",
+                        "type": "FIXED"
+                      },
+                      {
+                        "name": "version",
+                        "type": "PARAMETER"
+                      },
+                      {
+                        "type": "MATCH_ALL"
+                      }
+                    ],
+                    "testCases": [
+                      "/api/v2/users"
+                    ]
+                  }
+                ],
+                "serviceId": "20ba31821b079e7d845a08096124880db3eeeb40"
+              },
               "schema": {
                 "$ref": "#/components/schemas/HttpEndpointConfig"
               }
@@ -1531,6 +2543,32 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "endpointNameByCollectedPathTemplateRuleEnabled": true,
+                  "endpointNameByFirstPathSegmentRuleEnabled": true,
+                  "rules": [
+                    {
+                      "enabled": true,
+                      "pathSegments": [
+                        {
+                          "name": "api",
+                          "type": "FIXED"
+                        },
+                        {
+                          "name": "version",
+                          "type": "PARAMETER"
+                        },
+                        {
+                          "type": "MATCH_ALL"
+                        }
+                      ],
+                      "testCases": [
+                        "/api/v2/users"
+                      ]
+                    }
+                  ],
+                  "serviceId": "20ba31821b079e7d845a08096124880db3eeeb40"
+                },
                 "schema": {
                   "$ref": "#/components/schemas/HttpEndpointConfig"
                 }
@@ -1558,6 +2596,26 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "wh49Z209S82aGvRl8ZZ0dQ",
+                    "tagFilterExpression": {
+                      "type": "TAG_FILTER",
+                      "name": "call.database.connection",
+                      "stringValue": "redis:6379",
+                      "numberValue": null,
+                      "booleanValue": null,
+                      "key": null,
+                      "value": "redis:6379",
+                      "operator": "EQUALS",
+                      "entity": "NOT_APPLICABLE"
+                    },
+                    "unmonitoredServiceName": null,
+                    "existingServiceId": "2224a6ad91373ef2504dc6b5795d421bff8e4a4d",
+                    "description": null,
+                    "enabled": true
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -1587,6 +2645,23 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "description": "Map source service example",
+                "enabled": true,
+                "existingServiceId": "c467ca0fa21477fee3cde75a140b2963307388a7",
+                "tagFilterExpression": {
+                  "type": "TAG_FILTER",
+                  "name": "service.name",
+                  "stringValue": "front",
+                  "numberValue": null,
+                  "booleanValue": null,
+                  "key": null,
+                  "value": "front",
+                  "operator": "EQUALS",
+                  "entity": "SOURCE"
+                },
+                "unmonitoredServiceName": null
+              },
               "schema": {
                 "$ref": "#/components/schemas/NewManualServiceConfig"
               }
@@ -1598,6 +2673,24 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "FpG0_9tZT5OjzYM7m5VgUQ",
+                  "tagFilterExpression": {
+                    "type": "TAG_FILTER",
+                    "name": "service.name",
+                    "stringValue": "front",
+                    "numberValue": null,
+                    "booleanValue": null,
+                    "key": null,
+                    "value": "front",
+                    "operator": "EQUALS",
+                    "entity": "SOURCE"
+                  },
+                  "unmonitoredServiceName": null,
+                  "existingServiceId": "c467ca0fa21477fee3cde75a140b2963307388a7",
+                  "description": "Map source service example",
+                  "enabled": true
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ManualServiceConfig"
                 }
@@ -1623,6 +2716,25 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": [
+                {
+                  "description": "Map source service",
+                  "enabled": true,
+                  "existingServiceId": "c467ca0fa21477fee3cde75a140b2963307388a7",
+                  "tagFilterExpression": {
+                    "type": "TAG_FILTER",
+                    "name": "service.name",
+                    "stringValue": "front",
+                    "numberValue": null,
+                    "booleanValue": null,
+                    "key": null,
+                    "value": "front",
+                    "operator": "EQUALS",
+                    "entity": "SOURCE"
+                  },
+                  "unmonitoredServiceName": null
+                }
+              ],
               "schema": {
                 "type": "array",
                 "example": null,
@@ -1638,6 +2750,26 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "undcnbu-S7OWi_4q4BnG4Q",
+                    "tagFilterExpression": {
+                      "type": "TAG_FILTER",
+                      "name": "service.name",
+                      "stringValue": "front",
+                      "numberValue": null,
+                      "booleanValue": null,
+                      "key": null,
+                      "value": "front",
+                      "operator": "EQUALS",
+                      "entity": "SOURCE"
+                    },
+                    "unmonitoredServiceName": null,
+                    "existingServiceId": "c467ca0fa21477fee3cde75a140b2963307388a7",
+                    "description": "Map source service",
+                    "enabled": true
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -1714,6 +2846,24 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "description": "Map source service example",
+                "enabled": true,
+                "existingServiceId": "c467ca0fa21477fee3cde75a140b2963307388a7",
+                "id": "BDGeDcG4TRSzRkJ1mGOk-Q",
+                "tagFilterExpression": {
+                  "type": "TAG_FILTER",
+                  "name": "service.name",
+                  "stringValue": "front",
+                  "numberValue": null,
+                  "booleanValue": null,
+                  "key": null,
+                  "value": "front",
+                  "operator": "EQUALS",
+                  "entity": "SOURCE"
+                },
+                "unmonitoredServiceName": null
+              },
               "schema": {
                 "$ref": "#/components/schemas/ManualServiceConfig"
               }
@@ -1725,6 +2875,24 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "BDGeDcG4TRSzRkJ1mGOk-Q",
+                  "tagFilterExpression": {
+                    "type": "TAG_FILTER",
+                    "name": "service.name",
+                    "stringValue": "front",
+                    "numberValue": null,
+                    "booleanValue": null,
+                    "key": null,
+                    "value": "front",
+                    "operator": "EQUALS",
+                    "entity": "SOURCE"
+                  },
+                  "unmonitoredServiceName": null,
+                  "existingServiceId": "c467ca0fa21477fee3cde75a140b2963307388a7",
+                  "description": "Map source service example",
+                  "enabled": true
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ManualServiceConfig"
                 }
@@ -1753,6 +2921,21 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "MyhomcyCRz2DF3O2KNXpGg",
+                    "name": "Rule",
+                    "comment": null,
+                    "label": "{docker.container.name}",
+                    "enabled": false,
+                    "matchSpecification": [
+                      {
+                        "key": "docker.container.name",
+                        "value": ".*"
+                      }
+                    ]
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -1781,6 +2964,22 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "comment": null,
+                "enabled": true,
+                "label": "{gce.zone}-{jvm.args.abc}",
+                "matchSpecification": [
+                  {
+                    "key": "gce.zone",
+                    "value": ".*"
+                  },
+                  {
+                    "key": "jvm.args.abc",
+                    "value": ".*"
+                  }
+                ],
+                "name": "ABC is good"
+              },
               "schema": {
                 "$ref": "#/components/schemas/ServiceConfig"
               }
@@ -1792,6 +2991,23 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "oMsVfR0fSCuTKF2TFdYRmQ",
+                  "name": "ABC is good",
+                  "comment": null,
+                  "label": "{gce.zone}-{jvm.args.abc}",
+                  "enabled": true,
+                  "matchSpecification": [
+                    {
+                      "key": "gce.zone",
+                      "value": ".*"
+                    },
+                    {
+                      "key": "jvm.args.abc",
+                      "value": ".*"
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceConfig"
                 }
@@ -1816,6 +3032,21 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": [
+                {
+                  "comment": null,
+                  "enabled": true,
+                  "id": "8C-jGYx8Rsue854tzkh8KQ",
+                  "label": "{docker.container.name}",
+                  "matchSpecification": [
+                    {
+                      "key": "docker.container.name",
+                      "value": ".*"
+                    }
+                  ],
+                  "name": "Rule"
+                }
+              ],
               "schema": {
                 "type": "array",
                 "example": null,
@@ -1831,6 +3062,21 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "9uma4MhnTTSyBzwu_FKBJA",
+                    "name": "Rule",
+                    "comment": null,
+                    "label": "{docker.container.name}",
+                    "enabled": true,
+                    "matchSpecification": [
+                      {
+                        "key": "docker.container.name",
+                        "value": ".*"
+                      }
+                    ]
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -1861,6 +3107,10 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": [
+                "9uma4MhnTTSyBzwu_FKBJA",
+                "oMsVfR0fSCuTKF2TFdYRmQ"
+              ],
               "schema": {
                 "type": "array",
                 "example": null,
@@ -1945,6 +3195,19 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "P_37IlGQT0qQy9fxLxvFqA",
+                  "name": "Rule",
+                  "comment": null,
+                  "label": "{docker.container.name}",
+                  "enabled": true,
+                  "matchSpecification": [
+                    {
+                      "key": "docker.container.name",
+                      "value": ".*"
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceConfig"
                 }
@@ -1980,6 +3243,23 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "comment": null,
+                "enabled": true,
+                "id": "9uma4MhnTTSyBzwu_FKBJA",
+                "label": "{gce.zone}-{jvm.args.abc}",
+                "matchSpecification": [
+                  {
+                    "key": "gce.zone",
+                    "value": ".*"
+                  },
+                  {
+                    "key": "jvm.args.abc",
+                    "value": ".*"
+                  }
+                ],
+                "name": "DEF is good"
+              },
               "schema": {
                 "$ref": "#/components/schemas/ServiceConfig"
               }
@@ -1991,6 +3271,23 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "9uma4MhnTTSyBzwu_FKBJA",
+                  "name": "DEF is good",
+                  "comment": null,
+                  "label": "{gce.zone}-{jvm.args.abc}",
+                  "enabled": true,
+                  "matchSpecification": [
+                    {
+                      "key": "gce.zone",
+                      "value": ".*"
+                    },
+                    {
+                      "key": "jvm.args.abc",
+                      "value": ".*"
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceConfig"
                 }
@@ -2062,6 +3359,32 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "connections": [
+                    {
+                      "from": "8bfb4e1aa590eab8f08f837b97acf5803a5737ed",
+                      "to": "f17e7efb3b9b2d62bfec6b07905759fb81e99797",
+                      "calls": 2179,
+                      "latency": 1.6103717301514455,
+                      "errorRate": 0
+                    }
+                  ],
+                  "services": [
+                    {
+                      "id": "f17e7efb3b9b2d62bfec6b07905759fb81e99797",
+                      "label": "robot-shop",
+                      "types": [
+                        "MESSAGING"
+                      ],
+                      "technologies": [
+                        "kubernetesService",
+                        "rabbitMq"
+                      ],
+                      "snapshotIds": [],
+                      "entityType": "SERVICE"
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/ServiceMap"
                 }
@@ -2082,12 +3405,137 @@
         ]
       }
     },
+    "/api/application-monitoring/v2/analyze/traces/{id}": {
+      "get": {
+        "operationId": "getTraceDownload",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "retrievalSize",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": null,
+              "maximum": 10000,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "ingestionTime",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "id": "daa9141549aea210",
+                      "timestamp": 1688544599223,
+                      "parentId": null,
+                      "foreignParentId": null,
+                      "name": "GET /api/shipping/cities/dk",
+                      "duration": 30,
+                      "minSelfTime": 1,
+                      "networkTime": null,
+                      "callCount": 1,
+                      "errorCount": 0,
+                      "destination": {
+                        "service": {
+                          "id": "ce4b152bac7b99744d8314838e49b799afd6dd96",
+                          "label": "nginx-web"
+                        },
+                        "endpoint": {
+                          "id": "wAS2omB44e0EK4xqL7f-e-wt4C4",
+                          "label": "upstream shipping",
+                          "type": "HTTP"
+                        },
+                        "technologies": []
+                      },
+                      "cursor": {
+                        "@class": ".IngestionOffsetCursor",
+                        "ingestionTime": 1688547327000,
+                        "offset": 1
+                      }
+                    }
+                  ],
+                  "canLoadMore": false,
+                  "totalHits": 3,
+                  "totalRepresentedItemCount": 3,
+                  "totalRetainedItemCount": 3
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/TraceDownloadResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get trace detail",
+        "tags": [
+          "Application Analyze"
+        ]
+      }
+    },
     "/api/application-monitoring/v2/metrics": {
       "post": {
         "operationId": "getApplicationDataMetricsV2",
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "includeInternal": true,
+                "includeSynthetic": true,
+                "metrics": [
+                  {
+                    "aggregation": "MEAN",
+                    "metric": "latency"
+                  }
+                ],
+                "tagFilterExpression": {
+                  "type": "TAG_FILTER",
+                  "name": "service.name",
+                  "operator": "EQUALS",
+                  "entity": "NOT_APPLICABLE",
+                  "value": "warehouse"
+                },
+                "timeFrame": {
+                  "to": 1669190589000,
+                  "windowSize": 3600000
+                }
+              },
               "schema": {
                 "$ref": "#/components/schemas/GetApplicationMetrics"
               }
@@ -2098,6 +3546,20 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "metrics": {
+                    "latency.mean": [
+                      [
+                        1669190580000,
+                        106.85055708882756
+                      ]
+                    ]
+                  },
+                  "adjustedTimeframe": {
+                    "windowSize": 3600000,
+                    "to": 1669190580000
+                  }
+                },
                 "schema": {
                   "$ref": "#/components/schemas/MetricAPIResult"
                 }
@@ -3476,7 +4938,8 @@
                 "ALL",
                 "APPLICATION",
                 "WEBSITE",
-                "SYNTHETIC"
+                "SYNTHETIC",
+                "MOBILE_APP"
               ],
               "example": null
             }
@@ -5016,6 +6479,392 @@
         ]
       }
     },
+    "/api/events/settings/mobile-app-alert-configs": {
+      "get": {
+        "description": "Configs are sorted descending by their created date.",
+        "operationId": "findActiveMobileAppAlertConfigs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mobileAppId",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "alertIds",
+            "schema": {
+              "type": "array",
+              "example": null,
+              "items": {
+                "type": "string",
+                "example": null
+              },
+              "maxItems": 1000,
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/WithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "All Mobile App Alert Configs",
+        "tags": [
+          "Event Settings"
+        ]
+      },
+      "post": {
+        "operationId": "createMobileAppAlertConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileAppAlertConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithMetadata"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create Mobile App Alert Config",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
+    "/api/events/settings/mobile-app-alert-configs/{id}": {
+      "delete": {
+        "operationId": "deleteMobileAppAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "summary": "Delete Mobile App Alert Config",
+        "tags": [
+          "Event Settings"
+        ]
+      },
+      "get": {
+        "description": "Find a Mobile App Alert Config by ID. This will deliver deleted configs too.",
+        "operationId": "findMobileAppAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "validOn",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithMetadata"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Mobile App Alert Config",
+        "tags": [
+          "Event Settings"
+        ]
+      },
+      "post": {
+        "operationId": "updateMobileAppAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MobileAppAlertConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithMetadata"
+                }
+              }
+            },
+            "description": "Mobile App Smart Alert successfully updated"
+          },
+          "204": {
+            "description": "Mobile App Smart Alert did not change"
+          },
+          "400": {
+            "description": "Invalid Mobile App ID provided"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        },
+        "summary": "Update Mobile App Alert Config",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
+    "/api/events/settings/mobile-app-alert-configs/{id}/disable": {
+      "put": {
+        "operationId": "disableMobileAppAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "example": null,
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "summary": "Disable Mobile App Alert Config",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
+    "/api/events/settings/mobile-app-alert-configs/{id}/enable": {
+      "put": {
+        "operationId": "enableMobileAppAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "example": null,
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "summary": "Enable Mobile App Alert Config",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
+    "/api/events/settings/mobile-app-alert-configs/{id}/restore/{created}": {
+      "put": {
+        "operationId": "restoreMobileAppAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "path",
+            "name": "created",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "example": null,
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "summary": "Restore Mobile App Alert Config",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
+    "/api/events/settings/mobile-app-alert-configs/{id}/update-baseline": {
+      "post": {
+        "description": "Recalculate and update the baseline given the id of the config. The LastUpdated field of the config is changed to the current time.",
+        "operationId": "updateMobileAppHistoricBaseline",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "summary": "Recalculate a Static Seasonal Threshold",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
+    "/api/events/settings/mobile-app-alert-configs/{id}/versions": {
+      "get": {
+        "description": "Find all versions of a Mobile App Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.",
+        "operationId": "findMobileAppAlertConfigVersions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/ConfigVersion"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get versions of Mobile App Alert Config",
+        "tags": [
+          "Event Settings"
+        ]
+      }
+    },
     "/api/events/settings/website-alert-configs": {
       "get": {
         "description": "Configs are sorted descending by their created date.",
@@ -6420,6 +8269,8 @@
         "operationId": "getSnapshots",
         "parameters": [
           {
+            "description": "query to use to filter snapshot retrieval",
+            "example": "entity.zone:myZone*",
             "in": "query",
             "name": "query",
             "schema": {
@@ -6428,6 +8279,8 @@
             }
           },
           {
+            "description": "end of timeframe expressed as the Unix epoch time in milliseconds",
+            "example": 1689018652000,
             "in": "query",
             "name": "to",
             "schema": {
@@ -6437,6 +8290,8 @@
             }
           },
           {
+            "description": "windowSize in milliseconds",
+            "example": 3600000,
             "in": "query",
             "name": "windowSize",
             "schema": {
@@ -6446,6 +8301,8 @@
             }
           },
           {
+            "description": "maximum number of snapshots to retrieve",
+            "example": 100,
             "in": "query",
             "name": "size",
             "schema": {
@@ -6455,6 +8312,8 @@
             }
           },
           {
+            "description": "entity type",
+            "example": "host",
             "in": "query",
             "name": "plugin",
             "schema": {
@@ -6463,6 +8322,8 @@
             }
           },
           {
+            "description": "retrieve snapshots which were online during the timeframe, otherwise, return only snapshot which were online at the end of the timeframe",
+            "example": false,
             "in": "query",
             "name": "offline",
             "schema": {
@@ -6494,6 +8355,56 @@
           "Infrastructure Resources"
         ],
         "description": "These APIs can be used to retrieve information about hosts, processes, JVMs and other entities that we are calling snapshots. A snapshot represents static information about an entity as it was at a specific point in time. To clarify:\r\n**Static information** is any information which is seldom changing, e.g. process IDs, host FQDNs or a list of host hard disks. The counterpart to static information are metrics which have a much higher change rate, e.g. host CPU usage or JVM garbage collection activity. Snapshots only contain static information.\r\n- Snapshots are **versioned** and represent an entity's state for a specific point in time. While snapshots only contain static information, even that information may change. For example you may add another hard disk to a server. For such a change, a new snapshot would be created.\r\n- The **size** parameter can be used in order to limit the maximum number of retrieved snapshots.\r\n- The **offline** parameter is used to allow deeper visibility into snapshots. Set to `false`, the query will return all snapshots that are still available on the given **to** timestamp. However, set to `true`, the query will return all snapshots that have been active within the time window, this must at least include the online result and snapshots terminated within this time.\r\n"
+      },
+      "post": {
+        "description": "This endpoint retrieves detail information for one or more snapshots. timeFrame defaults to the last 10 minutes if not specified.",
+        "operationId": "postSnapshots",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "examples": {
+                "This example retrieves the detail information for two snapshots.": {
+                  "description": "This example retrieves the detail information for two snapshots.",
+                  "value": {
+                    "snapshotIds": [
+                      "AB3DeFGHIJkLm9OpQrstUVwxY_z",
+                      "ZY4XwVUTSRqPo8MlKjihGFedC_a"
+                    ],
+                    "timeFrame": {
+                      "to": 1689018652000,
+                      "windowSize": 3600000
+                    }
+                  }
+                }
+              },
+              "schema": {
+                "$ref": "#/components/schemas/GetSnapshotsQuery"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostSnapshotsResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get snapshot details for multiple snapshots",
+        "tags": [
+          "Infrastructure Resources"
+        ]
       }
     },
     "/api/infrastructure-monitoring/snapshots/{id}": {
@@ -6501,6 +8412,7 @@
         "operationId": "getSnapshot",
         "parameters": [
           {
+            "description": "snapshot id",
             "in": "path",
             "name": "id",
             "required": true,
@@ -6510,6 +8422,8 @@
             }
           },
           {
+            "description": "end of timeframe expressed as the Unix epoch time in milliseconds",
+            "example": 1689018652000,
             "in": "query",
             "name": "to",
             "schema": {
@@ -6519,6 +8433,8 @@
             }
           },
           {
+            "description": "windowSize in milliseconds",
+            "example": 3600000,
             "in": "query",
             "name": "windowSize",
             "schema": {
@@ -8484,6 +10400,7 @@
     },
     "/api/settings/maintenance": {
       "get": {
+        "deprecated": true,
         "operationId": "getMaintenanceConfigs",
         "responses": {
           "default": {
@@ -8515,6 +10432,7 @@
     },
     "/api/settings/maintenance/{id}": {
       "delete": {
+        "deprecated": true,
         "operationId": "deleteMaintenanceConfig",
         "parameters": [
           {
@@ -8548,6 +10466,7 @@
         ]
       },
       "get": {
+        "deprecated": true,
         "operationId": "getMaintenanceConfig",
         "parameters": [
           {
@@ -8584,6 +10503,7 @@
         ]
       },
       "put": {
+        "deprecated": true,
         "operationId": "putMaintenanceConfig",
         "parameters": [
           {
@@ -8668,7 +10588,7 @@
         "tags": [
           "Groups"
         ],
-        "description": "Retrieve the list of all groups on the tenant together with the `Permission Set` for the tenant unit.\n\nThe `Permission Set` object contains a set of permissions applied to the group.\n\nIn case `permissions` include the entry `RESTRICTED_ACCESS`, this group will have a scope limited by its areas.\n\nThe areas are included inside the `permissionSet`.\n\nWhen `permissions` contains `RESTRICTED_ACCESS`, permissions with preffix `ACCESS_*`are applied.\n\nThe scopeRoleId is a fixed value for each area type:\n\n| Area                    | value         |\n| ----------------------- | ------------- |\n| applicationIds          | -100          |\n| kubernetesClusterUUIDs  | -200          |\n| kubernetesNamespaceUIDs | -300          |\n| websiteIds              | -400          |\n| mobileAppIds            | -500          |\n| infraDfqFilter          | -600          |\n\nFor example:\n\n```\n[\n    {\n        \"id\": \"7hwdhtt7TU2CJDgYXgwwww\",\n        \"name\": \"Scoped Group\",\n        \"members\": [\n            {\n                \"userId\": \"61892cfdfcffab03016b2950\",\n                \"email\": \"jhon@example.com\"\n            }\n        ],\n        \"permissionSet\": {\n        \"permissions\": [\n            \"CAN_VIEW_LOGS\",\n            \"ACCESS_APPLICATIONS\",\n            \"ACCESS_KUBERNETES\",\n            \"CAN_VIEW_TRACE_DETAILS\",\n            \"ACCESS_MOBILE_APPS\",\n            \"RESTRICTED_ACCESS\",\n            \"CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS\"\n        ],\n        \"applicationIds\": [\n            {\n            \"scopeId\": \"1qvWgVfLTNqi9gGTcCaNUw\",\n            \"scopeRoleId\": \"-100\"\n            }\n        ],\n        \"kubernetesClusterUUIDs\": [\n            {\n            \"scopeId\": \"induced\",\n            \"scopeRoleId\": \"-200\"\n            }\n        ],\n        \"kubernetesNamespaceUIDs\": [],\n        \"websiteIds\": [\n        ],\n        \"mobileAppIds\": [\n            {\n            \"scopeId\": \"GYSddOsgTZGtLx7wI8FZcQ\",\n            \"scopeRoleId\": \"-500\"\n            }\n        ],\n        \"infraDfqFilter\": {\n            \"scopeId\": \"production\",\n            \"scopeRoleId\": \"-600\"\n        }\n    }\n]\n```\nIn this case `Scoped Group` has no access to websites due to having `RESTRICTED_ACCESS` but not `ACCESS_WEBSITES`.\n\nAlso due to having `RESTRICTED_ACCESS`, the only visible application is the one with this id: `1qvWgVfLTNqi9gGTcCaNUw`.\n\nSame applies to `kubernetesClusterUUIDs`, `kubernetesNamespaceUIDs`, `mobileAppIds`and `infraDfqFilter`, with the only difference is that `infraDfqFilter`\nuses a filter \"production\" instead of an id. "
+        "description": "Retrieve the list of all groups on the tenant together with the `Permission Set` for the tenant unit.\n\nThe `Permission Set` object contains a set of permissions applied to the group.\n\nIn case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.\n\nThe areas are included inside the `permissionSet`.\n\nThe scopeRoleId is a fixed value for each area type:\n\n| Area                    | value         |\n| ----------------------- | ------------- |\n| applicationIds          | -100          |\n| kubernetesClusterUUIDs  | -200          |\n| kubernetesNamespaceUIDs | -300          |\n| websiteIds              | -400          |\n| mobileAppIds            | -500          |\n| infraDfqFilter          | -600          |\n\nFor example:\n\n```\n[\n    {\n        \"id\": \"7hwdhtt7TU2CJDgYXgwwww\",\n        \"name\": \"Scoped Group\",\n        \"members\": [\n            {\n                \"userId\": \"61892cfdfcffab03016b2950\",\n                \"email\": \"jhon@example.com\"\n            }\n        ],\n        \"permissionSet\": {\n        \"permissions\": [\n            \"CAN_VIEW_LOGS\",\n            \"CAN_VIEW_TRACE_DETAILS\",\n            \"CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS\",\n            \"ACCESS_APPLICATIONS\",\n            \"LIMITED_APPLICATIONS_SCOPE\",            \n            \"ACCESS_KUBERNETES\",\n            \"LIMITED_KUBERNETES_SCOPE\",\n            \"ACCESS_INFRASTRUCTURE_APPS\",\n            \"LIMITED_INFRASTRUCTURE_SCOPE\",\n            \"LIMITED_WEBSITES_SCOPE\",\n            \n        ],\n        \"applicationIds\": [\n            {\n            \"scopeId\": \"1qvWgVfLTNqi9gGTcCaNUw\",\n            \"scopeRoleId\": \"-100\"\n            }\n        ],\n        \"kubernetesClusterUUIDs\": [\n            {\n            \"scopeId\": \"induced\",\n            \"scopeRoleId\": \"-200\"\n            }\n        ],\n        \"kubernetesNamespaceUIDs\": [],\n        \"websiteIds\": [],\n        \"mobileAppIds\": [],\n        \"infraDfqFilter\": {\n            \"scopeId\": \"production\",\n            \"scopeRoleId\": \"-600\"\n        }\n    }\n]\n```\nIn this case `Scoped Group` has no access to websites due to having `LIMITED_WEBSITES_SCOPE` but not `ACCESS_WEBSITES`.\n\nAlso due to having `LIMITED_APPLICATIONS_SCOPE`, the only visible application is the one with this id: `1qvWgVfLTNqi9gGTcCaNUw`.\n\nSame applies to `kubernetesClusterUUIDs`, `kubernetesNamespaceUIDs` and `infraDfqFilter`, with the only difference is that `infraDfqFilter`\nuses a filter \"production\" instead of an id."
       },
       "post": {
         "operationId": "createGroup",
@@ -8704,7 +10624,7 @@
         "tags": [
           "Groups"
         ],
-        "description": "Creates a group on the tenant. Each group entry also needs a `Permission Set` per unit.\n\nThe `Permission Set` object contains a set of permissions applied to the group.\n\nIn case `permissions` include the entry `RESTRICTED_ACCESS`, this group will have a scope limited by its areas.\n\nWhen `permissions` contains `RESTRICTED_ACCESS`, permissions with preffix `ACCESS_*`are applied.\n\nPossible access permissions values are:\n\n- ACCESS_APPLICATIONS\n- ACCESS_KUBERNETES\n- ACCESS_MOBILE_APPS\n- ACCESS_WEBSITES\n\nThe `id` value for the group is ignored, a new id is generated.\n\nThe `scopeRoleId` is ignored, the id corresponding to the area is used.\n\nThe `scopeId` is the id for the corresponding resource."
+        "description": "Creates a group on the tenant. Each group entry also needs a `Permission Set` per unit.\n\nThe `Permission Set` object contains a set of permissions applied to the group.\n\nIn case `permissions` include the entry e.g. `LIMITED_APPLICATIONS_SCOPE`, this group will have limited access to application area.\n\nPossible access permissions values are:\n\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_WEBSITES`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_INFRASTRUCTURE`\n\nThe `id` value for the group is ignored, a new id is generated.\n\nThe `scopeRoleId` is ignored, the id corresponding to the area is used.\n\nThe `scopeId` is the id for the corresponding resource."
       }
     },
     "/api/settings/rbac/groups/user/{email}": {
@@ -8801,7 +10721,7 @@
         "tags": [
           "Groups"
         ],
-        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_USERS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `RESTRICTED_ACCESS`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_KUBERNETES`\n- `ACCESS_WEBSITES`\n- `ACCESS_MOBILE_APPS`\n"
+        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_USERS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_WEBSITES`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_INFRASTRUCTURE`\n"
       }
     },
     "/api/settings/rbac/groups/{groupId}/users": {
@@ -8974,7 +10894,7 @@
         "tags": [
           "Groups"
         ],
-        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_USERS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `RESTRICTED_ACCESS`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_KUBERNETES`\n- `ACCESS_WEBSITES`\n- `ACCESS_MOBILE_APPS`\n"
+        "description": "Add a permission to a group. Permissions are strings associated with the group that some resources requires to fulfill requests.\n\nExamples of `Permissions`:\n\n- `CAN_CONFIGURE_SERVICE_MAPPING`\n- `CAN_CONFIGURE_APPLICATIONS`\n- `CAN_CONFIGURE_EUM_APPLICATIONS`\n- `CAN_CONFIGURE_MOBILE_APP_MONITORING`\n- `CAN_CONFIGURE_USERS`\n- `CAN_INSTALL_NEW_AGENTS`\n- `CAN_SEE_USAGE_INFORMATION`\n- `CAN_CONFIGURE_INTEGRATIONS`\n- `CAN_SEE_ON_PREM_LICENE_INFORMATION`\n- `CAN_CONFIGURE_CUSTOM_ALERTS`\n- `CAN_CONFIGURE_API_TOKENS`\n- `CAN_CONFIGURE_PERSONAL_API_TOKENS`\n- `CAN_CONFIGURE_AGENT_RUN_MODE`\n- `CAN_VIEW_AUDIT_LOG`\n- `CAN_CONFIGURE_AGENTS`\n- `CAN_CONFIGURE_AUTHENTICATION_METHODS`\n- `CAN_CONFIGURE_TEAMS`\n- `CAN_CONFIGURE_RELEASES`\n- `CAN_CONFIGURE_LOG_MANAGEMENT`\n- `CAN_CREATE_PUBLIC_CUSTOM_DASHBOARDS`\n- `CAN_VIEW_LOGS`\n- `CAN_VIEW_TRACE_DETAILS`\n- `CAN_CONFIGURE_SESSION_SETTINGS`\n- `CAN_CONFIGURE_SERVICE_LEVEL_INDICATORS`\n- `CAN_CONFIGURE_GLOBAL_ALERT_PAYLOAD`\n- `CAN_CONFIGURE_GLOBAL_ALERT_CONFIGS`\n- `CAN_VIEW_ACCOUNT_AND_BILLING_INFORMATION`\n- `CAN_EDIT_ALL_ACCESSIBLE_CUSTOM_DASHBOARDS`\n- `LIMITED_APPLICATIONS_SCOPE`\n- `LIMITED_WEBSITES_SCOPE`\n- `LIMITED_KUBERNETES_SCOPE`\n- `LIMITED_MOBILE_APPS_SCOPE`\n- `LIMITED_INFRASTRUCTURE_SCOPE`\n- `ACCESS_APPLICATIONS`\n- `ACCESS_WEBSITES`\n- `ACCESS_KUBERNETES`\n- `ACCESS_MOBILE_APPS`\n- `ACCESS_INFRASTRUCTURE`\n"
       }
     },
     "/api/settings/rbac/groups/{id}/user/{userId}": {
@@ -9701,6 +11621,414 @@
         ]
       }
     },
+    "/api/settings/v2/maintenance": {
+      "get": {
+        "operationId": "getMaintenanceConfigsV2",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": [
+                  {
+                    "id": "maintenanceConfigId",
+                    "name": "maintenanceConfig",
+                    "query": "entity.application.id:\"anApplicationId\"",
+                    "scheduling": {
+                      "start": 1680703219486,
+                      "duration": {
+                        "amount": 2,
+                        "unit": "HOURS"
+                      },
+                      "rrule": "FREQ=DAILY;INTERVAL=1;COUNT=1",
+                      "timezoneId": "UTC",
+                      "type": "RECURRENT"
+                    },
+                    "paused": false,
+                    "lastUpdated": 1680703219678,
+                    "state": "EXPIRED",
+                    "validVersion": 1,
+                    "occurrence": {
+                      "start": 1680703219000,
+                      "end": 1680710419000
+                    },
+                    "invalid": false,
+                    "applicationNames": [
+                      "anApplicationName"
+                    ]
+                  },
+                  {
+                    "id": "anotherMaintenanceConfigId",
+                    "name": "anotherMaintenanceConfig",
+                    "query": "entity.type:ibmz.db2",
+                    "scheduling": {
+                      "start": 1680703219486,
+                      "duration": {
+                        "amount": 2,
+                        "unit": "HOURS"
+                      },
+                      "rrule": "FREQ=DAILY;INTERVAL=1;COUNT=1",
+                      "timezoneId": "UTC",
+                      "type": "RECURRENT"
+                    },
+                    "paused": false,
+                    "lastUpdated": 1680703219678,
+                    "state": "EXPIRED",
+                    "validVersion": 1,
+                    "occurrence": {
+                      "start": 1680703219000,
+                      "end": 1680710419000
+                    },
+                    "invalid": false,
+                    "applicationNames": []
+                  }
+                ],
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/ValidatedMaintenanceConfigV2WithStateAndOccurrence"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "All maintenance configurations",
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "description": "This endpoint retrieves all available maintenance configurations.  "
+      }
+    },
+    "/api/settings/v2/maintenance/{id}": {
+      "delete": {
+        "operationId": "deleteMaintenanceConfigV2",
+        "parameters": [
+          {
+            "example": "exampleMaintenanceConfigId",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Delete maintenance configuration",
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "description": "This endpoint deletes a maintenance configuration given its ID.\n\n### Path Parameters:\n\n- **id:** The ID of the maintenance config to delete."
+      },
+      "get": {
+        "operationId": "getMaintenanceConfigV2",
+        "parameters": [
+          {
+            "example": "exampleMaintenanceConfigId",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "maintenanceConfigId",
+                  "name": "maintenanceConfig",
+                  "query": "",
+                  "scheduling": {
+                    "start": 1683864000000,
+                    "duration": {
+                      "amount": 24,
+                      "unit": "HOURS"
+                    },
+                    "type": "ONE_TIME"
+                  },
+                  "paused": false,
+                  "validVersion": 1,
+                  "lastUpdated": 1683901553115,
+                  "state": "EXPIRED",
+                  "occurrence": {
+                    "start": 1683864000000,
+                    "end": 1683950400000
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceConfigV2WithStateAndOccurrence"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Get maintenance configuration",
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "description": "This endpoint retrieves a maintenance configuration given its ID.\n\n### Path Parameters:\n\n- **id:** The ID of the maintenance config to fetch."
+      },
+      "put": {
+        "operationId": "putMaintenanceConfigV2",
+        "parameters": [
+          {
+            "example": "exampleMaintenanceConfigId",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceConfigV2"
+              },
+              "examples": {
+                "payload": {
+                  "value": {
+                    "id": "maintenanceConfigID",
+                    "name": "sampleMaintenanceConfig",
+                    "query": "entity.application.id:\"appID\" OR entity.application.id:\"anotherAppID\" ",
+                    "scheduling": {
+                      "start": 1683827571245,
+                      "duration": {
+                        "amount": 2,
+                        "unit": "HOURS"
+                      },
+                      "type": "RECURRENT",
+                      "rrule": "FREQ=WEEKLY;INTERVAL=2;BYDAY=SA;COUNT=10",
+                      "timezoneId": "America/New_York"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "maintenanceConfigId",
+                  "name": "maintenanceConfig",
+                  "query": "entity.application.id:\"anApplicationId\"",
+                  "scheduling": {
+                    "start": 1684249020728,
+                    "duration": {
+                      "amount": 2,
+                      "unit": "HOURS"
+                    },
+                    "type": "ONE_TIME"
+                  },
+                  "paused": false,
+                  "validVersion": 1,
+                  "lastUpdated": 1684249021306,
+                  "state": "ACTIVE",
+                  "occurrence": {
+                    "start": 1684249020728,
+                    "end": 1684256220728
+                  }
+                }
+              }
+            },
+            "description": "Maintenance config has been created or updated, and successfully scheduled immediately if needed"
+          },
+          "202": {
+            "description": "Maintenance config has been created or updated, but could not to be scheduled immediately. It will therefore be scheduled during the next auto-refresh with a delay of up to 4 minutes."
+          },
+          "400": {
+            "description": "The provided maintenance configuration is invalid."
+          },
+          "422": {
+            "description": "The provided maintenance configuration is incomplete or cannot be processed."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceConfigV2WithStateAndOccurrence"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Create or update maintenance configuration",
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "description": "This endpoint creates or updates a maintenance configuration given its ID.\n\n### Path Parameters:\n\n- **id:** The ID of the maintenance config to create or update.\n\n### Maintenance Configuration Input\nThis is a description for the fields in the request body:\n\n**id**: maintenance configuration unique id  \n**name**: maintenance configuration name  \n**query**: dynamic focus query used to filter alert notifications that will be muted  \n**scheduling**: defines when the maintenance configuration will be scheduled\n- **start**: time in milliseconds from epoch\n- **duration**: duration of each maintenance window occurrence in the maintenance configuration\n    - **amount**: the amount of time\n    - **unit**: the unit of time\n- **type**: `ONE_TIME` or `RECURRENT`\n- **rrule**:  for `RECURRENT` mainteance configurations, the RRULE standard from the [iCalendar Spec](https://datatracker.ietf.org/doc/html/rfc5545)\n\n### **RRULE Support**\nYou can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.\n\n\nThe following RRULE tokens are supported: `FREQ`, `UNTIL`, `COUNT`, `INTERVAL`, `BYDAY`, `BYMONTHDAY`, `BYMONTH`.\n\n**Additional Constraints:**\n\n1. For `MONTHLY` and `YEARLY`, you can only specify one value for `BYDAY` and `BYMONTHDAY`.  \n2. The maximum `INTERVAL` allowed is as follows:  \n    - DAILY is 365\n    - WEEKLY is 52\n    - MONTHLY is 12\n    - YEARLY is 1\n3. If an `UNTIL` date is specified, the value needs to be in UTC."
+      }
+    },
+    "/api/settings/v2/maintenance/{id}/pause": {
+      "put": {
+        "operationId": "pauseRecurrentMaintenanceConfiguration",
+        "parameters": [
+          {
+            "example": "exampleMaintenanceConfigId",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "maintenanceConfigId",
+                  "name": "maintenanceConfig",
+                  "query": "entity.application.id:\"anApplicationId\"",
+                  "scheduling": {
+                    "start": 1684251745262,
+                    "duration": {
+                      "amount": 2,
+                      "unit": "HOURS"
+                    },
+                    "type": "ONE_TIME"
+                  },
+                  "paused": true,
+                  "validVersion": 1,
+                  "lastUpdated": 1684251750475,
+                  "state": "PAUSED",
+                  "occurrence": {
+                    "start": 1684251745262,
+                    "end": 1684258945262
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceConfigV2WithStateAndOccurrence"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Pause maintenance configuration",
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "description": "This endpoint pauses a maintenance configuration given its ID.\n\nWhen you pause a maintenance configuration, you will start receiving alerts again for the scope defined in the maintenance configuration.\n### Path Parameters:\n\n- **id:** The ID of the maintenance config to pause.\n"
+      }
+    },
+    "/api/settings/v2/maintenance/{id}/resume": {
+      "put": {
+        "operationId": "resumeRecurrentMaintenanceConfiguration",
+        "parameters": [
+          {
+            "example": "exampleMaintenanceConfigId",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "maintenanceConfigId",
+                  "name": "maintenanceConfig",
+                  "query": "entity.application.id:\"anApplicationId\"",
+                  "scheduling": {
+                    "start": 1684251745262,
+                    "duration": {
+                      "amount": 2,
+                      "unit": "HOURS"
+                    },
+                    "type": "ONE_TIME"
+                  },
+                  "paused": false,
+                  "validVersion": 1,
+                  "lastUpdated": 1684251933433,
+                  "state": "ACTIVE",
+                  "occurrence": {
+                    "start": 1684251745262,
+                    "end": 1684258945262
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceConfigV2WithStateAndOccurrence"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureCustomAlerts"
+            ]
+          }
+        ],
+        "summary": "Resume maintenance configuration",
+        "tags": [
+          "Maintenance Configuration"
+        ],
+        "description": "This endpoint resumes a maintenance configuration given its ID.\n\nIf the maintenance configuration becomes active when you resume the maintenance configuration, you will not receive alerts for the scope defined in the maintenance configuration.\n### Path Parameters:\n\n- **id:** The ID of the maintenance config to resume.\n"
+      }
+    },
     "/api/settings/v2/sli": {
       "get": {
         "operationId": "getAllSliConfigsV2",
@@ -10383,6 +12711,100 @@
         ]
       }
     },
+    "/api/synthetics/settings/credentials": {
+      "get": {
+        "operationId": "getSyntheticCredentialNames",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "type": "string",
+                    "example": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canUseSyntheticCredentials",
+              "canConfigureSyntheticTests"
+            ]
+          }
+        ],
+        "summary": "All Synthetic Credential Names",
+        "tags": [
+          "Synthetic Settings"
+        ]
+      },
+      "post": {
+        "operationId": "createSyntheticCredential",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyntheticCredentials"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureSyntheticCredentials"
+            ]
+          }
+        ],
+        "summary": "Create a Synthetic Credential",
+        "tags": [
+          "Synthetic Settings"
+        ],
+        "description": "This API endpoint creates a credential to be used on Synthetic API Script Tests.\n\n## Mandatory Parameters:\n\n- **credentialName** The name identifying the credential. Credential names must start with a letter and can only contain letters, numbers and underscores. Max length is 64.\n\n- **credentialValue:** Value of the credential to be used on the API Script execution. Credential values are stored encrypted and cannot be queried after creation.\n\n\n## Sample script and payload:\n- A sample script to create a new credential\n\n```\ncurl -k -v -X POST \\\nhttps://<Host>/api/synthetics/settings/credentials \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"credentialName\" : \"user1_password\", \n    \"credentialValue\" : \"123456\"\n  }'\n```\n"
+      }
+    },
+    "/api/synthetics/settings/credentials/{name}": {
+      "delete": {
+        "operationId": "deleteSyntheticCredential",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "canConfigureSyntheticCredentials"
+            ]
+          }
+        ],
+        "summary": "Delete Synthetic credential",
+        "tags": [
+          "Synthetic Settings"
+        ]
+      }
+    },
     "/api/synthetics/settings/locations": {
       "get": {
         "operationId": "getSyntheticLocations",
@@ -10442,7 +12864,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canViewSyntheticLocations"
             ]
           }
         ],
@@ -10477,7 +12899,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canConfigureSyntheticLocations"
             ]
           }
         ],
@@ -10513,7 +12935,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canViewSyntheticLocations"
             ]
           }
         ],
@@ -10562,7 +12984,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canViewSyntheticTests"
             ]
           }
         ],
@@ -10597,7 +13019,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canConfigureSyntheticTests"
             ]
           }
         ],
@@ -10605,7 +13027,7 @@
         "tags": [
           "Synthetic Settings"
         ],
-        "description": "This API endpoint creates a Synthetic Test.\n\n## Sample script and payload: \n- A sample script to create a simple Ping API test\n\n```\ncurl -k -v -X POST \\\nhttps://<Host>/api/synthetics/settings/tests \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"label\":\"Test_SimplePing\",\n    \"description\":\"this is to test a simple ping API\",\n    \"serviceId\":\"serviceId001\",\n    \"applicationId\":\"applicationId001\",\n    \"active\":true,\n    \"testFrequency\":1,\n    \"playbackMode\":\"Simultaneous\",\n    \"locations\":[\n        \"saas_instana_test\"\n    ],\n    \"configuration\":{\n        \"syntheticType\":\"HTTPAction\",\n        \"url\":\"https://httpbin.org/post\",\n        \"operation\":\"POST\",\n        \"headers\":{\n            \"Content-Type\":\"text/plain\"\n        },\n        \"body\":\"Hello World!\",\n        \"validationString\":\"Hello World!\"\n    },\n    \"customProperties\":{\n        \"Team\":\"DevTeam\",\n        \"Purpose\":\"Demo\"\n    }\n  }'\n```"
+        "description": "This API endpoint creates a Synthetic Test.\n\n## Sample script and payload: \n- A sample script to create an API Simple test\n\n```\ncurl -k -v -X POST \\\nhttps://<Host>/api/synthetics/settings/tests \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"label\":\"Test_SimplePing\",\n    \"description\":\"this is to test a simple ping API\",\n    \"serviceId\":\"serviceId001\",\n    \"applicationId\":\"applicationId001\",\n    \"active\":true,\n    \"testFrequency\":1,\n    \"playbackMode\":\"Simultaneous\",\n    \"locations\":[\n        \"saas_instana_test\"\n    ],\n    \"configuration\":{\n        \"syntheticType\":\"HTTPAction\",\n        \"url\":\"https://httpbin.org/post\",\n        \"operation\":\"POST\",\n        \"headers\":{\n            \"Content-Type\":\"text/plain\"\n        },\n        \"body\":\"Hello World!\",\n        \"validationString\":\"Hello World!\"\n    },\n    \"customProperties\":{\n        \"Team\":\"DevTeam\",\n        \"Purpose\":\"Demo\"\n    }\n  }'\n```"
       }
     },
     "/api/synthetics/settings/tests/{id}": {
@@ -10633,7 +13055,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canConfigureSyntheticTests"
             ]
           }
         ],
@@ -10669,7 +13091,7 @@
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canViewSyntheticTests"
             ]
           }
         ],
@@ -10704,18 +13126,14 @@
         "responses": {
           "default": {
             "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyntheticTest"
-                }
-              }
+              "application/json": {}
             }
           }
         },
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canConfigureSyntheticTests"
             ]
           }
         ],
@@ -10723,7 +13141,7 @@
         "tags": [
           "Synthetic Settings"
         ],
-        "description": "This API endpoint updates selected attributes of a Synthetic Test.\n\n- All attributes listed as in the schema, including the required ones, are optional for this call.\n\n## Sample script and payload: \n- A sample script to patch a simple Ping API test to disable it.\n\n```\ncurl -k -v -X PATCH \\\nhttps://<Host>/api/synthetics/settings/tests/Ilfs9bW97KkTxuyGtxBF \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"active\":false\n  }'\n```"
+        "description": "This API endpoint updates selected attributes of a Synthetic Test.\n\n- All attributes listed as in the schema, including the required ones, are optional for this call.\n- Synthetic Test configuration properties set to null will be removed from the configuration.\n- For major updates to the Synthetic Test or to remove main attributes, see \"Update a Synthetic test\"\n\n## Sample script and payload: \n- A sample script to patch a simple HTTP Script Test to enable it and to switch from multi-scripts to single script.\n\n```\ncurl -k -v -X PATCH \\\nhttps://<Host>/api/synthetics/settings/tests/Ilfs9bW97KkTxuyGtxBF \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"active\" : true,\n    \"configuration\" : { \n      \"scripts\" : null,\n      \"script\" : \"//script goes here\"\n    }\n  }'\n```"
       },
       "put": {
         "operationId": "updateSyntheticTest",
@@ -10751,18 +13169,14 @@
         "responses": {
           "default": {
             "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyntheticTest"
-                }
-              }
+              "application/json": {}
             }
           }
         },
         "security": [
           {
             "ApiKeyAuth": [
-              "Default"
+              "canConfigureSyntheticTests"
             ]
           }
         ],
@@ -11658,7 +14072,8 @@
             "VICTOR_OPS": "#/components/schemas/VictorOpsIntegration",
             "WATSON_AIOPS_WEBHOOK": "#/components/schemas/WatsonAIOpsWebhookIntegration",
             "WEBEX_TEAMS_WEBHOOK": "#/components/schemas/WebexTeamsWebhookIntegration",
-            "WEB_HOOK": "#/components/schemas/WebhookIntegration"
+            "WEB_HOOK": "#/components/schemas/WebhookIntegration",
+            "Z_CHATOPS": "#/components/schemas/ZChatOpsIntegration"
           },
           "propertyName": "kind"
         },
@@ -11688,6 +14103,7 @@
         "discriminator": {
           "mapping": {
             "entity_count": "#/components/schemas/EntityCountRule",
+            "entity_count_verification": "#/components/schemas/EntityCountVerificationRule",
             "entity_verification": "#/components/schemas/EntityVerificationRule",
             "host_availability": "#/components/schemas/HostAvailabilityRule",
             "system": "#/components/schemas/SystemRule",
@@ -11843,6 +14259,9 @@
             "items": {
               "$ref": "#/components/schemas/Parameter"
             }
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/MetaData"
           },
           "modifiedAt": {
             "type": "string",
@@ -12292,6 +14711,16 @@
             "minItems": 0,
             "uniqueItems": true
           },
+          "syntheticTestIds": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/ScopeBinding"
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
           "websiteIds": {
             "type": "array",
             "example": null,
@@ -12392,6 +14821,10 @@
             "type": "boolean",
             "example": null
           },
+          "canConfigureSyntheticCredentials": {
+            "type": "boolean",
+            "example": null
+          },
           "canConfigureSyntheticLocations": {
             "type": "boolean",
             "example": null
@@ -12412,6 +14845,10 @@
             "type": "boolean",
             "example": null
           },
+          "canDeleteLogs": {
+            "type": "boolean",
+            "example": null
+          },
           "canEditAllAccessibleCustomDashboards": {
             "type": "boolean",
             "example": null
@@ -12421,6 +14858,10 @@
             "example": null
           },
           "canRunAutomationActions": {
+            "type": "boolean",
+            "example": null
+          },
+          "canUseSyntheticCredentials": {
             "type": "boolean",
             "example": null
           },
@@ -13740,6 +16181,26 @@
           "items"
         ]
       },
+      "CallRelation": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "endpoint": {
+            "$ref": "#/components/schemas/EndpointSimple"
+          },
+          "service": {
+            "$ref": "#/components/schemas/ServiceSimple"
+          },
+          "technologies": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            }
+          }
+        }
+      },
       "ChangeSummary": {
         "type": "object",
         "example": null,
@@ -13816,6 +16277,10 @@
         "required": [
           "id"
         ]
+      },
+      "ContainerNode": {
+        "type": "object",
+        "example": null
       },
       "CursorPagination": {
         "type": "object",
@@ -13928,6 +16393,29 @@
           "annotations",
           "id",
           "title"
+        ]
+      },
+      "CustomEventMobileAppAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MobileAppAlertRule"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "customEventName": {
+                "type": "string",
+                "example": null
+              }
+            }
+          }
+        ],
+        "example": null,
+        "required": [
+          "customEventName",
+          "metricName"
         ]
       },
       "CustomEventSpecification": {
@@ -14319,6 +16807,31 @@
           "value"
         ]
       },
+      "Duration": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "MINUTES",
+              "HOURS",
+              "DAYS"
+            ],
+            "example": null
+          }
+        },
+        "required": [
+          "amount",
+          "unit"
+        ]
+      },
       "DynamicField": {
         "type": "object",
         "allOf": [
@@ -14398,6 +16911,19 @@
           "id",
           "kind",
           "name"
+        ]
+      },
+      "EmptyConfiguration": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SyntheticTypeConfiguration"
+          }
+        ],
+        "example": null,
+        "required": [
+          "markSyntheticCall",
+          "syntheticType"
         ]
       },
       "Endpoint": {
@@ -14621,6 +17147,40 @@
           }
         }
       },
+      "EndpointSimple": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": null
+          },
+          "label": {
+            "type": "string",
+            "example": null
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "UNDEFINED",
+              "RPC",
+              "EVENT",
+              "GRAPHQL",
+              "BATCH",
+              "SHELL",
+              "HTTP",
+              "SDK",
+              "OPENTELEMETRY",
+              "INTERNAL",
+              "DATABASE",
+              "MESSAGING",
+              "PAGE",
+              "PAGE_RESOURCE"
+            ],
+            "example": null
+          }
+        }
+      },
       "EntityCountRule": {
         "type": "object",
         "allOf": [
@@ -14654,6 +17214,66 @@
         "example": null,
         "required": [
           "conditionOperator"
+        ]
+      },
+      "EntityCountVerificationRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractRule"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "conditionOperator": {
+                "type": "string",
+                "enum": [
+                  ">",
+                  ">=",
+                  "<",
+                  "<=",
+                  "=",
+                  "!="
+                ],
+                "example": null
+              },
+              "conditionValue": {
+                "type": "number",
+                "format": "double",
+                "example": null
+              },
+              "matchingEntityLabel": {
+                "type": "string",
+                "example": null,
+                "maxLength": 256,
+                "minLength": 0
+              },
+              "matchingEntityType": {
+                "type": "string",
+                "example": null,
+                "maxLength": 64,
+                "minLength": 0
+              },
+              "matchingOperator": {
+                "type": "string",
+                "enum": [
+                  "is",
+                  "contains",
+                  "startsWith",
+                  "endsWith"
+                ],
+                "example": null
+              }
+            }
+          }
+        ],
+        "example": null,
+        "required": [
+          "conditionOperator",
+          "matchingEntityLabel",
+          "matchingEntityType",
+          "matchingOperator"
         ]
       },
       "EntityHealthInfo": {
@@ -16049,6 +18669,31 @@
           "metrics"
         ]
       },
+      "GetSnapshotsQuery": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "snapshotIds": {
+            "type": "array",
+            "description": "List of one or more snapshot ids.",
+            "example": null,
+            "items": {
+              "type": "string",
+              "description": "List of one or more snapshot ids.",
+              "example": null
+            },
+            "maxItems": 1000,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "timeFrame": {
+            "$ref": "#/components/schemas/TimeFrame"
+          }
+        },
+        "required": [
+          "snapshotIds"
+        ]
+      },
       "GetTestResult": {
         "type": "object",
         "example": null,
@@ -16213,6 +18858,64 @@
         "required": [
           "metrics"
         ]
+      },
+      "GetTraceDownloadResultItem": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "callCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "cursor": {
+            "$ref": "#/components/schemas/IngestionOffsetCursor"
+          },
+          "destination": {
+            "$ref": "#/components/schemas/CallRelation"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "errorCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "foreignParentId": {
+            "type": "string",
+            "example": null
+          },
+          "id": {
+            "type": "string",
+            "example": null
+          },
+          "minSelfTime": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "networkTime": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "parentId": {
+            "type": "string",
+            "example": null
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          }
+        }
       },
       "GetTraceGroups": {
         "type": "object",
@@ -16986,12 +19689,7 @@
                 }
               },
               "expectJson": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object",
-                  "example": null
-                },
-                "example": null
+                "$ref": "#/components/schemas/ContainerNode"
               },
               "expectMatch": {
                 "type": "string",
@@ -17227,6 +19925,7 @@
               "KILO_BYTES",
               "MEGA_BYTES",
               "PERCENTAGE",
+              "PERCENTAGE_100",
               "LATENCY",
               "NANOS",
               "MILLIS",
@@ -17483,6 +20182,7 @@
           "time": {
             "type": "integer",
             "format": "int64",
+            "description": "Epoch time in milliseconds if the snapshot is offline. Set to 9223372036854775807 if the snapshot is online.",
             "example": null
           }
         }
@@ -17643,6 +20343,10 @@
         "type": "object",
         "example": null,
         "properties": {
+          "locationDisplayLabel": {
+            "type": "string",
+            "example": null
+          },
           "locationId": {
             "type": "string",
             "example": null
@@ -17802,6 +20506,134 @@
           "query"
         ]
       },
+      "MaintenanceConfigScheduling": {
+        "type": "object",
+        "discriminator": {
+          "mapping": {
+            "ONE_TIME": "#/components/schemas/OneTimeMaintenanceWindow",
+            "RECURRENT": "#/components/schemas/RecurrentMaintenanceWindow"
+          },
+          "propertyName": "type"
+        },
+        "example": null,
+        "properties": {
+          "duration": {
+            "$ref": "#/components/schemas/Duration"
+          },
+          "start": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
+          "type": {
+            "type": "string",
+            "example": null,
+            "maxLength": 2048,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "duration",
+          "start",
+          "type"
+        ]
+      },
+      "MaintenanceConfigV2": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": null,
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "name": {
+            "type": "string",
+            "example": null,
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "paused": {
+            "type": "boolean",
+            "example": null
+          },
+          "query": {
+            "type": "string",
+            "example": null,
+            "maxLength": 2048,
+            "minLength": 0
+          },
+          "scheduling": {
+            "$ref": "#/components/schemas/MaintenanceConfigScheduling"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "query",
+          "scheduling"
+        ]
+      },
+      "MaintenanceConfigV2WithStateAndOccurrence": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": null,
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "lastUpdated": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "example": null,
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "occurrence": {
+            "$ref": "#/components/schemas/Occurrence"
+          },
+          "paused": {
+            "type": "boolean",
+            "example": null
+          },
+          "query": {
+            "type": "string",
+            "example": null,
+            "maxLength": 2048,
+            "minLength": 0
+          },
+          "scheduling": {
+            "$ref": "#/components/schemas/MaintenanceConfigScheduling"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "UNSCHEDULED",
+              "SCHEDULED",
+              "ACTIVE",
+              "PAUSED",
+              "EXPIRED"
+            ],
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "occurrence",
+          "query",
+          "scheduling"
+        ]
+      },
       "MaintenanceConfigWithLastUpdated": {
         "type": "object",
         "example": null,
@@ -17940,6 +20772,36 @@
         "required": [
           "type"
         ]
+      },
+      "MetaData": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "ai": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "example": null
+              },
+              "example": null
+            }
+          },
+          "builtIn": {
+            "type": "boolean",
+            "example": null
+          },
+          "readOnly": {
+            "type": "boolean",
+            "example": null
+          },
+          "sensorImported": {
+            "type": "boolean",
+            "example": null
+          }
+        }
       },
       "MetricAPIResult": {
         "type": "object",
@@ -18153,6 +21015,7 @@
               "KILO_BYTES",
               "MEGA_BYTES",
               "PERCENTAGE",
+              "PERCENTAGE_100",
               "LATENCY",
               "NANOS",
               "MILLIS",
@@ -18289,6 +21152,7 @@
               "KILO_BYTES",
               "MEGA_BYTES",
               "PERCENTAGE",
+              "PERCENTAGE_100",
               "LATENCY",
               "NANOS",
               "MILLIS",
@@ -18407,6 +21271,148 @@
         "required": [
           "id",
           "name"
+        ]
+      },
+      "MobileAppAlertConfig": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "alertChannelIds": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "completeTagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpression"
+          },
+          "customPayloadFields": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/CustomPayloadField"
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "description": {
+            "type": "string",
+            "example": null,
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "default": 600000,
+            "enum": [
+              300000,
+              600000,
+              900000,
+              1200000,
+              1800000
+            ],
+            "example": null
+          },
+          "mobileAppId": {
+            "type": "string",
+            "example": null,
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "name": {
+            "type": "string",
+            "example": null,
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "rule": {
+            "$ref": "#/components/schemas/MobileAppAlertRule"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/Threshold"
+          },
+          "timeThreshold": {
+            "$ref": "#/components/schemas/MobileAppTimeThreshold"
+          },
+          "triggering": {
+            "type": "boolean",
+            "example": null
+          }
+        },
+        "required": [
+          "alertChannelIds",
+          "customPayloadFields",
+          "description",
+          "granularity",
+          "mobileAppId",
+          "name",
+          "rule",
+          "tagFilterExpression",
+          "threshold",
+          "timeThreshold"
+        ]
+      },
+      "MobileAppAlertRule": {
+        "type": "object",
+        "discriminator": {
+          "mapping": {
+            "customEvent": "#/components/schemas/CustomEventMobileAppAlertRule",
+            "statusCode": "#/components/schemas/StatusCodeMobileAppAlertRule",
+            "throughput": "#/components/schemas/ThroughputMobileAppAlertRule"
+          },
+          "propertyName": "alertType"
+        },
+        "example": null,
+        "properties": {
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "P99_9",
+              "P99_99",
+              "DISTRIBUTION",
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE",
+              "PER_SECOND"
+            ],
+            "example": null
+          },
+          "alertType": {
+            "type": "string",
+            "example": null
+          },
+          "metricName": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "alertType",
+          "metricName"
         ]
       },
       "MobileAppBeaconGroupsItem": {
@@ -18946,6 +21952,16 @@
             "maxLength": 256,
             "minLength": 0
           },
+          "useFeatures": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            },
+            "maxItems": 15,
+            "minItems": 0
+          },
           "userEmail": {
             "type": "string",
             "example": null,
@@ -19154,6 +22170,32 @@
           "metric"
         ]
       },
+      "MobileAppTimeThreshold": {
+        "type": "object",
+        "discriminator": {
+          "mapping": {
+            "userImpactOfViolationsInSequence": "#/components/schemas/UserImpactMobileAppTimeThreshold",
+            "violationsInPeriod": "#/components/schemas/ViolationsInPeriodMobileAppTimeThreshold",
+            "violationsInSequence": "#/components/schemas/ViolationsInSequenceMobileAppTimeThreshold"
+          },
+          "propertyName": "type"
+        },
+        "example": null,
+        "properties": {
+          "timeWindow": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "type": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
       "MonitoringState": {
         "type": "object",
         "example": null,
@@ -19184,10 +22226,6 @@
           },
           "scriptFile": {
             "type": "string",
-            "example": null
-          },
-          "valid": {
-            "type": "boolean",
             "example": null
           }
         }
@@ -19271,6 +22309,24 @@
           "tagFilterExpression"
         ]
       },
+      "Occurrence": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "end": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
+          "start": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 0
+          }
+        }
+      },
       "Office365Integration": {
         "type": "object",
         "allOf": [
@@ -19294,6 +22350,20 @@
           "kind",
           "name",
           "webhookUrl"
+        ]
+      },
+      "OneTimeMaintenanceWindow": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaintenanceConfigScheduling"
+          }
+        ],
+        "example": null,
+        "required": [
+          "duration",
+          "start",
+          "type"
         ]
       },
       "OpsgenieIntegration": {
@@ -19518,6 +22588,30 @@
           }
         }
       },
+      "PostSnapshotsResult": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "items": {
+            "type": "array",
+            "description": "Detail information for requested snapshots.",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/SnapshotItem"
+            }
+          },
+          "notFoundSnapshotsIds": {
+            "type": "array",
+            "description": "Snapshot ids for snapshots that could not be retrieved.",
+            "example": null,
+            "items": {
+              "type": "string",
+              "description": "Snapshot ids for snapshots that could not be retrieved.",
+              "example": null
+            }
+          }
+        }
+      },
       "Problem": {
         "type": "object",
         "example": null,
@@ -19577,6 +22671,35 @@
           "kind",
           "name",
           "webhookUrl"
+        ]
+      },
+      "RecurrentMaintenanceWindow": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MaintenanceConfigScheduling"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "rrule": {
+                "type": "string",
+                "example": null
+              },
+              "timezoneId": {
+                "type": "string",
+                "example": null
+              }
+            }
+          }
+        ],
+        "example": null,
+        "required": [
+          "duration",
+          "rrule",
+          "start",
+          "type"
         ]
       },
       "Release": {
@@ -20229,6 +23352,20 @@
           "applications"
         ]
       },
+      "ServiceSimple": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": null
+          },
+          "label": {
+            "type": "string",
+            "example": null
+          }
+        }
+      },
       "SessionSettings": {
         "type": "object",
         "example": null,
@@ -20451,6 +23588,7 @@
       },
       "SnapshotItem": {
         "type": "object",
+        "description": "Detail information for requested snapshots.",
         "example": null,
         "properties": {
           "data": {
@@ -21034,6 +24172,52 @@
           "metricName"
         ]
       },
+      "StatusCodeMobileAppAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MobileAppAlertRule"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "operator": {
+                "type": "string",
+                "enum": [
+                  "EQUALS",
+                  "CONTAINS",
+                  "LESS_THAN",
+                  "LESS_OR_EQUAL_THAN",
+                  "GREATER_THAN",
+                  "GREATER_OR_EQUAL_THAN",
+                  "NOT_EMPTY",
+                  "NOT_EQUAL",
+                  "NOT_CONTAIN",
+                  "IS_EMPTY",
+                  "NOT_BLANK",
+                  "IS_BLANK",
+                  "STARTS_WITH",
+                  "ENDS_WITH",
+                  "NOT_STARTS_WITH",
+                  "NOT_ENDS_WITH"
+                ],
+                "example": null
+              },
+              "value": {
+                "type": "string",
+                "example": null
+              }
+            }
+          }
+        ],
+        "example": null,
+        "required": [
+          "metricName",
+          "operator",
+          "value"
+        ]
+      },
       "StatusCodeWebsiteAlertRule": {
         "type": "object",
         "allOf": [
@@ -21151,8 +24335,6 @@
               "type": "string",
               "example": null
             },
-            "maxItems": 500,
-            "minItems": 0,
             "uniqueItems": true
           },
           "tagFilterExpression": {
@@ -21264,8 +24446,6 @@
               "type": "string",
               "example": null
             },
-            "maxItems": 500,
-            "minItems": 0,
             "uniqueItems": true
           },
           "tagFilterExpression": {
@@ -21413,6 +24593,24 @@
         "required": [
           "customRules",
           "defaultRules"
+        ]
+      },
+      "SyntheticCredentials": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "credentialName": {
+            "type": "string",
+            "example": null
+          },
+          "credentialValue": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "credentialName",
+          "credentialValue"
         ]
       },
       "SyntheticGeoPoint": {
@@ -21615,7 +24813,8 @@
                 "HTTPAction",
                 "HTTPScript",
                 "WebpageAction",
-                "WebpageScript"
+                "WebpageScript",
+                "NotConfigured"
               ],
               "example": null
             }
@@ -21777,13 +24976,14 @@
       },
       "SyntheticTypeConfiguration": {
         "type": "object",
-        "description": "Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript, DNSAction, HTTPAction, HTTPScript, WebpageAction, WebpageScript.\n\nOnly HTTPAction and HTTPScript are enabled at this time.",
+        "description": "Synthetic test configuration that is unique to a synthetic type. Valid types are BrowserScript (Beta),\nHTTPAction, HTTPScript, WebpageAction (Beta), and WebpageScript (Beta).",
         "discriminator": {
           "mapping": {
             "BrowserScript": "#/components/schemas/BrowserScriptConfiguration",
             "DNSAction": "#/components/schemas/DNSActionConfiguration",
             "HTTPAction": "#/components/schemas/HttpActionConfiguration",
             "HTTPScript": "#/components/schemas/HttpScriptConfiguration",
+            "NotConfigured": "#/components/schemas/EmptyConfiguration",
             "WebpageAction": "#/components/schemas/WebpageActionConfiguration",
             "WebpageScript": "#/components/schemas/WebpageScriptConfiguration"
           },
@@ -21817,7 +25017,8 @@
               "HTTPAction",
               "HTTPScript",
               "WebpageAction",
-              "WebpageScript"
+              "WebpageScript",
+              "NotConfigured"
             ],
             "example": null
           },
@@ -22710,7 +25911,9 @@
                   "sum",
                   "avg",
                   "min",
-                  "max"
+                  "max",
+                  "absolute_diff",
+                  "relative_diff"
                 ],
                 "example": null
               },
@@ -22763,6 +25966,18 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/ApplicationAlertRule"
+          }
+        ],
+        "example": null,
+        "required": [
+          "metricName"
+        ]
+      },
+      "ThroughputMobileAppAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MobileAppAlertRule"
           }
         ],
         "example": null,
@@ -22860,6 +26075,47 @@
         "required": [
           "id",
           "label"
+        ]
+      },
+      "TraceDownloadResult": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "adjustedTimeframe": {
+            "$ref": "#/components/schemas/AdjustedTimeframe"
+          },
+          "canLoadMore": {
+            "type": "boolean",
+            "example": null
+          },
+          "items": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/GetTraceDownloadResultItem"
+            }
+          },
+          "totalHits": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 0
+          },
+          "totalRepresentedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 0
+          },
+          "totalRetainedItemCount": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items"
         ]
       },
       "TraceGroupsItem": {
@@ -23099,6 +26355,47 @@
           "id"
         ]
       },
+      "UserImpactMobileAppTimeThreshold": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MobileAppTimeThreshold"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "impactMeasurementMethod": {
+                "type": "string",
+                "enum": [
+                  "AGGREGATED",
+                  "PER_WINDOW"
+                ],
+                "example": null
+              },
+              "userPercentage": {
+                "type": "number",
+                "format": "double",
+                "example": null,
+                "exclusiveMaximum": false,
+                "exclusiveMinimum": true,
+                "maximum": 1,
+                "minimum": 0
+              },
+              "users": {
+                "type": "integer",
+                "format": "int32",
+                "example": null,
+                "minimum": 1
+              }
+            }
+          }
+        ],
+        "example": null,
+        "required": [
+          "impactMeasurementMethod"
+        ]
+      },
       "UserImpactWebsiteTimeThreshold": {
         "type": "object",
         "allOf": [
@@ -23164,6 +26461,10 @@
           "lastLoggedIn": {
             "type": "integer",
             "format": "int64",
+            "example": null
+          },
+          "tfaEnabled": {
+            "type": "boolean",
             "example": null
           }
         },
@@ -23260,6 +26561,7 @@
             "enum": [
               "Alert",
               "WebsiteSmartAlert",
+              "MobileSmartAlert",
               "ApplicationSmartAlert",
               "GlobalApplicationSmartAlert",
               "SyntheticSmartAlert"
@@ -23354,6 +26656,77 @@
           "integrationIds"
         ]
       },
+      "ValidatedMaintenanceConfigV2WithStateAndOccurrence": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "applicationNames": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            },
+            "uniqueItems": true
+          },
+          "id": {
+            "type": "string",
+            "example": null,
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "invalid": {
+            "type": "boolean",
+            "example": null
+          },
+          "lastUpdated": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "example": null,
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "occurrence": {
+            "$ref": "#/components/schemas/Occurrence"
+          },
+          "paused": {
+            "type": "boolean",
+            "example": null
+          },
+          "query": {
+            "type": "string",
+            "example": null,
+            "maxLength": 2048,
+            "minLength": 0
+          },
+          "scheduling": {
+            "$ref": "#/components/schemas/MaintenanceConfigScheduling"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "UNSCHEDULED",
+              "SCHEDULED",
+              "ACTIVE",
+              "PAUSED",
+              "EXPIRED"
+            ],
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "occurrence",
+          "query",
+          "scheduling"
+        ]
+      },
       "ValidatedMaintenanceConfigWithStatus": {
         "type": "object",
         "example": null,
@@ -23392,7 +26765,8 @@
               "UNSCHEDULED",
               "SCHEDULED",
               "ACTIVE",
-              "FINISHED"
+              "FINISHED",
+              "PAUSED"
             ],
             "example": null
           },
@@ -23466,6 +26840,28 @@
         ],
         "example": null
       },
+      "ViolationsInPeriodMobileAppTimeThreshold": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MobileAppTimeThreshold"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "violations": {
+                "type": "integer",
+                "format": "int32",
+                "example": null,
+                "maximum": 12,
+                "minimum": 1
+              }
+            }
+          }
+        ],
+        "example": null
+      },
       "ViolationsInPeriodWebsiteTimeThreshold": {
         "type": "object",
         "allOf": [
@@ -23493,6 +26889,15 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/ApplicationTimeThreshold"
+          }
+        ],
+        "example": null
+      },
+      "ViolationsInSequenceMobileAppTimeThreshold": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MobileAppTimeThreshold"
           }
         ],
         "example": null
@@ -25012,6 +28417,120 @@
           "type"
         ]
       },
+      "WithMetadata": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "alertChannelIds": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "completeTagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpression"
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
+          "customPayloadFields": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/CustomPayloadField"
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "description": {
+            "type": "string",
+            "example": null,
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": null
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "default": 600000,
+            "enum": [
+              300000,
+              600000,
+              900000,
+              1200000,
+              1800000
+            ],
+            "example": null
+          },
+          "id": {
+            "type": "string",
+            "example": null,
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "mobileAppId": {
+            "type": "string",
+            "example": null,
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "name": {
+            "type": "string",
+            "example": null,
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "readOnly": {
+            "type": "boolean",
+            "example": null
+          },
+          "rule": {
+            "$ref": "#/components/schemas/MobileAppAlertRule"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/Threshold"
+          },
+          "timeThreshold": {
+            "$ref": "#/components/schemas/MobileAppTimeThreshold"
+          },
+          "triggering": {
+            "type": "boolean",
+            "example": null
+          }
+        },
+        "required": [
+          "alertChannelIds",
+          "customPayloadFields",
+          "description",
+          "granularity",
+          "id",
+          "mobileAppId",
+          "name",
+          "rule",
+          "tagFilterExpression",
+          "threshold",
+          "timeThreshold"
+        ]
+      },
       "WithResolvedName": {
         "type": "object",
         "allOf": [
@@ -25030,6 +28549,46 @@
           }
         ],
         "example": null
+      },
+      "ZChatOpsIntegration": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractIntegration"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "bearerAuthToken": {
+                "type": "string",
+                "example": null
+              },
+              "channels": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "string",
+                  "example": null
+                },
+                "maxItems": 1,
+                "minItems": 0
+              },
+              "zchatOpsIncidentsUrl": {
+                "type": "string",
+                "example": null
+              }
+            }
+          }
+        ],
+        "example": null,
+        "required": [
+          "bearerAuthToken",
+          "id",
+          "kind",
+          "name",
+          "zchatOpsIncidentsUrl"
+        ]
       }
     },
     "securitySchemes": {
@@ -25085,6 +28644,15 @@
       ]
     },
     {
+      "name": "Synthetic Monitoring",
+      "tags": [
+        "Synthetic Catalog",
+        "Synthetic Settings",
+        "Synthetic Test Playback Results",
+        "Synthetic Alert Configuration"
+      ]
+    },
+    {
       "name": "Event",
       "tags": [
         "Events",
@@ -25127,11 +28695,7 @@
     {
       "name": "Open Beta Features",
       "tags": [
-        "Infrastructure Analyze",
-        "Synthetic Catalog",
-        "Synthetic Settings",
-        "Synthetic Test Playback Results",
-        "Synthetic Alert Configuration"
+        "Infrastructure Analyze"
       ]
     },
     {

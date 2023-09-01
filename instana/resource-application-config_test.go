@@ -162,8 +162,6 @@ const (
 	invalidMatchSpecification           = "entity.type bla bla bla"
 	defaultTagFilter                    = "entity.name CONTAINS 'foo' AND agent.tag:environment EQUALS 'dev-speedboot-local-gessnerfl' OR call.http.status@na EQUALS 404"
 	defaultNormalizedTagFilter          = "((entity.name@dest CONTAINS 'foo' AND agent.tag:environment@dest EQUALS 'dev-speedboot-local-gessnerfl') OR call.http.status@na EQUALS 404)"
-	validTagFilter                      = "entity.type EQUALS 'foo'"
-	invalidTagFilter                    = "entity.type bla bla bla"
 	defaultLabel                        = "label"
 	entityName                          = "entity.name"
 	expressionEntityTypeDestEqValue     = "entity.type@dest EQUALS 'foo'"
@@ -332,78 +330,6 @@ func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfMatchSpecificationOfAp
 	value := invalidMatchSpecification
 
 	warns, errs := schema[ApplicationConfigFieldMatchSpecification].ValidateFunc(value, ApplicationConfigFieldMatchSpecification)
-	require.Empty(t, warns)
-	require.Len(t, errs, 1)
-}
-
-func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual(t *testing.T) {
-	resourceHandle := NewApplicationConfigResourceHandle()
-	schema := resourceHandle.MetaData().Schema
-	oldValue := expressionEntityTypeDestEqValue
-	newValue := "entity.type  EQUALS    'foo'"
-
-	require.True(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, oldValue, newValue, nil))
-}
-
-func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual(t *testing.T) {
-	resourceHandle := NewApplicationConfigResourceHandle()
-	schema := resourceHandle.MetaData().Schema
-	oldValue := expressionEntityTypeSrcEqValue
-	newValue := validTagFilter
-
-	require.False(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, oldValue, newValue, nil))
-}
-
-func TestShouldReturnTrueWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreEqual(t *testing.T) {
-	resourceHandle := NewApplicationConfigResourceHandle()
-	schema := resourceHandle.MetaData().Schema
-	invalidValue := invalidTagFilter
-
-	require.True(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, invalidValue, invalidValue, nil))
-}
-
-func TestShouldReturnFalseWhenCheckingForSchemaDiffSuppressForTagFilterOfApplicationConfigAndValueCannotBeNormalizedAndOldAndNewValueAreNotEqual(t *testing.T) {
-	resourceHandle := NewApplicationConfigResourceHandle()
-	schema := resourceHandle.MetaData().Schema
-	oldValue := invalidTagFilter
-	newValue := "entity.type foo foo foo"
-
-	require.False(t, schema[ApplicationConfigFieldTagFilter].DiffSuppressFunc(ApplicationConfigFieldTagFilter, oldValue, newValue, nil))
-}
-
-func TestShouldReturnNormalizedValueForTagFilterOfApplicationConfigWhenStateFuncIsCalledAndValueCanBeNormalized(t *testing.T) {
-	resourceHandle := NewApplicationConfigResourceHandle()
-	schema := resourceHandle.MetaData().Schema
-	expectedValue := expressionEntityTypeDestEqValue
-	newValue := validTagFilter
-
-	require.Equal(t, expectedValue, schema[ApplicationConfigFieldTagFilter].StateFunc(newValue))
-}
-
-func TestShouldReturnProvidedValueForTagFilterOfApplicationConfigWhenStateFuncIsCalledAndValueCannotBeNormalized(t *testing.T) {
-	resourceHandle := NewApplicationConfigResourceHandle()
-	schema := resourceHandle.MetaData().Schema
-	value := invalidTagFilter
-
-	require.Equal(t, value, schema[ApplicationConfigFieldTagFilter].StateFunc(value))
-}
-
-func TestShouldReturnNoErrorsAndWarningsWhenValidationOfTagFilterOfApplicationConfigIsCalledAndValueCanBeParsed(t *testing.T) {
-	resourceHandle := NewApplicationConfigResourceHandle()
-	schema := resourceHandle.MetaData().Schema
-	value := validTagFilter
-
-	warns, errs := schema[ApplicationConfigFieldTagFilter].ValidateFunc(value, ApplicationConfigFieldTagFilter)
-	require.Empty(t, warns)
-	require.Empty(t, errs)
-}
-
-func TestShouldReturnOneErrorAndNoWarningsWhenValidationOfTagFilterOfApplicationConfigIsCalledAndValueCannotBeParsed(t *testing.T) {
-	resourceHandle := NewApplicationConfigResourceHandle()
-	schema := resourceHandle.MetaData().Schema
-	value := invalidTagFilter
-
-	warns, errs := schema[ApplicationConfigFieldTagFilter].ValidateFunc(value, ApplicationConfigFieldTagFilter)
 	require.Empty(t, warns)
 	require.Len(t, errs, 1)
 }

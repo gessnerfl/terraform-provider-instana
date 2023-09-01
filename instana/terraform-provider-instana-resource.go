@@ -17,6 +17,7 @@ type ResourceMetaData struct {
 	SchemaVersion    int
 	SkipIDGeneration bool
 	ResourceIDField  *string
+	CreateOnly       bool
 }
 
 // ResourceHandle resource specific implementation which provides metadata and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
@@ -134,6 +135,11 @@ func (r *terraformResourceImpl[T]) Update(_ context.Context, d *schema.ResourceD
 	return nil
 }
 
+// NoUpdateSupported defines the update operation for the terraform resource not supporting update operations
+func (r *terraformResourceImpl[T]) NoUpdateSupported(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return diag.FromErr(fmt.Errorf("update operations not supported for %s resources", r.resourceHandle.MetaData().ResourceName))
+}
+
 // Delete defines the delete operation for the terraform resource
 func (r *terraformResourceImpl[T]) Delete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	providerMeta := meta.(*ProviderMeta)
@@ -153,13 +159,19 @@ func (r *terraformResourceImpl[T]) Delete(_ context.Context, d *schema.ResourceD
 
 func (r *terraformResourceImpl[T]) ToSchemaResource() *schema.Resource {
 	metaData := r.resourceHandle.MetaData()
+	var updateOperation schema.UpdateContextFunc
+	if r.resourceHandle.MetaData().CreateOnly {
+		updateOperation = r.NoUpdateSupported
+	} else {
+		updateOperation = r.Update
+	}
 	return &schema.Resource{
 		CreateContext: r.Create,
 		ReadContext:   r.Read,
 		Importer: &schema.ResourceImporter{
 			StateContext: r.importState,
 		},
-		UpdateContext:  r.Update,
+		UpdateContext:  updateOperation,
 		DeleteContext:  r.Delete,
 		Schema:         metaData.Schema,
 		SchemaVersion:  metaData.SchemaVersion,

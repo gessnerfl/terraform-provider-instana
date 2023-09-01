@@ -265,3 +265,53 @@ func TestShouldConvertInterfaceSliceToTargetIntSlice(t *testing.T) {
 
 	require.Equal(t, expectedResult, result)
 }
+
+func TestGetPointerFromMap(t *testing.T) {
+	t.Run("should return string pointer when key is in map and string value is not null", createShouldReturnPointerValueWhenKeyIsAvailableInMapAndValueIsNotNul("test"))
+	t.Run("should return int pointer when key is in map and int value is not null", createShouldReturnPointerValueWhenKeyIsAvailableInMapAndValueIsNotNul(1234))
+	t.Run("should return bool pointer when key is in map and bool value is not null", createShouldReturnPointerValueWhenKeyIsAvailableInMapAndValueIsNotNul(true))
+	t.Run("should return nil when key is not available in map", createShouldReturnNilValueWhenKeyIsNotAvailableInMap())
+	t.Run("should return nil when key is available in map and value is nil", createShouldReturnNilValueWhenKeyIsAvailableInMapAndValueIsNil())
+}
+
+func createShouldReturnPointerValueWhenKeyIsAvailableInMapAndValueIsNotNul[T any](expectedValue T) func(t *testing.T) {
+	return func(t *testing.T) {
+		key := "key"
+		data := map[string]interface{}{
+			key: expectedValue,
+		}
+
+		result := GetPointerFromMap[T](key, data)
+
+		require.NotNil(t, result)
+		require.Equal(t, expectedValue, *result)
+	}
+}
+
+func createShouldReturnNilValueWhenKeyIsNotAvailableInMap() func(t *testing.T) {
+	return func(t *testing.T) {
+		key := "key"
+		data := map[string]interface{}{
+			"other": "value",
+		}
+
+		result := GetPointerFromMap[string](key, data)
+
+		require.Nil(t, result)
+	}
+
+}
+
+func createShouldReturnNilValueWhenKeyIsAvailableInMapAndValueIsNil() func(t *testing.T) {
+	return func(t *testing.T) {
+		key := "key"
+		data := map[string]interface{}{
+			key: nil,
+		}
+
+		result := GetPointerFromMap[string](key, data)
+
+		require.Nil(t, result)
+	}
+
+}

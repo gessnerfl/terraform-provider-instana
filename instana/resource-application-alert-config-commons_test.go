@@ -178,14 +178,6 @@ var applicationAlertConfigServerResponseTemplate = `
 
 func (f *anyApplicationConfigTest) run(t *testing.T) {
 	t.Run(fmt.Sprintf("CRUDD integration test of %s", f.terraformResourceName), f.createIntegrationTest())
-	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return true when value can be normalized and old and new normalized value are equal", f.terraformResourceName), f.createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual())
-	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return false when value can be normalized and old and new normalized value are not equal", f.terraformResourceName), f.createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual())
-	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return true when value can be normalized and old and new value are equal", f.terraformResourceName), f.createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCannotBeNormalizedAndOldAndNewValueAreEqual())
-	t.Run(fmt.Sprintf("DiffSuppressFunc of TagFilter of %s should return false when value cannot be normalized and old and new value are not equal", f.terraformResourceName), f.createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCannotBeNormalizedAndOldAndNewValueAreNotEqual())
-	t.Run(fmt.Sprintf("StateFunc of TagFilter of %s should return normalized value when value can be normalized", f.terraformResourceName), f.createTestOfStateFuncOfTagFilterShouldReturnNormalizedValueWhenValueCanBeNormalized())
-	t.Run(fmt.Sprintf("StateFunc of TagFilter of %s should return provided value when value cannot be normalized", f.terraformResourceName), f.createTestOfStateFuncOfTagFilterShouldReturnProvidedValueWhenValueCannotBeNormalized())
-	t.Run(fmt.Sprintf("ValidateFunc of TagFilter of %s should return no errors and warnings when value can be parsed", f.terraformResourceName), f.createTestOfValidateFuncOfTagFilterShouldReturnNoErrorsAndWarningsWhenValueCanBeParsed())
-	t.Run(fmt.Sprintf("ValidateFunc of TagFilter of %s should return one error and no warnings when value can be parsed", f.terraformResourceName), f.createTestOfValidateFuncOfTagFilterShouldReturnOneErrorAndNoWarningsWhenValueCannotBeParsed())
 	t.Run(fmt.Sprintf("%s should have schema version zero", f.terraformResourceName), f.createTetResourceShouldHaveSchemaVersionOne())
 	t.Run(fmt.Sprintf("%s should have no state upgrader", f.terraformResourceName), f.createTetResourceShouldHaveOneStateUpgrader())
 	t.Run(fmt.Sprintf("%s should migrate full_name to name when executing first state upgrader and full_name is available", ResourceInstanaCustomDashboard), f.createTestResourceShouldMigrateFullNameToNameWhenExecutingFirstStateUpgraderAndFullNameIsAvailable())
@@ -295,86 +287,6 @@ func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int64, ite
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldStaticKey, "test"),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldStaticValue, "test123"),
 		),
-	}
-}
-
-func (f *anyApplicationConfigTest) createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreEqual() func(t *testing.T) {
-	return func(t *testing.T) {
-		resourceSchema := f.resourceHandle.MetaData().Schema
-		oldValue := expressionEntityTypeDestEqValue
-		newValue := "entity.type  EQUALS    'foo'"
-
-		require.True(t, resourceSchema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
-	}
-}
-
-func (f *anyApplicationConfigTest) createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCanBeNormalizedAndOldAndNewNormalizedValueAreNotEqual() func(t *testing.T) {
-	return func(t *testing.T) {
-		resourceSchema := f.resourceHandle.MetaData().Schema
-		oldValue := expressionEntityTypeSrcEqValue
-		newValue := validTagFilter
-
-		require.False(t, resourceSchema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
-	}
-}
-
-func (f *anyApplicationConfigTest) createTestOfDiffSuppressFuncOfTagFilterShouldReturnTrueWhenValueCannotBeNormalizedAndOldAndNewValueAreEqual() func(t *testing.T) {
-	return func(t *testing.T) {
-		resourceSchema := f.resourceHandle.MetaData().Schema
-		invalidValue := invalidTagFilter
-
-		require.True(t, resourceSchema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, invalidValue, invalidValue, nil))
-	}
-}
-
-func (f *anyApplicationConfigTest) createTestOfDiffSuppressFuncOfTagFilterShouldReturnFalseWhenValueCannotBeNormalizedAndOldAndNewValueAreNotEqual() func(t *testing.T) {
-	return func(t *testing.T) {
-		resourceSchema := f.resourceHandle.MetaData().Schema
-		oldValue := invalidTagFilter
-		newValue := "entity.type foo foo foo"
-
-		require.False(t, resourceSchema[ApplicationAlertConfigFieldTagFilter].DiffSuppressFunc(ApplicationAlertConfigFieldTagFilter, oldValue, newValue, nil))
-	}
-}
-
-func (f *anyApplicationConfigTest) createTestOfStateFuncOfTagFilterShouldReturnNormalizedValueWhenValueCanBeNormalized() func(t *testing.T) {
-	return func(t *testing.T) {
-		resourceSchema := f.resourceHandle.MetaData().Schema
-		expectedValue := expressionEntityTypeDestEqValue
-		newValue := validTagFilter
-
-		require.Equal(t, expectedValue, resourceSchema[ApplicationAlertConfigFieldTagFilter].StateFunc(newValue))
-	}
-}
-
-func (f *anyApplicationConfigTest) createTestOfStateFuncOfTagFilterShouldReturnProvidedValueWhenValueCannotBeNormalized() func(t *testing.T) {
-	return func(t *testing.T) {
-		resourceSchema := f.resourceHandle.MetaData().Schema
-		value := invalidTagFilter
-
-		require.Equal(t, value, resourceSchema[ApplicationAlertConfigFieldTagFilter].StateFunc(value))
-	}
-}
-
-func (f *anyApplicationConfigTest) createTestOfValidateFuncOfTagFilterShouldReturnNoErrorsAndWarningsWhenValueCanBeParsed() func(t *testing.T) {
-	return func(t *testing.T) {
-		resourceSchema := f.resourceHandle.MetaData().Schema
-		value := validTagFilter
-
-		warns, errs := resourceSchema[ApplicationAlertConfigFieldTagFilter].ValidateFunc(value, ApplicationAlertConfigFieldTagFilter)
-		require.Empty(t, warns)
-		require.Empty(t, errs)
-	}
-}
-
-func (f *anyApplicationConfigTest) createTestOfValidateFuncOfTagFilterShouldReturnOneErrorAndNoWarningsWhenValueCannotBeParsed() func(t *testing.T) {
-	return func(t *testing.T) {
-		resourceSchema := f.resourceHandle.MetaData().Schema
-		value := invalidTagFilter
-
-		warns, errs := resourceSchema[ApplicationAlertConfigFieldTagFilter].ValidateFunc(value, ApplicationAlertConfigFieldTagFilter)
-		require.Empty(t, warns)
-		require.Len(t, errs, 1)
 	}
 }
 
