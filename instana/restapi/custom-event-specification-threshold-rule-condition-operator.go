@@ -2,7 +2,7 @@ package restapi
 
 import "fmt"
 
-//ConditionOperator representation of a ConditionOperator of a threshold rule of a custom event specification  of the Instana Web REST API
+// ConditionOperator representation of a ConditionOperator of a threshold rule of a custom event specification  of the Instana Web REST API
 type ConditionOperator interface {
 	InstanaAPIValue() string
 	TerraformSupportedValues() []string
@@ -12,26 +12,26 @@ func newBasicConditionOperator(instanaAPIValue string, additionalSupportedTerraf
 	return &baseConditionOperator{instanaAPIValue: instanaAPIValue, terraformSupportedValues: append(additionalSupportedTerraformValues, instanaAPIValue)}
 }
 
-//ConditionOperatorType custom type representing a condition operator of a custom event specification rule
+// ConditionOperatorType custom type representing a condition operator of a custom event specification rule
 type baseConditionOperator struct {
 	instanaAPIValue          string
 	terraformSupportedValues []string
 }
 
-//InstanaAPIValue implementation of ConditionOperator interace
+// InstanaAPIValue implementation of ConditionOperator interace
 func (b *baseConditionOperator) InstanaAPIValue() string {
 	return b.instanaAPIValue
 }
 
-//TerraformSupportedValues implementation of ConditionOperator interace
+// TerraformSupportedValues implementation of ConditionOperator interace
 func (b *baseConditionOperator) TerraformSupportedValues() []string {
 	return b.terraformSupportedValues
 }
 
-//ConditionOperators custom type representing a slice of ConditionOperatorType
+// ConditionOperators custom type representing a slice of ConditionOperatorType
 type ConditionOperators []ConditionOperator
 
-//TerrafromSupportedValues Returns the terraform string representations fo the condition operators
+// TerrafromSupportedValues Returns the terraform string representations fo the condition operators
 func (types ConditionOperators) TerrafromSupportedValues() []string {
 	result := make([]string, 0)
 	for _, v := range types {
@@ -40,7 +40,7 @@ func (types ConditionOperators) TerrafromSupportedValues() []string {
 	return result
 }
 
-//InstanaAPISupportedValues Returns the terraform string representations fo the condition operators
+// InstanaAPISupportedValues Returns the terraform string representations fo the condition operators
 func (types ConditionOperators) InstanaAPISupportedValues() []string {
 	result := make([]string, len(types))
 	for i, v := range types {
@@ -49,17 +49,7 @@ func (types ConditionOperators) InstanaAPISupportedValues() []string {
 	return result
 }
 
-//IsSupportedInstanaAPIConditionOperator check if the provided condition operator type is a supported instana api value
-func (types ConditionOperators) IsSupportedInstanaAPIConditionOperator(operator string) bool {
-	for _, t := range types {
-		if t.InstanaAPIValue() == operator {
-			return true
-		}
-	}
-	return false
-}
-
-//FromInstanaAPIValue returns the ConditionOperator for the given instana apistring value or an error if the operator type does not exist
+// FromInstanaAPIValue returns the ConditionOperator for the given instana apistring value or an error if the operator type does not exist
 func (types ConditionOperators) FromInstanaAPIValue(instanaAPIvalue string) (ConditionOperator, error) {
 	for _, t := range types {
 		if t.InstanaAPIValue() == instanaAPIvalue {
@@ -69,7 +59,7 @@ func (types ConditionOperators) FromInstanaAPIValue(instanaAPIvalue string) (Con
 	return ConditionOperatorEquals, fmt.Errorf("%s is not a supported condition operator of the Instana Web REST API", instanaAPIvalue)
 }
 
-//FromTerraformValue returns the ConditionOperator for the given terraform string value or an error if the operator type does not exist
+// FromTerraformValue returns the ConditionOperator for the given terraform string value or an error if the operator type does not exist
 func (types ConditionOperators) FromTerraformValue(terraformRepresentation string) (ConditionOperator, error) {
 	for _, t := range types {
 		for _, v := range t.TerraformSupportedValues() {
@@ -96,5 +86,5 @@ var (
 	ConditionOperatorGreaterThanOrEqual = newBasicConditionOperator(">=")
 )
 
-//SupportedConditionOperators slice of supported condition operator types
+// SupportedConditionOperators slice of supported condition operator types
 var SupportedConditionOperators = ConditionOperators{ConditionOperatorEquals, ConditionOperatorNotEqual, ConditionOperatorLessThan, ConditionOperatorLessThanOrEqual, ConditionOperatorGreaterThan, ConditionOperatorGreaterThanOrEqual}

@@ -41,8 +41,3 @@ type SliConfig struct {
 func (s *SliConfig) GetIDForResourcePath() string {
 	return s.ID
 }
-
-// Validate implementation of the interface InstanaDataObject for SliConfig
-func (s *SliConfig) Validate() error {
-	return nil
-}

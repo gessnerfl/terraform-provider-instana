@@ -18,16 +18,6 @@ func TestShouldReturnTheProperRepresentationsForSeverityCritical(t *testing.T) {
 	assert.Equal(t, "critical", SeverityCritical.GetTerraformRepresentation())
 }
 
-func TestShouldReturnTrueForAllSupportedSeverities(t *testing.T) {
-	for _, v := range SupportedSeverities {
-		require.True(t, SupportedSeverities.IsSupported(v))
-	}
-}
-
-func TestShouldReturnFalseWhenSecerityIsNotSupported(t *testing.T) {
-	require.False(t, SupportedSeverities.IsSupported(Severity{}))
-}
-
 func TestShouldReturnSupportedSeveritiesAsStringSliceOfTerraformRepresentations(t *testing.T) {
 	expected := []string{"warning", "critical"}
 	require.Equal(t, expected, SupportedSeverities.TerraformRepresentations())

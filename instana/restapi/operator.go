@@ -1,20 +1,10 @@
 package restapi
 
-//LogicalOperatorType custom type for logical operators
+// LogicalOperatorType custom type for logical operators
 type LogicalOperatorType string
 
-//LogicalOperatorTypes custom type for slice of logical operators
+// LogicalOperatorTypes custom type for slice of logical operators
 type LogicalOperatorTypes []LogicalOperatorType
-
-//IsSupported check if the provided logical operator is supported
-func (operators LogicalOperatorTypes) IsSupported(o LogicalOperatorType) bool {
-	for _, v := range operators {
-		if v == o {
-			return true
-		}
-	}
-	return false
-}
 
 const (
 	//LogicalAnd constant for logical AND conjunction
@@ -23,16 +13,16 @@ const (
 	LogicalOr = LogicalOperatorType("OR")
 )
 
-//SupportedLogicalOperatorTypes list of supported logical operators of Instana API
+// SupportedLogicalOperatorTypes list of supported logical operators of Instana API
 var SupportedLogicalOperatorTypes = LogicalOperatorTypes{LogicalAnd, LogicalOr}
 
-//ExpressionOperator custom type for tag matcher operators
+// ExpressionOperator custom type for tag matcher operators
 type ExpressionOperator string
 
-//ExpressionOperators custom type representing a slice of ExpressionOperator
+// ExpressionOperators custom type representing a slice of ExpressionOperator
 type ExpressionOperators []ExpressionOperator
 
-//IsSupported check if the provided tag filter operator is supported
+// IsSupported check if the provided tag filter operator is supported
 func (operators ExpressionOperators) IsSupported(o ExpressionOperator) bool {
 	for _, v := range operators {
 		if v == o {
@@ -42,7 +32,7 @@ func (operators ExpressionOperators) IsSupported(o ExpressionOperator) bool {
 	return false
 }
 
-//ToStringSlice Returns the corresponding string representations
+// ToStringSlice Returns the corresponding string representations
 func (operators ExpressionOperators) ToStringSlice() []string {
 	result := make([]string, len(operators))
 	for i, v := range operators {
@@ -88,7 +78,7 @@ const (
 	LessThanOperator = ExpressionOperator("LESS_THAN")
 )
 
-//SupportedComparisonOperators list of supported comparison operators of Instana API
+// SupportedComparisonOperators list of supported comparison operators of Instana API
 var SupportedComparisonOperators = ExpressionOperators{
 	EqualsOperator,
 	NotEqualOperator,
@@ -104,7 +94,7 @@ var SupportedComparisonOperators = ExpressionOperators{
 	LessThanOperator,
 }
 
-//SupportedUnaryExpressionOperators list of supported unary expression operators of Instana API
+// SupportedUnaryExpressionOperators list of supported unary expression operators of Instana API
 var SupportedUnaryExpressionOperators = ExpressionOperators{
 	IsEmptyOperator,
 	NotEmptyOperator,
@@ -112,5 +102,5 @@ var SupportedUnaryExpressionOperators = ExpressionOperators{
 	NotBlankOperator,
 }
 
-//SupportedExpressionOperators list of all supported operators of Instana API
+// SupportedExpressionOperators list of all supported operators of Instana API
 var SupportedExpressionOperators = append(SupportedComparisonOperators, SupportedUnaryExpressionOperators...)

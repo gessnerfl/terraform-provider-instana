@@ -1,22 +1,12 @@
 package restapi
 
-//RelationType custom type for relation type
+// RelationType custom type for relation type
 type RelationType string
 
-//RelationTypes custom type for a slice of RelationType
+// RelationTypes custom type for a slice of RelationType
 type RelationTypes []RelationType
 
-//IsSupported check if the provided RelationType is supported
-func (types RelationTypes) IsSupported(tpy RelationType) bool {
-	for _, t := range types {
-		if t == tpy {
-			return true
-		}
-	}
-	return false
-}
-
-//ToStringSlice Returns the corresponding string representations
+// ToStringSlice Returns the corresponding string representations
 func (types RelationTypes) ToStringSlice() []string {
 	result := make([]string, len(types))
 	for i, v := range types {
@@ -38,5 +28,5 @@ const (
 	RelationTypeGlobal = RelationType("GLOBAL")
 )
 
-//SupportedRelationTypes list of all supported RelationType
+// SupportedRelationTypes list of all supported RelationType
 var SupportedRelationTypes = RelationTypes{RelationTypeUser, RelationTypeApiToken, RelationTypeRole, RelationTypeTeam, RelationTypeGlobal}

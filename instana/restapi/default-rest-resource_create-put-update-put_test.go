@@ -56,36 +56,6 @@ func TestShouldFailToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResour
 	})
 }
 
-func TestShouldFailedToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResourceWhenAnInvalidTestObjectIsProvided(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
-		testObject := &testObject{
-			ID:   "some id",
-			Name: "invalid name",
-		}
-
-		client.EXPECT().Put(gomock.Eq(testObject), gomock.Eq(testObjectResourcePath)).Times(0)
-		unmarshaller.EXPECT().Unmarshal(gomock.Any()).Times(0)
-
-		_, err := resourceFunc(testObject)
-
-		assert.Error(t, err)
-	})
-}
-
-func TestShouldFailedToCreateOrUpdateTestObjectThroughCreatePUTUpdatePUTRestResourceWhenAnInvalidTestObjectIsReceived(t *testing.T) {
-	executeCreateOrUpdateOperationThroughCreatePUTUpdatePUTRestResourceTest(t, func(t *testing.T, resourceFunc createUpdateFunc, client *mocks.MockRestClient, unmarshaller *mocks.MockJSONUnmarshaller[*testObject]) {
-		object := makeTestObject()
-		response := []byte("invalid response")
-
-		client.EXPECT().Put(gomock.Eq(object), gomock.Eq(testObjectResourcePath)).Times(1).Return(response, nil)
-		unmarshaller.EXPECT().Unmarshal(response).Times(1).Return(&testObject{ID: object.ID, Name: "invalid"}, nil)
-
-		_, err := resourceFunc(object)
-
-		assert.Error(t, err)
-	})
-}
-
 type createUpdateFunc func(data *testObject) (*testObject, error)
 type createPutUpdatePutContext struct {
 	operation           string

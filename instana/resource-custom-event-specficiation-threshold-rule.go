@@ -37,6 +37,14 @@ const (
 	ThresholdRuleFieldMetricPatternOperator = thresholdRuleFieldMetricPattern + "operator"
 )
 
+var metricNameOrPattern = []string{
+	ThresholdRuleFieldMetricName, ThresholdRuleFieldMetricPatternPrefix,
+}
+
+var windowOrRollup = []string{
+	ThresholdRuleFieldWindow, ThresholdRuleFieldRollup,
+}
+
 var thresholdRuleSchemaFields = map[string]*schema.Schema{
 	CustomEventSpecificationFieldEntityType: {
 		Type:        schema.TypeString,
@@ -44,22 +52,25 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 		Description: "Configures the entity type of the custom event specification",
 	},
 	ThresholdRuleFieldMetricName: {
-		Type:        schema.TypeString,
-		Required:    false,
-		Optional:    true,
-		Description: "The metric name of the rule",
+		Type:         schema.TypeString,
+		Required:     false,
+		Optional:     true,
+		Description:  "The metric name of the rule",
+		ExactlyOneOf: metricNameOrPattern,
 	},
 	ThresholdRuleFieldRollup: {
-		Type:        schema.TypeInt,
-		Required:    false,
-		Optional:    true,
-		Description: "The rollup of the metric",
+		Type:         schema.TypeInt,
+		Required:     false,
+		Optional:     true,
+		Description:  "The rollup of the metric",
+		ExactlyOneOf: windowOrRollup,
 	},
 	ThresholdRuleFieldWindow: {
-		Type:        schema.TypeInt,
-		Required:    false,
-		Optional:    true,
-		Description: "The time window where the condition has to be fulfilled",
+		Type:         schema.TypeInt,
+		Required:     false,
+		Optional:     true,
+		Description:  "The time window where the condition has to be fulfilled",
+		ExactlyOneOf: windowOrRollup,
 	},
 	ThresholdRuleFieldAggregation: {
 		Type:         schema.TypeString,
@@ -84,10 +95,12 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 		Description: "The expected condition value to fulfill the rule",
 	},
 	ThresholdRuleFieldMetricPatternPrefix: {
-		Type:        schema.TypeString,
-		Required:    false,
-		Optional:    true,
-		Description: "The metric pattern prefix of a dynamic built-in metrics",
+		Type:         schema.TypeString,
+		Required:     false,
+		Optional:     true,
+		RequiredWith: []string{ThresholdRuleFieldMetricPatternOperator},
+		Description:  "The metric pattern prefix of a dynamic built-in metrics",
+		ExactlyOneOf: metricNameOrPattern,
 	},
 	ThresholdRuleFieldMetricPatternPostfix: {
 		Type:        schema.TypeString,
@@ -105,6 +118,7 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 		Type:         schema.TypeString,
 		Required:     false,
 		Optional:     true,
+		RequiredWith: []string{ThresholdRuleFieldMetricPatternPrefix},
 		ValidateFunc: validation.StringInSlice(restapi.SupportedMetricPatternOperatorTypes.ToStringSlice(), false),
 		Description:  "The condition operator (e.g >, <)",
 	},

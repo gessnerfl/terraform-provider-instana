@@ -1,28 +1,18 @@
 package restapi
 
-//BoundaryScope type definition of the application config boundary scope of the Instana Web REST API
+// BoundaryScope type definition of the application config boundary scope of the Instana Web REST API
 type BoundaryScope string
 
-//BoundaryScopes type definition of slice of BoundaryScopes
+// BoundaryScopes type definition of slice of BoundaryScopes
 type BoundaryScopes []BoundaryScope
 
-//ToStringSlice returns a slice containing the string representations of the given boundary scopes
+// ToStringSlice returns a slice containing the string representations of the given boundary scopes
 func (scopes BoundaryScopes) ToStringSlice() []string {
 	result := make([]string, len(scopes))
 	for i, s := range scopes {
 		result[i] = string(s)
 	}
 	return result
-}
-
-//IsSupported checks if the given BoundaryScope is defined as a supported BoundaryScope of the underlying slice
-func (scopes BoundaryScopes) IsSupported(s BoundaryScope) bool {
-	for _, scope := range scopes {
-		if s == scope {
-			return true
-		}
-	}
-	return false
 }
 
 const (
@@ -34,8 +24,8 @@ const (
 	BoundaryScopeDefault = BoundaryScope("DEFAULT")
 )
 
-//SupportedApplicationConfigBoundaryScopes supported BoundaryScopes of the Instana Web REST API
+// SupportedApplicationConfigBoundaryScopes supported BoundaryScopes of the Instana Web REST API
 var SupportedApplicationConfigBoundaryScopes = BoundaryScopes{BoundaryScopeAll, BoundaryScopeInbound, BoundaryScopeDefault}
 
-//SupportedApplicationAlertConfigBoundaryScopes supported BoundaryScopes of the Instana Web REST API
+// SupportedApplicationAlertConfigBoundaryScopes supported BoundaryScopes of the Instana Web REST API
 var SupportedApplicationAlertConfigBoundaryScopes = BoundaryScopes{BoundaryScopeAll, BoundaryScopeInbound}

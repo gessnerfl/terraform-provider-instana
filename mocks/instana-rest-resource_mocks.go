@@ -48,20 +48,6 @@ func (mr *MockInstanaDataObjectMockRecorder) GetIDForResourcePath() *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIDForResourcePath", reflect.TypeOf((*MockInstanaDataObject)(nil).GetIDForResourcePath))
 }
 
-// Validate mocks base method.
-func (m *MockInstanaDataObject) Validate() error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Validate")
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Validate indicates an expected call of Validate.
-func (mr *MockInstanaDataObjectMockRecorder) Validate() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockInstanaDataObject)(nil).Validate))
-}
-
 // MockRestResource is a mock of RestResource interface.
 type MockRestResource[T restapi.InstanaDataObject] struct {
 	ctrl     *gomock.Controller

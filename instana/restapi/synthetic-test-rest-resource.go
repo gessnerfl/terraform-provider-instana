@@ -36,9 +36,6 @@ func (r *SyntheticTestRestResource) GetOne(id string) (*SyntheticTest, error) {
 }
 
 func (r *SyntheticTestRestResource) Create(data *SyntheticTest) (*SyntheticTest, error) {
-	if err := data.Validate(); err != nil {
-		return data, err
-	}
 	response, err := r.client.Post(data, r.resourcePath)
 	if err != nil {
 		return data, err
@@ -47,9 +44,6 @@ func (r *SyntheticTestRestResource) Create(data *SyntheticTest) (*SyntheticTest,
 }
 
 func (r *SyntheticTestRestResource) Update(data *SyntheticTest) (*SyntheticTest, error) {
-	if err := data.Validate(); err != nil {
-		return data, err
-	}
 	_, err := r.client.Put(data, r.resourcePath)
 	if err != nil {
 		return data, err
@@ -61,10 +55,6 @@ func (r *SyntheticTestRestResource) validateResponseAndConvertToStruct(data []by
 	dataObject, err := r.unmarshaller.Unmarshal(data)
 	if err != nil {
 		return nil, err
-	}
-
-	if err := dataObject.Validate(); err != nil {
-		return dataObject, err
 	}
 	return dataObject, nil
 }

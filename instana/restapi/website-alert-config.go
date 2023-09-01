@@ -1,9 +1,9 @@
 package restapi
 
-//WebsiteAlertConfigResourcePath path to website alert config resource of Instana RESTful API
+// WebsiteAlertConfigResourcePath path to website alert config resource of Instana RESTful API
 const WebsiteAlertConfigResourcePath = EventSettingsBasePath + "/website-alert-configs"
 
-//WebsiteAlertConfig is the representation of an website alert configuration in Instana
+// WebsiteAlertConfig is the representation of an website alert configuration in Instana
 type WebsiteAlertConfig struct {
 	ID                    string                                                    `json:"id"`
 	Name                  string                                                    `json:"name"`
@@ -20,13 +20,7 @@ type WebsiteAlertConfig struct {
 	TimeThreshold         WebsiteTimeThreshold                                      `json:"timeThreshold"`
 }
 
-//GetIDForResourcePath implementation of the interface InstanaDataObject
+// GetIDForResourcePath implementation of the interface InstanaDataObject
 func (r *WebsiteAlertConfig) GetIDForResourcePath() string {
 	return r.ID
-}
-
-//Validate implementation of the interface InstanaDataObject to verify if data object is correct
-func (r *WebsiteAlertConfig) Validate() error {
-	//Validation implemented in resource only
-	return nil
 }

@@ -180,23 +180,6 @@ func TestShouldReturnErrorWhenExecutingGetOperationOfSyntheticTestRestResourceAn
 	require.Equal(t, expectedError, err)
 }
 
-func TestShouldReturnErrorWhenExecutingGetOperationOfSyntheticTestRestResourceAndReceivedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
-
-	client.EXPECT().GetOne(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(syntheticTestSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(1).Return(&SyntheticTest{}, nil)
-
-	sut := NewSyntheticTestRestResource(unmarshaller, client)
-
-	_, err := sut.GetOne(syntheticTestID)
-
-	require.Error(t, err)
-	require.Contains(t, "id is missing", err.Error())
-}
-
 // ########################################################
 // Create Operation Tests
 // ########################################################
@@ -217,24 +200,6 @@ func TestShouldSuccessfullyExecuteCreateOperationOfSyntheticTestRestResource(t *
 
 	require.NoError(t, err)
 	require.Equal(t, syntheticTest, result)
-}
-
-func TestShouldReturnErrorWhenExecutingCreateOperationOfSyntheticTestRestResourceAndProvidedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
-	SyntheticTest := &SyntheticTest{}
-
-	client.EXPECT().Post(gomock.Eq(SyntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(0)
-	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(0)
-
-	sut := NewSyntheticTestRestResource(unmarshaller, client)
-
-	_, err := sut.Create(SyntheticTest)
-
-	require.Error(t, err)
-	require.Contains(t, "id is missing", err.Error())
 }
 
 func TestShouldReturnErrorWhenExecutingCreateOperationOfSyntheticTestRestResourceAndPostOperationFails(t *testing.T) {
@@ -275,24 +240,6 @@ func TestShouldReturnErrorWhenExecutingCreateOperationOfSyntheticTestRestResourc
 	require.Equal(t, expectedError, err)
 }
 
-func TestShouldReturnErrorWhenExecutingCreateOperationOfSyntheticTestRestResourceAndReceivedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
-	syntheticTest := makeSyntheticTest()
-
-	client.EXPECT().Post(gomock.Eq(syntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(1).Return(syntheticTestSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(1).Return(&SyntheticTest{}, nil)
-
-	sut := NewSyntheticTestRestResource(unmarshaller, client)
-
-	_, err := sut.Create(syntheticTest)
-
-	require.Error(t, err)
-	require.Contains(t, "id is missing", err.Error())
-}
-
 // ########################################################
 // Update Operation Tests
 // ########################################################
@@ -314,24 +261,6 @@ func TestShouldSuccessfullyExecuteUpdateOperationOfSyntheticTestRestResource(t *
 
 	require.NoError(t, err)
 	require.Equal(t, syntheticTest, result)
-}
-
-func TestShouldReturnErrorWhenExecutingUpdateOperationOfSyntheticTestRestResourceAndProvidedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
-	syntheticTest := &SyntheticTest{}
-
-	client.EXPECT().Put(gomock.Eq(syntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(0)
-	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(0)
-
-	sut := NewSyntheticTestRestResource(unmarshaller, client)
-
-	_, err := sut.Update(syntheticTest)
-
-	require.Error(t, err)
-	require.Contains(t, "id is missing", err.Error())
 }
 
 func TestShouldReturnErrorWhenExecutingUpdateOperationOfSyntheticTestRestResourceAndPutOperationFails(t *testing.T) {
@@ -371,25 +300,6 @@ func TestShouldReturnErrorWhenExecutingUpdateOperationOfSyntheticTestRestResourc
 
 	require.Error(t, err)
 	require.Equal(t, expectedError, err)
-}
-
-func TestShouldReturnErrorWhenExecutingUpdateOperationOfSyntheticTestRestResourceAndReceivedObjectIsNotValid(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	client := mocks.NewMockRestClient(ctrl)
-	unmarshaller := mocks.NewMockJSONUnmarshaller[*SyntheticTest](ctrl)
-	syntheticTest := makeSyntheticTest()
-
-	client.EXPECT().Put(gomock.Eq(syntheticTest), gomock.Eq(SyntheticTestResourcePath)).Times(1)
-	client.EXPECT().GetOne(syntheticTestID, SyntheticTestResourcePath).Times(1).Return(syntheticTestSerialized, nil)
-	unmarshaller.EXPECT().Unmarshal(syntheticTestSerialized).Times(1).Return(&SyntheticTest{}, nil)
-
-	sut := NewSyntheticTestRestResource(unmarshaller, client)
-
-	_, err := sut.Update(syntheticTest)
-
-	require.Error(t, err)
-	require.Contains(t, "id is missing", err.Error())
 }
 
 // ########################################################
