@@ -13,7 +13,7 @@ resource "instana_application_config" "example" {
   label               = "label"
   scope               = "INCLUDE_ALL_DOWNSTREAM"  #Optional, default = INCLUDE_NO_DOWNSTREAM
   boundary_scope      = "INBOUND"  #Optional, default = INBOUND
-  tag_filter          = "agent.tag.stage EQUALS 'test' OR aws.ec2.tag.stage EQUALS 'test' OR call.tag.stage EQUALS 'test'"
+  tag_filter          = "agent.tag:stage EQUALS 'test' OR aws.ec2.tag:stage EQUALS 'test' OR call.tag:stage@na EQUALS 'test'"
 }
 ```
 
@@ -58,13 +58,13 @@ identifier                := [a-zA-Z_][\.a-zA-Z0-9_\-/]*
 **Basic**
 
 ```plain
-entity.service.name EQUALS 'my-service' AND entity.tag EQUALS stage=PROD AND call.http.status EQUALS 404
+entity.service.name EQUALS 'my-service' AND entity.tag:stage EQUALS 'PROD' AND call.http.status EQUALS 404
 ```
 
 **Calls filtered on source**
 
 ```plain
-entity.service.name@src EQUALS 'my-service' AND entity.tag@src EQUALS stage=PROD
+entity.service.name@src EQUALS 'my-service' AND entity.tag:stage@src EQUALS PROD
 ```
 
 ## Import
