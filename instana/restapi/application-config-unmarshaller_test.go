@@ -15,17 +15,6 @@ const (
 	testApplicationConfigLabel = "test-application-config-label"
 )
 
-func TestShouldSuccessfullyUnmarshalApplicationConfigWithMatchSpecification(t *testing.T) {
-	applicationConfig := createTestApplicationConfig()
-
-	serializedJSON, _ := json.Marshal(applicationConfig)
-
-	result, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
-
-	require.NoError(t, err)
-	require.Equal(t, applicationConfig, result)
-}
-
 func TestShouldSuccessfullyUnmarshalApplicationConfigWithTagFilterExpressionContainingASingleTagFilter(t *testing.T) {
 	value := "value"
 	id := testApplicationConfigId
@@ -95,60 +84,6 @@ func TestShouldFailToUnmarshalApplicationConfigWhenResponseIsNotAValidJson(t *te
 	require.Error(t, err)
 }
 
-func TestShouldFailToUnmarshalApplicationConfigWhenExpressionTypeOfMatchSpecificationIsNotSupported(t *testing.T) {
-	//config is invalid because there is no DType for the match specification.
-	applicationConfig := ApplicationConfig{
-		ID:    testApplicationConfigId,
-		Label: testApplicationConfigLabel,
-		MatchSpecification: TagMatcherExpression{
-			Key:      "foo",
-			Entity:   MatcherExpressionEntityDestination,
-			Operator: NotEmptyOperator,
-		},
-		Scope:         "scope",
-		BoundaryScope: "boundaryScope",
-	}
-	serializedJSON, _ := json.Marshal(applicationConfig)
-
-	_, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
-
-	require.Error(t, err)
-}
-
-func TestShouldFailToUnmarshalApplicationConfigWhenLeftSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
-	left := &TagMatcherExpression{
-		Key:      "foo",
-		Operator: NotEmptyOperator,
-	}
-	right := NewUnaryOperationExpression("foo", MatcherExpressionEntityDestination, IsEmptyOperator)
-	testShouldFailToUnmarshalApplicationConfigWhenOneSideOfBinaryExpressionIsNotValid(left, right, t)
-}
-
-func TestShouldFailToUnmarshalApplicationConfigWhenRightSideOfBinaryExpressionTypeIsNotValid(t *testing.T) {
-	left := NewUnaryOperationExpression("foo", MatcherExpressionEntityDestination, IsEmptyOperator)
-	right := &TagMatcherExpression{
-		Key:      "foo",
-		Entity:   MatcherExpressionEntityDestination,
-		Operator: NotEmptyOperator,
-	}
-	testShouldFailToUnmarshalApplicationConfigWhenOneSideOfBinaryExpressionIsNotValid(left, right, t)
-}
-
-func testShouldFailToUnmarshalApplicationConfigWhenOneSideOfBinaryExpressionIsNotValid(left MatchExpression, right MatchExpression, t *testing.T) {
-	applicationConfig := ApplicationConfig{
-		ID:                 testApplicationConfigId,
-		Label:              testApplicationConfigLabel,
-		MatchSpecification: NewBinaryOperator(left, LogicalOr, right),
-		Scope:              "scope",
-		BoundaryScope:      "boundaryScope",
-	}
-	serializedJSON, _ := json.Marshal(applicationConfig)
-
-	_, err := NewApplicationConfigUnmarshaller().Unmarshal(serializedJSON)
-
-	require.Error(t, err)
-}
-
 func TestShouldFailToUnmarshalApplicationConfigWhenElementOfTagFilterExpressionIsNotValid(t *testing.T) {
 	value := "value"
 	primaryExpression := NewStringTagFilter(TagFilterEntityDestination, "name1", EqualsOperator, value)
@@ -213,11 +148,11 @@ func createTestApplicationConfig() *ApplicationConfig {
 	id := testApplicationConfigId
 	label := testApplicationConfigLabel
 	applicationConfig := ApplicationConfig{
-		ID:                 id,
-		Label:              label,
-		MatchSpecification: NewBinaryOperator(NewComparisonExpression("key", MatcherExpressionEntityDestination, EqualsOperator, "value"), LogicalAnd, NewUnaryOperationExpression("key", MatcherExpressionEntityDestination, NotBlankOperator)),
-		Scope:              "scope",
-		BoundaryScope:      "boundaryScope",
+		ID:                  id,
+		Label:               label,
+		TagFilterExpression: NewStringTagFilter(TagFilterEntityDestination, "entity.name", EqualsOperator, "value"),
+		Scope:               "scope",
+		BoundaryScope:       "boundaryScope",
 	}
 	return &applicationConfig
 }
