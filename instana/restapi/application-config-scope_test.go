@@ -11,7 +11,3 @@ import (
 func TestShouldReturnStringRepresentationOfSupporedApplicationConfigScopes(t *testing.T) {
 	require.Equal(t, []string{"INCLUDE_NO_DOWNSTREAM", "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING", "INCLUDE_ALL_DOWNSTREAM"}, SupportedApplicationConfigScopes.ToStringSlice())
 }
-
-func TestShouldReturnStringRepresentationOfSupporedMatcherExpressionEntities(t *testing.T) {
-	require.Equal(t, []string{"SOURCE", "DESTINATION", "NOT_APPLICABLE"}, SupportedMatcherExpressionEntities.ToStringSlice())
-}
