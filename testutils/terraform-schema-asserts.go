@@ -7,12 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//NewTerraformSchemaAssert creates a new instance of TerraformSchemaAssert
+// NewTerraformSchemaAssert creates a new instance of TerraformSchemaAssert
 func NewTerraformSchemaAssert(schemaMap map[string]*schema.Schema, t *testing.T) TerraformSchemaAssert {
 	return &terraformSchemaAssertImpl{schemaMap: schemaMap, t: t}
 }
 
-//TerraformSchemaAssert a test util to verify terraform schema fields
+// TerraformSchemaAssert a test util to verify terraform schema fields
 type TerraformSchemaAssert interface {
 	//AssertSchemaIsRequiredAndOfTypeString checks if the given schema field is required and of type string
 	AssertSchemaIsRequiredAndOfTypeString(fieldName string)
@@ -36,6 +36,10 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsOptionalAndOfTypeListOfStrings(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeSetOfStrings checks if the given schema field is required and of type set of string
 	AssertSchemaIsRequiredAndOfTypeSetOfStrings(fieldName string)
+	//AssertSchemaIsOptionalAndOfTypeListOfResource checks if the given schema field is optional and of type list of resource
+	AssertSchemaIsOptionalAndOfTypeListOfResource(fieldName string)
+	//AssertSchemaIsRequiredAndOfTypeListOfResource checks if the given schema field is required and of type list of resource
+	AssertSchemaIsRequiredAndOfTypeListOfResource(fieldName string)
 	//AssertSchemaIsOptionalAndOfTypeSetOfStrings checks if the given schema field is required and of type set of string
 	AssertSchemaIsOptionalAndOfTypeSetOfStrings(fieldName string)
 	//AssertSchemaIsComputedAndOfTypeString checks if the given schema field is computed and of type string
@@ -135,6 +139,29 @@ func (inst *terraformSchemaAssertImpl) assertSchemaIsOfTypeListOfStrings(s *sche
 	require.NotNil(inst.t, s.Elem)
 	require.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
 	require.Greater(inst.t, len(s.Description), 0)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeListOfResource(schemaField string) {
+	s := inst.schemaMap[schemaField]
+
+	require.NotNil(inst.t, s)
+	require.False(inst.t, s.Required)
+	require.True(inst.t, s.Optional)
+	inst.assertSchemaIsOfTypeListOfResource(s)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeListOfResource(schemaField string) {
+	s := inst.schemaMap[schemaField]
+
+	require.NotNil(inst.t, s)
+	require.True(inst.t, s.Required)
+	inst.assertSchemaIsOfTypeListOfResource(s)
+}
+
+func (inst *terraformSchemaAssertImpl) assertSchemaIsOfTypeListOfResource(s *schema.Schema) {
+	require.Equal(inst.t, schema.TypeList, s.Type)
+	require.NotNil(inst.t, s.Elem)
+	require.IsType(inst.t, &schema.Resource{}, s.Elem)
 }
 
 func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeSetOfStrings(schemaField string) {

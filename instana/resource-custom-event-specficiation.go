@@ -50,11 +50,6 @@ var (
 		customEventSpecificationThresholdRulePath + CustomEventSpecificationThresholdRuleFieldMetricName,
 		customEventSpecificationThresholdRulePath + CustomEventSpecificationThresholdRuleFieldMetricPattern,
 	}
-
-	customEventSpecificationThresholdRuleWindowOrRollup = []string{
-		customEventSpecificationThresholdRulePath + CustomEventSpecificationThresholdRuleFieldRollup,
-		customEventSpecificationThresholdRulePath + CustomEventSpecificationThresholdRuleFieldWindow,
-	}
 )
 
 // NewCustomEventSpecificationResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications
@@ -64,7 +59,12 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle {
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaCustomEventSpecification,
 			Schema: map[string]*schema.Schema{
-				CustomEventSpecificationFieldName:           customEventSpecificationSchemaName,
+				CustomEventSpecificationFieldName: customEventSpecificationSchemaName,
+				CustomEventSpecificationFieldEntityType: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "Configures the entity type of the custom event specification. This value must be set to 'host' for entity verification rules and 'any' in case of system rules.",
+				},
 				CustomEventSpecificationFieldQuery:          customEventSpecificationSchemaQuery,
 				CustomEventSpecificationFieldTriggering:     customEventSpecificationSchemaTriggering,
 				CustomEventSpecificationFieldDescription:    customEventSpecificationSchemaDescription,
@@ -162,27 +162,22 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle {
 												Schema: map[string]*schema.Schema{
 													CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix: {
 														Type:        schema.TypeString,
-														Required:    false,
-														Optional:    true,
+														Required:    true,
 														Description: "The metric pattern prefix of a dynamic built-in metrics",
 													},
 													CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix: {
 														Type:        schema.TypeString,
-														Required:    false,
 														Optional:    true,
 														Description: "The metric pattern postfix of a dynamic built-in metrics",
 													},
 													CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder: {
 														Type:        schema.TypeString,
-														Required:    false,
 														Optional:    true,
-														Description: "The metric pattern placeholer/condition value of a dynamic built-in metrics",
+														Description: "The metric pattern placeholder/condition value of a dynamic built-in metrics",
 													},
 													CustomEventSpecificationThresholdRuleFieldMetricPatternOperator: {
 														Type:         schema.TypeString,
-														Required:     false,
-														Optional:     true,
-														RequiredWith: []string{customEventSpecificationThresholdRulePath + CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix},
+														Required:     true,
 														ValidateFunc: validation.StringInSlice(restapi.SupportedMetricPatternOperatorTypes.ToStringSlice(), false),
 														Description:  "The metric pattern operator (e.g >, <)",
 													},
@@ -193,21 +188,19 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle {
 
 										CustomEventSpecificationThresholdRuleFieldRollup: {
 											Type:         schema.TypeInt,
-											Required:     false,
 											Optional:     true,
+											ValidateFunc: validation.IntAtLeast(1),
 											Description:  "The rollup of the metric",
-											ExactlyOneOf: customEventSpecificationThresholdRuleWindowOrRollup,
 										},
 										CustomEventSpecificationThresholdRuleFieldWindow: {
 											Type:         schema.TypeInt,
-											Required:     false,
-											Optional:     true,
+											Required:     true,
+											ValidateFunc: validation.IntAtLeast(1),
 											Description:  "The time window where the condition has to be fulfilled",
-											ExactlyOneOf: customEventSpecificationThresholdRuleWindowOrRollup,
 										},
 										CustomEventSpecificationThresholdRuleFieldAggregation: {
 											Type:         schema.TypeString,
-											Required:     false,
+											Required:     true,
 											Optional:     true,
 											ValidateFunc: validation.StringInSlice(restapi.SupportedAggregationTypes.ToStringSlice(), false),
 											Description:  "The aggregation type (e.g. sum, avg)",
@@ -238,7 +231,7 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle {
 					},
 				},
 			},
-			SchemaVersion: 3,
+			SchemaVersion: 0,
 		},
 		commons: commons,
 	}
@@ -345,7 +338,7 @@ func (r *customEventSpecificationResource) mapThresholdRuleToState(rule restapi.
 	}
 
 	return map[string]interface{}{
-		CustomEventSpecificationFieldEntityVerificationRule: []interface{}{
+		CustomEventSpecificationFieldThresholdRule: []interface{}{
 			map[string]interface{}{
 				CustomEventSpecificationRuleFieldSeverity:                   severity,
 				CustomEventSpecificationThresholdRuleFieldMetricName:        rule.MetricName,
@@ -361,12 +354,7 @@ func (r *customEventSpecificationResource) mapThresholdRuleToState(rule restapi.
 }
 
 func (r *customEventSpecificationResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(d.Get(CustomEventSpecificationRuleSeverity).(string))
-	if err != nil {
-		return &restapi.CustomEventSpecification{}, err
-	}
-
-	rule, err := r.mapRuleFromState(severity, d.Get(CustomEventSpecificationFieldRule).([]interface{})[0].(map[string]interface{}))
+	rule, err := r.mapRuleFromState(d.Get(CustomEventSpecificationFieldRule).([]interface{})[0].(map[string]interface{}))
 	if err != nil {
 		return nil, err
 	}
@@ -385,45 +373,60 @@ func (r *customEventSpecificationResource) MapStateToDataObject(d *schema.Resour
 	return &apiModel, nil
 }
 
-func (r *customEventSpecificationResource) mapRuleFromState(severity int, ruleData map[string]interface{}) (restapi.RuleSpecification, error) {
-	if rule, ok := ruleData[CustomEventSpecificationFieldEntityVerificationRule]; ok {
-		return r.mapEntityVerificationRuleFromState(rule.([]interface{})[0].(map[string]interface{}), severity), nil
+func (r *customEventSpecificationResource) mapRuleFromState(ruleData map[string]interface{}) (restapi.RuleSpecification, error) {
+	if rule, ok := ruleData[CustomEventSpecificationFieldEntityVerificationRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapEntityVerificationRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
 	}
-	if rule, ok := ruleData[CustomEventSpecificationFieldSystemRule]; ok {
-		return r.mapSystemRuleFromState(rule.([]interface{})[0].(map[string]interface{}), severity), nil
+	if rule, ok := ruleData[CustomEventSpecificationFieldSystemRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapSystemRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
 	}
-	if rule, ok := ruleData[CustomEventSpecificationFieldThresholdRule]; ok {
-		return r.mapThresholdRuleFromState(rule.([]interface{})[0].(map[string]interface{}), severity), nil
+	if rule, ok := ruleData[CustomEventSpecificationFieldThresholdRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapThresholdRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
 	}
 
 	return restapi.RuleSpecification{}, errors.New("no supported rule defined")
 }
 
-func (r *customEventSpecificationResource) mapEntityVerificationRuleFromState(rule map[string]interface{}, severity int) restapi.RuleSpecification {
+func (r *customEventSpecificationResource) mapEntityVerificationRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
 	return restapi.RuleSpecification{
+		DType:               restapi.EntityVerificationRuleType,
 		Severity:            severity,
 		MatchingEntityLabel: GetPointerFromMap[string](rule, CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityLabel),
 		MatchingEntityType:  GetPointerFromMap[string](rule, CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityType),
 		MatchingOperator:    GetPointerFromMap[string](rule, CustomEventSpecificationEntityVerificationRuleFieldMatchingOperator),
 		OfflineDuration:     GetPointerFromMap[int](rule, CustomEventSpecificationEntityVerificationRuleFieldOfflineDuration),
-	}
+	}, nil
 }
 
-func (r *customEventSpecificationResource) mapSystemRuleFromState(rule map[string]interface{}, severity int) restapi.RuleSpecification {
+func (r *customEventSpecificationResource) mapSystemRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
 	return restapi.RuleSpecification{
+		DType:        restapi.SystemRuleType,
 		Severity:     severity,
 		SystemRuleID: GetPointerFromMap[string](rule, CustomEventSpecificationSystemRuleFieldSystemRuleId),
-	}
+	}, nil
 }
 
-func (r *customEventSpecificationResource) mapThresholdRuleFromState(rule map[string]interface{}, severity int) restapi.RuleSpecification {
+func (r *customEventSpecificationResource) mapThresholdRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
+
 	var metricPattern *restapi.MetricPattern
-	if val, ok := rule[CustomEventSpecificationThresholdRuleFieldMetricPattern]; ok {
+	if val, ok := rule[CustomEventSpecificationThresholdRuleFieldMetricPattern]; ok && len(val.([]interface{})) > 0 {
 		metricPatternData := val.([]interface{})[0].(map[string]interface{})
 		metricPatternObj := restapi.MetricPattern{
 			Prefix:      metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix].(string),
-			Postfix:     GetPointerFromMap[string](rule, CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix),
-			Placeholder: GetPointerFromMap[string](rule, CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder),
+			Postfix:     GetPointerFromMap[string](metricPatternData, CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix),
+			Placeholder: GetPointerFromMap[string](metricPatternData, CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder),
 			Operator:    restapi.MetricPatternOperatorType(metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternOperator].(string)),
 		}
 		metricPattern = &metricPatternObj
@@ -436,6 +439,7 @@ func (r *customEventSpecificationResource) mapThresholdRuleFromState(rule map[st
 	}
 
 	return restapi.RuleSpecification{
+		DType:             restapi.ThresholdRuleType,
 		Severity:          severity,
 		MetricName:        GetPointerFromMap[string](rule, CustomEventSpecificationThresholdRuleFieldMetricName),
 		MetricPattern:     metricPattern,
@@ -444,5 +448,5 @@ func (r *customEventSpecificationResource) mapThresholdRuleFromState(rule map[st
 		Aggregation:       aggregation,
 		ConditionOperator: GetPointerFromMap[string](rule, CustomEventSpecificationThresholdRuleFieldConditionOperator),
 		ConditionValue:    GetPointerFromMap[float64](rule, CustomEventSpecificationThresholdRuleFieldConditionValue),
-	}
+	}, nil
 }

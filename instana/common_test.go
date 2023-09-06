@@ -2,9 +2,11 @@ package instana_test
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"log"
 	"net/http"
 	"os"
+	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
@@ -164,4 +166,9 @@ type testPair[A any, E any] struct {
 	name     string
 	input    A
 	expected E
+}
+
+func setValueOnResourceData(t *testing.T, r *schema.ResourceData, key string, value interface{}) {
+	err := r.Set(key, value)
+	require.NoError(t, err)
 }

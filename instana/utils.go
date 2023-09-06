@@ -3,6 +3,7 @@ package instana
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 
@@ -118,8 +119,9 @@ func GetStringPointerFromResourceData(d *schema.ResourceData, key string) *strin
 
 // GetPointerFromMap gets a pointer of the given type from the map or nil if the value is not defined
 func GetPointerFromMap[T any](d map[string]interface{}, key string) *T {
+	var defaultValue T
 	val, ok := d[key]
-	if ok {
+	if ok && !cmp.Equal(defaultValue, val) {
 		value := val.(T)
 		return &value
 	}
