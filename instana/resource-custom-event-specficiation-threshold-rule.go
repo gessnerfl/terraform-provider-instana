@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
+// ResourceInstanaCustomEventSpecificationThresholdRule the name of the terraform-provider-instana resource to manage custom event specifications with threshold rule
 const ResourceInstanaCustomEventSpecificationThresholdRule = "instana_custom_event_spec_threshold_rule"
 
 const (
@@ -110,14 +110,16 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
+// NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
 func NewCustomEventSpecificationWithThresholdRuleResourceHandle() ResourceHandle {
 	commons := &customEventSpecificationCommons{}
+	deprecationNote := "This feature will e removed in version 2.x and should be replaced with instana_custom_event_specification"
 	return &customEventSpecificationWithThresholdRuleResource{
 		metaData: ResourceMetaData{
-			ResourceName:  ResourceInstanaCustomEventSpecificationThresholdRule,
-			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
-			SchemaVersion: 3,
+			ResourceName:       ResourceInstanaCustomEventSpecificationThresholdRule,
+			Schema:             MergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
+			SchemaVersion:      3,
+			DeprecationMessage: deprecationNote,
 		},
 		commons: commons,
 	}

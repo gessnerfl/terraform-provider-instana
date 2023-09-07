@@ -172,14 +172,14 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle {
 													},
 													CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder: {
 														Type:        schema.TypeString,
-														Optional:    true,
+														Required:    true,
 														Description: "The metric pattern placeholder/condition value of a dynamic built-in metrics",
 													},
 													CustomEventSpecificationThresholdRuleFieldMetricPatternOperator: {
 														Type:         schema.TypeString,
 														Required:     true,
 														ValidateFunc: validation.StringInSlice(restapi.SupportedMetricPatternOperatorTypes.ToStringSlice(), false),
-														Description:  "The metric pattern operator (e.g >, <)",
+														Description:  "The metric pattern operator (e.g is, contains, startsWith, endsWith)",
 													},
 												},
 											},

@@ -58,11 +58,13 @@ func providerSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "",
+			Deprecated:  "This feature will e removed in version 2.x and should be replaced with the native format function",
 			Description: "The default prefix which should be added to all resource names/labels",
 		},
 		SchemaFieldDefaultNameSuffix: {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Deprecated:  "This feature will e removed in version 2.x and should be replaced with the native format function",
 			Default:     "(TF managed)",
 			Description: "The default suffix which should be added to all resource names/labels - default '(TF managed)'",
 		},

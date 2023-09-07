@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-//ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
+// ResourceInstanaCustomEventSpecificationEntityVerificationRule the name of the terraform-provider-instana resource to manage custom event specifications with entity verification rule
 const ResourceInstanaCustomEventSpecificationEntityVerificationRule = "instana_custom_event_spec_entity_verification_rule"
 
 const (
@@ -23,7 +23,7 @@ const (
 	EntityVerificationRuleFieldOfflineDuration = ruleFieldPrefix + "offline_duration"
 )
 
-//EntityVerificationRuleEntityType the fix entity_type of entity verification rules
+// EntityVerificationRuleEntityType the fix entity_type of entity verification rules
 const EntityVerificationRuleEntityType = "host"
 
 var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
@@ -59,14 +59,16 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with entity verification rules
+// NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with entity verification rules
 func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() ResourceHandle {
 	commons := &customEventSpecificationCommons{}
+	deprecationNote := "This feature will e removed in version 2.x and should be replaced with instana_custom_event_specification"
 	return &customEventSpecificationWithEntityVerificationRuleResource{
 		metaData: ResourceMetaData{
-			ResourceName:  ResourceInstanaCustomEventSpecificationEntityVerificationRule,
-			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, entityVerificationRuleSchemaFields),
-			SchemaVersion: 3,
+			ResourceName:       ResourceInstanaCustomEventSpecificationEntityVerificationRule,
+			Schema:             MergeSchemaMap(defaultCustomEventSchemaFields, entityVerificationRuleSchemaFields),
+			SchemaVersion:      3,
+			DeprecationMessage: deprecationNote,
 		},
 		commons: commons,
 	}
