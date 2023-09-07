@@ -257,6 +257,30 @@ func TestShouldReturnNilWhenStringPointerIsRequestedButNotSetInResource(t *testi
 	require.Nil(t, GetStringPointerFromResourceData(resourceData, "test"))
 }
 
+func TestShouldReturnPointerValueFromMap(t *testing.T) {
+	stringValue := "myString"
+	intValue := 1234
+	data := map[string]interface{}{
+		"stringValue": stringValue,
+		"intValue":    intValue,
+	}
+
+	require.Equal(t, &stringValue, GetPointerFromMap[string](data, "stringValue"))
+	require.Equal(t, &intValue, GetPointerFromMap[int](data, "intValue"))
+}
+
+func TestShouldReturnNilWhenPointerIsRequestedButNotSetInMap(t *testing.T) {
+	stringValue := "myString"
+	intValue := 1234
+	data := map[string]interface{}{
+		"stringValue": stringValue,
+		"intValue":    intValue,
+	}
+
+	require.Nil(t, GetPointerFromMap[string](data, "otherStringValue"))
+	require.Nil(t, GetPointerFromMap[int](data, "otherIntValue"))
+}
+
 func TestShouldConvertInterfaceSliceToTargetIntSlice(t *testing.T) {
 	input := []interface{}{12, 34, 56}
 	expectedResult := []int{12, 34, 56}

@@ -13,25 +13,22 @@ const (
 	CustomEventSpecificationResourcePath = EventSpecificationBasePath + "/custom"
 )
 
-//RuleType custom type representing the type of the custom event specification rule
-type RuleType string
-
 const (
-	//SystemRuleType const for RuleType of System
+	//SystemRuleType const for rule type of System
 	SystemRuleType = "system"
-	//ThresholdRuleType const for RuleType of Threshold
+	//ThresholdRuleType const for rule type of Threshold
 	ThresholdRuleType = "threshold"
-	//EntityVerificationRuleType const for RuleType of Entity Verification
+	//EntityVerificationRuleType const for rule type of Entity Verification
 	EntityVerificationRuleType = "entity_verification"
 )
 
-//AggregationType custom type representing an aggregation of a custom event specification rule
+// AggregationType custom type representing an aggregation of a custom event specification rule
 type AggregationType string
 
-//AggregationTypes custom type representing a slice of AggregationType
+// AggregationTypes custom type representing a slice of AggregationType
 type AggregationTypes []AggregationType
 
-//ToStringSlice Returns the string representations fo the aggregations
+// ToStringSlice Returns the string representations fo the aggregations
 func (types AggregationTypes) ToStringSlice() []string {
 	result := make([]string, len(types))
 	for i, v := range types {
@@ -51,10 +48,10 @@ const (
 	AggregationMax = AggregationType("max")
 )
 
-//SupportedAggregationTypes slice of supported aggregation types
+// SupportedAggregationTypes slice of supported aggregation types
 var SupportedAggregationTypes = AggregationTypes{AggregationSum, AggregationAvg, AggregationMin, AggregationMax}
 
-//IsSupportedAggregationType check if the provided aggregation type is supported
+// IsSupportedAggregationType check if the provided aggregation type is supported
 func IsSupportedAggregationType(aggregation AggregationType) bool {
 	for _, v := range SupportedAggregationTypes {
 		if v == aggregation {
@@ -64,13 +61,13 @@ func IsSupportedAggregationType(aggregation AggregationType) bool {
 	return false
 }
 
-//MetricPatternOperatorType the operator type of the metric pattern of a dynamic built-in metric
+// MetricPatternOperatorType the operator type of the metric pattern of a dynamic built-in metric
 type MetricPatternOperatorType string
 
-//MetricPatternOperatorTypes type definition of a slice of MetricPatternOperatorType
+// MetricPatternOperatorTypes type definition of a slice of MetricPatternOperatorType
 type MetricPatternOperatorTypes []MetricPatternOperatorType
 
-//ToStringSlice Returns the string representations of the metric pattern operator types
+// ToStringSlice Returns the string representations of the metric pattern operator types
 func (types MetricPatternOperatorTypes) ToStringSlice() []string {
 	result := make([]string, len(types))
 	for i, v := range types {
@@ -79,7 +76,7 @@ func (types MetricPatternOperatorTypes) ToStringSlice() []string {
 	return result
 }
 
-//IsSupported checks if the given value is a valid representation of a supported MetricPatternOperatorType
+// IsSupported checks if the given value is a valid representation of a supported MetricPatternOperatorType
 func (types MetricPatternOperatorTypes) IsSupported(val MetricPatternOperatorType) bool {
 	for _, t := range types {
 		if t == val {
@@ -89,7 +86,7 @@ func (types MetricPatternOperatorTypes) IsSupported(val MetricPatternOperatorTyp
 	return false
 }
 
-//Constant values of all supported MetricPatternOperatorTypes
+// Constant values of all supported MetricPatternOperatorTypes
 const (
 	//MetricPatternOperatorTypeIs constant value for the metric pattern operator type 'is'
 	MetricPatternOperatorTypeIs = MetricPatternOperatorType("is")
@@ -103,10 +100,10 @@ const (
 	MetricPatternOperatorTypeEndsWith = MetricPatternOperatorType("endsWith")
 )
 
-//SupportedMetricPatternOperatorTypes slice of all supported MetricPatternOperatorTypes of the Instana Web Rest API
+// SupportedMetricPatternOperatorTypes slice of all supported MetricPatternOperatorTypes of the Instana Web Rest API
 var SupportedMetricPatternOperatorTypes = MetricPatternOperatorTypes{MetricPatternOperatorTypeIs, MetricPatternOperatorTypeContains, MetricPatternOperatorTypeAny, MetricPatternOperatorTypeStartsWith, MetricPatternOperatorTypeEndsWith}
 
-//NewSystemRuleSpecification creates a new instance of System Rule
+// NewSystemRuleSpecification creates a new instance of System Rule
 func NewSystemRuleSpecification(systemRuleID string, severity int) RuleSpecification {
 	return RuleSpecification{
 		DType:        SystemRuleType,
@@ -115,7 +112,7 @@ func NewSystemRuleSpecification(systemRuleID string, severity int) RuleSpecifica
 	}
 }
 
-//NewEntityVerificationRuleSpecification creates a new instance of Entity Verification Rule
+// NewEntityVerificationRuleSpecification creates a new instance of Entity Verification Rule
 func NewEntityVerificationRuleSpecification(matchingEntityLabel string, matchingEntityType string, matchingOperator string, offlineDuration int, severity int) RuleSpecification {
 	return RuleSpecification{
 		DType:               EntityVerificationRuleType,
@@ -127,7 +124,7 @@ func NewEntityVerificationRuleSpecification(matchingEntityLabel string, matching
 	}
 }
 
-//MetricPattern representation of a metric pattern for dynamic built-in metrics for CustomEventSpecification
+// MetricPattern representation of a metric pattern for dynamic built-in metrics for CustomEventSpecification
 type MetricPattern struct {
 	Prefix      string                    `json:"prefix"`
 	Postfix     *string                   `json:"postfix"`
@@ -135,7 +132,7 @@ type MetricPattern struct {
 	Operator    MetricPatternOperatorType `json:"operator"`
 }
 
-//Validate checks if the given MetricPattern is consistent
+// Validate checks if the given MetricPattern is consistent
 func (m *MetricPattern) Validate() error {
 	if utils.IsBlank(m.Prefix) {
 		return errors.New("Metric pattern prefix is missing")
@@ -146,11 +143,11 @@ func (m *MetricPattern) Validate() error {
 	return nil
 }
 
-//RuleSpecification representation of a rule specification for a CustomEventSpecification
+// RuleSpecification representation of a rule specification for a CustomEventSpecification
 type RuleSpecification struct {
 	//Common Fields
-	DType    RuleType `json:"ruleType"`
-	Severity int      `json:"severity"`
+	DType    string `json:"ruleType"`
+	Severity int    `json:"severity"`
 
 	//System Rule fields
 	SystemRuleID *string `json:"systemRuleId"`
@@ -171,7 +168,7 @@ type RuleSpecification struct {
 	OfflineDuration     *int    `json:"offlineDuration"`
 }
 
-//ConditionOperatorType returns the ConditionOperator for the given Instana Web REST API representation when available. In case of invalid values an error will be returned
+// ConditionOperatorType returns the ConditionOperator for the given Instana Web REST API representation when available. In case of invalid values an error will be returned
 func (r *RuleSpecification) ConditionOperatorType() (ConditionOperator, error) {
 	if r.ConditionOperator != nil {
 		operator, err := SupportedConditionOperators.FromInstanaAPIValue(*r.ConditionOperator)
@@ -183,7 +180,7 @@ func (r *RuleSpecification) ConditionOperatorType() (ConditionOperator, error) {
 	return nil, nil
 }
 
-//MatchingOperatorType returns the MatchingOperatorType for the given Instana Web REST API representation when available. In case of invalid values an error will be returned
+// MatchingOperatorType returns the MatchingOperatorType for the given Instana Web REST API representation when available. In case of invalid values an error will be returned
 func (r *RuleSpecification) MatchingOperatorType() (MatchingOperator, error) {
 	if r.MatchingOperator != nil {
 		operator, err := SupportedMatchingOperators.FromInstanaAPIValue(*r.MatchingOperator)
@@ -195,7 +192,7 @@ func (r *RuleSpecification) MatchingOperatorType() (MatchingOperator, error) {
 	return nil, nil
 }
 
-//Validate Rule interface implementation for SystemRule
+// Validate Rule interface implementation for SystemRule
 func (r *RuleSpecification) Validate() error {
 	if len(r.DType) == 0 {
 		return errors.New("type of rule is missing")
@@ -254,7 +251,7 @@ func (r *RuleSpecification) validateEntityVerificationRule() error {
 	return nil
 }
 
-//CustomEventSpecification is the representation of a custom event specification in Instana
+// CustomEventSpecification is the representation of a custom event specification in Instana
 type CustomEventSpecification struct {
 	ID             string              `json:"id"`
 	Name           string              `json:"name"`
@@ -267,12 +264,12 @@ type CustomEventSpecification struct {
 	Rules          []RuleSpecification `json:"rules"`
 }
 
-//GetIDForResourcePath implemention of the interface InstanaDataObject
+// GetIDForResourcePath implemention of the interface InstanaDataObject
 func (spec *CustomEventSpecification) GetIDForResourcePath() string {
 	return spec.ID
 }
 
-//Validate implementation of the interface InstanaDataObject to verify if data object is correct
+// Validate implementation of the interface InstanaDataObject to verify if data object is correct
 func (spec *CustomEventSpecification) Validate() error {
 	if len(spec.ID) == 0 {
 		return errors.New("ID is missing")

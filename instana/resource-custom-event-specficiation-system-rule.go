@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-//ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
+// ResourceInstanaCustomEventSpecificationSystemRule the name of the terraform-provider-instana resource to manage custom event specifications with system rule
 const ResourceInstanaCustomEventSpecificationSystemRule = "instana_custom_event_spec_system_rule"
 
 const (
@@ -14,7 +14,7 @@ const (
 	SystemRuleSpecificationSystemRuleID = ruleFieldPrefix + "system_rule_id"
 )
 
-//SystemRuleEntityType the fix entity_type of entity verification rules
+// SystemRuleEntityType the fix entity_type of entity verification rules
 const SystemRuleEntityType = "any"
 
 var systemRuleSchemaFields = map[string]*schema.Schema{
@@ -30,14 +30,16 @@ var systemRuleSchemaFields = map[string]*schema.Schema{
 	},
 }
 
-//NewCustomEventSpecificationWithSystemRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
+// NewCustomEventSpecificationWithSystemRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
 func NewCustomEventSpecificationWithSystemRuleResourceHandle() ResourceHandle {
 	commons := &customEventSpecificationCommons{}
+	deprecationNote := "This feature will be removed in version 2.x and should be replaced with instana_custom_event_specification"
 	return &customEventSpecificationWithSystemRuleResource{
 		metaData: ResourceMetaData{
-			ResourceName:  ResourceInstanaCustomEventSpecificationSystemRule,
-			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, systemRuleSchemaFields),
-			SchemaVersion: 2,
+			ResourceName:       ResourceInstanaCustomEventSpecificationSystemRule,
+			Schema:             MergeSchemaMap(defaultCustomEventSchemaFields, systemRuleSchemaFields),
+			SchemaVersion:      2,
+			DeprecationMessage: deprecationNote,
 		},
 		commons: commons,
 	}

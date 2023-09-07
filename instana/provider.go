@@ -58,11 +58,13 @@ func providerSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Default:     "",
+			Deprecated:  "This feature will be removed in version 2.x and should be replaced with the native format function",
 			Description: "The default prefix which should be added to all resource names/labels",
 		},
 		SchemaFieldDefaultNameSuffix: {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Deprecated:  "This feature will be removed in version 2.x and should be replaced with the native format function",
 			Default:     "(TF managed)",
 			Description: "The default suffix which should be added to all resource names/labels - default '(TF managed)'",
 		},
@@ -81,6 +83,7 @@ func providerResources() map[string]*schema.Resource {
 	bindResourceHandle(resources, NewApplicationConfigResourceHandle())
 	bindResourceHandle(resources, NewApplicationAlertConfigResourceHandle())
 	bindResourceHandle(resources, NewGlobalApplicationAlertConfigResourceHandle())
+	bindResourceHandle(resources, NewCustomEventSpecificationResourceHandle())
 	bindResourceHandle(resources, NewCustomEventSpecificationWithSystemRuleResourceHandle())
 	bindResourceHandle(resources, NewCustomEventSpecificationWithThresholdRuleResourceHandle())
 	bindResourceHandle(resources, NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle())
