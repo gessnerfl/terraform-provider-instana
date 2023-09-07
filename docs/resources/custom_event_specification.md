@@ -20,6 +20,7 @@ resource "instana_custom_event_specification" "example" {
   enabled         = true
   triggering      = true
   expiration_time = 60000
+  entity_type     = "host"
 
   rules {  
     entity_verification {
@@ -43,6 +44,7 @@ resource "instana_custom_event_specification" "example" {
   enabled         = true
   triggering      = true
   expiration_time = 60000
+  entity_type     = "any"
 
   rules { 
     system {
@@ -63,6 +65,7 @@ resource "instana_custom_event_specification" "example" {
   enabled         = true
   triggering      = true
   expiration_time = 60000
+  entity_type     = "nomadScheduler"
 
   rules { 
     threshold {
@@ -81,6 +84,10 @@ resource "instana_custom_event_specification" "example" {
 
 * `name` - Required - The name of the custom event specification
 * `description` - Required - The description text of the custom event specification
+* `entity_type` - Required - The entity type/plugin for which the verification rule will be defined. Must be set to
+  `any` for [System Rules](#system-rule) and `host` for [Entity Verification Rules](#entity-verification-rule). For
+  threshold rules the supported entity types (plugins) can be retrieved from the Instana REST API using the path
+  `/api/infrastructure-monitoring/catalog/plugins`.
 * `query` - Optional - The dynamic filter query for which the rule should be applied to
 * `enabled` - Optional - Boolean flag if the rule should be enabled - default = true
 * `triggering` - Optional - Boolean flag if the rule should trigger an incident - default = false

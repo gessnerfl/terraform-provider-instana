@@ -33,7 +33,7 @@ var systemRuleSchemaFields = map[string]*schema.Schema{
 // NewCustomEventSpecificationWithSystemRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
 func NewCustomEventSpecificationWithSystemRuleResourceHandle() ResourceHandle {
 	commons := &customEventSpecificationCommons{}
-	deprecationNote := "This feature will e removed in version 2.x and should be replaced with instana_custom_event_specification"
+	deprecationNote := "This feature will be removed in version 2.x and should be replaced with instana_custom_event_specification"
 	return &customEventSpecificationWithSystemRuleResource{
 		metaData: ResourceMetaData{
 			ResourceName:       ResourceInstanaCustomEventSpecificationSystemRule,
