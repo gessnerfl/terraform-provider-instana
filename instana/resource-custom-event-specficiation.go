@@ -254,6 +254,7 @@ func (r *customEventSpecificationResource) GetRestResource(api restapi.InstanaAP
 }
 
 func (r *customEventSpecificationResource) SetComputedFields(d *schema.ResourceData) {
+	//no computed fields required
 }
 
 func (r *customEventSpecificationResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, _ utils.ResourceNameFormatter) error {

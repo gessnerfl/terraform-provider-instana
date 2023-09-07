@@ -74,8 +74,7 @@ func (r *terraformResourceImpl) Create(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	r.resourceHandle.UpdateState(d, createdObject, providerMeta.ResourceNameFormatter)
-	return nil
+	return r.resourceHandle.UpdateState(d, createdObject, providerMeta.ResourceNameFormatter)
 }
 
 // Read defines the read operation for the terraform resource
