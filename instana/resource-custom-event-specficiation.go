@@ -14,11 +14,11 @@ import (
 const ResourceInstanaCustomEventSpecification = "instana_custom_event_specification"
 
 const (
-	CustomEventSpecificationFieldRule                   = "rule"
+	CustomEventSpecificationFieldRules                  = "rules"
 	CustomEventSpecificationFieldEntityVerificationRule = "entity_verification"
 	CustomEventSpecificationFieldSystemRule             = "system"
 	CustomEventSpecificationFieldThresholdRule          = "threshold"
-	customEventSpecificationThresholdRulePath           = "rule.0.threshold.0."
+	customEventSpecificationThresholdRulePath           = "rules.0.threshold.0."
 
 	CustomEventSpecificationRuleFieldSeverity                              = "severity"
 	CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityType  = "matching_entity_type"
@@ -41,9 +41,9 @@ const (
 
 var (
 	customEventSpecificationRuleTypeKeys = []string{
-		"rule.0.entity_verification",
-		"rule.0.system",
-		"rule.0.threshold",
+		"rules.0.entity_verification",
+		"rules.0.system",
+		"rules.0.threshold",
 	}
 
 	customEventSpecificationThresholdRuleMetricNameOrPattern = []string{
@@ -70,7 +70,7 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle {
 				CustomEventSpecificationFieldDescription:    customEventSpecificationSchemaDescription,
 				CustomEventSpecificationFieldExpirationTime: customEventSpecificationSchemaExpirationTime,
 				CustomEventSpecificationFieldEnabled:        customEventSpecificationSchemaEnabled,
-				CustomEventSpecificationFieldRule: {
+				CustomEventSpecificationFieldRules: {
 					Type:        schema.TypeList,
 					MinItems:    1,
 					MaxItems:    1,
@@ -201,7 +201,6 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle {
 										CustomEventSpecificationThresholdRuleFieldAggregation: {
 											Type:         schema.TypeString,
 											Required:     true,
-											Optional:     true,
 											ValidateFunc: validation.StringInSlice(restapi.SupportedAggregationTypes.ToStringSlice(), false),
 											Description:  "The aggregation type (e.g. sum, avg)",
 										},
@@ -276,7 +275,7 @@ func (r *customEventSpecificationResource) UpdateState(d *schema.ResourceData, o
 		CustomEventSpecificationFieldDescription:    customEventSpecification.Description,
 		CustomEventSpecificationFieldExpirationTime: customEventSpecification.ExpirationTime,
 		CustomEventSpecificationFieldEnabled:        customEventSpecification.Enabled,
-		CustomEventSpecificationFieldRule:           []interface{}{ruleData},
+		CustomEventSpecificationFieldRules:          []interface{}{ruleData},
 	}
 
 	return tfutils.UpdateState(d, eventData)
@@ -354,7 +353,7 @@ func (r *customEventSpecificationResource) mapThresholdRuleToState(rule restapi.
 }
 
 func (r *customEventSpecificationResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
-	rule, err := r.mapRuleFromState(d.Get(CustomEventSpecificationFieldRule).([]interface{})[0].(map[string]interface{}))
+	rule, err := r.mapRuleFromState(d.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{}))
 	if err != nil {
 		return nil, err
 	}
