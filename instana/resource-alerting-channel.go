@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -48,7 +47,7 @@ var AlertingChannelTypeFields = []string{
 }
 
 // NewAlertingChannelResourceHandle creates the resource handle for Alerting Channels
-func NewAlertingChannelResourceHandle() ResourceHandle {
+func NewAlertingChannelResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	supportedOpsGenieRegions := []string{"EU", "US"}
 	return &alertingChannelResource{
 		metaData: ResourceMetaData{
@@ -277,17 +276,15 @@ func (r *alertingChannelResource) StateUpgraders() []schema.StateUpgrader {
 	return []schema.StateUpgrader{}
 }
 
-func (r *alertingChannelResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *alertingChannelResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.AlertingChannel] {
 	return api.AlertingChannels()
 }
 
-func (r *alertingChannelResource) SetComputedFields(_ *schema.ResourceData) {
-	//No computed fields defined
+func (r *alertingChannelResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *alertingChannelResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, _ utils.ResourceNameFormatter) error {
-	alertingChannel := obj.(*restapi.AlertingChannel)
-
+func (r *alertingChannelResource) UpdateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	data, err := r.mapChannelToState(alertingChannel)
 	if err != nil {
 		return err
@@ -458,7 +455,7 @@ func (r *alertingChannelResource) mapGoogleChatChannelToState(channel *restapi.A
 	}
 }
 
-func (r *alertingChannelResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *alertingChannelResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingChannel, error) {
 	if channel, ok := d.GetOk(AlertingChannelFieldChannelEmail); ok && len(channel.([]interface{})) == 1 {
 		return r.mapStateToEmailObject(d, channel.([]interface{})[0].(map[string]interface{})), nil
 	}

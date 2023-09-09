@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -53,7 +52,7 @@ var (
 )
 
 // NewCustomEventSpecificationResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications
-func NewCustomEventSpecificationResourceHandle() ResourceHandle {
+func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
 	commons := &customEventSpecificationCommons{}
 	return &customEventSpecificationResource{
 		metaData: ResourceMetaData{
@@ -249,16 +248,15 @@ func (r *customEventSpecificationResource) StateUpgraders() []schema.StateUpgrad
 	return []schema.StateUpgrader{}
 }
 
-func (r *customEventSpecificationResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource {
+func (r *customEventSpecificationResource) GetRestResource(api restapi.InstanaAPI) restapi.RestResource[*restapi.CustomEventSpecification] {
 	return api.CustomEventSpecifications()
 }
 
-func (r *customEventSpecificationResource) SetComputedFields(d *schema.ResourceData) {
-	//no computed fields required
+func (r *customEventSpecificationResource) SetComputedFields(_ *schema.ResourceData) error {
+	return nil
 }
 
-func (r *customEventSpecificationResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, _ utils.ResourceNameFormatter) error {
-	customEventSpecification := obj.(*restapi.CustomEventSpecification)
+func (r *customEventSpecificationResource) UpdateState(d *schema.ResourceData, customEventSpecification *restapi.CustomEventSpecification) error {
 	ruleSpec := customEventSpecification.Rules[0]
 	ruleData, err := r.mapRuleToState(ruleSpec)
 	if err != nil {
@@ -351,7 +349,7 @@ func (r *customEventSpecificationResource) mapThresholdRuleToState(rule restapi.
 	}, nil
 }
 
-func (r *customEventSpecificationResource) MapStateToDataObject(d *schema.ResourceData, _ utils.ResourceNameFormatter) (restapi.InstanaDataObject, error) {
+func (r *customEventSpecificationResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.CustomEventSpecification, error) {
 	rule, err := r.mapRuleFromState(d.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{}))
 	if err != nil {
 		return nil, err

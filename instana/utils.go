@@ -149,7 +149,7 @@ func GetStringPointerFromResourceData(d *schema.ResourceData, key string) *strin
 func GetPointerFromMap[T any](d map[string]interface{}, key string) *T {
 	var defaultValue T
 	val, ok := d[key]
-	if ok && !cmp.Equal(defaultValue, val) {
+	if ok && val != nil && !cmp.Equal(defaultValue, val) {
 		value := val.(T)
 		return &value
 	}

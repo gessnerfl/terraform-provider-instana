@@ -481,11 +481,11 @@ func (r *alertingChannelUnitTest) shouldMapEmailChannelToState(t *testing.T) {
 		Emails: []string{"email1", "email2"},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -517,11 +517,11 @@ func (r *alertingChannelUnitTest) shouldMapOpsGenieChannelToState(t *testing.T) 
 		Tags:   &tags,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -548,11 +548,11 @@ func (r *alertingChannelUnitTest) shouldMapPagerDutyChannelToState(t *testing.T)
 		ServiceIntegrationKey: &integrationKey,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -581,11 +581,11 @@ func (r *alertingChannelUnitTest) shouldMapSlackChannelToState(t *testing.T) {
 		Channel:    &slackChannel,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -614,11 +614,11 @@ func (r *alertingChannelUnitTest) shouldMapSplunkChannelToState(t *testing.T) {
 		Token: &token,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -646,11 +646,11 @@ func (r *alertingChannelUnitTest) shouldMapVictorOpsChannelToState(t *testing.T)
 		RoutingKey: &routingKey,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -678,11 +678,11 @@ func (r *alertingChannelUnitTest) shouldMapWebhookChannelToState(t *testing.T) {
 		Headers:     headers,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -711,11 +711,11 @@ func (r *alertingChannelUnitTest) shouldMapOffice365ChannelToState(t *testing.T)
 		WebhookURL: &webhookURL,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -740,11 +740,11 @@ func (r *alertingChannelUnitTest) shouldMapGoogleChatChannelToState(t *testing.T
 		WebhookURL: &webhookURL,
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.Nil(t, err)
 	require.Equal(t, "id", resourceData.Id())
@@ -779,18 +779,18 @@ func (r *alertingChannelUnitTest) shouldFailToMapChannelWhenTypeIsNotValid(t *te
 		Emails: []string{"email1", "email2"},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	sut := NewAlertingChannelResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, &data, nil)
+	err := sut.UpdateState(resourceData, &data)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "received unsupported alerting channel of type invalid")
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfEmailChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -812,20 +812,19 @@ func (r *alertingChannelUnitTest) shouldMapStateOfEmailChannelToDataModel(t *tes
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.EmailChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Len(t, result.(*restapi.AlertingChannel).Emails, 2)
-	require.Contains(t, result.(*restapi.AlertingChannel).Emails, "email1")
-	require.Contains(t, result.(*restapi.AlertingChannel).Emails, "email2")
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.EmailChannelType, result.Kind)
+	require.Len(t, result.Emails, 2)
+	require.Contains(t, result.Emails, "email1")
+	require.Contains(t, result.Emails, "email2")
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfOpsGenieChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -849,20 +848,19 @@ func (r *alertingChannelUnitTest) shouldMapStateOfOpsGenieChannelToDataModel(t *
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.OpsGenieChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Equal(t, "api-key", *result.(*restapi.AlertingChannel).APIKey)
-	require.Equal(t, restapi.EuOpsGenieRegion, *result.(*restapi.AlertingChannel).Region)
-	require.Equal(t, "tag1,tag2", *result.(*restapi.AlertingChannel).Tags)
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.OpsGenieChannelType, result.Kind)
+	require.Equal(t, "api-key", *result.APIKey)
+	require.Equal(t, restapi.EuOpsGenieRegion, *result.Region)
+	require.Equal(t, "tag1,tag2", *result.Tags)
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfPagerDutyChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -884,18 +882,17 @@ func (r *alertingChannelUnitTest) shouldMapStateOfPagerDutyChannelToDataModel(t 
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.PagerDutyChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Equal(t, integrationKey, *result.(*restapi.AlertingChannel).ServiceIntegrationKey)
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.PagerDutyChannelType, result.Kind)
+	require.Equal(t, integrationKey, *result.ServiceIntegrationKey)
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfSlackChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -921,20 +918,19 @@ func (r *alertingChannelUnitTest) shouldMapStateOfSlackChannelToDataModel(t *tes
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.SlackChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Equal(t, webhookURL, *result.(*restapi.AlertingChannel).WebhookURL)
-	require.Equal(t, iconURL, *result.(*restapi.AlertingChannel).IconURL)
-	require.Equal(t, channel, *result.(*restapi.AlertingChannel).Channel)
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.SlackChannelType, result.Kind)
+	require.Equal(t, webhookURL, *result.WebhookURL)
+	require.Equal(t, iconURL, *result.IconURL)
+	require.Equal(t, channel, *result.Channel)
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfSplunkChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -958,19 +954,18 @@ func (r *alertingChannelUnitTest) shouldMapStateOfSplunkChannelToDataModel(t *te
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.SplunkChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Equal(t, url, *result.(*restapi.AlertingChannel).URL)
-	require.Equal(t, token, *result.(*restapi.AlertingChannel).Token)
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.SplunkChannelType, result.Kind)
+	require.Equal(t, url, *result.URL)
+	require.Equal(t, token, *result.Token)
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfVictorOpsChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -994,19 +989,18 @@ func (r *alertingChannelUnitTest) shouldMapStateOfVictorOpsChannelToDataModel(t 
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.VictorOpsChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Equal(t, apiKey, *result.(*restapi.AlertingChannel).APIKey)
-	require.Equal(t, routingKey, *result.(*restapi.AlertingChannel).RoutingKey)
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.VictorOpsChannelType, result.Kind)
+	require.Equal(t, apiKey, *result.APIKey)
+	require.Equal(t, routingKey, *result.RoutingKey)
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfWebhookChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -1028,21 +1022,20 @@ func (r *alertingChannelUnitTest) shouldMapStateOfWebhookChannelToDataModel(t *t
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.WebhookChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Len(t, result.(*restapi.AlertingChannel).WebhookURLs, 2)
-	require.Contains(t, result.(*restapi.AlertingChannel).WebhookURLs, "url1")
-	require.Contains(t, result.(*restapi.AlertingChannel).WebhookURLs, "url2")
-	require.Empty(t, result.(*restapi.AlertingChannel).Headers)
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.WebhookChannelType, result.Kind)
+	require.Len(t, result.WebhookURLs, 2)
+	require.Contains(t, result.WebhookURLs, "url1")
+	require.Contains(t, result.WebhookURLs, "url2")
+	require.Empty(t, result.Headers)
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfWebhookChannelWithHeadersToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -1065,23 +1058,22 @@ func (r *alertingChannelUnitTest) shouldMapStateOfWebhookChannelWithHeadersToDat
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.WebhookChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Len(t, result.(*restapi.AlertingChannel).WebhookURLs, 2)
-	require.Contains(t, result.(*restapi.AlertingChannel).WebhookURLs, "url1")
-	require.Contains(t, result.(*restapi.AlertingChannel).WebhookURLs, "url2")
-	require.Len(t, result.(*restapi.AlertingChannel).Headers, 2)
-	require.Contains(t, result.(*restapi.AlertingChannel).Headers, "key1: value1")
-	require.Contains(t, result.(*restapi.AlertingChannel).Headers, "key2: ")
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.WebhookChannelType, result.Kind)
+	require.Len(t, result.WebhookURLs, 2)
+	require.Contains(t, result.WebhookURLs, "url1")
+	require.Contains(t, result.WebhookURLs, "url2")
+	require.Len(t, result.Headers, 2)
+	require.Contains(t, result.Headers, "key1: value1")
+	require.Contains(t, result.Headers, "key2: ")
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfOffice365ChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -1103,18 +1095,17 @@ func (r *alertingChannelUnitTest) shouldMapStateOfOffice365ChannelToDataModel(t 
 	})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.Office365ChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Equal(t, webhookURL, *result.(*restapi.AlertingChannel).WebhookURL)
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.Office365ChannelType, result.Kind)
+	require.Equal(t, webhookURL, *result.WebhookURL)
 }
 
 func (r *alertingChannelUnitTest) shouldMapStateOfGoogleChatChannelToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -1136,18 +1127,17 @@ func (r *alertingChannelUnitTest) shouldMapStateOfGoogleChatChannelToDataModel(t
 		},
 	})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	result, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.AlertingChannel{}, result)
 	require.Equal(t, "id", result.GetIDForResourcePath())
-	require.Equal(t, resourceName, result.(*restapi.AlertingChannel).Name)
-	require.Equal(t, restapi.GoogleChatChannelType, result.(*restapi.AlertingChannel).Kind)
-	require.Equal(t, webhookURL, *result.(*restapi.AlertingChannel).WebhookURL)
+	require.Equal(t, resourceName, result.Name)
+	require.Equal(t, restapi.GoogleChatChannelType, result.Kind)
+	require.Equal(t, webhookURL, *result.WebhookURL)
 }
 
 func (r *alertingChannelUnitTest) shouldFailToMapStateWhenNoChannelIsProvided(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
 	resourceHandle := NewAlertingChannelResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -1163,7 +1153,7 @@ func (r *alertingChannelUnitTest) shouldFailToMapStateWhenNoChannelIsProvided(t 
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, nil)
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Error(t, err)
 	require.ErrorContains(t, err, "no supported alerting channel defined")

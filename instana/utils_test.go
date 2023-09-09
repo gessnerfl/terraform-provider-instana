@@ -337,7 +337,7 @@ func createShouldReturnPointerValueWhenKeyIsAvailableInMapAndValueIsNotNul[T any
 			key: expectedValue,
 		}
 
-		result := GetPointerFromMap[T](key, data)
+		result := GetPointerFromMap[T](data, key)
 
 		require.NotNil(t, result)
 		require.Equal(t, expectedValue, *result)
@@ -351,7 +351,7 @@ func createShouldReturnNilValueWhenKeyIsNotAvailableInMap() func(t *testing.T) {
 			"other": "value",
 		}
 
-		result := GetPointerFromMap[string](key, data)
+		result := GetPointerFromMap[string](data, key)
 
 		require.Nil(t, result)
 	}
@@ -365,7 +365,7 @@ func createShouldReturnNilValueWhenKeyIsAvailableInMapAndValueIsNil() func(t *te
 			key: nil,
 		}
 
-		result := GetPointerFromMap[string](key, data)
+		result := GetPointerFromMap[string](data, key)
 
 		require.Nil(t, result)
 	}

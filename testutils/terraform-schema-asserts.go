@@ -32,10 +32,6 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsOfTypeBooleanWithDefault(fieldName string, defaultValue bool)
 	//AssertSchemaIsRequiredAndOfTypeListOfStrings checks if the given schema field is required and of type list of string
 	AssertSchemaIsRequiredAndOfTypeListOfStrings(fieldName string)
-	//AssertSchemaIsRequiredAndOfTypeListOfResource checks if the given schema field is required and of type list of schema.Resource
-	AssertSchemaIsRequiredAndOfTypeListOfResource(fieldName string)
-	//AssertSchemaIsOptionalAndOfTypeListOfResource checks if the given schema field is optional and of type list of schema.Resource
-	AssertSchemaIsOptionalAndOfTypeListOfResource(fieldName string)
 	//AssertSchemaIsOptionalAndOfTypeListOfStrings checks if the given schema field is optional and of type list of string
 	AssertSchemaIsOptionalAndOfTypeListOfStrings(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeSetOfStrings checks if the given schema field is required and of type set of string

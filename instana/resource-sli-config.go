@@ -499,10 +499,10 @@ func (r *sliConfigResource) isSliEntitySet(details interface{}) bool {
 func (r *sliConfigResource) mapSliEntityApplicationFromState(data map[string]interface{}) (restapi.SliEntity, error) {
 	return restapi.SliEntity{
 		Type:          "application",
-		ApplicationID: GetPointerFromMap[string](SliConfigFieldApplicationID, data),
-		ServiceID:     GetPointerFromMap[string](SliConfigFieldServiceID, data),
-		EndpointID:    GetPointerFromMap[string](SliConfigFieldEndpointID, data),
-		BoundaryScope: GetPointerFromMap[string](SliConfigFieldBoundaryScope, data),
+		ApplicationID: GetPointerFromMap[string](data, SliConfigFieldApplicationID),
+		ServiceID:     GetPointerFromMap[string](data, SliConfigFieldServiceID),
+		EndpointID:    GetPointerFromMap[string](data, SliConfigFieldEndpointID),
+		BoundaryScope: GetPointerFromMap[string](data, SliConfigFieldBoundaryScope),
 	}, nil
 }
 
@@ -525,12 +525,12 @@ func (r *sliConfigResource) mapSliEntityAvailabilityFromState(data map[string]in
 
 	return restapi.SliEntity{
 		Type:                      "availability",
-		ApplicationID:             GetPointerFromMap[string](SliConfigFieldApplicationID, data),
-		BoundaryScope:             GetPointerFromMap[string](SliConfigFieldBoundaryScope, data),
+		ApplicationID:             GetPointerFromMap[string](data, SliConfigFieldApplicationID),
+		BoundaryScope:             GetPointerFromMap[string](data, SliConfigFieldBoundaryScope),
 		GoodEventFilterExpression: goodEventFilterExpression,
 		BadEventFilterExpression:  badEventFilterExpression,
-		IncludeInternal:           GetPointerFromMap[bool](SliConfigFieldIncludeInternal, data),
-		IncludeSynthetic:          GetPointerFromMap[bool](SliConfigFieldIncludeSynthetic, data),
+		IncludeInternal:           GetPointerFromMap[bool](data, SliConfigFieldIncludeInternal),
+		IncludeSynthetic:          GetPointerFromMap[bool](data, SliConfigFieldIncludeSynthetic),
 	}, nil
 }
 
@@ -546,9 +546,9 @@ func (r *sliConfigResource) mapSliEntityWebsiteTimeBasedFromState(data map[strin
 
 	return restapi.SliEntity{
 		Type:             "websiteTimeBased",
-		WebsiteId:        GetPointerFromMap[string](SliConfigFieldWebsiteID, data),
+		WebsiteId:        GetPointerFromMap[string](data, SliConfigFieldWebsiteID),
 		FilterExpression: tagFilter,
-		BeaconType:       GetPointerFromMap[string](SliConfigFieldBeaconType, data),
+		BeaconType:       GetPointerFromMap[string](data, SliConfigFieldBeaconType),
 	}, nil
 }
 
@@ -571,10 +571,10 @@ func (r *sliConfigResource) mapSliEntityWebsiteEventBasedFromState(data map[stri
 
 	return restapi.SliEntity{
 		Type:                      "websiteEventBased",
-		WebsiteId:                 GetPointerFromMap[string](SliConfigFieldWebsiteID, data),
+		WebsiteId:                 GetPointerFromMap[string](data, SliConfigFieldWebsiteID),
 		GoodEventFilterExpression: goodEventFilterExpression,
 		BadEventFilterExpression:  badEventFilterExpression,
-		BeaconType:                GetPointerFromMap[string](SliConfigFieldBeaconType, data),
+		BeaconType:                GetPointerFromMap[string](data, SliConfigFieldBeaconType),
 	}, nil
 }
 

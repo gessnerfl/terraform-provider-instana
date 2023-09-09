@@ -29,13 +29,9 @@ func createOpsGenieRegionSlice() []string {
 	return opsGenieRegions
 }
 
-	return &alertingChannelOpsGenieResource{
-		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelOpsGenie,
-			Schema: map[string]*schema.Schema{
-				AlertingChannelFieldName:     alertingChannelNameSchemaField,
-				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,
-				AlertingChannelOpsGenieFieldAPIKey: {
+var (
+	opsGenieRegions                     = createOpsGenieRegionSlice()
+	alertingChannelOpsGenieSchemaAPIKey = &schema.Schema{
 		Type:        schema.TypeString,
 		Required:    true,
 		Description: "The OpsGenie API Key of the OpsGenie alerting channel",
@@ -62,7 +58,7 @@ func createOpsGenieRegionSlice() []string {
 func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelOpsGenieResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelOpsGenie,
+			ResourceName:       ResourceInstanaAlertingChannelOpsGenie,
 			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:           alertingChannelNameSchemaField,

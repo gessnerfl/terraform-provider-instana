@@ -458,11 +458,11 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityVerificationRuleToSt
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.Nil(t, err)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
@@ -520,11 +520,11 @@ func (r *customerEventSpecificationUnitTest) shouldMapSystemRuleToState(t *testi
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.Nil(t, err)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
@@ -590,11 +590,11 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricName
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.Nil(t, err)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
@@ -674,11 +674,11 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.Nil(t, err)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
@@ -736,11 +736,11 @@ func (r *customerEventSpecificationUnitTest) shouldFailToMapRuleWhenSeverityIsNo
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "is not a valid severity")
@@ -756,18 +756,18 @@ func (r *customerEventSpecificationUnitTest) shouldFailToMapRuleWhenRuleTypeIsNo
 		},
 	}
 
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	sut := NewCustomEventSpecificationResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 
-	err := sut.UpdateState(resourceData, spec, testHelper.ResourceFormatter())
+	err := sut.UpdateState(resourceData, spec)
 
 	require.NotNil(t, err)
 	require.Contains(t, err.Error(), "unsupported rule type invalid")
 }
 
 func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityVerificationRuleToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -799,11 +799,9 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityVerificationR
 		},
 	})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	customEventSpec, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(*restapi.CustomEventSpecification)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
 	require.Equal(t, resourceName, customEventSpec.Name)
 	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
@@ -822,7 +820,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityVerificationR
 }
 
 func (r *customerEventSpecificationUnitTest) shouldFailToMapStateOfEntityVerificationRuleToDataModelWhenSeverityIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -839,14 +837,14 @@ func (r *customerEventSpecificationUnitTest) shouldFailToMapStateOfEntityVerific
 		},
 	})
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Error(t, err)
 	require.ErrorContains(t, err, "invalid is not a valid severity")
 }
 
 func (r *customerEventSpecificationUnitTest) shouldMapStateOfSystemRuleToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -872,11 +870,9 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfSystemRuleToDataMod
 		},
 	})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	customEventSpec, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(*restapi.CustomEventSpecification)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
 	require.Equal(t, resourceName, customEventSpec.Name)
 	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
@@ -892,7 +888,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfSystemRuleToDataMod
 }
 
 func (r *customerEventSpecificationUnitTest) shouldFailToMapStateOfSystemRuleToDataModelWhenSeverityIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -909,14 +905,14 @@ func (r *customerEventSpecificationUnitTest) shouldFailToMapStateOfSystemRuleToD
 		},
 	})
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Error(t, err)
 	require.ErrorContains(t, err, "invalid is not a valid severity")
 }
 
 func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMetricNameToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -948,11 +944,9 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 		},
 	})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	customEventSpec, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(*restapi.CustomEventSpecification)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
 	require.Equal(t, resourceName, customEventSpec.Name)
 	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
@@ -975,7 +969,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 }
 
 func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMetricPatternToDataModel(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -1017,11 +1011,9 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 		},
 	})
 
-	result, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	customEventSpec, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.CustomEventSpecification{}, result)
-	customEventSpec := result.(*restapi.CustomEventSpecification)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, customEventSpec.GetIDForResourcePath())
 	require.Equal(t, resourceName, customEventSpec.Name)
 	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
@@ -1048,7 +1040,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 }
 
 func (r *customerEventSpecificationUnitTest) shouldFailToMapStateOfThresholdRuleToDataModelWhenSeverityIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -1066,14 +1058,14 @@ func (r *customerEventSpecificationUnitTest) shouldFailToMapStateOfThresholdRule
 		},
 	})
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Error(t, err)
 	require.ErrorContains(t, err, "invalid is not a valid severity")
 }
 
 func (r *customerEventSpecificationUnitTest) shouldFailToMapStateWhenNoRuleIsProvided(t *testing.T) {
-	testHelper := NewTestHelper(t)
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
 	resourceHandle := NewCustomEventSpecificationResourceHandle()
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
@@ -1087,7 +1079,7 @@ func (r *customerEventSpecificationUnitTest) shouldFailToMapStateWhenNoRuleIsPro
 		},
 	})
 
-	_, err := resourceHandle.MapStateToDataObject(resourceData, testHelper.ResourceFormatter())
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Error(t, err)
 	require.ErrorContains(t, err, "no supported rule defined")
