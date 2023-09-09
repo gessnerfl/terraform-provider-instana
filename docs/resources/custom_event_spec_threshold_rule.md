@@ -1,5 +1,7 @@
 # Custom Event Specification with Threshold Rule Resource
 
+**Deprecated** use `instana_custom_event_specification`
+
 Configuration of a custom event specification based on a threshold rule. A threshold rule is verifies if a certain 
 condition applies to a given metric. Therefore you can either use `rule_rollup` or `rule_window` or both to define 
 the data points which should be evaluated. Instana API always returns max. 600 data points for validation.

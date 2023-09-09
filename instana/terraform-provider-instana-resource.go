@@ -12,12 +12,13 @@ import (
 
 // ResourceMetaData the metadata of a terraform ResourceHandle
 type ResourceMetaData struct {
-	ResourceName     string
-	Schema           map[string]*schema.Schema
-	SchemaVersion    int
-	SkipIDGeneration bool
-	ResourceIDField  *string
+	ResourceName       string
+	Schema             map[string]*schema.Schema
+	SchemaVersion      int
+	SkipIDGeneration   bool
+	ResourceIDField    *string
 	CreateOnly       bool
+	DeprecationMessage string
 }
 
 // ResourceHandle resource specific implementation which provides metadata and maps data from/to terraform state. Together with TerraformResource terraform schema resources can be created
@@ -173,9 +174,10 @@ func (r *terraformResourceImpl[T]) ToSchemaResource() *schema.Resource {
 		},
 		UpdateContext:  updateOperation,
 		DeleteContext:  r.Delete,
-		Schema:         metaData.Schema,
-		SchemaVersion:  metaData.SchemaVersion,
-		StateUpgraders: r.resourceHandle.StateUpgraders(),
+		Schema:             metaData.Schema,
+		SchemaVersion:      metaData.SchemaVersion,
+		StateUpgraders:     r.resourceHandle.StateUpgraders(),
+		DeprecationMessage: metaData.DeprecationMessage,
 	}
 }
 

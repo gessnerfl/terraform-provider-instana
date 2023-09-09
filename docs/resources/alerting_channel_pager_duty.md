@@ -1,5 +1,7 @@
 # Alerting Channel Pager Duty Resource
 
+**Deprecated** This feature will be removed in version 2.x and should be replaced with `instana_alerting_channel`.
+
 Alerting channel configuration integration with PagerDuty.
 
 API Documentation: <https://instana.github.io/openapi/#operation/getAlertingChannels>

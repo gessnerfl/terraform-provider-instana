@@ -3,6 +3,7 @@ package instana
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 
@@ -30,6 +31,20 @@ func ReadStringArrayParameterFromResource(d *schema.ResourceData, key string) []
 	return nil
 }
 
+// ReadArrayParameterFromMap reads an array parameter from a resource
+func ReadArrayParameterFromMap[T any](data map[string]interface{}, key string) []T {
+	if attr, ok := data[key]; ok {
+		var array []T
+		items := attr.([]interface{})
+		for _, x := range items {
+			item := x.(T)
+			array = append(array, item)
+		}
+		return array
+	}
+	return nil
+}
+
 // ReadStringSetParameterFromResource reads a string set parameter from a resource and returns it as a slice of strings
 func ReadStringSetParameterFromResource(d *schema.ResourceData, key string) []string {
 	if attr, ok := d.GetOk(key); ok {
@@ -37,6 +52,20 @@ func ReadStringSetParameterFromResource(d *schema.ResourceData, key string) []st
 		set := attr.(*schema.Set)
 		for _, x := range set.List() {
 			item := x.(string)
+			array = append(array, item)
+		}
+		return array
+	}
+	return nil
+}
+
+// ReadSetParameterFromMap reads a set parameter from a map and returns it as a slice
+func ReadSetParameterFromMap[T any](data map[string]interface{}, key string) []T {
+	if attr, ok := data[key]; ok {
+		var array []T
+		set := attr.(*schema.Set)
+		for _, x := range set.List() {
+			item := x.(T)
 			array = append(array, item)
 		}
 		return array
@@ -116,10 +145,13 @@ func GetStringPointerFromResourceData(d *schema.ResourceData, key string) *strin
 	return nil
 }
 
-func GetPointerFromMap[T any](key string, data map[string]interface{}) *T {
-	if val, ok := data[key]; ok && val != nil {
-		typedValue := val.(T)
-		return &typedValue
+// GetPointerFromMap gets a pointer of the given type from the map or nil if the value is not defined
+func GetPointerFromMap[T any](d map[string]interface{}, key string) *T {
+	var defaultValue T
+	val, ok := d[key]
+	if ok && !cmp.Equal(defaultValue, val) {
+		value := val.(T)
+		return &value
 	}
 	return nil
 }

@@ -34,6 +34,7 @@ func NewAlertingChannelSplunkResourceHandle() ResourceHandle[*restapi.AlertingCh
 	return &alertingChannelSplunkResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelSplunk,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:        alertingChannelNameSchemaField,
 				AlertingChannelSplunkFieldURL:   alertingChannelSplunkSchemaURL,

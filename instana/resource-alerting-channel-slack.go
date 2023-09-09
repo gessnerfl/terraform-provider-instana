@@ -41,6 +41,7 @@ func NewAlertingChannelSlackResourceHandle() ResourceHandle[*restapi.AlertingCha
 	return &alertingChannelSlackResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannelSlack,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:            alertingChannelNameSchemaField,
 				AlertingChannelSlackFieldWebhookURL: alertingChannelSlackSchemaWebhookURL,

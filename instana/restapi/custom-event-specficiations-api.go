@@ -7,15 +7,12 @@ const (
 	CustomEventSpecificationResourcePath = EventSpecificationBasePath + "/custom"
 )
 
-// RuleType custom type representing the type of the custom event specification rule
-type RuleType string
-
 const (
-	//SystemRuleType const for RuleType of System
+	//SystemRuleType const for rule type of System
 	SystemRuleType = "system"
-	//ThresholdRuleType const for RuleType of Threshold
+	//ThresholdRuleType const for rule type of Threshold
 	ThresholdRuleType = "threshold"
-	//EntityVerificationRuleType const for RuleType of Entity Verification
+	//EntityVerificationRuleType const for rule type of Entity Verification
 	EntityVerificationRuleType = "entity_verification"
 )
 
@@ -112,8 +109,8 @@ type MetricPattern struct {
 // RuleSpecification representation of a rule specification for a CustomEventSpecification
 type RuleSpecification struct {
 	//Common Fields
-	DType    RuleType `json:"ruleType"`
-	Severity int      `json:"severity"`
+	DType    string `json:"ruleType"`
+	Severity int    `json:"severity"`
 
 	//System Rule fields
 	SystemRuleID *string `json:"systemRuleId"`

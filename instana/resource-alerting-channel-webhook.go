@@ -46,7 +46,8 @@ var AlertingChannelWebhookHTTPHeadersSchemaField = &schema.Schema{
 func NewAlertingChannelWebhookResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelWebhookResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelWebhook,
+			ResourceName:       ResourceInstanaAlertingChannelWebhook,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:               alertingChannelNameSchemaField,
 				AlertingChannelWebhookFieldWebhookURLs: AlertingChannelWebhookWebhookURLsSchemaField,

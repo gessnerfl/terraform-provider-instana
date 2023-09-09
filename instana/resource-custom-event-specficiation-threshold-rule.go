@@ -127,11 +127,13 @@ var thresholdRuleSchemaFields = map[string]*schema.Schema{
 // NewCustomEventSpecificationWithThresholdRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with system rules
 func NewCustomEventSpecificationWithThresholdRuleResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
 	commons := &customEventSpecificationCommons{}
+	deprecationNote := "This feature will be removed in version 2.x and should be replaced with instana_custom_event_specification"
 	return &customEventSpecificationWithThresholdRuleResource{
 		metaData: ResourceMetaData{
-			ResourceName:  ResourceInstanaCustomEventSpecificationThresholdRule,
-			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
+			ResourceName:       ResourceInstanaCustomEventSpecificationThresholdRule,
+			Schema:             MergeSchemaMap(defaultCustomEventSchemaFields, thresholdRuleSchemaFields),
 			SchemaVersion: 4,
+			DeprecationMessage: deprecationNote,
 		},
 		commons: commons,
 	}

@@ -1,5 +1,7 @@
 # Alerting Channel Email Resource
 
+**Deprecated** This feature will be removed in version 2.x and should be replaced with `instana_alerting_channel`.
+
 Alerting channel configuration for notifications to a specified list of email addresses.
 
 API Documentation: <https://instana.github.io/openapi/#operation/getAlertingChannels>

@@ -30,7 +30,8 @@ var AlertingChannelEmailEmailsSchemaField = &schema.Schema{
 func NewAlertingChannelEmailResourceHandle() ResourceHandle[*restapi.AlertingChannel] {
 	return &alertingChannelEmailResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelEmail,
+			ResourceName:       ResourceInstanaAlertingChannelEmail,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:        alertingChannelNameSchemaField,
 				AlertingChannelEmailFieldEmails: AlertingChannelEmailEmailsSchemaField,

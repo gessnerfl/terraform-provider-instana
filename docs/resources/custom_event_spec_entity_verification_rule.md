@@ -1,5 +1,7 @@
 # Custom Event Specification with Entity Verification Rule Resource
 
+**Deprecated** use `instana_custom_event_specification`
+
 Configuration of a custom event specification based on an entity verification rule. This rule type is used
 to check for hosts which do not have matching entities running on them.
 

@@ -1,5 +1,7 @@
 # Custom Event Specification with System Rule Resource
 
+**Deprecated** use `instana_custom_event_specification`
+
 Configuration of a custom event specification based on a system rule.
 
 API Documentation: <https://instana.github.io/openapi/#operation/putCustomEventSpecification>

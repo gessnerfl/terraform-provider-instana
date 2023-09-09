@@ -62,11 +62,13 @@ var entityVerificationRuleSchemaFields = map[string]*schema.Schema{
 // NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications with entity verification rules
 func NewCustomEventSpecificationWithEntityVerificationRuleResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
 	commons := &customEventSpecificationCommons{}
+	deprecationNote := "This feature will be removed in version 2.x and should be replaced with instana_custom_event_specification"
 	return &customEventSpecificationWithEntityVerificationRuleResource{
 		metaData: ResourceMetaData{
-			ResourceName:  ResourceInstanaCustomEventSpecificationEntityVerificationRule,
-			Schema:        MergeSchemaMap(defaultCustomEventSchemaFields, entityVerificationRuleSchemaFields),
+			ResourceName:       ResourceInstanaCustomEventSpecificationEntityVerificationRule,
+			Schema:             MergeSchemaMap(defaultCustomEventSchemaFields, entityVerificationRuleSchemaFields),
 			SchemaVersion: 4,
+			DeprecationMessage: deprecationNote,
 		},
 		commons: commons,
 	}

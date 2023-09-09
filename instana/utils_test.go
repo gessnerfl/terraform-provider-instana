@@ -33,6 +33,22 @@ func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T
 	require.Nil(t, result)
 }
 
+func TestReadStringArrayParameterFromMapWhenParameterIsProvided(t *testing.T) {
+	emails := []interface{}{"test1", "test2"}
+	result := ReadArrayParameterFromMap[string](map[string]interface{}{AlertingChannelEmailFieldEmails: emails}, AlertingChannelEmailFieldEmails)
+
+	require.NotNil(t, result)
+	require.Len(t, result, 2)
+	require.Contains(t, result, "test1")
+	require.Contains(t, result, "test2")
+}
+
+func TestReadStringArrayParameterFromMapWhenParameterIsMissing(t *testing.T) {
+	result := ReadArrayParameterFromMap[string](map[string]interface{}{"foo": "bar"}, AlertingChannelOpsGenieFieldTags)
+
+	require.Nil(t, result)
+}
+
 func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T) {
 	emails := []interface{}{"test1", "test2"}
 	data := make(map[string]interface{})
@@ -49,6 +65,22 @@ func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T)
 func TestReadStringSetParameterFromResourceWhenParameterIsMissing(t *testing.T) {
 	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle())
 	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
+
+	require.Nil(t, result)
+}
+
+func TestReadStringSetParameterFromMapWhenParameterIsProvided(t *testing.T) {
+	emails := []interface{}{"test1", "test2"}
+	result := ReadSetParameterFromMap[string](map[string]interface{}{AlertingChannelEmailFieldEmails: schema.NewSet(schema.HashString, emails)}, AlertingChannelEmailFieldEmails)
+
+	require.NotNil(t, result)
+	require.Len(t, result, 2)
+	require.Contains(t, result, "test1")
+	require.Contains(t, result, "test2")
+}
+
+func TestReadStringSetParameterFromMapWhenParameterIsMissing(t *testing.T) {
+	result := ReadSetParameterFromMap[string](map[string]interface{}{"foo": "bar"}, AlertingChannelEmailFieldEmails)
 
 	require.Nil(t, result)
 }
@@ -255,6 +287,30 @@ func TestShouldReturnNilWhenStringPointerIsRequestedButNotSetInResource(t *testi
 	resourceData := schema.TestResourceDataRaw(t, resourceSchema, data)
 
 	require.Nil(t, GetStringPointerFromResourceData(resourceData, "test"))
+}
+
+func TestShouldReturnPointerValueFromMap(t *testing.T) {
+	stringValue := "myString"
+	intValue := 1234
+	data := map[string]interface{}{
+		"stringValue": stringValue,
+		"intValue":    intValue,
+	}
+
+	require.Equal(t, &stringValue, GetPointerFromMap[string](data, "stringValue"))
+	require.Equal(t, &intValue, GetPointerFromMap[int](data, "intValue"))
+}
+
+func TestShouldReturnNilWhenPointerIsRequestedButNotSetInMap(t *testing.T) {
+	stringValue := "myString"
+	intValue := 1234
+	data := map[string]interface{}{
+		"stringValue": stringValue,
+		"intValue":    intValue,
+	}
+
+	require.Nil(t, GetPointerFromMap[string](data, "otherStringValue"))
+	require.Nil(t, GetPointerFromMap[int](data, "otherIntValue"))
 }
 
 func TestShouldConvertInterfaceSliceToTargetIntSlice(t *testing.T) {
