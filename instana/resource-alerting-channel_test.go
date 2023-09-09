@@ -53,17 +53,15 @@ func TestAlertingChannelResource(t *testing.T) {
 
 const (
 	alertingChannelTestResourceName    = "instana_alerting_channel.example"
-	alertingChannelChannelFieldPattern = "%s.0.%s.0.%s"
+	alertingChannelChannelFieldPattern = "%s.0.%s"
 )
 
 func alertingChannelEmailIntegrationTest() *alertingChannelIntegrationTest {
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    email {
-      emails = [ "EMAIL1", "EMAIL2" ]
-    }
+  email {
+    emails = [ "EMAIL1", "EMAIL2" ]
   }
 }`
 
@@ -80,8 +78,8 @@ resource "instana_alerting_channel" "example" {
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelEmail, AlertingChannelEmailFieldEmails), 0), "EMAIL1"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelEmail, AlertingChannelEmailFieldEmails), 1), "EMAIL2"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelEmail, AlertingChannelEmailFieldEmails), 0), "EMAIL1"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelEmail, AlertingChannelEmailFieldEmails), 1), "EMAIL2"),
 		},
 	)
 }
@@ -90,12 +88,10 @@ func alertingChannelOpsGenieIntegrationTest() *alertingChannelIntegrationTest {
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    ops_genie {
-      api_key = "api-key"
-	  tags 	  = [ "tag1", "tag2" ]
-	  region  = "EU"
-    }
+  ops_genie {
+    api_key = "api-key"
+	tags 	  = [ "tag1", "tag2" ]
+    region  = "EU"
   }
 }`
 
@@ -114,10 +110,10 @@ resource "instana_alerting_channel" "example" {
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelOpsGenie, AlertingChannelOpsGenieFieldAPIKey), "api-key"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelOpsGenie, AlertingChannelOpsGenieFieldRegion), "EU"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelOpsGenie, AlertingChannelOpsGenieFieldTags), 0), "tag1"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelOpsGenie, AlertingChannelOpsGenieFieldTags), 1), "tag2"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelOpsGenie, AlertingChannelOpsGenieFieldAPIKey), "api-key"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelOpsGenie, AlertingChannelOpsGenieFieldRegion), "EU"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelOpsGenie, AlertingChannelOpsGenieFieldTags), 0), "tag1"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelOpsGenie, AlertingChannelOpsGenieFieldTags), 1), "tag2"),
 		},
 	)
 }
@@ -126,10 +122,8 @@ func alertingChannelPagerDutyIntegrationTest() *alertingChannelIntegrationTest {
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    pager_duty {
-  		service_integration_key = "service-integration-key"
-    }
+  pager_duty {
+    service_integration_key = "service-integration-key"
   }
 }`
 
@@ -145,7 +139,7 @@ resource "instana_alerting_channel" "example" {
 		resourceTemplate,
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
-		[]resource.TestCheckFunc{resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelPageDuty, AlertingChannelPagerDutyFieldServiceIntegrationKey), "service-integration-key")},
+		[]resource.TestCheckFunc{resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelPageDuty, AlertingChannelPagerDutyFieldServiceIntegrationKey), "service-integration-key")},
 	)
 }
 
@@ -153,12 +147,10 @@ func alertingChannelSlackIntegrationTest() *alertingChannelIntegrationTest {
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    slack {
-		webhook_url = "webhook-url"
-		icon_url    = "icon-url"
-		channel     = "channel"
-    }
+  slack {
+	webhook_url = "webhook-url"
+	icon_url    = "icon-url"
+	channel     = "channel"
   }
 }`
 
@@ -177,9 +169,9 @@ resource "instana_alerting_channel" "example" {
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelSlack, AlertingChannelSlackFieldWebhookURL), "webhook-url"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelSlack, AlertingChannelSlackFieldIconURL), "icon-url"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelSlack, AlertingChannelSlackFieldChannel), "channel"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelSlack, AlertingChannelSlackFieldWebhookURL), "webhook-url"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelSlack, AlertingChannelSlackFieldIconURL), "icon-url"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelSlack, AlertingChannelSlackFieldChannel), "channel"),
 		},
 	)
 }
@@ -188,11 +180,9 @@ func alertingChannelSplunkIntegrationTest() *alertingChannelIntegrationTest {
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    splunk {
-		url   = "url"
-		token = "token"
-    }
+  splunk {
+	url   = "url"
+	token = "token"
   }
 }`
 
@@ -210,8 +200,8 @@ resource "instana_alerting_channel" "example" {
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelSplunk, AlertingChannelSplunkFieldURL), "url"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelSplunk, AlertingChannelSplunkFieldToken), "token"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelSplunk, AlertingChannelSplunkFieldURL), "url"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelSplunk, AlertingChannelSplunkFieldToken), "token"),
 		},
 	)
 }
@@ -220,11 +210,9 @@ func alertingChannelVictorOpsIntegrationTest() *alertingChannelIntegrationTest {
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    victor_ops {
-		api_key   = "api-key"
-		routing_key = "routing-key"
-    }
+  victor_ops {
+	api_key   = "api-key"
+	routing_key = "routing-key"
   }
 }`
 
@@ -242,8 +230,8 @@ resource "instana_alerting_channel" "example" {
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelVictorOps, AlertingChannelVictorOpsFieldAPIKey), "api-key"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelVictorOps, AlertingChannelVictorOpsFieldRoutingKey), "routing-key"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelVictorOps, AlertingChannelVictorOpsFieldAPIKey), "api-key"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelVictorOps, AlertingChannelVictorOpsFieldRoutingKey), "routing-key"),
 		},
 	)
 }
@@ -252,14 +240,12 @@ func alertingChannelWebhookIntegrationTest() *alertingChannelIntegrationTest {
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    webhook {
-      webhook_urls = [ "url1", "url2" ]
-	  http_headers = {
+  webhook {
+    webhook_urls = [ "url1", "url2" ]
+	http_headers = {
 		  key1 = "value1"
 		  key2 = "value2"
-	  }
-    }
+	}
   }
 }`
 
@@ -277,10 +263,10 @@ resource "instana_alerting_channel" "example" {
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelWebhook, AlertingChannelWebhookFieldWebhookURLs), 0), "url1"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelWebhook, AlertingChannelWebhookFieldWebhookURLs), 1), "url2"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%s", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelWebhook, AlertingChannelWebhookFieldHTTPHeaders), "key1"), "value1"),
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%s", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelWebhook, AlertingChannelWebhookFieldHTTPHeaders), "key2"), "value2"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelWebhook, AlertingChannelWebhookFieldWebhookURLs), 0), "url1"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%d", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelWebhook, AlertingChannelWebhookFieldWebhookURLs), 1), "url2"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%s", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelWebhook, AlertingChannelWebhookFieldHTTPHeaders), "key1"), "value1"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf("%s.%s", fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelWebhook, AlertingChannelWebhookFieldHTTPHeaders), "key2"), "value2"),
 		},
 	)
 }
@@ -289,10 +275,8 @@ func alertingChannelOffice365IntegrationTest() *alertingChannelIntegrationTest {
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    office_365 {
-      webhook_url = "webhook-url"
-    }
+  office_365 {
+    webhook_url = "webhook-url"
   }
 }`
 
@@ -309,7 +293,7 @@ resource "instana_alerting_channel" "example" {
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelOffice365, AlertingChannelWebhookBasedFieldWebhookURL), "webhook-url"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelOffice365, AlertingChannelWebhookBasedFieldWebhookURL), "webhook-url"),
 		},
 	)
 }
@@ -318,10 +302,8 @@ func alertingChannelGoogleChatIntegrationTest() *alertingChannelIntegrationTest 
 	resourceTemplate := `
 resource "instana_alerting_channel" "example" {
   name = "name %d"
-  channel {
-    google_chat {
-      webhook_url = "webhook-url"
-    }
+  google_chat {
+    webhook_url = "webhook-url"
   }
 }`
 
@@ -338,7 +320,7 @@ resource "instana_alerting_channel" "example" {
 		alertingChannelTestResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannel, AlertingChannelFieldChannelGoogleChat, AlertingChannelWebhookBasedFieldWebhookURL), "webhook-url"),
+			resource.TestCheckResourceAttr(alertingChannelTestResourceName, fmt.Sprintf(alertingChannelChannelFieldPattern, AlertingChannelFieldChannelGoogleChat, AlertingChannelWebhookBasedFieldWebhookURL), "webhook-url"),
 		},
 	)
 }
@@ -396,16 +378,9 @@ func (r *alertingChannelUnitTest) schemaShouldBeValid(t *testing.T) {
 	schemaData := NewAlertingChannelResourceHandle().MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaData, t)
-	require.Len(t, schemaData, 2)
+	require.Len(t, schemaData, 10)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(AlertingChannelFieldName)
-	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfResource(AlertingChannelFieldChannel)
 
-	r.validateChannelSchema(t, schemaData[AlertingChannelFieldChannel].Elem.(*schema.Resource).Schema)
-}
-
-func (r *alertingChannelUnitTest) validateChannelSchema(t *testing.T, channelSchema map[string]*schema.Schema) {
-	schemaAssert := testutils.NewTerraformSchemaAssert(channelSchema, t)
-	require.Len(t, channelSchema, 9)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(AlertingChannelFieldChannelEmail)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(AlertingChannelFieldChannelOpsGenie)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(AlertingChannelFieldChannelPageDuty)
@@ -416,15 +391,15 @@ func (r *alertingChannelUnitTest) validateChannelSchema(t *testing.T, channelSch
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(AlertingChannelFieldChannelOffice365)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(AlertingChannelFieldChannelGoogleChat)
 
-	r.validateEmailChannelSchema(t, channelSchema[AlertingChannelFieldChannelEmail].Elem.(*schema.Resource).Schema)
-	r.validateOpsGenieChannelSchema(t, channelSchema[AlertingChannelFieldChannelOpsGenie].Elem.(*schema.Resource).Schema)
-	r.validatePagerDutyChannelSchema(t, channelSchema[AlertingChannelFieldChannelPageDuty].Elem.(*schema.Resource).Schema)
-	r.validateSlackChannelSchema(t, channelSchema[AlertingChannelFieldChannelSlack].Elem.(*schema.Resource).Schema)
-	r.validateSplunkChannelSchema(t, channelSchema[AlertingChannelFieldChannelSplunk].Elem.(*schema.Resource).Schema)
-	r.validateVictorOpsChannelSchema(t, channelSchema[AlertingChannelFieldChannelVictorOps].Elem.(*schema.Resource).Schema)
-	r.validateWebhookChannelSchema(t, channelSchema[AlertingChannelFieldChannelWebhook].Elem.(*schema.Resource).Schema)
-	r.validateWebhookBasedChannelSchema(t, channelSchema[AlertingChannelFieldChannelOffice365].Elem.(*schema.Resource).Schema)
-	r.validateWebhookBasedChannelSchema(t, channelSchema[AlertingChannelFieldChannelGoogleChat].Elem.(*schema.Resource).Schema)
+	r.validateEmailChannelSchema(t, schemaData[AlertingChannelFieldChannelEmail].Elem.(*schema.Resource).Schema)
+	r.validateOpsGenieChannelSchema(t, schemaData[AlertingChannelFieldChannelOpsGenie].Elem.(*schema.Resource).Schema)
+	r.validatePagerDutyChannelSchema(t, schemaData[AlertingChannelFieldChannelPageDuty].Elem.(*schema.Resource).Schema)
+	r.validateSlackChannelSchema(t, schemaData[AlertingChannelFieldChannelSlack].Elem.(*schema.Resource).Schema)
+	r.validateSplunkChannelSchema(t, schemaData[AlertingChannelFieldChannelSplunk].Elem.(*schema.Resource).Schema)
+	r.validateVictorOpsChannelSchema(t, schemaData[AlertingChannelFieldChannelVictorOps].Elem.(*schema.Resource).Schema)
+	r.validateWebhookChannelSchema(t, schemaData[AlertingChannelFieldChannelWebhook].Elem.(*schema.Resource).Schema)
+	r.validateWebhookBasedChannelSchema(t, schemaData[AlertingChannelFieldChannelOffice365].Elem.(*schema.Resource).Schema)
+	r.validateWebhookBasedChannelSchema(t, schemaData[AlertingChannelFieldChannelGoogleChat].Elem.(*schema.Resource).Schema)
 }
 
 func (r *alertingChannelUnitTest) validateEmailChannelSchema(t *testing.T, channelSchema map[string]*schema.Schema) {
@@ -516,14 +491,12 @@ func (r *alertingChannelUnitTest) shouldMapEmailChannelToState(t *testing.T) {
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelEmail))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelEmail).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelEmail).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelEmail)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelEmail)
-
-	channel := channels[AlertingChannelFieldChannelEmail].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelEmail).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 1)
 	emails := channel[AlertingChannelEmailFieldEmails].(*schema.Set)
 	require.Equal(t, 2, emails.Len())
@@ -554,14 +527,12 @@ func (r *alertingChannelUnitTest) shouldMapOpsGenieChannelToState(t *testing.T) 
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelOpsGenie))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelOpsGenie).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelOpsGenie).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelOpsGenie)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelOpsGenie)
-
-	channel := channels[AlertingChannelFieldChannelOpsGenie].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelOpsGenie).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 3)
 	require.Equal(t, apiKey, channel[AlertingChannelOpsGenieFieldAPIKey])
 	require.Equal(t, string(region), channel[AlertingChannelOpsGenieFieldRegion])
@@ -587,14 +558,12 @@ func (r *alertingChannelUnitTest) shouldMapPagerDutyChannelToState(t *testing.T)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelPageDuty))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelPageDuty).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelPageDuty).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelPageDuty)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelPageDuty)
-
-	channel := channels[AlertingChannelFieldChannelPageDuty].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelPageDuty).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 1)
 	require.Equal(t, integrationKey, channel[AlertingChannelPagerDutyFieldServiceIntegrationKey])
 }
@@ -622,14 +591,12 @@ func (r *alertingChannelUnitTest) shouldMapSlackChannelToState(t *testing.T) {
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelSlack))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelSlack).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelSlack).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelSlack)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelSlack)
-
-	channel := channels[AlertingChannelFieldChannelSlack].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelSlack).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 3)
 	require.Equal(t, webhookURL, channel[AlertingChannelSlackFieldWebhookURL])
 	require.Equal(t, iconURL, channel[AlertingChannelSlackFieldIconURL])
@@ -657,14 +624,12 @@ func (r *alertingChannelUnitTest) shouldMapSplunkChannelToState(t *testing.T) {
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelSplunk))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelSplunk).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelSplunk).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelSplunk)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelSplunk)
-
-	channel := channels[AlertingChannelFieldChannelSplunk].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelSplunk).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 2)
 	require.Equal(t, url, channel[AlertingChannelSplunkFieldURL])
 	require.Equal(t, token, channel[AlertingChannelSplunkFieldToken])
@@ -691,14 +656,12 @@ func (r *alertingChannelUnitTest) shouldMapVictorOpsChannelToState(t *testing.T)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelVictorOps))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelVictorOps).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelVictorOps).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelVictorOps)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelVictorOps)
-
-	channel := channels[AlertingChannelFieldChannelVictorOps].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelVictorOps).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 2)
 	require.Equal(t, apiKey, channel[AlertingChannelVictorOpsFieldAPIKey])
 	require.Equal(t, routingKey, channel[AlertingChannelVictorOpsFieldRoutingKey])
@@ -725,14 +688,12 @@ func (r *alertingChannelUnitTest) shouldMapWebhookChannelToState(t *testing.T) {
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelWebhook))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelWebhook).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelWebhook).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelWebhook)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelWebhook)
-
-	channel := channels[AlertingChannelFieldChannelWebhook].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelWebhook).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 2)
 	require.Equal(t, []interface{}{"url1", "url2"}, channel[AlertingChannelWebhookFieldWebhookURLs].(*schema.Set).List())
 	require.Equal(t, map[string]interface{}{
@@ -760,14 +721,12 @@ func (r *alertingChannelUnitTest) shouldMapOffice365ChannelToState(t *testing.T)
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelOffice365))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelOffice365).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelOffice365).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelOffice365)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelOffice365)
-
-	channel := channels[AlertingChannelFieldChannelOffice365].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelOffice365).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 1)
 	require.Equal(t, webhookURL, channel[AlertingChannelWebhookBasedFieldWebhookURL])
 }
@@ -791,26 +750,23 @@ func (r *alertingChannelUnitTest) shouldMapGoogleChatChannelToState(t *testing.T
 	require.Equal(t, "id", resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(AlertingChannelFieldName))
 
-	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannel))
-	require.Len(t, resourceData.Get(AlertingChannelFieldChannel).([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0])
+	require.IsType(t, []interface{}{}, resourceData.Get(AlertingChannelFieldChannelGoogleChat))
+	require.Len(t, resourceData.Get(AlertingChannelFieldChannelGoogleChat).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(AlertingChannelFieldChannelGoogleChat).([]interface{})[0])
+	r.verifyChannelIsMappedToResource(t, resourceData, AlertingChannelFieldChannelGoogleChat)
 
-	channels := resourceData.Get(AlertingChannelFieldChannel).([]interface{})[0].(map[string]interface{})
-	r.verifyChannelIsMappedToResource(t, channels, AlertingChannelFieldChannelGoogleChat)
-
-	channel := channels[AlertingChannelFieldChannelGoogleChat].([]interface{})[0].(map[string]interface{})
+	channel := resourceData.Get(AlertingChannelFieldChannelGoogleChat).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 1)
 	require.Equal(t, webhookURL, channel[AlertingChannelWebhookBasedFieldWebhookURL])
 }
 
-func (r *alertingChannelUnitTest) verifyChannelIsMappedToResource(t *testing.T, channels map[string]interface{}, expectedChannel string) {
-	require.Len(t, channels, 9)
-	for k := range channels {
-		require.IsType(t, []interface{}{}, channels[k])
+func (r *alertingChannelUnitTest) verifyChannelIsMappedToResource(t *testing.T, d *schema.ResourceData, expectedChannel string) {
+	for _, k := range AlertingChannelTypeFields {
+		require.IsType(t, []interface{}{}, d.Get(k))
 		if k == expectedChannel {
-			require.Len(t, channels[k].([]interface{}), 1)
+			require.Len(t, d.Get(k).([]interface{}), 1)
 		} else {
-			require.Len(t, channels[k].([]interface{}), 0)
+			require.Len(t, d.Get(k).([]interface{}), 0)
 		}
 	}
 }
@@ -842,23 +798,19 @@ func (r *alertingChannelUnitTest) shouldMapStateOfEmailChannelToDataModel(t *tes
 	emails := []string{"email1", "email2"}
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail: []interface{}{
-				map[string]interface{}{
-					AlertingChannelEmailFieldEmails: emails,
-				},
-			},
-			AlertingChannelFieldChannelOpsGenie:   []interface{}{},
-			AlertingChannelFieldChannelPageDuty:   []interface{}{},
-			AlertingChannelFieldChannelSlack:      []interface{}{},
-			AlertingChannelFieldChannelSplunk:     []interface{}{},
-			AlertingChannelFieldChannelVictorOps:  []interface{}{},
-			AlertingChannelFieldChannelWebhook:    []interface{}{},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelEmailFieldEmails: emails,
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -881,25 +833,21 @@ func (r *alertingChannelUnitTest) shouldMapStateOfOpsGenieChannelToDataModel(t *
 	tags := []string{"tag1", "tag2"}
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail: []interface{}{},
-			AlertingChannelFieldChannelOpsGenie: []interface{}{
-				map[string]interface{}{
-					AlertingChannelOpsGenieFieldAPIKey: "api-key",
-					AlertingChannelOpsGenieFieldRegion: "EU",
-					AlertingChannelOpsGenieFieldTags:   tags,
-				},
-			},
-			AlertingChannelFieldChannelPageDuty:   []interface{}{},
-			AlertingChannelFieldChannelSlack:      []interface{}{},
-			AlertingChannelFieldChannelSplunk:     []interface{}{},
-			AlertingChannelFieldChannelVictorOps:  []interface{}{},
-			AlertingChannelFieldChannelWebhook:    []interface{}{},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelOpsGenieFieldAPIKey: "api-key",
+			AlertingChannelOpsGenieFieldRegion: "EU",
+			AlertingChannelOpsGenieFieldTags:   tags,
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -922,23 +870,19 @@ func (r *alertingChannelUnitTest) shouldMapStateOfPagerDutyChannelToDataModel(t 
 	integrationKey := "integration key"
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:    []interface{}{},
-			AlertingChannelFieldChannelOpsGenie: []interface{}{},
-			AlertingChannelFieldChannelPageDuty: []interface{}{
-				map[string]interface{}{
-					AlertingChannelPagerDutyFieldServiceIntegrationKey: integrationKey,
-				},
-			},
-			AlertingChannelFieldChannelSlack:      []interface{}{},
-			AlertingChannelFieldChannelSplunk:     []interface{}{},
-			AlertingChannelFieldChannelVictorOps:  []interface{}{},
-			AlertingChannelFieldChannelWebhook:    []interface{}{},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelPagerDutyFieldServiceIntegrationKey: integrationKey,
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -961,25 +905,21 @@ func (r *alertingChannelUnitTest) shouldMapStateOfSlackChannelToDataModel(t *tes
 	channel := testAlertingChannelSlackChannel
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:    []interface{}{},
-			AlertingChannelFieldChannelOpsGenie: []interface{}{},
-			AlertingChannelFieldChannelPageDuty: []interface{}{},
-			AlertingChannelFieldChannelSlack: []interface{}{
-				map[string]interface{}{
-					AlertingChannelSlackFieldWebhookURL: webhookURL,
-					AlertingChannelSlackFieldIconURL:    iconURL,
-					AlertingChannelSlackFieldChannel:    channel,
-				},
-			},
-			AlertingChannelFieldChannelSplunk:     []interface{}{},
-			AlertingChannelFieldChannelVictorOps:  []interface{}{},
-			AlertingChannelFieldChannelWebhook:    []interface{}{},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelSlackFieldWebhookURL: webhookURL,
+			AlertingChannelSlackFieldIconURL:    iconURL,
+			AlertingChannelSlackFieldChannel:    channel,
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -1003,24 +943,20 @@ func (r *alertingChannelUnitTest) shouldMapStateOfSplunkChannelToDataModel(t *te
 	token := "token"
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:    []interface{}{},
-			AlertingChannelFieldChannelOpsGenie: []interface{}{},
-			AlertingChannelFieldChannelPageDuty: []interface{}{},
-			AlertingChannelFieldChannelSlack:    []interface{}{},
-			AlertingChannelFieldChannelSplunk: []interface{}{
-				map[string]interface{}{
-					AlertingChannelSplunkFieldURL:   url,
-					AlertingChannelSplunkFieldToken: token,
-				},
-			},
-			AlertingChannelFieldChannelVictorOps:  []interface{}{},
-			AlertingChannelFieldChannelWebhook:    []interface{}{},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelSplunkFieldURL:   url,
+			AlertingChannelSplunkFieldToken: token,
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -1043,24 +979,20 @@ func (r *alertingChannelUnitTest) shouldMapStateOfVictorOpsChannelToDataModel(t 
 	routingKey := testAlertingChannelVictorOpsRoutingKey
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:    []interface{}{},
-			AlertingChannelFieldChannelOpsGenie: []interface{}{},
-			AlertingChannelFieldChannelPageDuty: []interface{}{},
-			AlertingChannelFieldChannelSlack:    []interface{}{},
-			AlertingChannelFieldChannelSplunk:   []interface{}{},
-			AlertingChannelFieldChannelVictorOps: []interface{}{
-				map[string]interface{}{
-					AlertingChannelVictorOpsFieldAPIKey:     apiKey,
-					AlertingChannelVictorOpsFieldRoutingKey: routingKey,
-				},
-			},
-			AlertingChannelFieldChannelWebhook:    []interface{}{},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelVictorOpsFieldAPIKey:     apiKey,
+			AlertingChannelVictorOpsFieldRoutingKey: routingKey,
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -1082,23 +1014,19 @@ func (r *alertingChannelUnitTest) shouldMapStateOfWebhookChannelToDataModel(t *t
 	webhookURLs := []string{"url1", "url2"}
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:     []interface{}{},
-			AlertingChannelFieldChannelOpsGenie:  []interface{}{},
-			AlertingChannelFieldChannelPageDuty:  []interface{}{},
-			AlertingChannelFieldChannelSlack:     []interface{}{},
-			AlertingChannelFieldChannelSplunk:    []interface{}{},
-			AlertingChannelFieldChannelVictorOps: []interface{}{},
-			AlertingChannelFieldChannelWebhook: []interface{}{
-				map[string]interface{}{
-					AlertingChannelWebhookFieldWebhookURLs: webhookURLs,
-				},
-			},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelWebhookFieldWebhookURLs: webhookURLs,
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -1122,24 +1050,20 @@ func (r *alertingChannelUnitTest) shouldMapStateOfWebhookChannelWithHeadersToDat
 	webhookURLs := []string{"url1", "url2"}
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:     []interface{}{},
-			AlertingChannelFieldChannelOpsGenie:  []interface{}{},
-			AlertingChannelFieldChannelPageDuty:  []interface{}{},
-			AlertingChannelFieldChannelSlack:     []interface{}{},
-			AlertingChannelFieldChannelSplunk:    []interface{}{},
-			AlertingChannelFieldChannelVictorOps: []interface{}{},
-			AlertingChannelFieldChannelWebhook: []interface{}{
-				map[string]interface{}{
-					AlertingChannelWebhookFieldWebhookURLs: webhookURLs,
-					AlertingChannelWebhookFieldHTTPHeaders: map[string]interface{}{"key1": "value1", "key2": ""},
-				},
-			},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelWebhookFieldWebhookURLs: webhookURLs,
+			AlertingChannelWebhookFieldHTTPHeaders: map[string]interface{}{"key1": "value1", "key2": ""},
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -1165,23 +1089,19 @@ func (r *alertingChannelUnitTest) shouldMapStateOfOffice365ChannelToDataModel(t 
 	webhookURL := alertingChannelWebhookBasedWebhookUrl
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:     []interface{}{},
-			AlertingChannelFieldChannelOpsGenie:  []interface{}{},
-			AlertingChannelFieldChannelPageDuty:  []interface{}{},
-			AlertingChannelFieldChannelSlack:     []interface{}{},
-			AlertingChannelFieldChannelSplunk:    []interface{}{},
-			AlertingChannelFieldChannelVictorOps: []interface{}{},
-			AlertingChannelFieldChannelWebhook:   []interface{}{},
-			AlertingChannelFieldChannelOffice365: []interface{}{
-				map[string]interface{}{
-					AlertingChannelWebhookBasedFieldWebhookURL: webhookURL,
-				},
-			},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
+			AlertingChannelWebhookBasedFieldWebhookURL: webhookURL,
 		},
 	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	result, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
@@ -1202,21 +1122,17 @@ func (r *alertingChannelUnitTest) shouldMapStateOfGoogleChatChannelToDataModel(t
 	webhookURL := alertingChannelWebhookBasedWebhookUrl
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{
 		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:     []interface{}{},
-			AlertingChannelFieldChannelOpsGenie:  []interface{}{},
-			AlertingChannelFieldChannelPageDuty:  []interface{}{},
-			AlertingChannelFieldChannelSlack:     []interface{}{},
-			AlertingChannelFieldChannelSplunk:    []interface{}{},
-			AlertingChannelFieldChannelVictorOps: []interface{}{},
-			AlertingChannelFieldChannelWebhook:   []interface{}{},
-			AlertingChannelFieldChannelOffice365: []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{
-				map[string]interface{}{
-					AlertingChannelWebhookBasedFieldWebhookURL: webhookURL,
-				},
-			},
+			AlertingChannelWebhookBasedFieldWebhookURL: webhookURL,
 		},
 	})
 
@@ -1237,19 +1153,15 @@ func (r *alertingChannelUnitTest) shouldFailToMapStateWhenNoChannelIsProvided(t 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
 	resourceData.SetId("id")
-	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannel, []interface{}{
-		map[string]interface{}{
-			AlertingChannelFieldChannelEmail:      []interface{}{},
-			AlertingChannelFieldChannelOpsGenie:   []interface{}{},
-			AlertingChannelFieldChannelPageDuty:   []interface{}{},
-			AlertingChannelFieldChannelSlack:      []interface{}{},
-			AlertingChannelFieldChannelSplunk:     []interface{}{},
-			AlertingChannelFieldChannelVictorOps:  []interface{}{},
-			AlertingChannelFieldChannelWebhook:    []interface{}{},
-			AlertingChannelFieldChannelOffice365:  []interface{}{},
-			AlertingChannelFieldChannelGoogleChat: []interface{}{},
-		},
-	})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOpsGenie, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelPageDuty, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSlack, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelSplunk, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelVictorOps, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelWebhook, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelOffice365, []interface{}{})
+	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelGoogleChat, []interface{}{})
 
 	_, err := resourceHandle.MapStateToDataObject(resourceData, nil)
 
