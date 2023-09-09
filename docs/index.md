@@ -13,11 +13,11 @@ resource.
   * Application Alert Configuration - `instana_application_alert_config`
   * Global Application Alert Configuration - `instana_global_application_alert_config`
 * Event Settings
-  * Custom Event Specification
+  * Custom Event Specification - `instana_custom_event_specification`
     * Entity Verification Rule - `instana_custom_event_spec_entity_verification_rule`
     * System Rule - `instana_custom_event_spec_system_rule`
     * Threshold Rule - `instana_custom_event_spec_threshold_rule`
-  * Alerting Channels
+  * Alerting Channels - `instana_alerting_channel`
     * Email - `instana_alerting_channel_email`
     * Google Chat - `instana_alerting_channel_google_chat`
     * Office 365 - `instana_alerting_channel_office_365`
@@ -41,7 +41,9 @@ resource.
 ## Supported Data Source:
 
 * Event Settings
+  * Alerting Channel Office 365 - `instana_alerting_channel_office_365`
   * Builtin Event Specifications - `instana_builtin_event_spec`
+  * Synthetic Location - `instana_synthetic_location`
 
 ## Example Usage
 
@@ -65,9 +67,11 @@ then the permission 'Access role configuration' must be activated. (Defaults to 
 `<tenant>-<organization>.instana.io`. For onPremise installation the endpoint URL depends on your local setup. (Defaults to the environment variable `INSTANA_ENDPOINT`).
 * `default_name_prefix` - Optional - string will be added in front the resource UI name or label by default
 (not supported by all resources). For existing resources the string will only be added when the name/label is changed.
+**Deprecated:** "This feature will be removed in version 2.x and should be replaced with the native format function"
 * `default_name_suffix` - `Optional` - Default value " (TF managed)" - string will be appended to the resource UI name or 
 label by default (not supported by all resources). For existing resources the string will only be appended when the 
 name/label is changed.
+**Deprecated:** "This feature will be removed in version 2.x and should be replaced with the native format function"
 * `tls_skip_verify` - `Òptional` - Default `false` - If set to true, TLS verification will be skipped when calling Instana API
 
 ## Import support
