@@ -259,9 +259,6 @@ func (r *customEventSpecificationResource) SetComputedFields(d *schema.ResourceD
 
 func (r *customEventSpecificationResource) UpdateState(d *schema.ResourceData, obj restapi.InstanaDataObject, _ utils.ResourceNameFormatter) error {
 	customEventSpecification := obj.(*restapi.CustomEventSpecification)
-
-	d.SetId(customEventSpecification.ID)
-
 	ruleSpec := customEventSpecification.Rules[0]
 	ruleData, err := r.mapRuleToState(ruleSpec)
 	if err != nil {
@@ -279,6 +276,7 @@ func (r *customEventSpecificationResource) UpdateState(d *schema.ResourceData, o
 		CustomEventSpecificationFieldRules:          []interface{}{ruleData},
 	}
 
+	d.SetId(customEventSpecification.ID)
 	return tfutils.UpdateState(d, eventData)
 }
 

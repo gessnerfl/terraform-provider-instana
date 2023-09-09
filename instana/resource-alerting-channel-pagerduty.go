@@ -13,11 +13,12 @@ const (
 	ResourceInstanaAlertingChannelPagerDuty = "instana_alerting_channel_pager_duty"
 )
 
-//NewAlertingChannelPagerDutyResourceHandle creates the resource handle for Alerting Channels of type PagerDuty
+// NewAlertingChannelPagerDutyResourceHandle creates the resource handle for Alerting Channels of type PagerDuty
 func NewAlertingChannelPagerDutyResourceHandle() ResourceHandle {
 	return &alertingChannelPagerDutyResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelPagerDuty,
+			ResourceName:       ResourceInstanaAlertingChannelPagerDuty,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:     alertingChannelNameSchemaField,
 				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,

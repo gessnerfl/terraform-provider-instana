@@ -17,11 +17,12 @@ const (
 	ResourceInstanaAlertingChannelSlack = "instana_alerting_channel_slack"
 )
 
-//NewAlertingChannelSlackResourceHandle creates the resource handle for Alerting Channels of type Email
+// NewAlertingChannelSlackResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelSlackResourceHandle() ResourceHandle {
 	return &alertingChannelSlackResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelSlack,
+			ResourceName:       ResourceInstanaAlertingChannelSlack,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:     alertingChannelNameSchemaField,
 				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,

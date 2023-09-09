@@ -21,7 +21,7 @@ const (
 	ResourceInstanaAlertingChannelOpsGenie = "instana_alerting_channel_ops_genie"
 )
 
-//NewAlertingChannelOpsGenieResourceHandle creates the resource handle for Alerting Channels of type OpsGenie
+// NewAlertingChannelOpsGenieResourceHandle creates the resource handle for Alerting Channels of type OpsGenie
 func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle {
 	opsGenieRegions := make([]string, len(restapi.SupportedOpsGenieRegions))
 	for i, r := range restapi.SupportedOpsGenieRegions {
@@ -30,7 +30,8 @@ func NewAlertingChannelOpsGenieResourceHandle() ResourceHandle {
 
 	return &alertingChannelOpsGenieResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelOpsGenie,
+			ResourceName:       ResourceInstanaAlertingChannelOpsGenie,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:     alertingChannelNameSchemaField,
 				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,

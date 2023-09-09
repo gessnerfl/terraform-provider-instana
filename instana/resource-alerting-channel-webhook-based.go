@@ -17,12 +17,12 @@ const (
 	ResourceInstanaAlertingChannelGoogleChat = "instana_alerting_channel_google_chat"
 )
 
-//NewAlertingChannelGoogleChatResourceHandle creates the terraform resource for Alerting Channels of type Google Chat
+// NewAlertingChannelGoogleChatResourceHandle creates the terraform resource for Alerting Channels of type Google Chat
 func NewAlertingChannelGoogleChatResourceHandle() ResourceHandle {
 	return newAlertingChannelWebhookBasedResourceHandle(restapi.GoogleChatChannelType, ResourceInstanaAlertingChannelGoogleChat)
 }
 
-//NewAlertingChannelOffice356ResourceHandle creates the terraform resource for Alerting Channels of type Office 356
+// NewAlertingChannelOffice356ResourceHandle creates the terraform resource for Alerting Channels of type Office 356
 func NewAlertingChannelOffice356ResourceHandle() ResourceHandle {
 	return newAlertingChannelWebhookBasedResourceHandle(restapi.Office365ChannelType, ResourceInstanaAlertingChannelOffice365)
 }
@@ -30,7 +30,8 @@ func NewAlertingChannelOffice356ResourceHandle() ResourceHandle {
 func newAlertingChannelWebhookBasedResourceHandle(channelType restapi.AlertingChannelType, resourceName string) ResourceHandle {
 	return &alertingChannelWebhookBasedResource{
 		metaData: ResourceMetaData{
-			ResourceName: resourceName,
+			ResourceName:       resourceName,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:     alertingChannelNameSchemaField,
 				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,

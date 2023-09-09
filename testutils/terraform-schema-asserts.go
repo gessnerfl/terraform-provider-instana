@@ -36,6 +36,8 @@ type TerraformSchemaAssert interface {
 	AssertSchemaIsOptionalAndOfTypeListOfStrings(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeSetOfStrings checks if the given schema field is required and of type set of string
 	AssertSchemaIsRequiredAndOfTypeSetOfStrings(fieldName string)
+	//AssertSchemaIsOptionalAndOfTypeMapOfStrings checks if the given schema field is optional and of type list of string
+	AssertSchemaIsOptionalAndOfTypeMapOfStrings(fieldName string)
 	//AssertSchemaIsOptionalAndOfTypeListOfResource checks if the given schema field is optional and of type list of resource
 	AssertSchemaIsOptionalAndOfTypeListOfResource(fieldName string)
 	//AssertSchemaIsRequiredAndOfTypeListOfResource checks if the given schema field is required and of type list of resource
@@ -183,6 +185,17 @@ func (inst *terraformSchemaAssertImpl) AssertSchemaIsRequiredAndOfTypeSetOfStrin
 
 func (inst *terraformSchemaAssertImpl) assertSchemaIsOfTypeSetOfStrings(s *schema.Schema) {
 	require.Equal(inst.t, schema.TypeSet, s.Type)
+	require.NotNil(inst.t, s.Elem)
+	require.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
+	require.Greater(inst.t, len(s.Description), 0)
+}
+
+func (inst *terraformSchemaAssertImpl) AssertSchemaIsOptionalAndOfTypeMapOfStrings(schemaField string) {
+	s := inst.schemaMap[schemaField]
+
+	require.NotNil(inst.t, s)
+	require.True(inst.t, s.Optional)
+	require.Equal(inst.t, schema.TypeMap, s.Type)
 	require.NotNil(inst.t, s.Elem)
 	require.Equal(inst.t, schema.TypeString, s.Elem.(*schema.Schema).Type)
 	require.Greater(inst.t, len(s.Description), 0)

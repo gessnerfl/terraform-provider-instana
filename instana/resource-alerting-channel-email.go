@@ -15,7 +15,7 @@ const (
 	ResourceInstanaAlertingChannelEmail = "instana_alerting_channel_email"
 )
 
-//AlertingChannelEmailEmailsSchemaField schema definition for instana alerting channel emails field
+// AlertingChannelEmailEmailsSchemaField schema definition for instana alerting channel emails field
 var AlertingChannelEmailEmailsSchemaField = &schema.Schema{
 	Type:     schema.TypeSet,
 	MinItems: 1,
@@ -26,11 +26,12 @@ var AlertingChannelEmailEmailsSchemaField = &schema.Schema{
 	Description: "The list of emails of the Email alerting channel",
 }
 
-//NewAlertingChannelEmailResourceHandle creates the resource handle for Alerting Channels of type Email
+// NewAlertingChannelEmailResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelEmailResourceHandle() ResourceHandle {
 	return &alertingChannelEmailResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelEmail,
+			ResourceName:       ResourceInstanaAlertingChannelEmail,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:        alertingChannelNameSchemaField,
 				AlertingChannelFieldFullName:    alertingChannelFullNameSchemaField,

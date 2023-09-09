@@ -19,7 +19,7 @@ const (
 	ResourceInstanaAlertingChannelWebhook = "instana_alerting_channel_webhook"
 )
 
-//AlertingChannelWebhookWebhookURLsSchemaField schema field definition of instana_alerting_channel_webhook field webhook_urls
+// AlertingChannelWebhookWebhookURLsSchemaField schema field definition of instana_alerting_channel_webhook field webhook_urls
 var AlertingChannelWebhookWebhookURLsSchemaField = &schema.Schema{
 	Type:     schema.TypeSet,
 	MinItems: 1,
@@ -30,7 +30,7 @@ var AlertingChannelWebhookWebhookURLsSchemaField = &schema.Schema{
 	Description: "The list of webhook urls of the Webhook alerting channel",
 }
 
-//AlertingChannelWebhookHTTPHeadersSchemaField schema field definition of instana_alerting_channel_webhook field http_headers
+// AlertingChannelWebhookHTTPHeadersSchemaField schema field definition of instana_alerting_channel_webhook field http_headers
 var AlertingChannelWebhookHTTPHeadersSchemaField = &schema.Schema{
 	Type: schema.TypeMap,
 	Elem: &schema.Schema{
@@ -40,11 +40,12 @@ var AlertingChannelWebhookHTTPHeadersSchemaField = &schema.Schema{
 	Description: "The optional map of HTTP headers of the Webhook alerting channel",
 }
 
-//NewAlertingChannelWebhookResourceHandle creates the resource handle for Alerting Channels of type Webhook
+// NewAlertingChannelWebhookResourceHandle creates the resource handle for Alerting Channels of type Webhook
 func NewAlertingChannelWebhookResourceHandle() ResourceHandle {
 	return &alertingChannelWebhookResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelWebhook,
+			ResourceName:       ResourceInstanaAlertingChannelWebhook,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:               alertingChannelNameSchemaField,
 				AlertingChannelFieldFullName:           alertingChannelFullNameSchemaField,
