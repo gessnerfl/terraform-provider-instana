@@ -15,11 +15,12 @@ const (
 	ResourceInstanaAlertingChannelVictorOps = "instana_alerting_channel_victor_ops"
 )
 
-//NewAlertingChannelVictorOpsResourceHandle creates the resource handle for Alerting Channels of type Email
+// NewAlertingChannelVictorOpsResourceHandle creates the resource handle for Alerting Channels of type Email
 func NewAlertingChannelVictorOpsResourceHandle() ResourceHandle {
 	return &alertingChannelVictorOpsResource{
 		metaData: ResourceMetaData{
-			ResourceName: ResourceInstanaAlertingChannelVictorOps,
+			ResourceName:       ResourceInstanaAlertingChannelVictorOps,
+			DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel",
 			Schema: map[string]*schema.Schema{
 				AlertingChannelFieldName:     alertingChannelNameSchemaField,
 				AlertingChannelFieldFullName: alertingChannelFullNameSchemaField,

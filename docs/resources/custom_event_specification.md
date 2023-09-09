@@ -5,7 +5,7 @@ to check for hosts which do not have matching entities running on them.
 
 API Documentation: <https://instana.github.io/openapi/#operation/putCustomEventSpecification>
 
-`default_name_prefix` and `default_name_prefix` is **NOT** supported for this resource as it this feature will
+`default_name_prefix` and `default_name_prefix` is **NOT** supported for this resource as this feature will
 be removed in version 2.x.
 
 ## Example Usage

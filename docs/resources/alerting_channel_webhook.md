@@ -1,5 +1,7 @@
 # Alerting Channel Webhook Resource
 
+**Deprecated** This feature will be removed in version 2.x and should be replaced with `instana_alerting_channel`.
+
 Alerting channel configuration to integrate with WebHooks.
 
 API Documentation: <https://instana.github.io/openapi/#operation/getAlertingChannels>
