@@ -1,5 +1,50 @@
 # Changelog
 
+## [Unreleased](https://github.com/gessnerfl/terraform-provider-instana/tree/HEAD)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.8.1...HEAD)
+
+**Closed issues:**
+
+- Add deprecation note for default prefix and suffix in provider documentation [\#181](https://github.com/gessnerfl/terraform-provider-instana/issues/181)
+
+**Merged pull requests:**
+
+- Feature/172 delete match spec [\#174](https://github.com/gessnerfl/terraform-provider-instana/pull/174) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/166 remove validate [\#173](https://github.com/gessnerfl/terraform-provider-instana/pull/173) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/121 deprecated sli endpoints [\#168](https://github.com/gessnerfl/terraform-provider-instana/pull/168) ([gessnerfl](https://github.com/gessnerfl))
+- \#163: fix missing declaration of sensitive data [\#164](https://github.com/gessnerfl/terraform-provider-instana/pull/164) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/155 remove resource name formatter [\#162](https://github.com/gessnerfl/terraform-provider-instana/pull/162) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/160 app id for synthetic test [\#161](https://github.com/gessnerfl/terraform-provider-instana/pull/161) ([gessnerfl](https://github.com/gessnerfl))
+- Bump actions/setup-go from 3 to 4 [\#157](https://github.com/gessnerfl/terraform-provider-instana/pull/157) ([dependabot[bot]](https://github.com/apps/dependabot))
+- Feature/153 generics for resources and unmarshaller [\#154](https://github.com/gessnerfl/terraform-provider-instana/pull/154) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v1.8.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.8.1) (2023-09-09)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.8.0...v1.8.1)
+
+**Implemented enhancements:**
+
+- Migrate Alerting Channels into single resource [\#169](https://github.com/gessnerfl/terraform-provider-instana/issues/169)
+
+## [v1.8.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.8.0) (2023-09-09)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.7.0...v1.8.0)
+
+**Breaking changes:**
+
+- Remove deprecated MatchSpecification from Application Config [\#172](https://github.com/gessnerfl/terraform-provider-instana/issues/172)
+- Remove Resource Formatting \(default\_prefix, default\_suffix\) [\#155](https://github.com/gessnerfl/terraform-provider-instana/issues/155)
+
+**Implemented enhancements:**
+
+- Migrate Custom Event Specifications into single resource [\#170](https://github.com/gessnerfl/terraform-provider-instana/issues/170)
+- Migrate Validate function of REST resources to TF Resources only [\#166](https://github.com/gessnerfl/terraform-provider-instana/issues/166)
+- Sensitive fields of alerting channels should be marked as sensitive [\#163](https://github.com/gessnerfl/terraform-provider-instana/issues/163)
+- Add field ApplicationId on Synthetic Test resources [\#160](https://github.com/gessnerfl/terraform-provider-instana/issues/160)
+- Use generics to improve reuse of code in REST resources and unmarshaller [\#153](https://github.com/gessnerfl/terraform-provider-instana/issues/153)
+- SLI resource deprecated [\#121](https://github.com/gessnerfl/terraform-provider-instana/issues/121)
+
 ## [v1.7.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.7.0) (2023-07-30)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.6.1...v1.7.0)
