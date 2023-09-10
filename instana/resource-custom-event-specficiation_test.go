@@ -44,6 +44,21 @@ const (
 	customEventSpecificationConfigResourceName            = "instana_custom_event_specification.example"
 	customEventSpecificationRuleFieldPattern              = "%s.0.%s.0.%s"
 	customEventSpecificationRuleMetricPatternFieldPattern = "%s.0.%s.0.%s.0.%s"
+
+	customEventSpecificationWithThresholdRuleSeverity       = "warning"
+	customEventSpecificationWithThresholdRuleID             = "custom-system-event-id"
+	customEventSpecificationWithThresholdRuleEntityType     = "entity_type"
+	customEventSpecificationWithThresholdRuleQuery          = "query"
+	customEventSpecificationWithThresholdRuleExpirationTime = 60000
+	customEventSpecificationWithThresholdRuleDescription    = "description"
+	customEventSpecificationWithThresholdRuleMetricName     = "metric_name"
+	customEventSpecificationWithThresholdRuleRollup         = 40000
+	customEventSpecificationWithThresholdRuleWindow         = 60000
+	customEventSpecificationWithThresholdRuleAggregation    = "sum"
+	customEventSpecificationWithThresholdRuleConditionValue = float64(1.2)
+
+	entityVerificationRuleEntityType = "host"
+	systemRuleEntityType             = "any"
 )
 
 func customerEventSpecificationIntegrationTestWithEntityVerificationRule() *customerEventSpecificationIntegrationTest {
@@ -93,11 +108,11 @@ resource "instana_custom_event_specification" "example" {
 		customEventSpecificationConfigResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationRuleFieldSeverity), CustomEventSpecificationWithThresholdRuleRuleSeverity),
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityLabel), customEntityVerificationEventRuleMatchingEntityLabel),
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityType), customEntityVerificationEventRuleMatchingEntityType),
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationEntityVerificationRuleFieldMatchingOperator), customEntityVerificationEventRuleMatchingOperator.InstanaAPIValue()),
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationEntityVerificationRuleFieldOfflineDuration), strconv.FormatInt(customEntityVerificationEventRuleOfflineDuration, 10)),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationRuleFieldSeverity), customEventSpecificationWithThresholdRuleSeverity),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityLabel), "matching-entity-label"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityType), "matching-entity-type"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationEntityVerificationRuleFieldMatchingOperator), "startsWith"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationEntityVerificationRuleFieldOfflineDuration), "60000"),
 		},
 	)
 }
@@ -143,7 +158,7 @@ resource "instana_custom_event_specification" "example" {
 		customEventSpecificationConfigResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldSystemRule, CustomEventSpecificationRuleFieldSeverity), CustomEventSpecificationWithThresholdRuleRuleSeverity),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldSystemRule, CustomEventSpecificationRuleFieldSeverity), customEventSpecificationWithThresholdRuleSeverity),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldSystemRule, CustomEventSpecificationSystemRuleFieldSystemRuleId), "system_rule_id"),
 		},
 	)
@@ -200,12 +215,12 @@ resource "instana_custom_event_specification" "example" {
 		customEventSpecificationConfigResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationRuleFieldSeverity), CustomEventSpecificationWithThresholdRuleRuleSeverity),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationRuleFieldSeverity), customEventSpecificationWithThresholdRuleSeverity),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldMetricName), customEventSpecificationWithThresholdRuleMetricName),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldAggregation), string(customEventSpecificationWithThresholdRuleAggregation)),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldWindow), strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldRollup), strconv.FormatInt(customEventSpecificationWithThresholdRuleRollup, 10)),
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldConditionOperator), string(restapi.ConditionOperatorEquals.InstanaAPIValue())),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldConditionOperator), string("=")),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldConditionValue), "1.2"),
 		},
 	)
@@ -272,7 +287,7 @@ resource "instana_custom_event_specification" "example" {
 		customEventSpecificationConfigResourceName,
 		httpServerResponseTemplate,
 		[]resource.TestCheckFunc{
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationRuleFieldSeverity), CustomEventSpecificationWithThresholdRuleRuleSeverity),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationRuleFieldSeverity), customEventSpecificationWithThresholdRuleSeverity),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleMetricPatternFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldMetricPattern, CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix), "prefix"),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleMetricPatternFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldMetricPattern, CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix), "postfix"),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleMetricPatternFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldMetricPattern, CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder), "placeholder"),
@@ -280,7 +295,7 @@ resource "instana_custom_event_specification" "example" {
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldAggregation), string(customEventSpecificationWithThresholdRuleAggregation)),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldWindow), strconv.FormatInt(customEventSpecificationWithThresholdRuleWindow, 10)),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldRollup), strconv.FormatInt(customEventSpecificationWithThresholdRuleRollup, 10)),
-			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldConditionOperator), string(restapi.ConditionOperatorEquals.InstanaAPIValue())),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldConditionOperator), string("=")),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldThresholdRule, CustomEventSpecificationThresholdRuleFieldConditionValue), "1.2"),
 		},
 	)
@@ -440,7 +455,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityVerificationRuleToSt
 	spec := &restapi.CustomEventSpecification{
 		ID:             customEventSpecificationWithThresholdRuleID,
 		Name:           resourceName,
-		EntityType:     EntityVerificationRuleEntityType,
+		EntityType:     entityVerificationRuleEntityType,
 		Query:          &query,
 		Description:    &description,
 		ExpirationTime: &expirationTime,
@@ -467,7 +482,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityVerificationRuleToSt
 	require.Nil(t, err)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(CustomEventSpecificationFieldName))
-	require.Equal(t, EntityVerificationRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
+	require.Equal(t, entityVerificationRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
 	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
@@ -505,7 +520,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapSystemRuleToState(t *testi
 	spec := &restapi.CustomEventSpecification{
 		ID:             customEventSpecificationWithThresholdRuleID,
 		Name:           resourceName,
-		EntityType:     SystemRuleEntityType,
+		EntityType:     systemRuleEntityType,
 		Query:          &query,
 		Description:    &description,
 		ExpirationTime: &expirationTime,
@@ -529,7 +544,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapSystemRuleToState(t *testi
 	require.Nil(t, err)
 	require.Equal(t, customEventSpecificationWithThresholdRuleID, resourceData.Id())
 	require.Equal(t, resourceName, resourceData.Get(CustomEventSpecificationFieldName))
-	require.Equal(t, SystemRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
+	require.Equal(t, systemRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
 	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
@@ -565,7 +580,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricName
 	aggregation := customEventSpecificationWithThresholdRuleAggregation
 	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
 	metricName := customEventSpecificationWithThresholdRuleMetricName
-	conditionOperator := restapi.ConditionOperatorEquals.InstanaAPIValue()
+	conditionOperator := "="
 
 	spec := &restapi.CustomEventSpecification{
 		ID:             customEventSpecificationWithThresholdRuleID,
@@ -640,11 +655,11 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	rollup := customEventSpecificationWithThresholdRuleRollup
 	aggregation := customEventSpecificationWithThresholdRuleAggregation
 	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
-	conditionOperator := restapi.ConditionOperatorEquals.InstanaAPIValue()
+	conditionOperator := "="
 	prefix := "prefix"
 	postfix := "postfix"
 	placeholder := "placeholder"
-	operator := restapi.MetricPatternOperatorTypeStartsWith
+	operator := "startsWith"
 
 	spec := &restapi.CustomEventSpecification{
 		ID:             customEventSpecificationWithThresholdRuleID,
@@ -937,7 +952,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 					CustomEventSpecificationThresholdRuleFieldRollup:            customEventSpecificationWithThresholdRuleRollup,
 					CustomEventSpecificationThresholdRuleFieldWindow:            customEventSpecificationWithThresholdRuleWindow,
 					CustomEventSpecificationThresholdRuleFieldAggregation:       customEventSpecificationWithThresholdRuleAggregation,
-					CustomEventSpecificationThresholdRuleFieldConditionOperator: restapi.ConditionOperatorEquals.InstanaAPIValue(),
+					CustomEventSpecificationThresholdRuleFieldConditionOperator: "=",
 					CustomEventSpecificationThresholdRuleFieldConditionValue:    customEventSpecificationWithThresholdRuleConditionValue,
 				},
 			},
@@ -963,7 +978,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 	require.Equal(t, customEventSpecificationWithThresholdRuleWindow, *customEventSpec.Rules[0].Window)
 	require.Equal(t, customEventSpecificationWithThresholdRuleRollup, *customEventSpec.Rules[0].Rollup)
 	require.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *customEventSpec.Rules[0].Aggregation)
-	require.Equal(t, restapi.ConditionOperatorEquals.InstanaAPIValue(), *customEventSpec.Rules[0].ConditionOperator)
+	require.Equal(t, "=", *customEventSpec.Rules[0].ConditionOperator)
 	require.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
 	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
 }
@@ -976,7 +991,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 	prefix := "prefix"
 	postfix := "postfix"
 	placeholder := "placeholder"
-	operator := restapi.MetricPatternOperatorTypeStartsWith
+	operator := "startsWith"
 
 	resourceData.SetId(customEventSpecificationWithThresholdRuleID)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldName, resourceName)
@@ -1004,7 +1019,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 					CustomEventSpecificationThresholdRuleFieldRollup:            customEventSpecificationWithThresholdRuleRollup,
 					CustomEventSpecificationThresholdRuleFieldWindow:            customEventSpecificationWithThresholdRuleWindow,
 					CustomEventSpecificationThresholdRuleFieldAggregation:       customEventSpecificationWithThresholdRuleAggregation,
-					CustomEventSpecificationThresholdRuleFieldConditionOperator: restapi.ConditionOperatorEquals.InstanaAPIValue(),
+					CustomEventSpecificationThresholdRuleFieldConditionOperator: "=",
 					CustomEventSpecificationThresholdRuleFieldConditionValue:    customEventSpecificationWithThresholdRuleConditionValue,
 				},
 			},
@@ -1034,7 +1049,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 	require.Equal(t, customEventSpecificationWithThresholdRuleWindow, *customEventSpec.Rules[0].Window)
 	require.Equal(t, customEventSpecificationWithThresholdRuleRollup, *customEventSpec.Rules[0].Rollup)
 	require.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *customEventSpec.Rules[0].Aggregation)
-	require.Equal(t, restapi.ConditionOperatorEquals.InstanaAPIValue(), *customEventSpec.Rules[0].ConditionOperator)
+	require.Equal(t, "=", *customEventSpec.Rules[0].ConditionOperator)
 	require.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
 	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
 }

@@ -13,6 +13,14 @@ import (
 const ResourceInstanaCustomEventSpecification = "instana_custom_event_specification"
 
 const (
+	CustomEventSpecificationFieldName           = "name"
+	CustomEventSpecificationFieldEntityType     = "entity_type"
+	CustomEventSpecificationFieldQuery          = "query"
+	CustomEventSpecificationFieldTriggering     = "triggering"
+	CustomEventSpecificationFieldDescription    = "description"
+	CustomEventSpecificationFieldExpirationTime = "expiration_time"
+	CustomEventSpecificationFieldEnabled        = "enabled"
+
 	CustomEventSpecificationFieldRules                  = "rules"
 	CustomEventSpecificationFieldEntityVerificationRule = "entity_verification"
 	CustomEventSpecificationFieldSystemRule             = "system"
@@ -51,24 +59,59 @@ var (
 	}
 )
 
+var customEventSpecificationSchemaRuleSeverity = &schema.Schema{
+	Type:         schema.TypeString,
+	Required:     true,
+	ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
+	Description:  "Configures the severity of the rule of the custom event specification",
+}
+
 // NewCustomEventSpecificationResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications
 func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
-	commons := &customEventSpecificationCommons{}
 	return &customEventSpecificationResource{
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaCustomEventSpecification,
 			Schema: map[string]*schema.Schema{
-				CustomEventSpecificationFieldName: customEventSpecificationSchemaName,
+				CustomEventSpecificationFieldName: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "Configures the name of the custom event specification",
+				},
 				CustomEventSpecificationFieldEntityType: {
 					Type:        schema.TypeString,
 					Required:    true,
 					Description: "Configures the entity type of the custom event specification. This value must be set to 'host' for entity verification rules and 'any' in case of system rules.",
 				},
-				CustomEventSpecificationFieldQuery:          customEventSpecificationSchemaQuery,
-				CustomEventSpecificationFieldTriggering:     customEventSpecificationSchemaTriggering,
-				CustomEventSpecificationFieldDescription:    customEventSpecificationSchemaDescription,
-				CustomEventSpecificationFieldExpirationTime: customEventSpecificationSchemaExpirationTime,
-				CustomEventSpecificationFieldEnabled:        customEventSpecificationSchemaEnabled,
+				CustomEventSpecificationFieldQuery: {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					Description: "Configures the dynamic focus query for the custom event specification",
+				},
+				CustomEventSpecificationFieldTriggering: {
+					Type:        schema.TypeBool,
+					Default:     false,
+					Optional:    true,
+					Description: "Configures the custom event specification should trigger an incident",
+				},
+				CustomEventSpecificationFieldDescription: {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					Description: "Configures the description text of the custom event specification",
+				},
+				CustomEventSpecificationFieldExpirationTime: {
+					Type:        schema.TypeInt,
+					Required:    false,
+					Optional:    true,
+					Description: "Configures the expiration time (grace period) to wait before the issue is closed",
+				},
+				CustomEventSpecificationFieldEnabled: {
+					Type:        schema.TypeBool,
+					Default:     true,
+					Optional:    true,
+					Description: "Configures if the custom event specification is enabled or not",
+				},
 				CustomEventSpecificationFieldRules: {
 					Type:        schema.TypeList,
 					MinItems:    1,
@@ -177,7 +220,7 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 													CustomEventSpecificationThresholdRuleFieldMetricPatternOperator: {
 														Type:         schema.TypeString,
 														Required:     true,
-														ValidateFunc: validation.StringInSlice(restapi.SupportedMetricPatternOperatorTypes.ToStringSlice(), false),
+														ValidateFunc: validation.StringInSlice([]string{"is", "contains", "startsWith", "endsWith"}, false),
 														Description:  "The metric pattern operator (e.g is, contains, startsWith, endsWith)",
 													},
 												},
@@ -200,7 +243,7 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 										CustomEventSpecificationThresholdRuleFieldAggregation: {
 											Type:         schema.TypeString,
 											Required:     true,
-											ValidateFunc: validation.StringInSlice(restapi.SupportedAggregationTypes.ToStringSlice(), false),
+											ValidateFunc: validation.StringInSlice([]string{"sum", "avg", "min", "max"}, false),
 											Description:  "The aggregation type (e.g. sum, avg)",
 										},
 										CustomEventSpecificationThresholdRuleFieldConditionOperator: {
@@ -231,13 +274,11 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 			},
 			SchemaVersion: 0,
 		},
-		commons: commons,
 	}
 }
 
 type customEventSpecificationResource struct {
 	metaData ResourceMetaData
-	commons  *customEventSpecificationCommons
 }
 
 func (r *customEventSpecificationResource) MetaData() *ResourceMetaData {
@@ -423,14 +464,14 @@ func (r *customEventSpecificationResource) mapThresholdRuleFromState(rule map[st
 			Prefix:      metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix].(string),
 			Postfix:     GetPointerFromMap[string](metricPatternData, CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix),
 			Placeholder: GetPointerFromMap[string](metricPatternData, CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder),
-			Operator:    restapi.MetricPatternOperatorType(metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternOperator].(string)),
+			Operator:    metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternOperator].(string),
 		}
 		metricPattern = &metricPatternObj
 	}
 
-	var aggregation *restapi.AggregationType
+	var aggregation *string
 	if val, ok := rule[CustomEventSpecificationThresholdRuleFieldAggregation]; ok {
-		agg := restapi.AggregationType(val.(string))
+		agg := val.(string)
 		aggregation = &agg
 	}
 
