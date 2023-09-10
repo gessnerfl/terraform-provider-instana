@@ -14,19 +14,7 @@ resource.
   * Global Application Alert Configuration - `instana_global_application_alert_config`
 * Event Settings
   * Custom Event Specification - `instana_custom_event_specification`
-    * Entity Verification Rule - `instana_custom_event_spec_entity_verification_rule`
-    * System Rule - `instana_custom_event_spec_system_rule`
-    * Threshold Rule - `instana_custom_event_spec_threshold_rule`
   * Alerting Channels - `instana_alerting_channel`
-    * Email - `instana_alerting_channel_email`
-    * Google Chat - `instana_alerting_channel_google_chat`
-    * Office 365 - `instana_alerting_channel_office_365`
-    * OpsGenie - `instana_alerting_channel_ops_genie`
-    * Pager Duty - `instana_alerting_channel_pager_duty`
-    * Slack - `instana_alerting_channel_slack`
-    * Splunk - `instana_alerting_channel_splunk`
-    * VictorOps - `instana_alerting_channel_victor_ops`
-    * Webhook - `instana_alerting_channel_webhook`
   * Alerting Config - `instana_alerting_config`
 * Settings
   * API Tokens - `instana_api_token`
