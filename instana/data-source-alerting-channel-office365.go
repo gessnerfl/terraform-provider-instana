@@ -29,6 +29,7 @@ func (ds *alertingChannelOffice365DataSource) CreateResource() *schema.Resource 
 				Description: "The name of the alerting channel",
 			},
 		},
+		DeprecationMessage: "This feature will be removed in version 2.x and should be replaced with instana_alerting_channel data source",
 	}
 }
 
