@@ -14,24 +14,64 @@ const (
 	//ResourceInstanaAlertingChannel the name of the terraform-provider-instana resource to manage alerting channels
 	ResourceInstanaAlertingChannel = "instana_alerting_channel"
 
+	//AlertingChannelFieldName constant value for the schema field name
+	AlertingChannelFieldName = "name"
+
 	//AlertingChannelFieldChannelEmail const for schema field of the email channel
 	AlertingChannelFieldChannelEmail = "email"
+	//AlertingChannelEmailFieldEmails const for the emails field of the alerting channel
+	AlertingChannelEmailFieldEmails = "emails"
+
 	//AlertingChannelFieldChannelOpsGenie const for schema field of the OpsGenie channel
 	AlertingChannelFieldChannelOpsGenie = "ops_genie"
+	//AlertingChannelOpsGenieFieldAPIKey const for the api key field of the alerting channel OpsGenie
+	AlertingChannelOpsGenieFieldAPIKey = "api_key"
+	//AlertingChannelOpsGenieFieldTags const for the tags field of the alerting channel OpsGenie
+	AlertingChannelOpsGenieFieldTags = "tags"
+	//AlertingChannelOpsGenieFieldRegion const for the region field of the alerting channel OpsGenie
+	AlertingChannelOpsGenieFieldRegion = "region"
+
 	//AlertingChannelFieldChannelPageDuty const for schema field of the PagerDuty channel
 	AlertingChannelFieldChannelPageDuty = "pager_duty"
+	//AlertingChannelPagerDutyFieldServiceIntegrationKey const for the emails field of the alerting channel
+	AlertingChannelPagerDutyFieldServiceIntegrationKey = "service_integration_key"
+
 	//AlertingChannelFieldChannelSlack const for schema field of the Slack channel
 	AlertingChannelFieldChannelSlack = "slack"
+	//AlertingChannelSlackFieldWebhookURL const for the webhookUrl field of the Slack alerting channel
+	AlertingChannelSlackFieldWebhookURL = "webhook_url"
+	//AlertingChannelSlackFieldIconURL const for the iconURL field of the Slack alerting channel
+	AlertingChannelSlackFieldIconURL = "icon_url"
+	//AlertingChannelSlackFieldChannel const for the channel field of the Slack alerting channel
+	AlertingChannelSlackFieldChannel = "channel"
+
 	//AlertingChannelFieldChannelSplunk const for schema field of the Splunk channel
 	AlertingChannelFieldChannelSplunk = "splunk"
+	//AlertingChannelSplunkFieldURL const for the url field of the Splunk alerting channel
+	AlertingChannelSplunkFieldURL = "url"
+	//AlertingChannelSplunkFieldToken const for the token field of the Splunk alerting channel
+	AlertingChannelSplunkFieldToken = "token"
+
 	//AlertingChannelFieldChannelVictorOps const for schema field of the Victor Ops channel
 	AlertingChannelFieldChannelVictorOps = "victor_ops"
+	//AlertingChannelVictorOpsFieldAPIKey const for the apiKey field of the VictorOps alerting channel
+	AlertingChannelVictorOpsFieldAPIKey = "api_key"
+	//AlertingChannelVictorOpsFieldRoutingKey const for the routingKey field of the VictorOps alerting channel
+	AlertingChannelVictorOpsFieldRoutingKey = "routing_key"
+
 	//AlertingChannelFieldChannelWebhook const for schema field of the Webhook channel
 	AlertingChannelFieldChannelWebhook = "webhook"
+	//AlertingChannelWebhookFieldWebhookURLs const for the webhooks field of the Webhook alerting channel
+	AlertingChannelWebhookFieldWebhookURLs = "webhook_urls"
+	//AlertingChannelWebhookFieldHTTPHeaders const for the http headers field of the Webhook alerting channel
+	AlertingChannelWebhookFieldHTTPHeaders = "http_headers"
+
 	//AlertingChannelFieldChannelOffice365 const for schema field of the Office 365 channel
 	AlertingChannelFieldChannelOffice365 = "office_365"
 	//AlertingChannelFieldChannelGoogleChat const for schema field of the Google Chat channel
 	AlertingChannelFieldChannelGoogleChat = "google_chat"
+	//AlertingChannelWebhookBasedFieldWebhookURL const for the webhookUrl field of the alerting channel
+	AlertingChannelWebhookBasedFieldWebhookURL = "webhook_url"
 )
 
 var AlertingChannelTypeFields = []string{
@@ -53,7 +93,11 @@ func NewAlertingChannelResourceHandle() ResourceHandle[*restapi.AlertingChannel]
 		metaData: ResourceMetaData{
 			ResourceName: ResourceInstanaAlertingChannel,
 			Schema: map[string]*schema.Schema{
-				AlertingChannelFieldName: alertingChannelNameSchemaField,
+				AlertingChannelFieldName: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "Configures the name of the alerting channel",
+				},
 				AlertingChannelFieldChannelEmail: {
 					Type:         schema.TypeList,
 					Optional:     true,
@@ -497,7 +541,7 @@ func (r *alertingChannelResource) mapStateToEmailObject(d *schema.ResourceData, 
 
 func (r *alertingChannelResource) mapStateToOpsGenieObject(d *schema.ResourceData, channelState map[string]interface{}) *restapi.AlertingChannel {
 	apiKey := channelState[AlertingChannelOpsGenieFieldAPIKey].(string)
-	region := restapi.OpsGenieRegionType(channelState[AlertingChannelOpsGenieFieldRegion].(string))
+	region := channelState[AlertingChannelOpsGenieFieldRegion].(string)
 	tags := strings.Join(ReadArrayParameterFromMap[string](channelState, AlertingChannelOpsGenieFieldTags), ",")
 
 	return &restapi.AlertingChannel{
