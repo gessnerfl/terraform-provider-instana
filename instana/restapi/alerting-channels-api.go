@@ -12,7 +12,7 @@ type AlertingChannel struct {
 	WebhookURL            *string             `json:"webhookUrl"`
 	APIKey                *string             `json:"apiKey"`
 	Tags                  *string             `json:"tags"`
-	Region                *OpsGenieRegionType `json:"region"`
+	Region                *string             `json:"region"`
 	RoutingKey            *string             `json:"routingKey"`
 	ServiceIntegrationKey *string             `json:"serviceIntegrationKey"`
 	IconURL               *string             `json:"iconUrl"`

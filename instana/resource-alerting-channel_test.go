@@ -506,7 +506,7 @@ func (r *alertingChannelUnitTest) shouldMapEmailChannelToState(t *testing.T) {
 
 func (r *alertingChannelUnitTest) shouldMapOpsGenieChannelToState(t *testing.T) {
 	apiKey := "apiKey"
-	region := restapi.EuOpsGenieRegion
+	region := "EU"
 	tags := "tag1, tag2"
 	data := restapi.AlertingChannel{
 		ID:     "id",
@@ -535,7 +535,7 @@ func (r *alertingChannelUnitTest) shouldMapOpsGenieChannelToState(t *testing.T) 
 	channel := resourceData.Get(AlertingChannelFieldChannelOpsGenie).([]interface{})[0].(map[string]interface{})
 	require.Len(t, channel, 3)
 	require.Equal(t, apiKey, channel[AlertingChannelOpsGenieFieldAPIKey])
-	require.Equal(t, string(region), channel[AlertingChannelOpsGenieFieldRegion])
+	require.Equal(t, region, channel[AlertingChannelOpsGenieFieldRegion])
 	require.Equal(t, []interface{}{"tag1", "tag2"}, channel[AlertingChannelOpsGenieFieldTags])
 }
 
@@ -569,9 +569,9 @@ func (r *alertingChannelUnitTest) shouldMapPagerDutyChannelToState(t *testing.T)
 }
 
 func (r *alertingChannelUnitTest) shouldMapSlackChannelToState(t *testing.T) {
-	webhookURL := testAlertingChannelSlackWebhookURL
-	iconURL := testAlertingChannelSlackIconURL
-	slackChannel := testAlertingChannelSlackChannel
+	webhookURL := "webhook-url"
+	iconURL := "icon-url"
+	slackChannel := "slack-channel"
 	data := restapi.AlertingChannel{
 		ID:         "id",
 		Name:       resourceName,
@@ -636,8 +636,8 @@ func (r *alertingChannelUnitTest) shouldMapSplunkChannelToState(t *testing.T) {
 }
 
 func (r *alertingChannelUnitTest) shouldMapVictorOpsChannelToState(t *testing.T) {
-	apiKey := testAlertingChannelVictorOpsApiKey
-	routingKey := testAlertingChannelVictorOpsRoutingKey
+	apiKey := "api-key"
+	routingKey := "routing-key"
 	data := restapi.AlertingChannel{
 		ID:         "id",
 		Name:       resourceName,
@@ -855,7 +855,7 @@ func (r *alertingChannelUnitTest) shouldMapStateOfOpsGenieChannelToDataModel(t *
 	require.Equal(t, resourceName, result.Name)
 	require.Equal(t, restapi.OpsGenieChannelType, result.Kind)
 	require.Equal(t, "api-key", *result.APIKey)
-	require.Equal(t, restapi.EuOpsGenieRegion, *result.Region)
+	require.Equal(t, "EU", *result.Region)
 	require.Equal(t, "tag1,tag2", *result.Tags)
 }
 
@@ -897,9 +897,9 @@ func (r *alertingChannelUnitTest) shouldMapStateOfSlackChannelToDataModel(t *tes
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
-	webhookURL := testAlertingChannelSlackWebhookURL
-	iconURL := testAlertingChannelSlackIconURL
-	channel := testAlertingChannelSlackChannel
+	webhookURL := "webhook-url"
+	iconURL := "icon-url"
+	channel := "slack-schannel"
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
@@ -970,8 +970,8 @@ func (r *alertingChannelUnitTest) shouldMapStateOfVictorOpsChannelToDataModel(t 
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
-	apiKey := testAlertingChannelVictorOpsApiKey
-	routingKey := testAlertingChannelVictorOpsRoutingKey
+	apiKey := "api-key"
+	routingKey := "routing-key"
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
@@ -1078,7 +1078,7 @@ func (r *alertingChannelUnitTest) shouldMapStateOfOffice365ChannelToDataModel(t 
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
-	webhookURL := alertingChannelWebhookBasedWebhookUrl
+	webhookURL := "webhook-url"
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})
@@ -1110,7 +1110,7 @@ func (r *alertingChannelUnitTest) shouldMapStateOfGoogleChatChannelToDataModel(t
 
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
 
-	webhookURL := alertingChannelWebhookBasedWebhookUrl
+	webhookURL := "webhook-url"
 	resourceData.SetId("id")
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldName, resourceName)
 	setValueOnResourceData(t, resourceData, AlertingChannelFieldChannelEmail, []interface{}{})

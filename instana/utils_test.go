@@ -9,31 +9,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRandomID(t *testing.T) {
+func TestUtils(t *testing.T) {
+	unitTest := &utilsUnitTest{}
+	t.Run("should generate random id", unitTest.shouldGenerateRandomID)
+	t.Run("should read string array parameter from map when parameter is provided", unitTest.shouldReadStringArrayParameterFromMapWhenParameterIsProvided)
+	t.Run("should read string array parameter from map when parameter is missing", unitTest.shouldReadStringArrayParameterFromMapWhenParameterIsMissing)
+	t.Run("should read string set parameter from resource when parameter is provided", unitTest.shouldReadStringSetParameterFromResourceWhenParameterIsProvided)
+	t.Run("should read string set parameter from resource when parameter is missing", unitTest.shouldReadStringSetParameterFromResourceWhenParameterIsMissing)
+	t.Run("should read string set parameter from map when parameter is provided", unitTest.shouldReadStringSetParameterFromMapWhenParameterIsProvided)
+	t.Run("should read string set parameter from map when parameter is missing", unitTest.shouldReadStringSetParameterFromMapWhenParameterIsMissing)
+	t.Run("should return string representation of severity warning", unitTest.shouldShouldReturnStringRepresentationOfSeverityWarning)
+	t.Run("should return string representation of severity critical", unitTest.shouldShouldReturnStringRepresentationOfSeverityCritical)
+	t.Run("should fail to return string representation of severity when int value is not valid", unitTest.shouldShouldFailToConvertStringRepresentationForSeverityWhenIntValueIsNotValid)
+	t.Run("should return int representation of severity warning", unitTest.shouldShouldReturnIntRepresentationOfSeverityWarning)
+	t.Run("should return int representation of severity critical", unitTest.shouldShouldReturnIntRepresentationOfSeverityCritical)
+	t.Run("should fail to return int representation of severity when string value is not valid", unitTest.shouldShouldFailToConvertIntRepresentationForSeverityWhenStringValueIsNotValid)
+	t.Run("should successfully merge two provided maps into a single map", unitTest.shouldShouldSuccessfullyMergeTheTwoProvidedMapsIntoASingleMap)
+	t.Run("should return int pointer from resource", unitTest.shouldShouldReturnIntPointerFromResource)
+	t.Run("should return nil when int pointer is requested but not set in resource", unitTest.shouldShouldReturnNilWhenIntPointerIsRequestedButNotSetInResource)
+	t.Run("should return int32 pointer from resource", unitTest.shouldShouldReturnInt32PointerFromResource)
+	t.Run("should return nil when int32 pointer is requested but not set in resource", unitTest.shouldShouldReturnNilWhenInt32PointerIsRequestedButNotSetInResource)
+	t.Run("should return float64 pointer from resource", unitTest.shouldShouldReturnFloat64PointerFromResource)
+	t.Run("should return nil when float64 pointer is requested but not set in resource", unitTest.shouldShouldReturnNilWhenFloat64PointerIsRequestedButNotSetInResource)
+	t.Run("should return float32 pointer from resource", unitTest.shouldShouldReturnFloat32PointerFromResource)
+	t.Run("should return nil when float32 pointer is requested but not set in resource", unitTest.shouldShouldReturnNilWhenFloat32PointerIsRequestedButNotSetInResource)
+	t.Run("should return string pointer from resource", unitTest.shouldShouldReturnStringPointerFromResource)
+	t.Run("should return nil when string pointer is requested but not set in resource", unitTest.shouldShouldReturnNilWhenStringPointerIsRequestedButNotSetInResource)
+	t.Run("should return pointer value from map", unitTest.shouldShouldReturnPointerValueFromMap)
+	t.Run("should return nil when pointer is requested but value is not set in map", unitTest.shouldShouldReturnNilWhenPointerIsRequestedButNotSetInMap)
+	t.Run("should convert interface slice to target int slice", unitTest.shouldShouldConvertInterfaceSliceToTargetIntSlice)
+	t.Run("should get pointer from map", unitTest.shouldTestGetPointerFromMap)
+}
+
+type utilsUnitTest struct{}
+
+func (r *utilsUnitTest) shouldGenerateRandomID(t *testing.T) {
 	id := RandomID()
 
 	require.NotEqual(t, 0, len(id))
 }
 
-func TestReadStringArrayParameterFromResourceWhenParameterIsProvided(t *testing.T) {
-	ruleIds := []interface{}{"test1", "test2"}
-	data := make(map[string]interface{})
-	data[AlertingChannelOpsGenieFieldTags] = ruleIds
-	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle(), data)
-	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
-
-	require.NotNil(t, result)
-	require.Equal(t, []string{"test1", "test2"}, result)
-}
-
-func TestReadStringArrayParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelOpsGenieResourceHandle())
-	result := ReadStringArrayParameterFromResource(resourceData, AlertingChannelOpsGenieFieldTags)
-
-	require.Nil(t, result)
-}
-
-func TestReadStringArrayParameterFromMapWhenParameterIsProvided(t *testing.T) {
+func (r *utilsUnitTest) shouldReadStringArrayParameterFromMapWhenParameterIsProvided(t *testing.T) {
 	emails := []interface{}{"test1", "test2"}
 	result := ReadArrayParameterFromMap[string](map[string]interface{}{AlertingChannelEmailFieldEmails: emails}, AlertingChannelEmailFieldEmails)
 
@@ -43,18 +59,18 @@ func TestReadStringArrayParameterFromMapWhenParameterIsProvided(t *testing.T) {
 	require.Contains(t, result, "test2")
 }
 
-func TestReadStringArrayParameterFromMapWhenParameterIsMissing(t *testing.T) {
+func (r *utilsUnitTest) shouldReadStringArrayParameterFromMapWhenParameterIsMissing(t *testing.T) {
 	result := ReadArrayParameterFromMap[string](map[string]interface{}{"foo": "bar"}, AlertingChannelOpsGenieFieldTags)
 
 	require.Nil(t, result)
 }
 
-func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T) {
-	emails := []interface{}{"test1", "test2"}
+func (r *utilsUnitTest) shouldReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T) {
+	integrationIds := []interface{}{"test1", "test2"}
 	data := make(map[string]interface{})
-	data[AlertingChannelEmailFieldEmails] = emails
-	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle(), data)
-	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
+	data[AlertingConfigFieldIntegrationIds] = integrationIds
+	resourceData := NewTestHelper[*restapi.AlertingConfiguration](t).CreateResourceDataForResourceHandle(NewAlertingConfigResourceHandle(), data)
+	result := ReadStringSetParameterFromResource(resourceData, AlertingConfigFieldIntegrationIds)
 
 	require.NotNil(t, result)
 	require.Len(t, result, 2)
@@ -62,14 +78,14 @@ func TestReadStringSetParameterFromResourceWhenParameterIsProvided(t *testing.T)
 	require.Contains(t, result, "test2")
 }
 
-func TestReadStringSetParameterFromResourceWhenParameterIsMissing(t *testing.T) {
-	resourceData := NewTestHelper[*restapi.AlertingChannel](t).CreateEmptyResourceDataForResourceHandle(NewAlertingChannelEmailResourceHandle())
-	result := ReadStringSetParameterFromResource(resourceData, AlertingChannelEmailFieldEmails)
+func (r *utilsUnitTest) shouldReadStringSetParameterFromResourceWhenParameterIsMissing(t *testing.T) {
+	resourceData := NewTestHelper[*restapi.AlertingConfiguration](t).CreateEmptyResourceDataForResourceHandle(NewAlertingConfigResourceHandle())
+	result := ReadStringSetParameterFromResource(resourceData, AlertingConfigFieldIntegrationIds)
 
 	require.Nil(t, result)
 }
 
-func TestReadStringSetParameterFromMapWhenParameterIsProvided(t *testing.T) {
+func (r *utilsUnitTest) shouldReadStringSetParameterFromMapWhenParameterIsProvided(t *testing.T) {
 	emails := []interface{}{"test1", "test2"}
 	result := ReadSetParameterFromMap[string](map[string]interface{}{AlertingChannelEmailFieldEmails: schema.NewSet(schema.HashString, emails)}, AlertingChannelEmailFieldEmails)
 
@@ -79,57 +95,57 @@ func TestReadStringSetParameterFromMapWhenParameterIsProvided(t *testing.T) {
 	require.Contains(t, result, "test2")
 }
 
-func TestReadStringSetParameterFromMapWhenParameterIsMissing(t *testing.T) {
+func (r *utilsUnitTest) shouldReadStringSetParameterFromMapWhenParameterIsMissing(t *testing.T) {
 	result := ReadSetParameterFromMap[string](map[string]interface{}{"foo": "bar"}, AlertingChannelEmailFieldEmails)
 
 	require.Nil(t, result)
 }
 
-func TestShouldReturnStringRepresentationOfSeverityWarning(t *testing.T) {
-	testShouldReturnStringRepresentationOfSeverity(restapi.SeverityWarning, t)
+func (r *utilsUnitTest) shouldShouldReturnStringRepresentationOfSeverityWarning(t *testing.T) {
+	r.testShouldReturnStringRepresentationOfSeverity(restapi.SeverityWarning, t)
 }
 
-func TestShouldReturnStringRepresentationOfSeverityCritical(t *testing.T) {
-	testShouldReturnStringRepresentationOfSeverity(restapi.SeverityCritical, t)
+func (r *utilsUnitTest) shouldShouldReturnStringRepresentationOfSeverityCritical(t *testing.T) {
+	r.testShouldReturnStringRepresentationOfSeverity(restapi.SeverityCritical, t)
 }
 
-func testShouldReturnStringRepresentationOfSeverity(severity restapi.Severity, t *testing.T) {
+func (r *utilsUnitTest) testShouldReturnStringRepresentationOfSeverity(severity restapi.Severity, t *testing.T) {
 	result, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(severity.GetAPIRepresentation())
 
 	require.Nil(t, err)
 	require.Equal(t, severity.GetTerraformRepresentation(), result)
 }
 
-func TestShouldFailToConvertStringRepresentationForSeverityWhenIntValueIsNotValid(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldFailToConvertStringRepresentationForSeverityWhenIntValueIsNotValid(t *testing.T) {
 	result, err := ConvertSeverityFromInstanaAPIToTerraformRepresentation(1)
 
 	require.NotNil(t, err)
 	require.Equal(t, "INVALID", result)
 }
 
-func TestShouldReturnIntRepresentationOfSeverityWarning(t *testing.T) {
-	testShouldReturnIntRepresentationOfSeverity(restapi.SeverityWarning, t)
+func (r *utilsUnitTest) shouldShouldReturnIntRepresentationOfSeverityWarning(t *testing.T) {
+	r.testShouldReturnIntRepresentationOfSeverity(restapi.SeverityWarning, t)
 }
 
-func TestShouldReturnIntRepresentationOfSeverityCritical(t *testing.T) {
-	testShouldReturnIntRepresentationOfSeverity(restapi.SeverityCritical, t)
+func (r *utilsUnitTest) shouldShouldReturnIntRepresentationOfSeverityCritical(t *testing.T) {
+	r.testShouldReturnIntRepresentationOfSeverity(restapi.SeverityCritical, t)
 }
 
-func testShouldReturnIntRepresentationOfSeverity(severity restapi.Severity, t *testing.T) {
+func (r *utilsUnitTest) testShouldReturnIntRepresentationOfSeverity(severity restapi.Severity, t *testing.T) {
 	result, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(severity.GetTerraformRepresentation())
 
 	require.Nil(t, err)
 	require.Equal(t, severity.GetAPIRepresentation(), result)
 }
 
-func TestShouldFailToConvertIntRepresentationForSeverityWhenStringValueIsNotValid(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldFailToConvertIntRepresentationForSeverityWhenStringValueIsNotValid(t *testing.T) {
 	result, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation("foo")
 
 	require.NotNil(t, err)
 	require.Equal(t, -1, result)
 }
 
-func TestShouldSuccessfullyMergeTheTwoProvidedMapsIntoASingleMap(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldSuccessfullyMergeTheTwoProvidedMapsIntoASingleMap(t *testing.T) {
 	mapA := map[string]*schema.Schema{"a": {}, "b": {}}
 	mapB := map[string]*schema.Schema{"c": {}, "d": {}}
 	mapMerged := map[string]*schema.Schema{"a": {}, "b": {}, "c": {}, "d": {}}
@@ -139,7 +155,7 @@ func TestShouldSuccessfullyMergeTheTwoProvidedMapsIntoASingleMap(t *testing.T) {
 	require.Equal(t, mapMerged, result)
 }
 
-func TestShouldReturnIntPointerFromResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnIntPointerFromResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeInt,
@@ -155,7 +171,7 @@ func TestShouldReturnIntPointerFromResource(t *testing.T) {
 	require.Equal(t, &value, GetIntPointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnNilWhenIntPointerIsRequestedButNotSetInResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnNilWhenIntPointerIsRequestedButNotSetInResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeInt,
@@ -169,7 +185,7 @@ func TestShouldReturnNilWhenIntPointerIsRequestedButNotSetInResource(t *testing.
 	require.Nil(t, GetIntPointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnInt32PointerFromResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnInt32PointerFromResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeInt,
@@ -185,7 +201,7 @@ func TestShouldReturnInt32PointerFromResource(t *testing.T) {
 	require.Equal(t, &value, GetInt32PointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnNilWhenInt32PointerIsRequestedButNotSetInResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnNilWhenInt32PointerIsRequestedButNotSetInResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeInt,
@@ -199,7 +215,7 @@ func TestShouldReturnNilWhenInt32PointerIsRequestedButNotSetInResource(t *testin
 	require.Nil(t, GetInt32PointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnFloat64PointerFromResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnFloat64PointerFromResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeFloat,
@@ -215,7 +231,7 @@ func TestShouldReturnFloat64PointerFromResource(t *testing.T) {
 	require.Equal(t, &value, GetFloat64PointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnNilWhenFloat64PointerIsRequestedButNotSetInResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnNilWhenFloat64PointerIsRequestedButNotSetInResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeFloat,
@@ -229,7 +245,7 @@ func TestShouldReturnNilWhenFloat64PointerIsRequestedButNotSetInResource(t *test
 	require.Nil(t, GetFloat64PointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnFloat32PointerFromResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnFloat32PointerFromResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeFloat,
@@ -245,7 +261,7 @@ func TestShouldReturnFloat32PointerFromResource(t *testing.T) {
 	require.Equal(t, &value, GetFloat32PointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnNilWhenFloat32PointerIsRequestedButNotSetInResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnNilWhenFloat32PointerIsRequestedButNotSetInResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeFloat,
@@ -259,7 +275,7 @@ func TestShouldReturnNilWhenFloat32PointerIsRequestedButNotSetInResource(t *test
 	require.Nil(t, GetFloat32PointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnStringPointerFromResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnStringPointerFromResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeString,
@@ -275,7 +291,7 @@ func TestShouldReturnStringPointerFromResource(t *testing.T) {
 	require.Equal(t, &value, GetStringPointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnNilWhenStringPointerIsRequestedButNotSetInResource(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnNilWhenStringPointerIsRequestedButNotSetInResource(t *testing.T) {
 	resourceSchema := make(map[string]*schema.Schema)
 	resourceSchema["test"] = &schema.Schema{
 		Type:     schema.TypeString,
@@ -289,7 +305,7 @@ func TestShouldReturnNilWhenStringPointerIsRequestedButNotSetInResource(t *testi
 	require.Nil(t, GetStringPointerFromResourceData(resourceData, "test"))
 }
 
-func TestShouldReturnPointerValueFromMap(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnPointerValueFromMap(t *testing.T) {
 	stringValue := "myString"
 	intValue := 1234
 	data := map[string]interface{}{
@@ -301,7 +317,7 @@ func TestShouldReturnPointerValueFromMap(t *testing.T) {
 	require.Equal(t, &intValue, GetPointerFromMap[int](data, "intValue"))
 }
 
-func TestShouldReturnNilWhenPointerIsRequestedButNotSetInMap(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldReturnNilWhenPointerIsRequestedButNotSetInMap(t *testing.T) {
 	stringValue := "myString"
 	intValue := 1234
 	data := map[string]interface{}{
@@ -313,7 +329,7 @@ func TestShouldReturnNilWhenPointerIsRequestedButNotSetInMap(t *testing.T) {
 	require.Nil(t, GetPointerFromMap[int](data, "otherIntValue"))
 }
 
-func TestShouldConvertInterfaceSliceToTargetIntSlice(t *testing.T) {
+func (r *utilsUnitTest) shouldShouldConvertInterfaceSliceToTargetIntSlice(t *testing.T) {
 	input := []interface{}{12, 34, 56}
 	expectedResult := []int{12, 34, 56}
 
@@ -322,7 +338,7 @@ func TestShouldConvertInterfaceSliceToTargetIntSlice(t *testing.T) {
 	require.Equal(t, expectedResult, result)
 }
 
-func TestGetPointerFromMap(t *testing.T) {
+func (r *utilsUnitTest) shouldTestGetPointerFromMap(t *testing.T) {
 	t.Run("should return string pointer when key is in map and string value is not null", createShouldReturnPointerValueWhenKeyIsAvailableInMapAndValueIsNotNul("test"))
 	t.Run("should return int pointer when key is in map and int value is not null", createShouldReturnPointerValueWhenKeyIsAvailableInMapAndValueIsNotNul(1234))
 	t.Run("should return bool pointer when key is in map and bool value is not null", createShouldReturnPointerValueWhenKeyIsAvailableInMapAndValueIsNotNul(true))

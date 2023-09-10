@@ -30,7 +30,7 @@ func TestProviderShouldContainValidSchemaDefinition(t *testing.T) {
 func TestProviderShouldContainValidResourceDefinitions(t *testing.T) {
 	config := Provider()
 
-	assert.Equal(t, 25, len(config.ResourcesMap))
+	assert.Equal(t, 16, len(config.ResourcesMap))
 
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaAPIToken])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaApplicationConfig])
@@ -44,28 +44,15 @@ func TestProviderShouldContainValidResourceDefinitions(t *testing.T) {
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaSyntheticTest])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaCustomEventSpecification])
 	assert.NotNil(t, config.ResourcesMap[ResourceInstanaAlertingChannel])
+	assert.NotNil(t, config.ResourcesMap[ResourceInstanaAlertingConfig])
 
 	validateResourcesMapForCustomEvents(config.ResourcesMap, t)
-	validateResourcesMapForAlerting(config.ResourcesMap, t)
 }
 
 func validateResourcesMapForCustomEvents(resourceMap map[string]*schema.Resource, t *testing.T) {
 	assert.NotNil(t, resourceMap[ResourceInstanaCustomEventSpecificationSystemRule])
 	assert.NotNil(t, resourceMap[ResourceInstanaCustomEventSpecificationThresholdRule])
 	assert.NotNil(t, resourceMap[ResourceInstanaCustomEventSpecificationEntityVerificationRule])
-}
-
-func validateResourcesMapForAlerting(resourceMap map[string]*schema.Resource, t *testing.T) {
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelEmail])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelGoogleChat])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelSlack])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelOffice365])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelOpsGenie])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelPagerDuty])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelSplunk])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelVictorOps])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingChannelWebhook])
-	assert.NotNil(t, resourceMap[ResourceInstanaAlertingConfig])
 }
 
 func TestProviderShouldContainValidDataSourceDefinitions(t *testing.T) {
