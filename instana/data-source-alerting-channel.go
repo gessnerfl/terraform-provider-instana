@@ -39,35 +39,41 @@ func (ds *alertingChannelDataSource) convertSchemaMap(schemaMap map[string]*sche
 	result := make(map[string]*schema.Schema)
 
 	for k, v := range schemaMap {
-		s := *v
 		if k == AlertingChannelFieldName {
+			//for the key we assume a simple type. Here we copy the schema including all configuration and make sure
+			//the field is required
+			s := *v
 			s.Required = true
 			s.Optional = false
 			s.Computed = false
+			result[k] = &s
 		} else {
+			//For all other fields we create a new schema, mark it as computed and then set the minimal data required
+			//for the computed datasource field
+			s := &schema.Schema{}
+			s.Description = v.Description
+			s.Deprecated = v.Deprecated
+			s.Type = v.Type
 			s.Required = false
 			s.Optional = false
 			s.Computed = true
-			s.ExactlyOneOf = []string{}
-			s.RequiredWith = []string{}
-			s.ValidateFunc = nil
-			s.ConflictsWith = []string{}
-			s.MinItems = 0
-			s.MaxItems = 0
-		}
 
-		if s.Type == schema.TypeList && reflect.TypeOf(s.Elem) == reflect.TypeOf(&schema.Resource{}) {
-			nestedSchema := s.Elem.(*schema.Resource).Schema
-			convertedNestedSchema := ds.convertSchemaMap(nestedSchema)
-			s.Elem = &schema.Resource{
-				Schema: convertedNestedSchema,
+			if v.Type == schema.TypeList || v.Type == schema.TypeSet || v.Type == schema.TypeMap {
+				if reflect.TypeOf(v.Elem) == reflect.TypeOf(&schema.Resource{}) {
+					nestedSchema := v.Elem.(*schema.Resource).Schema
+					convertedNestedSchema := ds.convertSchemaMap(nestedSchema)
+					s.Elem = &schema.Resource{
+						Schema: convertedNestedSchema,
+					}
+				} else if reflect.TypeOf(v.Elem) == reflect.TypeOf(&schema.Schema{}) {
+					nestedSchema := *v.Elem.(*schema.Schema)
+					s.Elem = &nestedSchema
+				} else {
+					s.Elem = v.Elem
+				}
 			}
-		} else if (s.Type == schema.TypeList || s.Type == schema.TypeSet || s.Type == schema.TypeMap) && reflect.TypeOf(s.Elem) == reflect.TypeOf(&schema.Schema{}) {
-			nestedSchema := *s.Elem.(*schema.Schema)
-			s.Elem = &nestedSchema
+			result[k] = s
 		}
-
-		result[k] = &s
 	}
 
 	return result
