@@ -92,5 +92,6 @@ func providerDataSources() map[string]*schema.Resource {
 	dataSources[DataSourceBuiltinEvent] = NewBuiltinEventDataSource().CreateResource()
 	dataSources[DataSourceSyntheticLocation] = NewSyntheticLocationDataSource().CreateResource()
 	dataSources[DataSourceAlertingChannelOffice365] = NewAlertingChannelOffice365DataSource().CreateResource()
+	dataSources[DataSourceAlertingChannel] = NewAlertingChannelDataSource().CreateResource()
 	return dataSources
 }
