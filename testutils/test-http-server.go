@@ -191,7 +191,7 @@ func (server *testHTTPServerImpl) waitForServerAlive() {
 	url := fmt.Sprintf("https://localhost:%d/health", server.GetPort())
 
 	for i := 0; i < 5; i++ {
-		if resp, err := http.Get(url); err == nil && resp.StatusCode == 200 {
+		if resp, err := http.Get(url); err == nil && resp.StatusCode == 200 { //nolint:gosec
 			return
 		}
 		time.Sleep(50 * time.Millisecond)

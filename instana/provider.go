@@ -1,6 +1,8 @@
 package instana
 
 import (
+	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"strings"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -24,10 +26,10 @@ type ProviderMeta struct {
 // Provider interface implementation of hashicorp terraform provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
-		Schema:         providerSchema(),
-		ResourcesMap:   providerResources(),
-		DataSourcesMap: providerDataSources(),
-		ConfigureFunc:  providerConfigure,
+		Schema:               providerSchema(),
+		ResourcesMap:         providerResources(),
+		DataSourcesMap:       providerDataSources(),
+		ConfigureContextFunc: providerConfigure,
 	}
 }
 
@@ -77,7 +79,7 @@ func bindResourceHandle[T restapi.InstanaDataObject](resources map[string]*schem
 	resources[resourceHandle.MetaData().ResourceName] = NewTerraformResource(resourceHandle).ToSchemaResource()
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+func providerConfigure(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	apiToken := strings.TrimSpace(d.Get(SchemaFieldAPIToken).(string))
 	endpoint := strings.TrimSpace(d.Get(SchemaFieldEndpoint).(string))
 	skipTlsVerify := d.Get(SchemaFieldTlsSkipVerify).(bool)
@@ -91,7 +93,6 @@ func providerDataSources() map[string]*schema.Resource {
 	dataSources := make(map[string]*schema.Resource)
 	dataSources[DataSourceBuiltinEvent] = NewBuiltinEventDataSource().CreateResource()
 	dataSources[DataSourceSyntheticLocation] = NewSyntheticLocationDataSource().CreateResource()
-	dataSources[DataSourceAlertingChannelOffice365] = NewAlertingChannelOffice365DataSource().CreateResource()
 	dataSources[DataSourceAlertingChannel] = NewAlertingChannelDataSource().CreateResource()
 	return dataSources
 }

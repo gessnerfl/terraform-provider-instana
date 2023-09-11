@@ -1,9 +1,11 @@
 package instana
 
 import (
+	"context"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"reflect"
 	"strings"
@@ -24,8 +26,8 @@ type alertingChannelDataSource struct{}
 // CreateResource creates the resource handle for Office 365 alerting channel
 func (ds *alertingChannelDataSource) CreateResource() *schema.Resource {
 	return &schema.Resource{
-		Read:   ds.read,
-		Schema: ds.convertResourceSchema(),
+		ReadContext: ds.read,
+		Schema:      ds.convertResourceSchema(),
 	}
 }
 
@@ -79,39 +81,40 @@ func (ds *alertingChannelDataSource) convertSchemaMap(schemaMap map[string]*sche
 	return result
 }
 
-func (ds *alertingChannelDataSource) read(d *schema.ResourceData, meta interface{}) error {
+func (ds *alertingChannelDataSource) read(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	providerMeta := meta.(*ProviderMeta)
 	instanaAPI := providerMeta.InstanaAPI
 
 	name := d.Get(AlertingChannelFieldName).(string)
 
-	data, err := instanaAPI.AlertingChannelsDS().GetAll()
+	data, err := instanaAPI.AlertingChannels().GetAll()
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	alertChannel, err := ds.findAlertChannel(name, data)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return ds.updateState(d, alertChannel)
+	err = ds.updateState(d, alertChannel)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	return nil
 }
 
-func (ds *alertingChannelDataSource) findAlertChannel(name string, data *[]restapi.InstanaDataObject) (*restapi.AlertingChannelDS, error) {
-	for _, e := range *data {
-		alertingChannel, ok := e.(restapi.AlertingChannelDS)
-		if ok {
-			if alertingChannel.Name == name {
-				return &alertingChannel, nil
-			}
+func (ds *alertingChannelDataSource) findAlertChannel(name string, data *[]*restapi.AlertingChannel) (*restapi.AlertingChannel, error) {
+	for _, alertingChannel := range *data {
+		if alertingChannel.Name == name {
+			return alertingChannel, nil
 		}
 	}
 	return nil, fmt.Errorf("no alerting channel found")
 }
 
-func (ds *alertingChannelDataSource) updateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannelDS) error {
+func (ds *alertingChannelDataSource) updateState(d *schema.ResourceData, alertingChannel *restapi.AlertingChannel) error {
 	data, err := ds.mapChannelToState(alertingChannel)
 	if err != nil {
 		return err
@@ -121,7 +124,7 @@ func (ds *alertingChannelDataSource) updateState(d *schema.ResourceData, alertin
 	return tfutils.UpdateState(d, data)
 }
 
-func (ds *alertingChannelDataSource) mapChannelToState(channel *restapi.AlertingChannelDS) (map[string]interface{}, error) {
+func (ds *alertingChannelDataSource) mapChannelToState(channel *restapi.AlertingChannel) (map[string]interface{}, error) {
 	if channel.Kind == restapi.EmailChannelType {
 		return ds.mapEmailChannelToState(channel), nil
 	}
@@ -152,7 +155,7 @@ func (ds *alertingChannelDataSource) mapChannelToState(channel *restapi.Alerting
 	return nil, fmt.Errorf("received unsupported alerting channel of type %s", channel.Kind)
 }
 
-func (ds *alertingChannelDataSource) mapEmailChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapEmailChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
 		AlertingChannelFieldChannelEmail: []interface{}{
@@ -163,7 +166,7 @@ func (ds *alertingChannelDataSource) mapEmailChannelToState(channel *restapi.Ale
 	}
 }
 
-func (ds *alertingChannelDataSource) mapOpsGenieChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapOpsGenieChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	tags := ds.convertCommaSeparatedListToSlice(*channel.Tags)
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
@@ -186,7 +189,7 @@ func (ds *alertingChannelDataSource) convertCommaSeparatedListToSlice(csv string
 	return result
 }
 
-func (ds *alertingChannelDataSource) mapPagerDutyChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapPagerDutyChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
 		AlertingChannelFieldChannelPageDuty: []interface{}{
@@ -197,7 +200,7 @@ func (ds *alertingChannelDataSource) mapPagerDutyChannelToState(channel *restapi
 	}
 }
 
-func (ds *alertingChannelDataSource) mapSlackChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapSlackChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
 		AlertingChannelFieldChannelSlack: []interface{}{
@@ -210,7 +213,7 @@ func (ds *alertingChannelDataSource) mapSlackChannelToState(channel *restapi.Ale
 	}
 }
 
-func (ds *alertingChannelDataSource) mapSplunkChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapSplunkChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
 		AlertingChannelFieldChannelSplunk: []interface{}{
@@ -222,7 +225,7 @@ func (ds *alertingChannelDataSource) mapSplunkChannelToState(channel *restapi.Al
 	}
 }
 
-func (ds *alertingChannelDataSource) mapVictorOpsChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapVictorOpsChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
 		AlertingChannelFieldChannelVictorOps: []interface{}{
@@ -234,7 +237,7 @@ func (ds *alertingChannelDataSource) mapVictorOpsChannelToState(channel *restapi
 	}
 }
 
-func (ds *alertingChannelDataSource) mapWebhookChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapWebhookChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	headers := ds.createHTTPHeaderMapFromList(channel.Headers)
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
@@ -260,7 +263,7 @@ func (ds *alertingChannelDataSource) createHTTPHeaderMapFromList(headers []strin
 	return result
 }
 
-func (ds *alertingChannelDataSource) mapOffice365ChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapOffice365ChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
 		AlertingChannelFieldChannelOffice365: []interface{}{
@@ -271,7 +274,7 @@ func (ds *alertingChannelDataSource) mapOffice365ChannelToState(channel *restapi
 	}
 }
 
-func (ds *alertingChannelDataSource) mapGoogleChatChannelToState(channel *restapi.AlertingChannelDS) map[string]interface{} {
+func (ds *alertingChannelDataSource) mapGoogleChatChannelToState(channel *restapi.AlertingChannel) map[string]interface{} {
 	return map[string]interface{}{
 		AlertingChannelFieldName: channel.Name,
 		AlertingChannelFieldChannelGoogleChat: []interface{}{

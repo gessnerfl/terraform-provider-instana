@@ -7,10 +7,10 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/golang/mock/gomock"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/require"
+	gomock "go.uber.org/mock/gomock"
 	"testing"
 )
 
@@ -327,29 +327,27 @@ func (r *dataSourceAlertingChannelUnitTest) shouldHaveSchemaVersion0(t *testing.
 }
 
 func (r *dataSourceAlertingChannelUnitTest) shouldSuccessfullyReadChannel(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanaApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter) {
-		data := restapi.AlertingChannelDS{
-			AlertingChannel: restapi.AlertingChannel{
-				ID:     "id",
-				Name:   resourceName,
-				Kind:   restapi.EmailChannelType,
-				Emails: []string{"email1", "email2"},
-			},
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanaApi *mocks.MockInstanaAPI) {
+		data := restapi.AlertingChannel{
+			ID:     "id",
+			Name:   resourceName,
+			Kind:   restapi.EmailChannelType,
+			Emails: []string{"email1", "email2"},
 		}
 
-		alertingChannelDsAPI := mocks.NewMockReadOnlyRestResource(ctrl)
-		alertingChannelDsAPI.EXPECT().GetAll().Times(1).Return(&[]restapi.InstanaDataObject{data}, nil)
-		mockInstanaApi.EXPECT().AlertingChannelsDS().Return(alertingChannelDsAPI).Times(1)
+		AlertingChannelAPI := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
+		AlertingChannelAPI.EXPECT().GetAll().Times(1).Return(&[]*restapi.AlertingChannel{&data}, nil)
+		mockInstanaApi.EXPECT().AlertingChannels().Return(AlertingChannelAPI).Times(1)
 
 		sut := NewAlertingChannelDataSource().CreateResource()
 		resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{
 			AlertingChannelFieldName: resourceName,
 		})
 
-		err := sut.Read(resourceData, meta)
+		diag := sut.ReadContext(nil, resourceData, meta)
 
-		require.NoError(t, err)
+		require.Nil(t, diag)
 		require.Equal(t, data.ID, resourceData.Id())
 		require.Equal(t, data.Name, resourceData.Get(AlertingChannelFieldName))
 
@@ -367,77 +365,76 @@ func (r *dataSourceAlertingChannelUnitTest) shouldSuccessfullyReadChannel(t *tes
 }
 
 func (r *dataSourceAlertingChannelUnitTest) shouldFailToReadChannelWhenApiCallFails(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanaApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter) {
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanaApi *mocks.MockInstanaAPI) {
 		expectedError := errors.New("test")
 
-		alertingChannelDsAPI := mocks.NewMockReadOnlyRestResource(ctrl)
-		alertingChannelDsAPI.EXPECT().GetAll().Times(1).Return(nil, expectedError)
-		mockInstanaApi.EXPECT().AlertingChannelsDS().Return(alertingChannelDsAPI).Times(1)
+		AlertingChannelAPI := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
+		AlertingChannelAPI.EXPECT().GetAll().Times(1).Return(nil, expectedError)
+		mockInstanaApi.EXPECT().AlertingChannels().Return(AlertingChannelAPI).Times(1)
 
 		sut := NewAlertingChannelDataSource().CreateResource()
 		resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{
 			AlertingChannelFieldName: resourceName,
 		})
 
-		err := sut.Read(resourceData, meta)
+		diag := sut.ReadContext(nil, resourceData, meta)
 
-		require.Error(t, err)
-		require.ErrorContains(t, err, expectedError.Error())
+		require.NotNil(t, diag)
+		require.True(t, diag.HasError())
+		require.Contains(t, diag[0].Summary, expectedError.Error())
 	})
 }
 
 func (r *dataSourceAlertingChannelUnitTest) shouldFailToReadChannelWhenNoChannelIsFoundForTheGivenName(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanaApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter) {
-		data := restapi.AlertingChannelDS{
-			AlertingChannel: restapi.AlertingChannel{
-				ID:     "id",
-				Name:   "other name",
-				Kind:   restapi.EmailChannelType,
-				Emails: []string{"email1", "email2"},
-			},
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanaApi *mocks.MockInstanaAPI) {
+		data := restapi.AlertingChannel{
+			ID:     "id",
+			Name:   "other name",
+			Kind:   restapi.EmailChannelType,
+			Emails: []string{"email1", "email2"},
 		}
 
-		alertingChannelDsAPI := mocks.NewMockReadOnlyRestResource(ctrl)
-		alertingChannelDsAPI.EXPECT().GetAll().Times(1).Return(&[]restapi.InstanaDataObject{data}, nil)
-		mockInstanaApi.EXPECT().AlertingChannelsDS().Return(alertingChannelDsAPI).Times(1)
+		AlertingChannelAPI := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
+		AlertingChannelAPI.EXPECT().GetAll().Times(1).Return(&[]*restapi.AlertingChannel{&data}, nil)
+		mockInstanaApi.EXPECT().AlertingChannels().Return(AlertingChannelAPI).Times(1)
 
 		sut := NewAlertingChannelDataSource().CreateResource()
 		resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{
 			AlertingChannelFieldName: resourceName,
 		})
 
-		err := sut.Read(resourceData, meta)
+		diag := sut.ReadContext(nil, resourceData, meta)
 
-		require.Error(t, err)
-		require.ErrorContains(t, err, "no alerting channel found")
+		require.NotNil(t, diag)
+		require.True(t, diag.HasError())
+		require.Contains(t, diag[0].Summary, "no alerting channel found")
 	})
 }
 
 func (r *dataSourceAlertingChannelUnitTest) shouldFailToReadChannelWhenChannelTypeIsNotSupported(t *testing.T) {
-	testHelper := NewTestHelper(t)
-	testHelper.WithMocking(t, func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanaApi *mocks.MockInstanaAPI, mockFormatter *mocks.MockResourceNameFormatter) {
-		data := restapi.AlertingChannelDS{
-			AlertingChannel: restapi.AlertingChannel{
-				ID:   "id",
-				Name: resourceName,
-				Kind: restapi.AlertingChannelType("invalid"),
-			},
+	testHelper := NewTestHelper[*restapi.AlertingChannel](t)
+	testHelper.WithMocking(t, func(ctrl *gomock.Controller, meta *ProviderMeta, mockInstanaApi *mocks.MockInstanaAPI) {
+		data := restapi.AlertingChannel{
+			ID:   "id",
+			Name: resourceName,
+			Kind: restapi.AlertingChannelType("invalid"),
 		}
 
-		alertingChannelDsAPI := mocks.NewMockReadOnlyRestResource(ctrl)
-		alertingChannelDsAPI.EXPECT().GetAll().Times(1).Return(&[]restapi.InstanaDataObject{data}, nil)
-		mockInstanaApi.EXPECT().AlertingChannelsDS().Return(alertingChannelDsAPI).Times(1)
+		AlertingChannelAPI := mocks.NewMockRestResource[*restapi.AlertingChannel](ctrl)
+		AlertingChannelAPI.EXPECT().GetAll().Times(1).Return(&[]*restapi.AlertingChannel{&data}, nil)
+		mockInstanaApi.EXPECT().AlertingChannels().Return(AlertingChannelAPI).Times(1)
 
 		sut := NewAlertingChannelDataSource().CreateResource()
 		resourceData := schema.TestResourceDataRaw(t, sut.Schema, map[string]interface{}{
 			AlertingChannelFieldName: resourceName,
 		})
 
-		err := sut.Read(resourceData, meta)
+		diag := sut.ReadContext(nil, resourceData, meta)
 
-		require.Error(t, err)
-		require.ErrorContains(t, err, "received unsupported alerting channel of type invalid")
+		require.NotNil(t, diag)
+		require.True(t, diag.HasError())
+		require.Contains(t, diag[0].Summary, "received unsupported alerting channel of type invalid")
 	})
 }

@@ -13,7 +13,6 @@ import (
 	. "github.com/gessnerfl/terraform-provider-instana/instana"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"github.com/gessnerfl/terraform-provider-instana/utils"
 )
 
 const websiteMonitoringConfigTerraformTemplate = `
@@ -95,7 +94,7 @@ func (s *websiteMonitoringConfigTestServer) onPost(w http.ResponseWriter, r *htt
 	name := r.URL.Query().Get("name")
 	if name != "" {
 		s.serverState = &restapi.WebsiteMonitoringConfig{
-			ID:      utils.RandomString(10),
+			ID:      RandomID(),
 			Name:    name,
 			AppName: name,
 		}

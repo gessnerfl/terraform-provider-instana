@@ -19,10 +19,6 @@ func TestShouldReturnFalseWhenStringContainsNonWhitespaceCharacters(t *testing.T
 	require.False(t, IsBlank("  ba  "))
 }
 
-func TestShouldCreateRandomString(t *testing.T) {
-	require.Equal(t, 64, len(RandomString(64)))
-}
-
 func TestShouldCreateStringPointerFromString(t *testing.T) {
 	value := "string"
 

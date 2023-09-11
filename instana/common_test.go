@@ -145,16 +145,6 @@ func formatResourceName(iteration int) string {
 	return fmt.Sprintf("name %d", iteration)
 }
 
-func copyMap(input map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-
-	for k, v := range input {
-		result[k] = v
-	}
-
-	return result
-}
-
 type testPair[A any, E any] struct {
 	name     string
 	input    A

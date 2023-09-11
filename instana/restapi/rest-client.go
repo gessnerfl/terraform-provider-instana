@@ -12,13 +12,13 @@ import (
 	resty "gopkg.in/resty.v1"
 )
 
-//ErrEntityNotFound error message which is returned when the entity cannot be found at the server
+// ErrEntityNotFound error message which is returned when the entity cannot be found at the server
 var ErrEntityNotFound = errors.New("failed to get resource from Instana API. 404 - Resource not found")
 
 const contentTypeHeader = "Content-Type"
 const encodingApplicationJSON = "application/json; charset=utf-8"
 
-//RestClient interface to access REST resources of the Instana API
+// RestClient interface to access REST resources of the Instana API
 type RestClient interface {
 	Get(resourcePath string) ([]byte, error)
 	GetOne(id string, resourcePath string) ([]byte, error)
@@ -43,7 +43,7 @@ type apiResponse struct {
 	err  error
 }
 
-//NewClient creates a new instance of the Instana REST API client
+// NewClient creates a new instance of the Instana REST API client
 func NewClient(apiToken string, host string, skipTlsVerification bool) RestClient {
 	restyClient := resty.New()
 	if skipTlsVerification {
@@ -74,42 +74,42 @@ type restClientImpl struct {
 
 var emptyResponse = make([]byte, 0)
 
-//Get request data via HTTP GET for the given resourcePath
+// Get request data via HTTP GET for the given resourcePath
 func (client *restClientImpl) Get(resourcePath string) ([]byte, error) {
 	url := client.buildURL(resourcePath)
 	req := client.createRequest()
 	return client.executeRequest(resty.MethodGet, url, req)
 }
 
-//GetOne request the resource with the given ID
+// GetOne request the resource with the given ID
 func (client *restClientImpl) GetOne(id string, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, id)
 	req := client.createRequest()
 	return client.executeRequest(resty.MethodGet, url, req)
 }
 
-//Post executes a HTTP PUT request to create or update the given resource
+// Post executes a HTTP PUT request to create or update the given resource
 func (client *restClientImpl) Post(data InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildURL(resourcePath)
 	req := client.createRequest().SetHeader(contentTypeHeader, encodingApplicationJSON).SetBody(data)
 	return client.executeRequestWithThrottling(resty.MethodPost, url, req)
 }
 
-//PostWithID executes a HTTP PUT request to create or update the given resource using the ID from the InstanaDataObject in the resource path
+// PostWithID executes a HTTP PUT request to create or update the given resource using the ID from the InstanaDataObject in the resource path
 func (client *restClientImpl) PostWithID(data InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, data.GetIDForResourcePath())
 	req := client.createRequest().SetHeader(contentTypeHeader, encodingApplicationJSON).SetBody(data)
 	return client.executeRequestWithThrottling(resty.MethodPost, url, req)
 }
 
-//Put executes a HTTP PUT request to create or update the given resource
+// Put executes a HTTP PUT request to create or update the given resource
 func (client *restClientImpl) Put(data InstanaDataObject, resourcePath string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, data.GetIDForResourcePath())
 	req := client.createRequest().SetHeader(contentTypeHeader, encodingApplicationJSON).SetBody(data)
 	return client.executeRequestWithThrottling(resty.MethodPut, url, req)
 }
 
-//Delete executes a HTTP DELETE request to delete the resource with the given ID
+// Delete executes a HTTP DELETE request to delete the resource with the given ID
 func (client *restClientImpl) Delete(resourceID string, resourceBasePath string) error {
 	url := client.buildResourceURL(resourceBasePath, resourceID)
 	req := client.createRequest()
@@ -117,7 +117,7 @@ func (client *restClientImpl) Delete(resourceID string, resourceBasePath string)
 	return err
 }
 
-//PostByQuery executes a HTTP POST request to create the resource by providing the data a query parameters
+// PostByQuery executes a HTTP POST request to create the resource by providing the data a query parameters
 func (client *restClientImpl) PostByQuery(resourcePath string, queryParams map[string]string) ([]byte, error) {
 	url := client.buildURL(resourcePath)
 	req := client.createRequest()
@@ -125,7 +125,7 @@ func (client *restClientImpl) PostByQuery(resourcePath string, queryParams map[s
 	return client.executeRequest(resty.MethodPost, url, req)
 }
 
-//PutByQuery executes a HTTP PUT request to update the resource with the given ID by providing the data a query parameters
+// PutByQuery executes a HTTP PUT request to update the resource with the given ID by providing the data a query parameters
 func (client *restClientImpl) PutByQuery(resourcePath string, id string, queryParams map[string]string) ([]byte, error) {
 	url := client.buildResourceURL(resourcePath, id)
 	req := client.createRequest()
@@ -160,9 +160,9 @@ func (client *restClientImpl) executeRequestWithThrottling(method string, url st
 }
 
 func (client *restClientImpl) processThrottledRequests() {
-	throttle := time.Tick(client.throttleRate)
+	timer := time.NewTimer(client.throttleRate)
 	for req := range client.throttledRequests {
-		<-throttle
+		<-timer.C
 		go client.handleThrottledAPIRequest(req)
 	}
 }
