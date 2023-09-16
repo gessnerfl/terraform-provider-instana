@@ -161,7 +161,6 @@ func (server *testHTTPServerImpl) randomPort() int64 {
 	random, err := rand.Int(rand.Reader, big.NewInt(MaxPortNumber-MinPortNumber))
 	if err != nil {
 		log.Fatalf("Failed to generate random number; %s", err)
-		return MaxPortNumber - 100
 	}
 
 	return random.Int64() + MinPortNumber
