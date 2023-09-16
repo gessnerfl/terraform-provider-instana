@@ -1,6 +1,8 @@
 package instana
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -18,8 +20,6 @@ const (
 	//SyntheticTestFieldActive constant value for the schema field active
 	SyntheticTestFieldActive        = "active"
 	SyntheticTestFieldApplicationID = "application_id"
-	//SyntheticTestFieldConfiguration constant value for the schema field configuration
-	SyntheticTestFieldConfiguration = "configuration"
 	//SyntheticTestFieldCustomProperties constant value for the schema field custom_properties
 	SyntheticTestFieldCustomProperties = "custom_properties"
 	//SyntheticTestFieldLocations constant value for the schema field locations
@@ -28,14 +28,18 @@ const (
 	SyntheticTestFieldPlaybackMode = "playback_mode"
 	//SyntheticTestFieldTestFrequency constant value for the schema field test_frequency
 	SyntheticTestFieldTestFrequency = "test_frequency"
+
+	//SyntheticTestFieldConfigHttpScript constant value for the schema field configuration.http_script
+	SyntheticTestFieldConfigHttpScript = "http_script"
+	//SyntheticTestFieldConfigHttpAction constant value for the schema field configuration.http_action
+	SyntheticTestFieldConfigHttpAction = "http_action"
+
 	//SyntheticTestFieldConfigMarkSyntheticCall constant value for the schema field configuration.mark_synthetic_call
 	SyntheticTestFieldConfigMarkSyntheticCall = "mark_synthetic_call"
 	//SyntheticTestFieldConfigRetries constant value for the schema field configuration.retries
 	SyntheticTestFieldConfigRetries = "retries"
 	//SyntheticTestFieldConfigRetryInterval constant value for the schema field configuration.retry_interval
 	SyntheticTestFieldConfigRetryInterval = "retry_interval"
-	//SyntheticTestFieldConfigSyntheticType constant value for the schema field configuration.synthetic_type
-	SyntheticTestFieldConfigSyntheticType = "synthetic_type"
 	//SyntheticTestFieldConfigTimeout constant value for the schema field configuration.timeout
 	SyntheticTestFieldConfigTimeout = "timeout"
 	//SyntheticTestFieldConfigUrl constant value for the schema field configuration.url
@@ -60,6 +64,42 @@ const (
 	SyntheticTestFieldConfigScript = "script"
 )
 
+var syntheticTestConfigurationOptions = []string{
+	"http_script",
+	"http_action",
+}
+
+const SyntheticCheckTypeHttpAction = "HTTPAction"
+const SyntheticCheckTypeHttpScript = "HTTPScript"
+
+var (
+	syntheticTestSchemaConfigMarkSyntheticCall = &schema.Schema{
+		Type:        schema.TypeBool,
+		Optional:    true,
+		Default:     false,
+		Description: "Flag used to control if HTTP calls will be marked as synthetic calls",
+	}
+	syntheticTestSchemaConfigRetries = &schema.Schema{
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Default:      0,
+		Description:  "Indicates how many attempts will be allowed to get a successful connection",
+		ValidateFunc: validation.IntBetween(0, 2),
+	}
+	syntheticTestSchemaConfigRetryInterval = &schema.Schema{
+		Type:         schema.TypeInt,
+		Optional:     true,
+		Default:      1,
+		Description:  "The time interval between retries in seconds",
+		ValidateFunc: validation.IntBetween(1, 10),
+	}
+	syntheticTestSchemaConfigTimeout = &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		Description: "The timeout to be used by the PoP playback engines running the test",
+	}
+)
+
 // NewSyntheticTestResourceHandle creates the resource handle Synthetic Tests
 func NewSyntheticTestResourceHandle() ResourceHandle[*restapi.SyntheticTest] {
 	return &syntheticTestResource{
@@ -70,7 +110,7 @@ func NewSyntheticTestResourceHandle() ResourceHandle[*restapi.SyntheticTest] {
 					Type:         schema.TypeString,
 					Required:     true,
 					Description:  "Friendly name of the Synthetic test",
-					ValidateFunc: validation.StringLenBetween(0, 512),
+					ValidateFunc: validation.StringLenBetween(0, 128),
 				},
 				SyntheticTestFieldDescription: {
 					Type:         schema.TypeString,
@@ -89,46 +129,20 @@ func NewSyntheticTestResourceHandle() ResourceHandle[*restapi.SyntheticTest] {
 					Optional:    true,
 					Description: "Unique identifier of the Application Perspective.",
 				},
-				SyntheticTestFieldConfiguration: {
-					Type:        schema.TypeList,
-					MinItems:    1,
-					MaxItems:    1,
-					Required:    true,
-					Description: "The configuration of the synthetic alert",
+
+				SyntheticTestFieldConfigHttpAction: {
+					Type:         schema.TypeList,
+					MinItems:     0,
+					MaxItems:     1,
+					Optional:     true,
+					Description:  "The configuration of the synthetic alert of type http script",
+					ExactlyOneOf: syntheticTestConfigurationOptions,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							SyntheticTestFieldConfigMarkSyntheticCall: {
-								Type:        schema.TypeBool,
-								Optional:    true,
-								Default:     false,
-								Description: "Flag used to control if HTTP calls will be marked as synthetic calls",
-							},
-							SyntheticTestFieldConfigRetries: {
-								Type:         schema.TypeInt,
-								Optional:     true,
-								Default:      0,
-								Description:  "Indicates how many attempts will be allowed to get a successful connection",
-								ValidateFunc: validation.IntBetween(0, 2),
-							},
-							SyntheticTestFieldConfigRetryInterval: {
-								Type:         schema.TypeInt,
-								Optional:     true,
-								Default:      1,
-								Description:  "The time interval between retries in seconds",
-								ValidateFunc: validation.IntBetween(1, 10),
-							},
-							SyntheticTestFieldConfigSyntheticType: {
-								Type:         schema.TypeString,
-								Required:     true,
-								Description:  "The type of the Synthetic test",
-								ValidateFunc: validation.StringInSlice([]string{"HTTPAction", "HTTPScript"}, true),
-							},
-							SyntheticTestFieldConfigTimeout: {
-								Type:        schema.TypeString,
-								Optional:    true,
-								Description: "The timeout to be used by the PoP playback engines running the test",
-							},
-							// HTTPScript
+							SyntheticTestFieldConfigMarkSyntheticCall: syntheticTestSchemaConfigMarkSyntheticCall,
+							SyntheticTestFieldConfigRetries:           syntheticTestSchemaConfigRetries,
+							SyntheticTestFieldConfigRetryInterval:     syntheticTestSchemaConfigRetryInterval,
+							SyntheticTestFieldConfigTimeout:           syntheticTestSchemaConfigTimeout,
 							SyntheticTestFieldConfigUrl: {
 								Type:         schema.TypeString,
 								Optional:     true,
@@ -162,11 +176,13 @@ func NewSyntheticTestResourceHandle() ResourceHandle[*restapi.SyntheticTest] {
 							SyntheticTestFieldConfigFollowRedirect: {
 								Type:        schema.TypeBool,
 								Optional:    true,
+								Default:     false,
 								Description: "A boolean type, true by default; to allow redirect",
 							},
 							SyntheticTestFieldConfigAllowInsecure: {
 								Type:        schema.TypeBool,
 								Optional:    true,
+								Default:     false,
 								Description: "A boolean type, if set to true then allow insecure certificates",
 							},
 							SyntheticTestFieldConfigExpectStatus: {
@@ -179,10 +195,25 @@ func NewSyntheticTestResourceHandle() ResourceHandle[*restapi.SyntheticTest] {
 								Optional:    true,
 								Description: "An optional regular expression string to be used to check the test response",
 							},
-							// HTTPAction
+						},
+					},
+				},
+				SyntheticTestFieldConfigHttpScript: {
+					Type:         schema.TypeList,
+					MinItems:     0,
+					MaxItems:     1,
+					Optional:     true,
+					Description:  "The configuration of the synthetic alert of type http action",
+					ExactlyOneOf: syntheticTestConfigurationOptions,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							SyntheticTestFieldConfigMarkSyntheticCall: syntheticTestSchemaConfigMarkSyntheticCall,
+							SyntheticTestFieldConfigRetries:           syntheticTestSchemaConfigRetries,
+							SyntheticTestFieldConfigRetryInterval:     syntheticTestSchemaConfigRetryInterval,
+							SyntheticTestFieldConfigTimeout:           syntheticTestSchemaConfigTimeout,
 							SyntheticTestFieldConfigScript: {
 								Type:        schema.TypeString,
-								Optional:    true,
+								Required:    true,
 								Description: "The Javascript content in plain text",
 							},
 						},
@@ -245,17 +276,61 @@ func (r *syntheticTestResource) SetComputedFields(_ *schema.ResourceData) error 
 }
 
 func (r *syntheticTestResource) UpdateState(d *schema.ResourceData, syntheticTest *restapi.SyntheticTest) error {
+	if r.isSupportedConfigurationProvided(&syntheticTest.Configuration) {
+		return fmt.Errorf("unsupported synthetic test of type %s received", syntheticTest.Configuration.SyntheticType)
+	}
 	d.SetId(syntheticTest.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
 		SyntheticTestFieldLabel:            syntheticTest.Label,
 		SyntheticTestFieldActive:           syntheticTest.Active,
+		SyntheticTestFieldDescription:      syntheticTest.Description,
 		SyntheticTestFieldApplicationID:    syntheticTest.ApplicationID,
 		SyntheticTestFieldCustomProperties: syntheticTest.CustomProperties,
 		SyntheticTestFieldLocations:        syntheticTest.Locations,
 		SyntheticTestFieldPlaybackMode:     syntheticTest.PlaybackMode,
 		SyntheticTestFieldTestFrequency:    syntheticTest.TestFrequency,
-		SyntheticTestFieldConfiguration:    r.mapConfigurationToSchema(syntheticTest),
+		SyntheticTestFieldConfigHttpAction: r.mapHttpActionConfig(&syntheticTest.Configuration),
+		SyntheticTestFieldConfigHttpScript: r.mapHttpScriptConfig(&syntheticTest.Configuration),
 	})
+}
+
+func (r *syntheticTestResource) isSupportedConfigurationProvided(config *restapi.SyntheticTestConfig) bool {
+	return config.SyntheticType != SyntheticCheckTypeHttpAction && config.SyntheticType != SyntheticCheckTypeHttpScript
+}
+
+func (r *syntheticTestResource) mapHttpActionConfig(config *restapi.SyntheticTestConfig) []interface{} {
+	if config.SyntheticType == SyntheticCheckTypeHttpAction {
+		configuration := r.mapCommonConfigurationOptions(config)
+		configuration[SyntheticTestFieldConfigUrl] = config.URL
+		configuration[SyntheticTestFieldConfigOperation] = config.Operation
+		configuration[SyntheticTestFieldConfigHeaders] = config.Headers
+		configuration[SyntheticTestFieldConfigBody] = config.Body
+		configuration[SyntheticTestFieldConfigValidationString] = config.ValidationString
+		configuration[SyntheticTestFieldConfigFollowRedirect] = config.FollowRedirect
+		configuration[SyntheticTestFieldConfigAllowInsecure] = config.AllowInsecure
+		configuration[SyntheticTestFieldConfigExpectStatus] = config.ExpectStatus
+		configuration[SyntheticTestFieldConfigExpectMatch] = config.ExpectMatch
+		return []interface{}{configuration}
+	}
+	return []interface{}{}
+}
+
+func (r *syntheticTestResource) mapHttpScriptConfig(config *restapi.SyntheticTestConfig) []interface{} {
+	if config.SyntheticType == SyntheticCheckTypeHttpScript {
+		configuration := r.mapCommonConfigurationOptions(config)
+		configuration[SyntheticTestFieldConfigScript] = config.Script
+		return []interface{}{configuration}
+	}
+	return []interface{}{}
+}
+
+func (r *syntheticTestResource) mapCommonConfigurationOptions(config *restapi.SyntheticTestConfig) map[string]interface{} {
+	configuration := make(map[string]interface{})
+	configuration[SyntheticTestFieldConfigMarkSyntheticCall] = config.MarkSyntheticCall
+	configuration[SyntheticTestFieldConfigTimeout] = config.Timeout
+	configuration[SyntheticTestFieldConfigRetries] = config.Retries
+	configuration[SyntheticTestFieldConfigRetryInterval] = config.RetryInterval
+	return configuration
 }
 
 func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.SyntheticTest, error) {
@@ -265,68 +340,63 @@ func (r *syntheticTestResource) MapStateToDataObject(d *schema.ResourceData) (*r
 		tempAppID := appID.(string)
 		applicationID = &tempAppID
 	}
+	configuration, err := r.mapConfigurationFromSchema(d)
+	if err != nil {
+		return nil, err
+	}
 	return &restapi.SyntheticTest{
 		ID:               d.Id(),
 		Label:            d.Get(SyntheticTestFieldLabel).(string),
-		Description:      d.Get(SyntheticTestFieldDescription).(string),
+		Description:      GetStringPointerFromResourceData(d, SyntheticTestFieldDescription),
 		Active:           d.Get(SyntheticTestFieldActive).(bool),
 		ApplicationID:    applicationID,
-		Configuration:    r.mapConfigurationFromSchema(d),
+		Configuration:    configuration,
 		CustomProperties: d.Get(SyntheticTestFieldCustomProperties).(map[string]interface{}),
 		Locations:        ReadStringSetParameterFromResource(d, SyntheticTestFieldLocations),
 		PlaybackMode:     d.Get(SyntheticTestFieldPlaybackMode).(string),
-		TestFrequency:    int32(d.Get(SyntheticTestFieldTestFrequency).(int)),
+		TestFrequency:    GetInt32PointerFromResourceData(d, SyntheticTestFieldTestFrequency),
 	}, nil
 }
 
-func (r *syntheticTestResource) mapConfigurationToSchema(config *restapi.SyntheticTest) []map[string]interface{} {
-	configuration := make(map[string]interface{})
-	configuration[SyntheticTestFieldConfigMarkSyntheticCall] = config.Configuration.MarkSyntheticCall
-	configuration[SyntheticTestFieldConfigSyntheticType] = config.Configuration.SyntheticType
-	configuration[SyntheticTestFieldConfigTimeout] = config.Configuration.Timeout
-	configuration[SyntheticTestFieldConfigRetries] = config.Configuration.Retries
-	configuration[SyntheticTestFieldConfigRetryInterval] = config.Configuration.RetryInterval
-
-	switch config.Configuration.SyntheticType {
-	case "HTTPAction":
-		configuration[SyntheticTestFieldConfigUrl] = config.Configuration.URL
-		configuration[SyntheticTestFieldConfigOperation] = config.Configuration.Operation
-		configuration[SyntheticTestFieldConfigHeaders] = config.Configuration.Headers
-		configuration[SyntheticTestFieldConfigBody] = config.Configuration.Body
-		configuration[SyntheticTestFieldConfigValidationString] = config.Configuration.ValidationString
-		configuration[SyntheticTestFieldConfigFollowRedirect] = config.Configuration.FollowRedirect
-		configuration[SyntheticTestFieldConfigAllowInsecure] = config.Configuration.AllowInsecure
-		configuration[SyntheticTestFieldConfigExpectStatus] = config.Configuration.ExpectStatus
-		configuration[SyntheticTestFieldConfigExpectMatch] = config.Configuration.ExpectMatch
-	case "HTTPScript":
-		configuration[SyntheticTestFieldConfigScript] = config.Configuration.Script
+func (r *syntheticTestResource) mapConfigurationFromSchema(d *schema.ResourceData) (restapi.SyntheticTestConfig, error) {
+	var syntheticTestType string
+	var syntheticTestConfigData map[string]interface{}
+	if val, ok := d.GetOk(SyntheticTestFieldConfigHttpAction); ok && len(val.([]interface{})) == 1 {
+		syntheticTestType = SyntheticCheckTypeHttpAction
+		syntheticTestConfigData = val.([]interface{})[0].(map[string]interface{})
+	} else if val, ok := d.GetOk(SyntheticTestFieldConfigHttpScript); ok && len(val.([]interface{})) == 1 {
+		syntheticTestType = SyntheticCheckTypeHttpScript
+		syntheticTestConfigData = val.([]interface{})[0].(map[string]interface{})
+	} else {
+		return restapi.SyntheticTestConfig{}, errors.New("no supported synthetic test configuration provided")
 	}
 
-	result := make([]map[string]interface{}, 1)
-	result[0] = configuration
-	return result
-}
-
-func (r *syntheticTestResource) mapConfigurationFromSchema(d *schema.ResourceData) restapi.SyntheticTestConfig {
-	syntheticTestConfigurationSlice := d.Get(SyntheticTestFieldConfiguration).([]interface{})
-	syntheticTestConfig := syntheticTestConfigurationSlice[0].(map[string]interface{})
-	// headerSlice := d.Get(SyntheticTestFieldConfigHeaders).(map[string]interface{})
-
+	expectedStatusAsInt := GetPointerFromMap[int](syntheticTestConfigData, SyntheticTestFieldConfigExpectStatus)
+	var expectedStatus *int32
+	if expectedStatusAsInt != nil {
+		v := int32(*expectedStatusAsInt)
+		expectedStatus = &v
+	}
+	headersRaw, ok := syntheticTestConfigData[SyntheticTestFieldConfigHeaders]
+	var headers map[string]interface{}
+	if ok {
+		headers = headersRaw.(map[string]interface{})
+	}
 	return restapi.SyntheticTestConfig{
-		MarkSyntheticCall: syntheticTestConfig[SyntheticTestFieldConfigMarkSyntheticCall].(bool),
-		Retries:           int32(syntheticTestConfig[SyntheticTestFieldConfigRetries].(int)),
-		RetryInterval:     int32(syntheticTestConfig[SyntheticTestFieldConfigRetryInterval].(int)),
-		SyntheticType:     syntheticTestConfig[SyntheticTestFieldConfigSyntheticType].(string),
-		Timeout:           syntheticTestConfig[SyntheticTestFieldConfigTimeout].(string),
-		URL:               syntheticTestConfig[SyntheticTestFieldConfigUrl].(string),
-		Operation:         syntheticTestConfig[SyntheticTestFieldConfigOperation].(string),
-		Headers:           syntheticTestConfig[SyntheticTestFieldConfigHeaders].(map[string]interface{}),
-		Body:              syntheticTestConfig[SyntheticTestFieldConfigBody].(string),
-		ValidationString:  syntheticTestConfig[SyntheticTestFieldConfigValidationString].(string),
-		FollowRedirect:    syntheticTestConfig[SyntheticTestFieldConfigFollowRedirect].(bool),
-		AllowInsecure:     syntheticTestConfig[SyntheticTestFieldConfigAllowInsecure].(bool),
-		ExpectStatus:      int32(syntheticTestConfig[SyntheticTestFieldConfigExpectStatus].(int)),
-		ExpectMatch:       syntheticTestConfig[SyntheticTestFieldConfigExpectMatch].(string),
-		Script:            syntheticTestConfig[SyntheticTestFieldConfigScript].(string),
-	}
+		MarkSyntheticCall: syntheticTestConfigData[SyntheticTestFieldConfigMarkSyntheticCall].(bool),
+		Retries:           int32(syntheticTestConfigData[SyntheticTestFieldConfigRetries].(int)),
+		RetryInterval:     int32(syntheticTestConfigData[SyntheticTestFieldConfigRetryInterval].(int)),
+		SyntheticType:     syntheticTestType,
+		Timeout:           GetPointerFromMap[string](syntheticTestConfigData, SyntheticTestFieldConfigTimeout),
+		URL:               GetPointerFromMap[string](syntheticTestConfigData, SyntheticTestFieldConfigUrl),
+		Operation:         GetPointerFromMap[string](syntheticTestConfigData, SyntheticTestFieldConfigOperation),
+		Headers:           headers,
+		Body:              GetPointerFromMap[string](syntheticTestConfigData, SyntheticTestFieldConfigBody),
+		ValidationString:  GetPointerFromMap[string](syntheticTestConfigData, SyntheticTestFieldConfigValidationString),
+		FollowRedirect:    GetPointerFromMap[bool](syntheticTestConfigData, SyntheticTestFieldConfigFollowRedirect),
+		AllowInsecure:     GetPointerFromMap[bool](syntheticTestConfigData, SyntheticTestFieldConfigAllowInsecure),
+		ExpectStatus:      expectedStatus,
+		ExpectMatch:       GetPointerFromMap[string](syntheticTestConfigData, SyntheticTestFieldConfigExpectMatch),
+		Script:            GetPointerFromMap[string](syntheticTestConfigData, SyntheticTestFieldConfigScript),
+	}, nil
 }

@@ -624,7 +624,8 @@ func (r *applicationAlertConfigResource) mapApplicationsToSchema(config *restapi
 	result := make([]interface{}, len(config.Applications))
 	i := 0
 	for _, v := range config.Applications {
-		result[i] = r.mapApplicationToSchema(&v)
+		val := v
+		result[i] = r.mapApplicationToSchema(&val)
 		i++
 	}
 	return result
@@ -638,7 +639,8 @@ func (r *applicationAlertConfigResource) mapApplicationToSchema(app *restapi.Inc
 	services := make([]interface{}, len(app.Services))
 	i := 0
 	for _, v := range app.Services {
-		services[i] = r.mapServiceToSchema(&v)
+		val := v
+		services[i] = r.mapServiceToSchema(&val)
 		i++
 	}
 	result[ApplicationAlertConfigFieldApplicationsServices] = services
@@ -653,7 +655,8 @@ func (r *applicationAlertConfigResource) mapServiceToSchema(service *restapi.Inc
 	endpoints := make([]interface{}, len(service.Endpoints))
 	i := 0
 	for _, v := range service.Endpoints {
-		endpoints[i] = r.mapEndpointToSchema(&v)
+		val := v
+		endpoints[i] = r.mapEndpointToSchema(&val)
 		i++
 	}
 	result[ApplicationAlertConfigFieldApplicationsServicesEndpoints] = endpoints

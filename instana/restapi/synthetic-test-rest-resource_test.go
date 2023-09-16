@@ -23,6 +23,8 @@ const (
 var syntheticTestSerialized = []byte("serialized")
 
 func makeSyntheticTest() *SyntheticTest {
+	url := syntheticTestConfigUrl
+	operation := syntheticTestConfigOperation
 	return &SyntheticTest{
 		ID:        syntheticTestID,
 		Label:     syntheticTestLabel,
@@ -30,8 +32,8 @@ func makeSyntheticTest() *SyntheticTest {
 		Locations: []string{syntheticTestLocation},
 		Configuration: SyntheticTestConfig{
 			SyntheticType: syntheticTestConfigSyntheticType,
-			URL:           syntheticTestConfigUrl,
-			Operation:     syntheticTestConfigOperation,
+			URL:           &url,
+			Operation:     &operation,
 		},
 	}
 }

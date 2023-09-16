@@ -42,6 +42,8 @@ const (
 	GroupFieldPermissionSetPermissions = "permissions"
 
 	groupMaxNumberOfSetElements = 1024
+
+	msgStateCannotBeRead = "WARN: %s state cannot be read\n"
 )
 
 var groupPermissionSet = map[string]*schema.Schema{
@@ -326,7 +328,7 @@ func (r *groupResource) convertStateToSliceOfScopeBinding(attribute string, val 
 		}
 		return result
 	}
-	log.Printf("WARN: %s state cannot be read\n", attribute)
+	log.Printf(msgStateCannotBeRead, attribute)
 	return make([]restapi.ScopeBinding, 0)
 }
 
@@ -334,7 +336,7 @@ func (r *groupResource) convertStateToScopeBindingPointer(attribute string, val 
 	if v, ok := val.(string); ok {
 		return &restapi.ScopeBinding{ScopeID: v}
 	}
-	log.Printf("WARN: %s state cannot be read\n", attribute)
+	log.Printf(msgStateCannotBeRead, attribute)
 	return nil
 }
 
@@ -347,7 +349,7 @@ func (r *groupResource) convertStateToPermissions(attribute string, val interfac
 		}
 		return result
 	}
-	log.Printf("WARN: %s state cannot be read\n", attribute)
+	log.Printf(msgStateCannotBeRead, attribute)
 	return make([]restapi.InstanaPermission, 0)
 }
 
