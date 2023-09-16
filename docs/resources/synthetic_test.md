@@ -10,7 +10,7 @@ API Documentation: <https://instana.github.io/openapi/#operation/getSyntheticTes
 
 ### Create a HTTPAction test
 ```hcl
-resource "instana_synthetic_test" "uptime_check" {
+resource "instana_synthetic_test" "http_action" {
   label          = "test"
   active         = true
   application_id = "my-app-id"
@@ -18,15 +18,13 @@ resource "instana_synthetic_test" "uptime_check" {
   test_frequency = 10
   playback_mode  = "Staggered"
   
-  configuration {
-      http_action { 
-        mark_synthetic_call = true
-        retries             = 0
-        retry_interval      = 1
-        timeout             = "3m"
-        url                 = "https://example.com"
-        operation           = "GET"
-      }
+  http_action { 
+    mark_synthetic_call = true
+    retries             = 0
+    retry_interval      = 1
+    timeout             = "3m"
+    url                 = "https://example.com"
+    operation           = "GET"
   }
   
   custom_properties = {
@@ -37,28 +35,26 @@ resource "instana_synthetic_test" "uptime_check" {
 
 ### Create a HTTPScript test
 ```hcl
-resource "instana_synthetic_test" "http_action" {
+resource "instana_synthetic_test" "http_script" {
   label          = "test"
   active         = true
   application_id = "my-app-id"
   locations      = [data.instana_synthetic_location.loc1.id]
   
-  configuration {
-      http_script {
-        synthetic_type = "HTTPScript"
-        script         = <<EOF
-          const assert = require('assert');
-    
-          $http.get('https://terraform.io',
-          function(err, response, body) {
-              if (err) {
-                  console.error(err);
-                  return;
-              }
-              assert.equal(response.statusCode, 200, 'Expected a 200 OK response');
-          });
-        EOF
-      }
+  http_script {
+    synthetic_type = "HTTPScript"
+    script         = <<EOF
+      const assert = require('assert');
+
+      $http.get('https://terraform.io',
+      function(err, response, body) {
+          if (err) {
+              console.error(err);
+              return;
+          }
+          assert.equal(response.statusCode, 200, 'Expected a 200 OK response');
+      });
+    EOF
   }
 }
 ```
@@ -73,15 +69,12 @@ resource "instana_synthetic_test" "http_action" {
 * `locations` - Required - A list of strings with location IDs 
 * `playback_mode` - Optional - Defines how the Synthetic test should be executed across multiple PoPs (defaults to Simultaneous)
 * `test_frequency` - Optional - how often the playback for a synthetic monitor is scheduled (defaults to 15 seconds)
-* `configuration` - Required - The synthetic test configuration [Details](#configuration)
-
-### Configuration
 
 Exactly on of the following configuration blocks must be provided:
 * `http_action` - Optional - Http Action Configuration block [Details](#http-action-configuration)
 * `http_script` - Optional - HTTP Script Configuration block [Details](#http-script-configuration)
 
-#### HTTP Action configuration
+### HTTP Action configuration
 
 * `mark_synthetic_call` - Optional - flag used to control if HTTP calls will be marked as synthetic calls
 * `retries` - Optional - Indicates how many attempts will be allowed to get a successful connection (defaults to 0)
@@ -98,7 +91,7 @@ Exactly on of the following configuration blocks must be provided:
 * `expect_status` - Optional - An integer type, by default, the Synthetic passes for any 2XX status code
 * `expect_match` - Optional - An optional regular expression string to be used to check the test response
 
-#### HTTP Script configuration
+### HTTP Script configuration
 
 * `mark_synthetic_call` - Optional - flag used to control if HTTP calls will be marked as synthetic calls
 * `retries` - Optional - Indicates how many attempts will be allowed to get a successful connection (defaults to 0)
