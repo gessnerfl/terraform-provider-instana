@@ -16,28 +16,75 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
 )
 
-const syntheticTestTerraformTemplate = `
+func TestSyntheticTestResource(t *testing.T) {
+	ut := &syntheticTestUnitTest{}
+	t.Run("CRUD integration test with HTTP Action configuration without application id", syntheticTestHttpActionWithoutApplicationIdIntegrationTest().testCrud)
+	t.Run("CRUD integration test with HTTP Action configuration with application id", syntheticTestHttpActionWithApplicationIdIntegrationTest().testCrud)
+	t.Run("CRUD integration test with HTTP Script", syntheticTestHttpScriptIntegrationTest().testCrud)
+	t.Run("should have valid schema", ut.resourceDefinitionShouldBeValid)
+	t.Run("should return correct resource name", ut.shouldReturnCorrectResourceName)
+	t.Run("should have schema version zero", ut.shouldHaveSchemaVersionZero)
+	t.Run("should have schema no state upgrader", ut.shouldHaveNoStateUpgrader)
+	t.Run("should update resource state for http script config", ut.shouldUpdateResourceStateForHttpScript)
+	t.Run("should update resource state for http action config", ut.shouldUpdateResourceStateForHttpAction)
+	t.Run("should return error when trying to update state and config type is not supported", ut.shouldReturnErrorWhenTryingToUpdateStateAndConfigTypeIsNotSupported)
+	t.Run("should map state to data model with http action config", ut.shouldMapStateToDataModelWithConfigOfTypeHttpAction)
+	t.Run("should map state to data model with http script config", ut.shouldMapStateToDataModelWithConfigOfTypeHttpScript)
+	t.Run("should return errror when trying to map state to model when no configuration is provided", ut.shouldReturnErrorWhenTryingToMapStateToModelWhenNoConfigurationIsProvided)
+}
+
+const (
+	syntheticTestDefinition    = "instana_synthetic_test.example"
+	syntheticTestConfigPattern = "%s.0.%s.0.%s"
+
+	syntheticTestID        = "id"
+	syntheticTestLabel     = "label"
+	syntheticTestActive    = true
+	syntheticTestUrl       = "https://example.com"
+	syntheticTestOperation = "GET"
+)
+
+var syntheticTestHttpActionTestCheckFunctions = []resource.TestCheckFunc{
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigMarkSyntheticCall), "true"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigRetries), "0"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigRetryInterval), "1"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigTimeout), "3m"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigUrl), syntheticTestUrl),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigOperation), syntheticTestOperation),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigBody), "expected_body"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigValidationString), "expected_body"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigFollowRedirect), "false"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigAllowInsecure), "true"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigExpectStatus), "201"),
+	resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpAction, SyntheticTestFieldConfigExpectMatch), "[a-zA-Z]"),
+}
+
+func syntheticTestHttpActionWithoutApplicationIdIntegrationTest() *syntheticTestResourceIntegrationTest {
+	const terraformTemplate = `
 resource "instana_synthetic_test" "example" {
 	label          = "label %d"
 	active         = true
 	locations      = ["location-id"]
 	test_frequency = 10
 	playback_mode  = "Staggered"
+
 	configuration {
-		mark_synthetic_call = true
-		retries             = 0
-		retry_interval      = 1
-		synthetic_type      = "HTTPAction"
-		timeout             = "3m"
-		url                 = "https://example.com"
-		operation           = "GET"
-		body 				= "expected_body"
-		validation_string   = "expected_body"
-		follow_redirect     = false
-		allow_insecure      = true
-		expect_status       = 201
-		expect_match        = "[a-zA-Z]"
+		http_action {
+			mark_synthetic_call = true
+			retries             = 0
+			retry_interval      = 1
+			timeout             = "3m"
+			url                 = "https://example.com"
+			operation           = "GET"
+			body 				= "expected_body"
+			validation_string   = "expected_body"
+			follow_redirect     = false
+			allow_insecure      = true
+			expect_status       = 201
+			expect_match        = "[a-zA-Z]"
+		}
 	}
+
 	custom_properties = {
 		"key1" = "val1"
 		"key2" = "val2"
@@ -45,7 +92,7 @@ resource "instana_synthetic_test" "example" {
 }
 `
 
-const syntheticTestServerResponseTemplate = `
+	const serverResponseTemplate = `
 {
     "id": "%s",
     "label": "label %d",
@@ -53,6 +100,7 @@ const syntheticTestServerResponseTemplate = `
     "locations": ["location-id"],
     "testFrequency": 10,
     "playbackMode": "Staggered",
+
     "configuration": {
         "syntheticType": "HTTPAction",
         "markSyntheticCall": true,
@@ -67,14 +115,18 @@ const syntheticTestServerResponseTemplate = `
 		"expectStatus": 201,
 		"expectMatch": "[a-zA-Z]"
     },
+
 	"customProperties": {
 		"key1": "val1",
 		"key2": "val2"
 	}
 }
 `
+	return newSyntheticTestIntegrationTest(terraformTemplate, serverResponseTemplate, syntheticTestHttpActionTestCheckFunctions)
+}
 
-const syntheticTestWithApplicationIdTerraformTemplate = `
+func syntheticTestHttpActionWithApplicationIdIntegrationTest() *syntheticTestResourceIntegrationTest {
+	const terraformTemplate = `
 resource "instana_synthetic_test" "example" {
 	label          = "label %d"
 	active         = true
@@ -82,21 +134,24 @@ resource "instana_synthetic_test" "example" {
 	locations      = ["location-id"]
 	test_frequency = 10
 	playback_mode  = "Staggered"
-	configuration {
-		mark_synthetic_call = true
-		retries             = 0
-		retry_interval      = 1
-		synthetic_type      = "HTTPAction"
-		timeout             = "3m"
-		url                 = "https://example.com"
-		operation           = "GET"
-		body 				= "expected_body"
-		validation_string   = "expected_body"
-		follow_redirect     = false
-		allow_insecure      = true
-		expect_status       = 201
-		expect_match        = "[a-zA-Z]"
+
+    configuration {
+		http_action {
+			mark_synthetic_call = true
+			retries             = 0
+			retry_interval      = 1
+			timeout             = "3m"
+			url                 = "https://example.com"
+			operation           = "GET"
+			body 				= "expected_body"
+			validation_string   = "expected_body"
+			follow_redirect     = false
+			allow_insecure      = true
+			expect_status       = 201
+			expect_match        = "[a-zA-Z]"
+		}
 	}
+
 	custom_properties = {
 		"key1" = "val1"
 		"key2" = "val2"
@@ -104,7 +159,7 @@ resource "instana_synthetic_test" "example" {
 }
 `
 
-const syntheticTestWithApplicationIdServerResponseTemplate = `
+	const serverResponseTemplate = `
 {
     "id": "%s",
     "label": "label %d",
@@ -113,6 +168,7 @@ const syntheticTestWithApplicationIdServerResponseTemplate = `
     "locations": ["location-id"],
     "testFrequency": 10,
     "playbackMode": "Staggered",
+
     "configuration": {
         "syntheticType": "HTTPAction",
         "markSyntheticCall": true,
@@ -127,82 +183,127 @@ const syntheticTestWithApplicationIdServerResponseTemplate = `
 		"expectStatus": 201,
 		"expectMatch": "[a-zA-Z]"
     },
+
 	"customProperties": {
 		"key1": "val1",
 		"key2": "val2"
 	}
 }
 `
+	checks := append(syntheticTestHttpActionTestCheckFunctions, resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldApplicationID, "application-id"))
 
-const (
-	syntheticTestDefinition = "instana_synthetic_test.example"
+	return newSyntheticTestIntegrationTest(terraformTemplate, serverResponseTemplate, checks)
+}
 
-	syntheticTestID            = "id"
-	syntheticTestLabel         = "label"
-	syntheticTestActive        = true
-	syntheticTestUrl           = "https://example.com"
-	syntheticTestOperation     = "GET"
-	syntheticTestSyntheticCall = true
-	syntheticTestSyntheticType = "HTTPAction"
-)
+func syntheticTestHttpScriptIntegrationTest() *syntheticTestResourceIntegrationTest {
+	const terraformTemplate = `
+resource "instana_synthetic_test" "example" {
+	label          = "label %d"
+	active         = true
+	locations      = ["location-id"]
+	test_frequency = 10
+	playback_mode  = "Staggered"
 
-func TestCRUDOfSyntheticTestResourceUsingMockServer(t *testing.T) {
+    configuration {
+		http_script {
+			mark_synthetic_call = true
+			retries             = 0
+			retry_interval      = 1
+			timeout             = "3m"
+			script              = "my-script"
+		}
+	}
+
+	custom_properties = {
+		"key1" = "val1"
+		"key2" = "val2"
+	}
+}
+`
+
+	const serverResponseTemplate = `
+{
+    "id": "%s",
+    "label": "label %d",
+    "active": true,
+    "locations": ["location-id"],
+    "testFrequency": 10,
+    "playbackMode": "Staggered",
+
+    "configuration": {
+        "syntheticType": "HTTPScript",
+        "markSyntheticCall": true,
+		"retryInterval": 1,
+		"timeout": "3m",
+		"script": "my-script"
+    },
+
+	"customProperties": {
+		"key1": "val1",
+		"key2": "val2"
+	}
+}
+`
+	var checks = []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpScript, SyntheticTestFieldConfigMarkSyntheticCall), "true"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpScript, SyntheticTestFieldConfigRetries), "0"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpScript, SyntheticTestFieldConfigRetryInterval), "1"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpScript, SyntheticTestFieldConfigTimeout), "3m"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(syntheticTestConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigHttpScript, SyntheticTestFieldConfigScript), "my-script"),
+	}
+	return newSyntheticTestIntegrationTest(terraformTemplate, serverResponseTemplate, checks)
+}
+
+func newSyntheticTestIntegrationTest(resourceTemplate string, serverResponseTemplate string, useCaseSpecificChecks []resource.TestCheckFunc) *syntheticTestResourceIntegrationTest {
+	return &syntheticTestResourceIntegrationTest{
+		resourceTemplate:       resourceTemplate,
+		resourceName:           syntheticTestDefinition,
+		serverResponseTemplate: serverResponseTemplate,
+		useCaseSpecificChecks:  useCaseSpecificChecks,
+	}
+}
+
+type syntheticTestResourceIntegrationTest struct {
+	resourceTemplate       string
+	resourceName           string
+	serverResponseTemplate string
+	useCaseSpecificChecks  []resource.TestCheckFunc
+}
+
+func (it *syntheticTestResourceIntegrationTest) testCrud(t *testing.T) {
 	id := RandomID()
-	httpServer := createTestServerForSyntheticTestResource(id, syntheticTestServerResponseTemplate)
+	httpServer := it.createTestServerForSyntheticTestResource(id)
 	defer httpServer.Close()
 
 	resource.UnitTest(t, resource.TestCase{
 		ProviderFactories: testProviderFactory,
 		Steps: []resource.TestStep{
-			createSyntheticTestTestCheckFunctions(syntheticTestTerraformTemplate, httpServer.GetPort(), 0),
+			it.createCheckFunctions(httpServer.GetPort(), 0),
 			testStepImport(syntheticTestDefinition),
-			createSyntheticTestTestCheckFunctions(syntheticTestTerraformTemplate, httpServer.GetPort(), 1),
-			testStepImport(syntheticTestDefinition),
-		},
-	})
-}
-
-func TestCRUDOfSyntheticTestResourceWithApplicationIdUsingMockServer(t *testing.T) {
-	id := RandomID()
-	httpServer := createTestServerForSyntheticTestResource(id, syntheticTestWithApplicationIdServerResponseTemplate)
-	defer httpServer.Close()
-
-	additionalCheck := resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldApplicationID, "application-id")
-	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: testProviderFactory,
-		Steps: []resource.TestStep{
-			createSyntheticTestTestCheckFunctions(syntheticTestWithApplicationIdTerraformTemplate, httpServer.GetPort(), 0, additionalCheck),
-			testStepImport(syntheticTestDefinition),
-			createSyntheticTestTestCheckFunctions(syntheticTestWithApplicationIdTerraformTemplate, httpServer.GetPort(), 1, additionalCheck),
+			it.createCheckFunctions(httpServer.GetPort(), 1),
 			testStepImport(syntheticTestDefinition),
 		},
 	})
 }
 
-func createSyntheticTestTestCheckFunctions(template string, httpPort int64, iteration int, additionalChecks ...resource.TestCheckFunc) resource.TestStep {
-	nestedConfigPattern := "%s.0.%s"
-
+func (it *syntheticTestResourceIntegrationTest) createCheckFunctions(httpPort int64, iteration int) resource.TestStep {
 	defaultChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(syntheticTestDefinition, "id"),
 		resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldLabel, fmt.Sprintf("%s %d", syntheticTestLabel, iteration)),
 		resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldActive, "true"),
-		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigMarkSyntheticCall), "true"),
-		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigRetries), "0"),
-		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigRetryInterval), "1"),
-		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigSyntheticType), syntheticTestSyntheticType),
-		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigTimeout), "3m"),
-		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigOperation), syntheticTestOperation),
-		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf(nestedConfigPattern, SyntheticTestFieldConfiguration, SyntheticTestFieldConfigUrl), syntheticTestUrl),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, fmt.Sprintf("%s.0", SyntheticTestFieldLocations), "location-id"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldTestFrequency, "10"),
+		resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldPlaybackMode, "Staggered"),
 	}
-	checks := append(defaultChecks, additionalChecks...)
+	checks := append(defaultChecks, it.useCaseSpecificChecks...)
 
 	return resource.TestStep{
-		Config: appendProviderConfig(fmt.Sprintf(template, iteration), httpPort),
+		Config: appendProviderConfig(fmt.Sprintf(it.resourceTemplate, iteration), httpPort),
 		Check:  resource.ComposeTestCheckFunc(checks...),
 	}
 }
 
-func createTestServerForSyntheticTestResource(id string, responseTemplate string) testutils.TestHTTPServer {
+func (it *syntheticTestResourceIntegrationTest) createTestServerForSyntheticTestResource(id string) testutils.TestHTTPServer {
 	resourceRestAPIPath := restapi.SyntheticTestResourcePath
 	resourceInstanceRestAPIPath := resourceRestAPIPath + "/{id}"
 
@@ -233,7 +334,7 @@ func createTestServerForSyntheticTestResource(id string, responseTemplate string
 	httpServer.AddRoute(http.MethodDelete, resourceInstanceRestAPIPath, testutils.EchoHandlerFunc)
 	httpServer.AddRoute(http.MethodGet, resourceInstanceRestAPIPath, func(w http.ResponseWriter, r *http.Request) {
 		puts := httpServer.GetCallCount(http.MethodPut, resourceRestAPIPath+"/"+id)
-		jsonData := fmt.Sprintf(responseTemplate, id, puts)
+		jsonData := fmt.Sprintf(it.serverResponseTemplate, id, puts)
 		w.Header().Set(contentType, r.Header.Get(contentType))
 		w.WriteHeader(http.StatusOK)
 		_, err := w.Write([]byte(jsonData))
@@ -245,44 +346,116 @@ func createTestServerForSyntheticTestResource(id string, responseTemplate string
 	return httpServer
 }
 
-func TestResourceSyntheticTestDefinition(t *testing.T) {
+type syntheticTestUnitTest struct{}
+
+func (ut *syntheticTestUnitTest) resourceDefinitionShouldBeValid(t *testing.T) {
 	resourceHandle := NewSyntheticTestResourceHandle()
 
 	schemaMap := resourceHandle.MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	require.Len(t, schemaMap, 9)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SyntheticTestFieldLabel)
-	schemaAssert.AssertSchemaIsRequiredAndOfTypeSetOfStrings(SyntheticTestFieldLocations)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldDescription)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(SyntheticTestFieldActive, true)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldApplicationID)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeListOfResource(SyntheticTestFieldConfiguration)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeMapOfStrings(SyntheticTestFieldCustomProperties)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeSetOfStrings(SyntheticTestFieldLocations)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldPlaybackMode)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(SyntheticTestFieldTestFrequency)
 
 	syntheticConfigurationSchemaMap := schemaMap[SyntheticTestFieldConfiguration].Elem.(*schema.Resource).Schema
-
-	schemaAssert = testutils.NewTerraformSchemaAssert(syntheticConfigurationSchemaMap, t)
-	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SyntheticTestFieldConfigSyntheticType)
-	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(SyntheticTestFieldConfigMarkSyntheticCall, false)
+	ut.verifyConfigurationSchema(t, syntheticConfigurationSchemaMap)
 }
 
-func TestShouldReturnCorrectResourceNameForSyntheticTests(t *testing.T) {
+func (ut *syntheticTestUnitTest) verifyConfigurationSchema(t *testing.T, schemaMap map[string]*schema.Schema) {
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	require.Len(t, schemaMap, 2)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(SyntheticTestFieldConfigHttpAction)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(SyntheticTestFieldConfigHttpScript)
+
+	httpActionSchema := schemaMap[SyntheticTestFieldConfigHttpAction].Elem.(*schema.Resource).Schema
+	ut.verifyHttpActionSchema(t, httpActionSchema)
+	httpScriptSchema := schemaMap[SyntheticTestFieldConfigHttpScript].Elem.(*schema.Resource).Schema
+	ut.verifyHttpScriptSchema(t, httpScriptSchema)
+}
+
+func (ut *syntheticTestUnitTest) verifyHttpActionSchema(t *testing.T, schemaMap map[string]*schema.Schema) {
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	require.Len(t, schemaMap, 13)
+	ut.verifyCommonConfigurationFields(schemaAssert)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldConfigUrl)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldConfigOperation)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeMapOfStrings(SyntheticTestFieldConfigHeaders)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldConfigBody)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldConfigValidationString)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(SyntheticTestFieldConfigFollowRedirect, false)
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(SyntheticTestFieldConfigAllowInsecure, false)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(SyntheticTestFieldConfigExpectStatus)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldConfigExpectMatch)
+}
+
+func (ut *syntheticTestUnitTest) verifyHttpScriptSchema(t *testing.T, schemaMap map[string]*schema.Schema) {
+	schemaAssert := testutils.NewTerraformSchemaAssert(schemaMap, t)
+	require.Len(t, schemaMap, 5)
+	ut.verifyCommonConfigurationFields(schemaAssert)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(SyntheticTestFieldConfigScript)
+}
+
+func (ut *syntheticTestUnitTest) verifyCommonConfigurationFields(schemaAssert testutils.TerraformSchemaAssert) {
+	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(SyntheticTestFieldConfigMarkSyntheticCall, false)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(SyntheticTestFieldConfigRetries)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(SyntheticTestFieldConfigRetryInterval)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(SyntheticTestFieldConfigTimeout)
+}
+
+func (ut *syntheticTestUnitTest) shouldReturnCorrectResourceName(t *testing.T) {
 	name := NewSyntheticTestResourceHandle().MetaData().ResourceName
 
-	require.Equal(t, "instana_synthetic_test", name, "Expected resource name to be instana_synthetic_test")
+	require.Equal(t, "instana_synthetic_test", name)
 }
 
-func TestSyntheticTestResourceShouldHaveSchemaVersionZero(t *testing.T) {
+func (ut *syntheticTestUnitTest) shouldHaveSchemaVersionZero(t *testing.T) {
 	require.Equal(t, 0, NewSyntheticTestResourceHandle().MetaData().SchemaVersion)
 }
 
-func TestShouldUpdateResourceStateForSyntheticTests(t *testing.T) {
+func (ut *syntheticTestUnitTest) shouldHaveNoStateUpgrader(t *testing.T) {
+	require.Len(t, NewSyntheticTestResourceHandle().StateUpgraders(), 0)
+}
+
+func (ut *syntheticTestUnitTest) shouldUpdateResourceStateForHttpScript(t *testing.T) {
 	testHelper := NewTestHelper[*restapi.SyntheticTest](t)
 	resourceHandle := NewSyntheticTestResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	description := "my description"
+	applicationID := "application-id"
+	customProperties := map[string]interface{}{
+		"p1": "v1",
+		"p2": "v2",
+	}
+	timeout := "20s"
+	script := "my-test-script"
+	testFrequency := int32(2)
 	data := restapi.SyntheticTest{
-		ID:     syntheticTestID,
-		Label:  syntheticTestLabel,
-		Active: syntheticTestActive,
+		ID:            syntheticTestID,
+		Label:         syntheticTestLabel,
+		Active:        syntheticTestActive,
+		Description:   &description,
+		ApplicationID: &applicationID,
+		Configuration: restapi.SyntheticTestConfig{
+			SyntheticType:     SyntheticCheckTypeHttpScript,
+			MarkSyntheticCall: true,
+			Retries:           5,
+			RetryInterval:     10,
+			Timeout:           &timeout,
+			Script:            &script,
+		},
+		CustomProperties: customProperties,
+		Locations:        []string{"loc1", "loc2"},
+		PlaybackMode:     "Staggered",
+		TestFrequency:    &testFrequency,
 	}
 
 	err := resourceHandle.UpdateState(resourceData, &data)
@@ -292,27 +465,321 @@ func TestShouldUpdateResourceStateForSyntheticTests(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, syntheticTestID, resourceData.Id())
 	require.Equal(t, syntheticTestActive, resourceData.Get(SyntheticTestFieldActive))
+	require.Equal(t, syntheticTestLabel, resourceData.Get(SyntheticTestFieldLabel))
+	require.Equal(t, description, resourceData.Get(SyntheticTestFieldDescription))
+	require.Equal(t, applicationID, resourceData.Get(SyntheticTestFieldApplicationID))
+	require.Equal(t, customProperties, resourceData.Get(SyntheticTestFieldCustomProperties))
+	require.Equal(t, []interface{}{"loc1", "loc2"}, resourceData.Get(SyntheticTestFieldLocations).(*schema.Set).List())
+	require.Equal(t, "Staggered", resourceData.Get(SyntheticTestFieldPlaybackMode))
+	require.Equal(t, testFrequency, int32(resourceData.Get(SyntheticTestFieldTestFrequency).(int)))
+
+	require.IsType(t, []interface{}{}, resourceData.Get(SyntheticTestFieldConfiguration))
+	require.Len(t, resourceData.Get(SyntheticTestFieldConfiguration).([]interface{}), 1)
+
+	configuration := resourceData.Get(SyntheticTestFieldConfiguration).([]interface{})[0]
+	require.IsType(t, map[string]interface{}{}, configuration)
+	require.Len(t, configuration, 2)
+	require.IsType(t, []interface{}{}, configuration.(map[string]interface{})[SyntheticTestFieldConfigHttpAction])
+	require.Len(t, configuration.(map[string]interface{})[SyntheticTestFieldConfigHttpAction], 0)
+
+	httpScriptConfigs := configuration.(map[string]interface{})[SyntheticTestFieldConfigHttpScript]
+	require.IsType(t, []interface{}{}, httpScriptConfigs)
+	require.Len(t, httpScriptConfigs, 1)
+	require.IsType(t, map[string]interface{}{}, httpScriptConfigs.([]interface{})[0])
+
+	httpScriptConfig := httpScriptConfigs.([]interface{})[0].(map[string]interface{})
+	require.Len(t, httpScriptConfig, 5)
+	require.Equal(t, true, httpScriptConfig[SyntheticTestFieldConfigMarkSyntheticCall])
+	require.Equal(t, 5, httpScriptConfig[SyntheticTestFieldConfigRetries])
+	require.Equal(t, 10, httpScriptConfig[SyntheticTestFieldConfigRetryInterval])
+	require.Equal(t, timeout, httpScriptConfig[SyntheticTestFieldConfigTimeout])
+	require.Equal(t, script, httpScriptConfig[SyntheticTestFieldConfigScript])
 }
 
-func TestShouldConvertStateOfSyntheticTestsToDataModel(t *testing.T) {
+func (ut *syntheticTestUnitTest) shouldUpdateResourceStateForHttpAction(t *testing.T) {
 	testHelper := NewTestHelper[*restapi.SyntheticTest](t)
 	resourceHandle := NewSyntheticTestResourceHandle()
 	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	resourceData.SetId(syntheticTestID)
-	setValueOnResourceData(t, resourceData, SyntheticTestFieldActive, syntheticTestActive)
 
-	syntheticConfigurationStateObject := []map[string]interface{}{
-		{
-			SyntheticTestFieldConfigMarkSyntheticCall: syntheticTestSyntheticCall,
-			SyntheticTestFieldConfigSyntheticType:     syntheticTestSyntheticType,
-			SyntheticTestFieldConfigRetries:           2,
+	description := "my description"
+	applicationID := "application-id"
+	customProperties := map[string]interface{}{
+		"p1": "v1",
+		"p2": "v2",
+	}
+	timeout := "20s"
+	url := "https://app.example.com/health"
+	operation := "GET"
+	body := "payload"
+	validationString := "validation-string"
+	followRedirect := false
+	allowInsecure := false
+	expectStatus := int32(200)
+	expectMatch := "expected-match"
+	testFrequency := int32(2)
+	data := restapi.SyntheticTest{
+		ID:            syntheticTestID,
+		Label:         syntheticTestLabel,
+		Active:        syntheticTestActive,
+		Description:   &description,
+		ApplicationID: &applicationID,
+		Configuration: restapi.SyntheticTestConfig{
+			SyntheticType:     SyntheticCheckTypeHttpAction,
+			MarkSyntheticCall: true,
+			Retries:           5,
+			RetryInterval:     10,
+			Timeout:           &timeout,
+			URL:               &url,
+			Operation:         &operation,
+			Headers: map[string]interface{}{
+				"h1": "v1",
+				"h2": "v2",
+			},
+			Body:             &body,
+			ValidationString: &validationString,
+			FollowRedirect:   &followRedirect,
+			AllowInsecure:    &allowInsecure,
+			ExpectStatus:     &expectStatus,
+			ExpectMatch:      &expectMatch,
+		},
+		CustomProperties: customProperties,
+		Locations:        []string{"loc1", "loc2"},
+		PlaybackMode:     "Staggered",
+		TestFrequency:    &testFrequency,
+	}
+
+	err := resourceHandle.UpdateState(resourceData, &data)
+
+	require.Nil(t, err)
+
+	require.Nil(t, err)
+	require.Equal(t, syntheticTestID, resourceData.Id())
+	require.Equal(t, syntheticTestActive, resourceData.Get(SyntheticTestFieldActive))
+	require.Equal(t, syntheticTestLabel, resourceData.Get(SyntheticTestFieldLabel))
+	require.Equal(t, description, resourceData.Get(SyntheticTestFieldDescription))
+	require.Equal(t, applicationID, resourceData.Get(SyntheticTestFieldApplicationID))
+	require.Equal(t, customProperties, resourceData.Get(SyntheticTestFieldCustomProperties))
+	require.Equal(t, []interface{}{"loc1", "loc2"}, resourceData.Get(SyntheticTestFieldLocations).(*schema.Set).List())
+	require.Equal(t, "Staggered", resourceData.Get(SyntheticTestFieldPlaybackMode))
+	require.Equal(t, testFrequency, int32(resourceData.Get(SyntheticTestFieldTestFrequency).(int)))
+
+	require.IsType(t, []interface{}{}, resourceData.Get(SyntheticTestFieldConfiguration))
+	require.Len(t, resourceData.Get(SyntheticTestFieldConfiguration).([]interface{}), 1)
+
+	configuration := resourceData.Get(SyntheticTestFieldConfiguration).([]interface{})[0]
+	require.IsType(t, map[string]interface{}{}, configuration)
+	require.Len(t, configuration, 2)
+	require.IsType(t, []interface{}{}, configuration.(map[string]interface{})[SyntheticTestFieldConfigHttpScript])
+	require.Len(t, configuration.(map[string]interface{})[SyntheticTestFieldConfigHttpScript], 0)
+
+	httpActionConfigs := configuration.(map[string]interface{})[SyntheticTestFieldConfigHttpAction]
+	require.IsType(t, []interface{}{}, httpActionConfigs)
+	require.Len(t, httpActionConfigs, 1)
+	require.IsType(t, map[string]interface{}{}, httpActionConfigs.([]interface{})[0])
+
+	httpActionConfig := httpActionConfigs.([]interface{})[0].(map[string]interface{})
+	require.Len(t, httpActionConfig, 13)
+	require.Equal(t, true, httpActionConfig[SyntheticTestFieldConfigMarkSyntheticCall])
+	require.Equal(t, 5, httpActionConfig[SyntheticTestFieldConfigRetries])
+	require.Equal(t, 10, httpActionConfig[SyntheticTestFieldConfigRetryInterval])
+	require.Equal(t, timeout, httpActionConfig[SyntheticTestFieldConfigTimeout])
+	require.Equal(t, url, httpActionConfig[SyntheticTestFieldConfigUrl])
+	require.Equal(t, operation, httpActionConfig[SyntheticTestFieldConfigOperation])
+	require.Equal(t, map[string]interface{}{
+		"h1": "v1",
+		"h2": "v2",
+	}, httpActionConfig[SyntheticTestFieldConfigHeaders])
+	require.Equal(t, body, httpActionConfig[SyntheticTestFieldConfigBody])
+	require.Equal(t, validationString, httpActionConfig[SyntheticTestFieldConfigValidationString])
+	require.Equal(t, followRedirect, httpActionConfig[SyntheticTestFieldConfigFollowRedirect])
+	require.Equal(t, allowInsecure, httpActionConfig[SyntheticTestFieldConfigAllowInsecure])
+	require.Equal(t, expectStatus, int32(httpActionConfig[SyntheticTestFieldConfigExpectStatus].(int)))
+	require.Equal(t, expectMatch, httpActionConfig[SyntheticTestFieldConfigExpectMatch])
+}
+
+func (ut *syntheticTestUnitTest) shouldReturnErrorWhenTryingToUpdateStateAndConfigTypeIsNotSupported(t *testing.T) {
+	testHelper := NewTestHelper[*restapi.SyntheticTest](t)
+	resourceHandle := NewSyntheticTestResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	data := restapi.SyntheticTest{
+		Configuration: restapi.SyntheticTestConfig{
+			SyntheticType: "invalid",
 		},
 	}
-	setValueOnResourceData(t, resourceData, SyntheticTestFieldConfiguration, syntheticConfigurationStateObject)
+
+	err := resourceHandle.UpdateState(resourceData, &data)
+
+	require.Error(t, err)
+	require.ErrorContains(t, err, "unsupported synthetic test of type invalid received")
+}
+
+func (ut *syntheticTestUnitTest) shouldMapStateToDataModelWithConfigOfTypeHttpAction(t *testing.T) {
+	testHelper := NewTestHelper[*restapi.SyntheticTest](t)
+	resourceHandle := NewSyntheticTestResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	description := "my description"
+	applicationID := "application-id"
+	customProperties := map[string]interface{}{
+		"p1": "v1",
+		"p2": "v2",
+	}
+	timeout := "20s"
+	url := "https://app.example.com/health"
+	operation := "GET"
+	headers := map[string]interface{}{
+		"h1": "v1",
+		"h2": "v2",
+	}
+	body := "payload"
+	validationString := "validation-string"
+	followRedirect := false
+	allowInsecure := false
+	expectStatus := int32(200)
+	expectMatch := "expected-match"
+	testFrequency := int32(2)
+	resourceData.SetId(syntheticTestID)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldActive, syntheticTestActive)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldLabel, syntheticTestLabel)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldDescription, description)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldApplicationID, applicationID)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldCustomProperties, customProperties)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldLocations, []interface{}{"loc1", "loc2"})
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldPlaybackMode, "Staggered")
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldTestFrequency, testFrequency)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldConfiguration, []interface{}{
+		map[string]interface{}{
+			SyntheticTestFieldConfigHttpAction: []interface{}{
+				map[string]interface{}{
+					SyntheticTestFieldConfigMarkSyntheticCall: true,
+					SyntheticTestFieldConfigRetries:           5,
+					SyntheticTestFieldConfigRetryInterval:     10,
+					SyntheticTestFieldConfigTimeout:           timeout,
+					SyntheticTestFieldConfigUrl:               url,
+					SyntheticTestFieldConfigOperation:         operation,
+					SyntheticTestFieldConfigHeaders:           headers,
+					SyntheticTestFieldConfigBody:              body,
+					SyntheticTestFieldConfigValidationString:  validationString,
+					SyntheticTestFieldConfigFollowRedirect:    false,
+					SyntheticTestFieldConfigAllowInsecure:     false,
+					SyntheticTestFieldConfigExpectMatch:       expectMatch,
+					SyntheticTestFieldConfigExpectStatus:      expectStatus,
+				},
+			},
+			SyntheticTestFieldConfigHttpScript: []interface{}{},
+		},
+	})
 
 	model, err := resourceHandle.MapStateToDataObject(resourceData)
 
 	require.Nil(t, err)
-	require.IsType(t, &restapi.SyntheticTest{}, model, "Model should be an synthetic test")
-	require.Equal(t, syntheticTestID, model.GetIDForResourcePath())
+	require.IsType(t, &restapi.SyntheticTest{
+		ID:            syntheticTestID,
+		Label:         syntheticTestLabel,
+		Active:        syntheticTestActive,
+		Description:   &description,
+		ApplicationID: &applicationID,
+		Configuration: restapi.SyntheticTestConfig{
+			SyntheticType:     SyntheticCheckTypeHttpAction,
+			MarkSyntheticCall: true,
+			Retries:           5,
+			RetryInterval:     10,
+			Timeout:           &timeout,
+			URL:               &url,
+			Operation:         &operation,
+			Headers:           headers,
+			Body:              &body,
+			ValidationString:  &validationString,
+			FollowRedirect:    &followRedirect,
+			AllowInsecure:     &allowInsecure,
+			ExpectStatus:      &expectStatus,
+			ExpectMatch:       &expectMatch,
+		},
+		CustomProperties: customProperties,
+		Locations:        []string{"loc1", "loc2"},
+		PlaybackMode:     "Staggered",
+		TestFrequency:    &testFrequency,
+	}, model)
+}
+
+func (ut *syntheticTestUnitTest) shouldMapStateToDataModelWithConfigOfTypeHttpScript(t *testing.T) {
+	testHelper := NewTestHelper[*restapi.SyntheticTest](t)
+	resourceHandle := NewSyntheticTestResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	description := "my description"
+	applicationID := "application-id"
+	customProperties := map[string]interface{}{
+		"p1": "v1",
+		"p2": "v2",
+	}
+	timeout := "20s"
+	testFrequency := int32(2)
+	script := "my-script"
+	resourceData.SetId(syntheticTestID)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldActive, syntheticTestActive)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldLabel, syntheticTestLabel)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldDescription, description)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldApplicationID, applicationID)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldCustomProperties, customProperties)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldLocations, []interface{}{"loc1", "loc2"})
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldPlaybackMode, "Staggered")
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldTestFrequency, testFrequency)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldConfiguration, []interface{}{
+		map[string]interface{}{
+			SyntheticTestFieldConfigHttpScript: []interface{}{
+				map[string]interface{}{
+					SyntheticTestFieldConfigMarkSyntheticCall: true,
+					SyntheticTestFieldConfigRetries:           5,
+					SyntheticTestFieldConfigRetryInterval:     10,
+					SyntheticTestFieldConfigTimeout:           timeout,
+					SyntheticTestFieldConfigScript:            script,
+				},
+			},
+			SyntheticTestFieldConfigHttpAction: []interface{}{},
+		},
+	})
+
+	model, err := resourceHandle.MapStateToDataObject(resourceData)
+
+	require.Nil(t, err)
+	require.IsType(t, &restapi.SyntheticTest{
+		ID:            syntheticTestID,
+		Label:         syntheticTestLabel,
+		Active:        syntheticTestActive,
+		Description:   &description,
+		ApplicationID: &applicationID,
+		Configuration: restapi.SyntheticTestConfig{
+			SyntheticType:     SyntheticCheckTypeHttpScript,
+			MarkSyntheticCall: true,
+			Retries:           5,
+			RetryInterval:     10,
+			Timeout:           &timeout,
+			Script:            &script,
+		},
+		CustomProperties: customProperties,
+		Locations:        []string{"loc1", "loc2"},
+		PlaybackMode:     "Staggered",
+		TestFrequency:    &testFrequency,
+	}, model)
+}
+
+func (ut *syntheticTestUnitTest) shouldReturnErrorWhenTryingToMapStateToModelWhenNoConfigurationIsProvided(t *testing.T) {
+	testHelper := NewTestHelper[*restapi.SyntheticTest](t)
+	resourceHandle := NewSyntheticTestResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	resourceData.SetId(syntheticTestID)
+	setValueOnResourceData(t, resourceData, SyntheticTestFieldConfiguration, []interface{}{
+		map[string]interface{}{
+			SyntheticTestFieldConfigHttpScript: []interface{}{},
+			SyntheticTestFieldConfigHttpAction: []interface{}{},
+		},
+	})
+
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
+
+	require.Error(t, err)
+	require.ErrorContains(t, err, "no supported synthetic test configuration provided")
 }
