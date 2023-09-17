@@ -1,15 +1,22 @@
 # Changelog
 
-## [Unreleased](https://github.com/gessnerfl/terraform-provider-instana/tree/HEAD)
+## [v2.0.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.0.0) (2023-09-16)
 
-[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.8.1...HEAD)
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.9.0...v2.0.0)
 
-**Closed issues:**
+**Breaking changes:**
 
-- Add deprecation note for default prefix and suffix in provider documentation [\#181](https://github.com/gessnerfl/terraform-provider-instana/issues/181)
+- Split Synthetic Test configuration per type [\#171](https://github.com/gessnerfl/terraform-provider-instana/issues/171)
+
+**Implemented enhancements:**
+
+- Create data source for alerting channels [\#182](https://github.com/gessnerfl/terraform-provider-instana/issues/182)
 
 **Merged pull requests:**
 
+- Feature/171 synthetic test [\#187](https://github.com/gessnerfl/terraform-provider-instana/pull/187) ([gessnerfl](https://github.com/gessnerfl))
+- \#177: delete rule-specific custom event specification resources [\#184](https://github.com/gessnerfl/terraform-provider-instana/pull/184) ([gessnerfl](https://github.com/gessnerfl))
+- \#178: delete specific alerting channel resources [\#183](https://github.com/gessnerfl/terraform-provider-instana/pull/183) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/172 delete match spec [\#174](https://github.com/gessnerfl/terraform-provider-instana/pull/174) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/166 remove validate [\#173](https://github.com/gessnerfl/terraform-provider-instana/pull/173) ([gessnerfl](https://github.com/gessnerfl))
 - Feature/121 deprecated sli endpoints [\#168](https://github.com/gessnerfl/terraform-provider-instana/pull/168) ([gessnerfl](https://github.com/gessnerfl))
@@ -18,6 +25,23 @@
 - Feature/160 app id for synthetic test [\#161](https://github.com/gessnerfl/terraform-provider-instana/pull/161) ([gessnerfl](https://github.com/gessnerfl))
 - Bump actions/setup-go from 3 to 4 [\#157](https://github.com/gessnerfl/terraform-provider-instana/pull/157) ([dependabot[bot]](https://github.com/apps/dependabot))
 - Feature/153 generics for resources and unmarshaller [\#154](https://github.com/gessnerfl/terraform-provider-instana/pull/154) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v1.9.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.9.0) (2023-09-11)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.8.1...v1.9.0)
+
+**Breaking changes:**
+
+- Delete channel-specific alerting channel resources from version 2.x [\#178](https://github.com/gessnerfl/terraform-provider-instana/issues/178)
+- Delete rule-specific custom event specification resources from 2.x version [\#177](https://github.com/gessnerfl/terraform-provider-instana/issues/177)
+
+**Closed issues:**
+
+- Add deprecation note for default prefix and suffix in provider documentation [\#181](https://github.com/gessnerfl/terraform-provider-instana/issues/181)
+
+**Merged pull requests:**
+
+- Feature/182 alerting channel datasource [\#185](https://github.com/gessnerfl/terraform-provider-instana/pull/185) ([gessnerfl](https://github.com/gessnerfl))
 
 ## [v1.8.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.8.1) (2023-09-09)
 
@@ -44,6 +68,11 @@
 - Add field ApplicationId on Synthetic Test resources [\#160](https://github.com/gessnerfl/terraform-provider-instana/issues/160)
 - Use generics to improve reuse of code in REST resources and unmarshaller [\#153](https://github.com/gessnerfl/terraform-provider-instana/issues/153)
 - SLI resource deprecated [\#121](https://github.com/gessnerfl/terraform-provider-instana/issues/121)
+
+**Merged pull requests:**
+
+- Feature/169 alerting channel resource [\#180](https://github.com/gessnerfl/terraform-provider-instana/pull/180) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/170 custom event spec [\#179](https://github.com/gessnerfl/terraform-provider-instana/pull/179) ([gessnerfl](https://github.com/gessnerfl))
 
 ## [v1.7.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v1.7.0) (2023-07-30)
 

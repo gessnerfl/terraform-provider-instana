@@ -21,6 +21,8 @@ resource.
   * Groups - `instana_rbac_group`
 * SLI Settings
   * SLI Config - `instana_sli_config`
+* Synthetic Settings
+  * Synthetic Test - `instana_synthetic_test`
 * Website Monitoring
   * Website Monitoring Config - `instana_website_monitoring_config`
   * Website Alert Config - `instana_website_alert_config`
@@ -29,8 +31,9 @@ resource.
 ## Supported Data Source:
 
 * Event Settings
-  * Alerting Channel Office 365 - `instana_alerting_channel_office_365`
+  * Alerting Channel - `instana_alerting_channel`
   * Builtin Event Specifications - `instana_builtin_event_spec`
+* Synthetic Settings
   * Synthetic Location - `instana_synthetic_location`
 
 ## Example Usage
