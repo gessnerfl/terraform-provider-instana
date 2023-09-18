@@ -75,7 +75,7 @@ func (s *websiteMonitoringConfigTestServer) Start() {
 	s.httpServer.Start()
 }
 
-func (s *websiteMonitoringConfigTestServer) GetPort() int64 {
+func (s *websiteMonitoringConfigTestServer) GetPort() int {
 	if s.httpServer != nil {
 		return s.httpServer.GetPort()
 	}

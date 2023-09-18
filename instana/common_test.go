@@ -31,7 +31,7 @@ var testProviderFactory = map[string]func() (*schema.Provider, error){
 	"instana": func() (*schema.Provider, error) { return Provider(), nil },
 }
 
-func appendProviderConfig(resourceConfig string, serverPort int64) string {
+func appendProviderConfig(resourceConfig string, serverPort int) string {
 	return fmt.Sprintf(providerConfig, serverPort) + " \n\n" + resourceConfig
 }
 

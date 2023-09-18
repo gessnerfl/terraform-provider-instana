@@ -2,12 +2,10 @@ package testutils
 
 import (
 	"bytes"
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"io"
 	"log"
-	"math/big"
 	"net"
 	"net/http"
 	"time"
@@ -58,15 +56,9 @@ func NewTestHTTPServer() TestHTTPServer {
 	}
 }
 
-// MinPortNumber the minimum port number used by the http test server
-const MinPortNumber = int64(20000)
-
-// MaxPortNumber the maximum port number used by the http test server
-const MaxPortNumber = int64(50000)
-
 // TestHTTPServer simple helper to mock an http server for testing.
 type TestHTTPServer interface {
-	GetPort() int64
+	GetPort() int
 	GetCallCount(method string, path string) int
 	AddRoute(method string, path string, handlerFunc http.HandlerFunc)
 	Start()
@@ -77,16 +69,16 @@ type TestHTTPServer interface {
 
 type testHTTPServerImpl struct {
 	router      *mux.Router
-	port        *int64
+	port        *int
 	httpServer  *http.Server
+	listener    net.Listener
 	callCounter map[string]int
 }
 
 // GetPort returns the dynamic server port
-func (server *testHTTPServerImpl) GetPort() int64 {
+func (server *testHTTPServerImpl) GetPort() int {
 	if server.port == nil {
-		port := server.randomFreePort()
-		server.port = &port
+		return -1
 	}
 	return *server.port
 }
@@ -122,10 +114,16 @@ func (server *testHTTPServerImpl) wrapHandlerFunc(handlerFunc http.HandlerFunc) 
 func (server *testHTTPServerImpl) Start() {
 	binding := fmt.Sprintf(":%d", server.GetPort())
 	srv := &http.Server{
-		Addr:              binding,
 		Handler:           server.router,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+
+	l, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		panic(err)
+	}
+	port := l.Addr().(*net.TCPAddr).Port
+
 	go func() {
 		rootFolder, err := GetRootFolder()
 		if err != nil {
@@ -134,56 +132,16 @@ func (server *testHTTPServerImpl) Start() {
 		}
 		certFile := fmt.Sprintf("%s/testutils/test-server.pem", rootFolder)
 		keyFile := fmt.Sprintf("%s/testutils/test-server.key", rootFolder)
-		if err = srv.ListenAndServeTLS(certFile, keyFile); !errors.Is(err, http.ErrServerClosed) {
+		if err = srv.ServeTLS(l, certFile, keyFile); !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Failed to start http server using binding %s: %s", binding, err)
 		}
 
 	}()
 	server.httpServer = srv
+	server.listener = l
+	server.port = &port
 
 	server.waitForServerAlive()
-}
-
-// RandomPort creates a random port between 50000 and 59000
-func (server *testHTTPServerImpl) randomFreePort() int64 {
-	maxAttempts := 5
-	attempt := 0
-	randomPort := server.randomPort()
-	for attempt < maxAttempts && server.isPortInUse(randomPort) {
-		log.Printf("Port %d already in use, try with new port number", randomPort)
-		attempt++
-		randomPort = server.randomPort()
-	}
-	return randomPort
-}
-
-func (server *testHTTPServerImpl) randomPort() int64 {
-	random, err := rand.Int(rand.Reader, big.NewInt(MaxPortNumber-MinPortNumber))
-	if err != nil {
-		log.Fatalf("Failed to generate random number; %s", err)
-	}
-
-	return random.Int64() + MinPortNumber
-}
-
-func (server *testHTTPServerImpl) isPortInUse(port int64) bool {
-	timeout := 5 * time.Second
-	target := fmt.Sprintf("localhost:%d", port)
-
-	conn, err := net.DialTimeout("tcp", target, timeout)
-	if err != nil {
-		return false
-	}
-
-	if conn != nil {
-		err = conn.Close()
-		if err != nil {
-			log.Fatalf("failed to connection to tcp port %d; %s", port, err)
-		}
-		return true
-	}
-
-	return false
 }
 
 func (server *testHTTPServerImpl) waitForServerAlive() {

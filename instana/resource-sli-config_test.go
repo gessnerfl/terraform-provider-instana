@@ -349,7 +349,7 @@ func (r *sliConfigIntegrationTest) testCRUD() func(t *testing.T) {
 	}
 }
 
-func (r *sliConfigIntegrationTest) createTestCheckFunction(httpPort int64, iteration int, id string) resource.TestStep {
+func (r *sliConfigIntegrationTest) createTestCheckFunction(httpPort int, iteration int, id string) resource.TestStep {
 	defaultChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(sliConfigDefinition, "id"),
 		resource.TestCheckResourceAttr(sliConfigDefinition, "id", id),
@@ -363,7 +363,7 @@ func (r *sliConfigIntegrationTest) createTestCheckFunction(httpPort int64, itera
 	}
 }
 
-func (r *sliConfigIntegrationTest) createUpdateNotSupportedTestCheckFunction(httpPort int64, iteration int) resource.TestStep {
+func (r *sliConfigIntegrationTest) createUpdateNotSupportedTestCheckFunction(httpPort int, iteration int) resource.TestStep {
 	return resource.TestStep{
 		Config:      appendProviderConfig(fmt.Sprintf(r.resourceTemplate, iteration), httpPort),
 		ExpectError: regexp.MustCompile("update operations not supported for instana_sli_config resources"),

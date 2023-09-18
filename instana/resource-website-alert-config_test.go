@@ -189,7 +189,7 @@ func (test *websiteAlertConfigTest) createIntegrationTest() func(t *testing.T) {
 	}
 }
 
-func (test *websiteAlertConfigTest) createIntegrationTestStep(httpPort int64, iteration int, id string) resource.TestStep {
+func (test *websiteAlertConfigTest) createIntegrationTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	ruleSlownessMetricName := fmt.Sprintf("%s.%d.%s.%d.%s", WebsiteAlertConfigFieldRule, 0, WebsiteAlertConfigFieldRuleSlowness, 0, WebsiteAlertConfigFieldRuleMetricName)
 	ruleSlownessAggregation := fmt.Sprintf("%s.%d.%s.%d.%s", WebsiteAlertConfigFieldRule, 0, WebsiteAlertConfigFieldRuleSlowness, 0, WebsiteAlertConfigFieldRuleAggregation)
 	thresholdStaticOperator := fmt.Sprintf("%s.%d.%s.%d.%s", ResourceFieldThreshold, 0, ResourceFieldThresholdStatic, 0, ResourceFieldThresholdOperator)

@@ -166,7 +166,7 @@ func TestIssue141(t *testing.T) {
 	})
 }
 
-func createIssue141TestStep(terraformResourceInstanceName string, httpPort int64, iteration int, id string) resource.TestStep {
+func createIssue141TestStep(terraformResourceInstanceName string, httpPort int, iteration int, id string) resource.TestStep {
 	application1ApplicationId := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsApplicationID)
 	application1Inclusive := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsInclusive)
 	ruleThroughputMetricName := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldRule, 0, ApplicationAlertConfigFieldRuleThroughput, 0, ApplicationAlertConfigFieldRuleMetricName)

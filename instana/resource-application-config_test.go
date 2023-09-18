@@ -104,7 +104,7 @@ func TestCRUDOfApplicationConfigWithTagFilterResourceWithMockServer(t *testing.T
 	})
 }
 
-func createApplicationConfigWithTagFilterResourceTestStep(httpPort int64, iteration int) resource.TestStep {
+func createApplicationConfigWithTagFilterResourceTestStep(httpPort int, iteration int) resource.TestStep {
 	config := appendProviderConfig(fmt.Sprintf(resourceApplicationConfigWithTagFilterDefinitionTemplate, iteration, defaultTagFilter), httpPort)
 	return resource.TestStep{
 		Config: config,

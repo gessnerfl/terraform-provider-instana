@@ -220,7 +220,7 @@ func (r *dataSourceAlertingChannelIntegrationTest) testRead(t *testing.T) {
 	})
 }
 
-func (r *dataSourceAlertingChannelIntegrationTest) createTestStep(httpPort int64) resource.TestStep {
+func (r *dataSourceAlertingChannelIntegrationTest) createTestStep(httpPort int) resource.TestStep {
 	dataSourceAlertingChannelDefinitionTemplate := `
 data "instana_alerting_channel" "example" {
   name = "%s"

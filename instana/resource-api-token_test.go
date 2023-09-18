@@ -177,7 +177,7 @@ func TestCRUDOfAPITokenResourceWithMockServer(t *testing.T) {
 	})
 }
 
-func createAPITokenConfigResourceTestStep(httpPort int64, iteration int, id string, accessGrantingToken string, internalID string) resource.TestStep {
+func createAPITokenConfigResourceTestStep(httpPort int, iteration int, id string, accessGrantingToken string, internalID string) resource.TestStep {
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(resourceAPITokenDefinitionTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(

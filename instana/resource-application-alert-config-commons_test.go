@@ -239,7 +239,7 @@ func (f *anyApplicationConfigTest) createIntegrationTest() func(t *testing.T) {
 	}
 }
 
-func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int64, iteration int, id string) resource.TestStep {
+func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	application1ApplicationId := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsApplicationID)
 	application1Inclusive := fmt.Sprintf("%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsInclusive)
 	application1Service1ServiceId := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldApplications, 0, ApplicationAlertConfigFieldApplicationsServices, 0, ApplicationAlertConfigFieldApplicationsServicesServiceID)

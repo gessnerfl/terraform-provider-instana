@@ -280,7 +280,7 @@ func (it *syntheticTestResourceIntegrationTest) testCrud(t *testing.T) {
 	})
 }
 
-func (it *syntheticTestResourceIntegrationTest) createCheckFunctions(httpPort int64, iteration int) resource.TestStep {
+func (it *syntheticTestResourceIntegrationTest) createCheckFunctions(httpPort int, iteration int) resource.TestStep {
 	defaultChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(syntheticTestDefinition, "id"),
 		resource.TestCheckResourceAttr(syntheticTestDefinition, SyntheticTestFieldLabel, fmt.Sprintf("%s %d", syntheticTestLabel, iteration)),
