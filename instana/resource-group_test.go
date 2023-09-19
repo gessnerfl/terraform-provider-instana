@@ -91,7 +91,7 @@ func TestCRUDOfMinimalRBACGroupResourceWithMockServer(t *testing.T) {
 		}
 		`
 
-	testStepsFactory := func(httpServerPort int64, resourceID string) []resource.TestStep {
+	testStepsFactory := func(httpServerPort int, resourceID string) []resource.TestStep {
 		return []resource.TestStep{
 			createMinimalRbacGroupResourceTestStep(httpServerPort, 0, resourceID),
 			testStepImportWithCustomID(testGroupDefinition, resourceID),
@@ -103,7 +103,7 @@ func TestCRUDOfMinimalRBACGroupResourceWithMockServer(t *testing.T) {
 	executeRBACGroupIntegrationTest(t, serverResponseTemplate, testStepsFactory)
 }
 
-func createMinimalRbacGroupResourceTestStep(httpPort int64, iteration int, id string) resource.TestStep {
+func createMinimalRbacGroupResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(minimalRBACGroupDefinitionTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
@@ -126,7 +126,7 @@ func TestCRUDOfRBACGroupResourceWithPermissionsAndApplicationIdsAssignedUsingMoc
 		}
 		`
 
-	testStepsFactory := func(httpServerPort int64, resourceID string) []resource.TestStep {
+	testStepsFactory := func(httpServerPort int, resourceID string) []resource.TestStep {
 		return []resource.TestStep{
 			createRbacGroupResourceWithPermissionsAndApplicationIdsAssignedTestStep(httpServerPort, 0, resourceID),
 			testStepImportWithCustomID(testGroupDefinition, resourceID),
@@ -138,7 +138,7 @@ func TestCRUDOfRBACGroupResourceWithPermissionsAndApplicationIdsAssignedUsingMoc
 	executeRBACGroupIntegrationTest(t, serverResponseTemplate, testStepsFactory)
 }
 
-func createRbacGroupResourceWithPermissionsAndApplicationIdsAssignedTestStep(httpPort int64, iteration int, id string) resource.TestStep {
+func createRbacGroupResourceWithPermissionsAndApplicationIdsAssignedTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(rbacGroupDefinitionWithPermissionsAndApplicationIDsAssignedTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
@@ -173,7 +173,7 @@ func TestCRUDOfFullRBACGroupResourceWithMockServer(t *testing.T) {
 		}
 		`
 
-	testStepsFactory := func(httpServerPort int64, resourceID string) []resource.TestStep {
+	testStepsFactory := func(httpServerPort int, resourceID string) []resource.TestStep {
 		return []resource.TestStep{
 			createFullRbacGroupResourceTestStep(httpServerPort, 0, resourceID),
 			testStepImportWithCustomID(testGroupDefinition, resourceID),
@@ -185,7 +185,7 @@ func TestCRUDOfFullRBACGroupResourceWithMockServer(t *testing.T) {
 	executeRBACGroupIntegrationTest(t, serverResponseTemplate, testStepsFactory)
 }
 
-func createFullRbacGroupResourceTestStep(httpPort int64, iteration int, id string) resource.TestStep {
+func createFullRbacGroupResourceTestStep(httpPort int, iteration int, id string) resource.TestStep {
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(fullRBACGroupDefinitionTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
@@ -216,7 +216,7 @@ func testCheckPermissionSetStringSetField(attribute string, idx int, value strin
 	return resource.TestCheckResourceAttr(testGroupDefinition, fmt.Sprintf("%s.0.%s.%d", GroupFieldPermissionSet, attribute, idx), value)
 }
 
-type rbacGroupTestStepsFactory func(httpServerPort int64, resourceID string) []resource.TestStep
+type rbacGroupTestStepsFactory func(httpServerPort int, resourceID string) []resource.TestStep
 
 func executeRBACGroupIntegrationTest(t *testing.T, serverResponseTemplate string, testStepsFactory rbacGroupTestStepsFactory) {
 	id := RandomID()
