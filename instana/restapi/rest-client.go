@@ -160,9 +160,9 @@ func (client *restClientImpl) executeRequestWithThrottling(method string, url st
 }
 
 func (client *restClientImpl) processThrottledRequests() {
-	timer := time.NewTimer(client.throttleRate)
+	throttle := time.Tick(client.throttleRate)
 	for req := range client.throttledRequests {
-		<-timer.C
+		<-throttle
 		go client.handleThrottledAPIRequest(req)
 	}
 }
