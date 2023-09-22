@@ -377,14 +377,38 @@ func (r *customerEventSpecificationUnitTest) schemaShouldBeValid(t *testing.T) {
 
 func (r *customerEventSpecificationUnitTest) validateRuleSchema(t *testing.T, ruleSchema map[string]*schema.Schema) {
 	schemaAssert := testutils.NewTerraformSchemaAssert(ruleSchema, t)
-	require.Len(t, ruleSchema, 3)
+	require.Len(t, ruleSchema, 6)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(CustomEventSpecificationFieldEntityCountRule)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(CustomEventSpecificationFieldEntityCountVerificationRule)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(CustomEventSpecificationFieldEntityVerificationRule)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(CustomEventSpecificationFieldHostAvailabilityRule)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(CustomEventSpecificationFieldSystemRule)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeListOfResource(CustomEventSpecificationFieldThresholdRule)
 
+	r.validateEntityCountRuleSchema(t, ruleSchema[CustomEventSpecificationFieldEntityCountRule].Elem.(*schema.Resource).Schema)
+	r.validateEntityCountVerificationRuleSchema(t, ruleSchema[CustomEventSpecificationFieldEntityCountVerificationRule].Elem.(*schema.Resource).Schema)
 	r.validateEntityVerificationRuleSchema(t, ruleSchema[CustomEventSpecificationFieldEntityVerificationRule].Elem.(*schema.Resource).Schema)
 	r.validateSystemRuleSchema(t, ruleSchema[CustomEventSpecificationFieldSystemRule].Elem.(*schema.Resource).Schema)
 	r.validateThresholdRuleSchema(t, ruleSchema[CustomEventSpecificationFieldThresholdRule].Elem.(*schema.Resource).Schema)
+}
+
+func (r *customerEventSpecificationUnitTest) validateEntityCountRuleSchema(t *testing.T, ruleSchema map[string]*schema.Schema) {
+	require.Len(t, ruleSchema, 3)
+	schemaAssert := testutils.NewTerraformSchemaAssert(ruleSchema, t)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldSeverity)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldConditionOperator)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeFloat(CustomEventSpecificationRuleFieldConditionValue)
+}
+
+func (r *customerEventSpecificationUnitTest) validateEntityCountVerificationRuleSchema(t *testing.T, ruleSchema map[string]*schema.Schema) {
+	require.Len(t, ruleSchema, 6)
+	schemaAssert := testutils.NewTerraformSchemaAssert(ruleSchema, t)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldSeverity)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldConditionOperator)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeFloat(CustomEventSpecificationRuleFieldConditionValue)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldMatchingEntityType)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldMatchingOperator)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldMatchingEntityLabel)
 }
 
 func (r *customerEventSpecificationUnitTest) validateEntityVerificationRuleSchema(t *testing.T, ruleSchema map[string]*schema.Schema) {
@@ -395,6 +419,15 @@ func (r *customerEventSpecificationUnitTest) validateEntityVerificationRuleSchem
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldMatchingOperator)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldMatchingEntityLabel)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(CustomEventSpecificationRuleFieldOfflineDuration)
+}
+
+func (r *customerEventSpecificationUnitTest) validateHostAvailabilityRuleSchema(t *testing.T, ruleSchema map[string]*schema.Schema) {
+	require.Len(t, ruleSchema, 4)
+	schemaAssert := testutils.NewTerraformSchemaAssert(ruleSchema, t)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationRuleFieldSeverity)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(CustomEventSpecificationRuleFieldOfflineDuration)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeInt(CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter)
+	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationHostAvailabilityRuleFieldTagFilter)
 }
 
 func (r *customerEventSpecificationUnitTest) validateSystemRuleSchema(t *testing.T, ruleSchema map[string]*schema.Schema) {
@@ -493,7 +526,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityVerificationRuleToSt
 	require.IsType(t, map[string]interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0])
 
 	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
-	require.Len(t, rules, 3)
+	require.Len(t, rules, 6)
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule])
 	require.Len(t, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{}), 1)
 	require.IsType(t, map[string]interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{})[0])
@@ -501,6 +534,12 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityVerificationRuleToSt
 	require.Len(t, rules[CustomEventSpecificationFieldSystemRule].([]interface{}), 0)
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldThresholdRule])
 	require.Len(t, rules[CustomEventSpecificationFieldThresholdRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountRule])
+	require.Len(t, rules[CustomEventSpecificationFieldEntityCountRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountVerificationRule])
+	require.Len(t, rules[CustomEventSpecificationFieldEntityCountVerificationRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldHostAvailabilityRule])
+	require.Len(t, rules[CustomEventSpecificationFieldHostAvailabilityRule].([]interface{}), 0)
 
 	rule := rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{})[0].(map[string]interface{})
 	require.Len(t, rule, 5)
@@ -555,7 +594,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapSystemRuleToState(t *testi
 	require.IsType(t, map[string]interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0])
 
 	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
-	require.Len(t, rules, 3)
+	require.Len(t, rules, 6)
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule])
 	require.Len(t, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{}), 0)
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldSystemRule])
@@ -563,6 +602,12 @@ func (r *customerEventSpecificationUnitTest) shouldMapSystemRuleToState(t *testi
 	require.IsType(t, map[string]interface{}{}, rules[CustomEventSpecificationFieldSystemRule].([]interface{})[0])
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldThresholdRule])
 	require.Len(t, rules[CustomEventSpecificationFieldThresholdRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountRule])
+	require.Len(t, rules[CustomEventSpecificationFieldEntityCountRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountVerificationRule])
+	require.Len(t, rules[CustomEventSpecificationFieldEntityCountVerificationRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldHostAvailabilityRule])
+	require.Len(t, rules[CustomEventSpecificationFieldHostAvailabilityRule].([]interface{}), 0)
 
 	rule := rules[CustomEventSpecificationFieldSystemRule].([]interface{})[0].(map[string]interface{})
 	require.Len(t, rule, 2)
@@ -625,7 +670,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricName
 	require.IsType(t, map[string]interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0])
 
 	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
-	require.Len(t, rules, 3)
+	require.Len(t, rules, 6)
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule])
 	require.Len(t, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{}), 0)
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldSystemRule])
@@ -633,6 +678,12 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricName
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldThresholdRule])
 	require.Len(t, rules[CustomEventSpecificationFieldThresholdRule].([]interface{}), 1)
 	require.IsType(t, map[string]interface{}{}, rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0])
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountRule])
+	require.Len(t, rules[CustomEventSpecificationFieldEntityCountRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountVerificationRule])
+	require.Len(t, rules[CustomEventSpecificationFieldEntityCountVerificationRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldHostAvailabilityRule])
+	require.Len(t, rules[CustomEventSpecificationFieldHostAvailabilityRule].([]interface{}), 0)
 
 	rule := rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0].(map[string]interface{})
 	require.Len(t, rule, 8)
@@ -709,7 +760,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	require.IsType(t, map[string]interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0])
 
 	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
-	require.Len(t, rules, 3)
+	require.Len(t, rules, 6)
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule])
 	require.Len(t, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{}), 0)
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldSystemRule])
@@ -717,6 +768,12 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldThresholdRule])
 	require.Len(t, rules[CustomEventSpecificationFieldThresholdRule].([]interface{}), 1)
 	require.IsType(t, map[string]interface{}{}, rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0])
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountRule])
+	require.Len(t, rules[CustomEventSpecificationFieldEntityCountRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountVerificationRule])
+	require.Len(t, rules[CustomEventSpecificationFieldEntityCountVerificationRule].([]interface{}), 0)
+	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldHostAvailabilityRule])
+	require.Len(t, rules[CustomEventSpecificationFieldHostAvailabilityRule].([]interface{}), 0)
 
 	rule := rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0].(map[string]interface{})
 	require.Len(t, rule, 8)

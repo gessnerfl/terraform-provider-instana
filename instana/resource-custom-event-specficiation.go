@@ -48,7 +48,7 @@ const (
 	CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder = "placeholder"
 	CustomEventSpecificationThresholdRuleFieldMetricPatternOperator    = "operator"
 	CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter  = "close_after"
-	CustomEventSpecificationHostAvailabilityRuleFieldMetricTagFilter   = "tag_filter"
+	CustomEventSpecificationHostAvailabilityRuleFieldTagFilter         = "tag_filter"
 )
 
 var (
@@ -235,7 +235,7 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 											Required:    true,
 											Description: "if a host is offline for longer than the defined period, Instana does not expect the host to reappear anymore, and the event will be closed after the grace period",
 										},
-										CustomEventSpecificationHostAvailabilityRuleFieldMetricTagFilter: RequiredTagFilterExpressionSchema,
+										CustomEventSpecificationHostAvailabilityRuleFieldTagFilter: RequiredTagFilterExpressionSchema,
 									},
 								},
 								ExactlyOneOf: customEventSpecificationRuleTypeKeys,
