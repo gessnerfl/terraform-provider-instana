@@ -106,6 +106,27 @@ func TestShouldParseStringTagComparisonExpression(t *testing.T) {
 	shouldSuccessfullyParseExpression(expression, expectedResult, t)
 }
 
+func TestShouldParseStringTagComparisonExpressionWithTagAsStringValue(t *testing.T) {
+	expression := "agent.tag:'ns:key' EQUALS 'value'"
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyAgentTags, TagKey: utils.StringPtr("ns:key")},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("value"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	shouldSuccessfullyParseExpression(expression, expectedResult, t)
+}
+
 func TestShouldParseNumberTagComparisonExpression(t *testing.T) {
 	expression := "agent.tag:key EQUALS 1234"
 	expectedResult := &FilterExpression{
@@ -880,7 +901,29 @@ func TestShouldRenderPrimaryTagComparisonExpression(t *testing.T) {
 
 	rendered := sut.Render()
 
-	require.Equal(t, "entity.name:key@dest EQUALS 'value'", rendered)
+	require.Equal(t, "entity.name:'key'@dest EQUALS 'value'", rendered)
+}
+
+func TestShouldRenderPrimaryTagComparisonExpressionWithString(t *testing.T) {
+	sut := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						Comparison: &ComparisonExpression{
+							Entity:      &EntitySpec{Identifier: keyEntityName, TagKey: utils.StringPtr("ns:key"), Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator:    Operator(restapi.EqualsOperator),
+							StringValue: utils.StringPtr("value"),
+						},
+					},
+				},
+			},
+		},
+	}
+
+	rendered := sut.Render()
+
+	require.Equal(t, "entity.name:'ns:key'@dest EQUALS 'value'", rendered)
 }
 
 func TestShouldRenderUnaryOperationExpression(t *testing.T) {
@@ -940,41 +983,41 @@ func TestShouldNormalizeExpressionAndProduceTheSameResultWhenPerformedMultipleTi
 		{
 			name:     "AndWithBracketedOr",
 			input:    "agent.tag:key EQUALS 'value' AND ( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' )",
-			expected: "(agent.tag:key@dest EQUALS 'value' AND (entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar'))"},
+			expected: "(agent.tag:'key'@dest EQUALS 'value' AND (entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar'))"},
 		{
 			name:     "BracketedOrWithAnd",
 			input:    "(entity.name EQUALS 'foo' OR entity.name EQUALS 'bar') AND agent.tag:key EQUALS 'value'",
-			expected: "((entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar') AND agent.tag:key@dest EQUALS 'value')",
+			expected: "((entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar') AND agent.tag:'key'@dest EQUALS 'value')",
 		},
 		{
 			name:     "OrWithBracketedAnd",
 			input:    "agent.tag:key EQUALS 'value' OR ( entity.name EQUALS 'foo' AND entity.name EQUALS 'bar' )",
-			expected: "(agent.tag:key@dest EQUALS 'value' OR (entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar'))",
+			expected: "(agent.tag:'key'@dest EQUALS 'value' OR (entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar'))",
 		},
 		{
 			name:     "BracketedAndWithOr",
 			input:    "(entity.name EQUALS 'foo' AND entity.name EQUALS 'bar' ) OR agent.tag:key EQUALS 'value'",
-			expected: "((entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar') OR agent.tag:key@dest EQUALS 'value')",
+			expected: "((entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar') OR agent.tag:'key'@dest EQUALS 'value')",
 		},
 		{
 			name:     "AndWithBracketedAnd",
 			input:    "agent.tag:key EQUALS 'value' AND ( entity.name EQUALS 'foo' AND entity.name EQUALS 'bar' )",
-			expected: "(agent.tag:key@dest EQUALS 'value' AND entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar')",
+			expected: "(agent.tag:'key'@dest EQUALS 'value' AND entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar')",
 		},
 		{
 			name:     "BracketedAndWithAnd",
 			input:    "( entity.name EQUALS 'foo' AND entity.name EQUALS 'bar' ) AND agent.tag:key EQUALS 'value'",
-			expected: "(entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar' AND agent.tag:key@dest EQUALS 'value')",
+			expected: "(entity.name@dest EQUALS 'foo' AND entity.name@dest EQUALS 'bar' AND agent.tag:'key'@dest EQUALS 'value')",
 		},
 		{
 			name:     "OrWithBracketedOr",
 			input:    "agent.tag:key EQUALS 'value' OR ( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' )",
-			expected: "(agent.tag:key@dest EQUALS 'value' OR entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar')",
+			expected: "(agent.tag:'key'@dest EQUALS 'value' OR entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar')",
 		},
 		{
 			name:     "BracketedOrWithOr",
 			input:    "( entity.name EQUALS 'foo' OR entity.name EQUALS 'bar' ) OR agent.tag:key EQUALS 'value'",
-			expected: "(entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar' OR agent.tag:key@dest EQUALS 'value')",
+			expected: "(entity.name@dest EQUALS 'foo' OR entity.name@dest EQUALS 'bar' OR agent.tag:'key'@dest EQUALS 'value')",
 		},
 	}
 

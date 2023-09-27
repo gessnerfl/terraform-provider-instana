@@ -49,9 +49,9 @@ const serverResponseWithTagFilterTemplate = `
 						"name" : "agent.tag",
 						"entity" : "DESTINATION",
 						"operator" : "EQUALS",
-						"stringValue" : "environment=dev-speedboot-local-gessnerfl",
+						"stringValue" : "environment=dev-local-gessnerfl",
 						"key": "environment",
-						"value": "dev-speedboot-local-gessnerfl"
+						"value": "dev-local-gessnerfl"
 					}
 				]
 			},
@@ -70,8 +70,8 @@ const serverResponseWithTagFilterTemplate = `
 
 const (
 	testApplicationConfigDefinition = "instana_application_config.example"
-	defaultTagFilter                = "entity.name CONTAINS 'foo' AND agent.tag:environment EQUALS 'dev-speedboot-local-gessnerfl' OR call.http.status@na EQUALS 404"
-	defaultNormalizedTagFilter      = "((entity.name@dest CONTAINS 'foo' AND agent.tag:environment@dest EQUALS 'dev-speedboot-local-gessnerfl') OR call.http.status@na EQUALS 404)"
+	defaultTagFilter                = "entity.name CONTAINS 'foo' AND agent.tag:environment EQUALS 'dev-local-gessnerfl' OR call.http.status@na EQUALS 404"
+	defaultNormalizedTagFilter      = "((entity.name@dest CONTAINS 'foo' AND agent.tag:'environment'@dest EQUALS 'dev-local-gessnerfl') OR call.http.status@na EQUALS 404)"
 	defaultLabel                    = "label"
 	entityName                      = "entity.name"
 	expressionEntityTypeDestEqValue = "entity.type@dest EQUALS 'foo'"
@@ -81,7 +81,7 @@ const (
 var defaultTagFilterModel = restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{
 	restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{
 		restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, entityName, restapi.ContainsOperator, "foo"),
-		restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, "agent.tag", restapi.EqualsOperator, "environment", "dev-speedboot-local-gessnerfl"),
+		restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, "agent.tag", restapi.EqualsOperator, "environment", "dev-local-gessnerfl"),
 	}),
 	restapi.NewNumberTagFilter(restapi.TagFilterEntityNotApplicable, "call.http.status", restapi.EqualsOperator, 404),
 })

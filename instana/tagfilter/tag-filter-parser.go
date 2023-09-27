@@ -10,12 +10,12 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//ExpressionRenderer interface definition to render an expression in its normalized form
+// ExpressionRenderer interface definition to render an expression in its normalized form
 type ExpressionRenderer interface {
 	Render() string
 }
 
-//EntityOrigin custom type for the origin (source or destination) of a entity spec
+// EntityOrigin custom type for the origin (source or destination) of a entity spec
 type EntityOrigin interface {
 	//Key returns the key of the entity origin
 	Key() string
@@ -32,12 +32,12 @@ type baseEntityOrigin struct {
 	tagFilterEntity restapi.TagFilterEntity
 }
 
-//Key interface implementation of EntityOrigin
+// Key interface implementation of EntityOrigin
 func (o *baseEntityOrigin) Key() string {
 	return o.key
 }
 
-//TagFilterEntity interface implementation of EntityOrigin
+// TagFilterEntity interface implementation of EntityOrigin
 func (o *baseEntityOrigin) TagFilterEntity() restapi.TagFilterEntity {
 	return o.tagFilterEntity
 }
@@ -51,10 +51,10 @@ var (
 	EntityOriginNotApplicable = newEntityOrigin("na", restapi.TagFilterEntityNotApplicable)
 )
 
-//EntityOrigins custom type for a slice of entity origins
+// EntityOrigins custom type for a slice of entity origins
 type EntityOrigins []EntityOrigin
 
-//ForInstanaAPIEntity returns the EntityOrigin for its corresponding TagFilterEntity from the Instana API
+// ForInstanaAPIEntity returns the EntityOrigin for its corresponding TagFilterEntity from the Instana API
 func (origins EntityOrigins) ForInstanaAPIEntity(input restapi.TagFilterEntity) EntityOrigin {
 	for _, o := range origins {
 		if o.TagFilterEntity() == input {
@@ -65,7 +65,7 @@ func (origins EntityOrigins) ForInstanaAPIEntity(input restapi.TagFilterEntity) 
 	return EntityOriginDestination
 }
 
-//ForKey returns the EntityOrigin for its string representation
+// ForKey returns the EntityOrigin for its string representation
 func (origins EntityOrigins) ForKey(input string) EntityOrigin {
 	for _, o := range origins {
 		if o.Key() == input {
@@ -76,22 +76,22 @@ func (origins EntityOrigins) ForKey(input string) EntityOrigin {
 	return EntityOriginDestination
 }
 
-//SupportedEntityOrigins slice of supported EntityOrigins
+// SupportedEntityOrigins slice of supported EntityOrigins
 var SupportedEntityOrigins = EntityOrigins{EntityOriginSource, EntityOriginDestination, EntityOriginNotApplicable}
 
-//EntitySpec custom type for an entity path specification            Ident (@TagKeySeparator @Ident)? (@EntityOriginOperator @EntityOrigin)? "
+// EntitySpec custom type for an entity path specification            Ident (@TagKeySeparator @Ident)? (@EntityOriginOperator @EntityOrigin)? "
 type EntitySpec struct {
 	Identifier string  `parser:"@Ident"`
-	TagKey     *string `parser:"( \":\" @Ident )?"`
+	TagKey     *string `parser:"( \":\" @(Ident | String) )?"`
 	Origin     *string `parser:"( \"@\" @EntityOrigin )?"`
 }
 
-//Render implementation of the ExpressionRenderer interface
+// Render implementation of the ExpressionRenderer interface
 func (o *EntitySpec) Render() string {
 	origin := EntityOriginDestination.Key()
 	tagKey := ""
 	if o.TagKey != nil {
-		tagKey = ":" + *o.TagKey
+		tagKey = ":'" + *o.TagKey + "'"
 	}
 	if o.Origin != nil {
 		origin = SupportedEntityOrigins.ForKey(*o.Origin).Key()
@@ -99,33 +99,33 @@ func (o *EntitySpec) Render() string {
 	return o.Identifier + tagKey + "@" + origin
 }
 
-//Operator custom type for an operator
+// Operator custom type for an operator
 type Operator string
 
-//Capture captures the string representation of an operator from the given string and converts it to upper case. Interface of participle
+// Capture captures the string representation of an operator from the given string and converts it to upper case. Interface of participle
 func (o *Operator) Capture(values []string) error {
 	*o = Operator(strings.ToUpper(values[0]))
 	return nil
 }
 
-//FilterExpression representation of a tag filter expression
+// FilterExpression representation of a tag filter expression
 type FilterExpression struct {
 	Expression *LogicalOrExpression `parser:"@@"`
 }
 
-//Render implementation of ExpressionRenderer.Render
+// Render implementation of ExpressionRenderer.Render
 func (e *FilterExpression) Render() string {
 	return e.Expression.Render()
 }
 
-//LogicalOrExpression representation of a logical OR, or as a wrapper for a LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
+// LogicalOrExpression representation of a logical OR, or as a wrapper for a LogicalAndExpression or a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalOrExpression struct {
 	Left     *LogicalAndExpression `parser:"  @@"`
 	Operator *Operator             `parser:"( @\"OR\""`
 	Right    *LogicalOrExpression  `parser:"  @@ )?"`
 }
 
-//Render implementation of ExpressionRenderer.Render
+// Render implementation of ExpressionRenderer.Render
 func (e *LogicalOrExpression) Render() string {
 	if e.Operator != nil {
 		return fmt.Sprintf("%s OR %s", e.Left.Render(), e.Right.Render())
@@ -133,14 +133,14 @@ func (e *LogicalOrExpression) Render() string {
 	return e.Left.Render()
 }
 
-//LogicalAndExpression representation of a logical AND, or as a wrapper for a PrimaryExpression. The wrapping is required to handle precedence.
+// LogicalAndExpression representation of a logical AND, or as a wrapper for a PrimaryExpression. The wrapping is required to handle precedence.
 type LogicalAndExpression struct {
 	Left     *BracketExpression    `parser:"  @@"`
 	Operator *Operator             `parser:"( @\"AND\""`
 	Right    *LogicalAndExpression `parser:"  @@ )?"`
 }
 
-//Render implementation of ExpressionRenderer.Render
+// Render implementation of ExpressionRenderer.Render
 func (e *LogicalAndExpression) Render() string {
 	if e.Operator != nil {
 		return fmt.Sprintf("%s AND %s", e.Left.Render(), e.Right.Render())
@@ -148,13 +148,13 @@ func (e *LogicalAndExpression) Render() string {
 	return e.Left.Render()
 }
 
-//BracketExpression representation of a bracket expression
+// BracketExpression representation of a bracket expression
 type BracketExpression struct {
 	Bracket *LogicalOrExpression `parser:"\"(\" @@ \")\""`
 	Primary *PrimaryExpression   `parser:"| @@"`
 }
 
-//Render implementation of ExpressionRenderer.Render
+// Render implementation of ExpressionRenderer.Render
 func (e *BracketExpression) Render() string {
 	if e.Bracket != nil {
 		return "(" + e.Bracket.Render() + ")"
@@ -162,13 +162,13 @@ func (e *BracketExpression) Render() string {
 	return e.Primary.Render()
 }
 
-//PrimaryExpression wrapper for either a comparison or a unary expression
+// PrimaryExpression wrapper for either a comparison or a unary expression
 type PrimaryExpression struct {
 	Comparison     *ComparisonExpression     `parser:"  @@"`
 	UnaryOperation *UnaryOperationExpression `parser:"| @@"`
 }
 
-//Render implementation of ExpressionRenderer.Render
+// Render implementation of ExpressionRenderer.Render
 func (e *PrimaryExpression) Render() string {
 	if e.Comparison != nil {
 		return e.Comparison.Render()
@@ -176,7 +176,7 @@ func (e *PrimaryExpression) Render() string {
 	return e.UnaryOperation.Render()
 }
 
-//ComparisonExpression representation of a comparison expression.
+// ComparisonExpression representation of a comparison expression.
 type ComparisonExpression struct {
 	Entity       *EntitySpec `parser:"@@"`
 	Operator     Operator    `parser:"@( \"EQUALS\" | \"NOT_EQUAL\" | \"CONTAINS\" | \"NOT_CONTAIN\" | \"STARTS_WITH\" | \"ENDS_WITH\" | \"NOT_STARTS_WITH\" | \"NOT_ENDS_WITH\" | \"GREATER_OR_EQUAL_THAN\" | \"LESS_OR_EQUAL_THAN\" | \"LESS_THAN\" | \"GREATER_THAN\" )"`
@@ -185,7 +185,7 @@ type ComparisonExpression struct {
 	StringValue  *string     `parser:"| @String )"`
 }
 
-//Render implementation of ExpressionRenderer.Render
+// Render implementation of ExpressionRenderer.Render
 func (e *ComparisonExpression) Render() string {
 	if e.NumberValue != nil {
 		return fmt.Sprintf("%s %s %d", e.Entity.Render(), e.Operator, *e.NumberValue)
@@ -195,13 +195,13 @@ func (e *ComparisonExpression) Render() string {
 	return fmt.Sprintf("%s %s '%s'", e.Entity.Render(), e.Operator, *e.StringValue)
 }
 
-//UnaryOperationExpression representation of a unary expression
+// UnaryOperationExpression representation of a unary expression
 type UnaryOperationExpression struct {
 	Entity   *EntitySpec `parser:"@@"`
 	Operator Operator    `parser:"@( \"IS_EMPTY\" | \"IS_BLANK\"  | \"NOT_EMPTY\" | \"NOT_BLANK\" )"`
 }
 
-//Render implementation of ExpressionRenderer.Render
+// Render implementation of ExpressionRenderer.Render
 func (e *UnaryOperationExpression) Render() string {
 	return fmt.Sprintf("%s %s", e.Entity.Render(), e.Operator)
 }
@@ -226,7 +226,7 @@ var (
 	)
 )
 
-//Normalize parses the input and returns the normalized representation of the input string
+// Normalize parses the input and returns the normalized representation of the input string
 func Normalize(input string) (string, error) {
 	parser := NewParser()
 	mapper := NewMapper()
@@ -245,19 +245,19 @@ func Normalize(input string) (string, error) {
 	return mapped.Render(), nil
 }
 
-//NewParser creates a new instance of a Parser
+// NewParser creates a new instance of a Parser
 func NewParser() Parser {
 	return new(parserImpl)
 }
 
-//Parser interface for working with tag filter expressions of instana
+// Parser interface for working with tag filter expressions of instana
 type Parser interface {
 	Parse(expression string) (*FilterExpression, error)
 }
 
 type parserImpl struct{}
 
-//Parse implementation of the parsing of the Parser
+// Parse implementation of the parsing of the Parser
 func (f *parserImpl) Parse(expression string) (*FilterExpression, error) {
 	parsedExpression := &FilterExpression{}
 	err := filterParser.ParseString(expression, parsedExpression)
