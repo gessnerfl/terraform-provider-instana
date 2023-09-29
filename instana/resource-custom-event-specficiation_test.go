@@ -527,19 +527,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityVerificationRuleToSt
 
 	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
 	require.Len(t, rules, 6)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{})[0])
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldSystemRule])
-	require.Len(t, rules[CustomEventSpecificationFieldSystemRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldThresholdRule])
-	require.Len(t, rules[CustomEventSpecificationFieldThresholdRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityCountRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountVerificationRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityCountVerificationRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldHostAvailabilityRule])
-	require.Len(t, rules[CustomEventSpecificationFieldHostAvailabilityRule].([]interface{}), 0)
+	r.verifyExpectedRuleSet(t, rules, CustomEventSpecificationFieldEntityVerificationRule)
 
 	rule := rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{})[0].(map[string]interface{})
 	require.Len(t, rule, 5)
@@ -595,19 +583,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapSystemRuleToState(t *testi
 
 	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
 	require.Len(t, rules, 6)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldSystemRule])
-	require.Len(t, rules[CustomEventSpecificationFieldSystemRule].([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, rules[CustomEventSpecificationFieldSystemRule].([]interface{})[0])
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldThresholdRule])
-	require.Len(t, rules[CustomEventSpecificationFieldThresholdRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityCountRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountVerificationRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityCountVerificationRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldHostAvailabilityRule])
-	require.Len(t, rules[CustomEventSpecificationFieldHostAvailabilityRule].([]interface{}), 0)
+	r.verifyExpectedRuleSet(t, rules, CustomEventSpecificationFieldSystemRule)
 
 	rule := rules[CustomEventSpecificationFieldSystemRule].([]interface{})[0].(map[string]interface{})
 	require.Len(t, rule, 2)
@@ -671,19 +647,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricName
 
 	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
 	require.Len(t, rules, 6)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldSystemRule])
-	require.Len(t, rules[CustomEventSpecificationFieldSystemRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldThresholdRule])
-	require.Len(t, rules[CustomEventSpecificationFieldThresholdRule].([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0])
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityCountRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountVerificationRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityCountVerificationRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldHostAvailabilityRule])
-	require.Len(t, rules[CustomEventSpecificationFieldHostAvailabilityRule].([]interface{}), 0)
+	r.verifyExpectedRuleSet(t, rules, CustomEventSpecificationFieldThresholdRule)
 
 	rule := rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0].(map[string]interface{})
 	require.Len(t, rule, 8)
@@ -760,20 +724,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	require.IsType(t, map[string]interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0])
 
 	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
-	require.Len(t, rules, 6)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityVerificationRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityVerificationRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldSystemRule])
-	require.Len(t, rules[CustomEventSpecificationFieldSystemRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldThresholdRule])
-	require.Len(t, rules[CustomEventSpecificationFieldThresholdRule].([]interface{}), 1)
-	require.IsType(t, map[string]interface{}{}, rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0])
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityCountRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldEntityCountVerificationRule])
-	require.Len(t, rules[CustomEventSpecificationFieldEntityCountVerificationRule].([]interface{}), 0)
-	require.IsType(t, []interface{}{}, rules[CustomEventSpecificationFieldHostAvailabilityRule])
-	require.Len(t, rules[CustomEventSpecificationFieldHostAvailabilityRule].([]interface{}), 0)
+	r.verifyExpectedRuleSet(t, rules, CustomEventSpecificationFieldThresholdRule)
 
 	rule := rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0].(map[string]interface{})
 	require.Len(t, rule, 8)
@@ -795,7 +746,29 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	require.Equal(t, prefix, metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix])
 	require.Equal(t, postfix, metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix])
 	require.Equal(t, placeholder, metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder])
-	require.Equal(t, string(operator), metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternOperator])
+	require.Equal(t, operator, metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternOperator])
+}
+
+func (r *customerEventSpecificationUnitTest) verifyExpectedRuleSet(t *testing.T, rules map[string]interface{}, expectedType string) {
+	ruleTypes := []string{
+		CustomEventSpecificationFieldEntityCountRule,
+		CustomEventSpecificationFieldEntityCountVerificationRule,
+		CustomEventSpecificationFieldSystemRule,
+		CustomEventSpecificationFieldHostAvailabilityRule,
+		CustomEventSpecificationFieldSystemRule,
+		CustomEventSpecificationFieldThresholdRule,
+	}
+	require.Len(t, rules, 6)
+	for _, rt := range ruleTypes {
+		if rt == expectedType {
+			require.IsType(t, []interface{}{}, rules[rt])
+			require.Len(t, rules[rt].([]interface{}), 1)
+			require.IsType(t, map[string]interface{}{}, rules[rt].([]interface{})[0])
+		} else {
+			require.IsType(t, []interface{}{}, rules[rt])
+			require.Len(t, rules[rt].([]interface{}), 0)
+		}
+	}
 }
 
 func (r *customerEventSpecificationUnitTest) shouldFailToMapRuleWhenSeverityIsNotValid(t *testing.T) {

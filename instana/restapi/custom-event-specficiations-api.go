@@ -14,6 +14,12 @@ const (
 	ThresholdRuleType = "threshold"
 	//EntityVerificationRuleType const for rule type of Entity Verification
 	EntityVerificationRuleType = "entity_verification"
+	//EntityCountRuleType const for rule type of Entity Count
+	EntityCountRuleType = "entity_count"
+	//EntityCountVerificationRuleType const for rule type of Entity Count Verification
+	EntityCountVerificationRuleType = "entity_count_verification"
+	//HostAvailabilityRuleType const for rule type of Host Availability
+	HostAvailabilityRuleType = "host_availability"
 )
 
 // MetricPattern representation of a metric pattern for dynamic built-in metrics for CustomEventSpecification
@@ -43,10 +49,12 @@ type RuleSpecification struct {
 	MetricPattern     *MetricPattern `json:"metricPattern"`
 
 	//Entity Verification Rule
-	MatchingEntityType  *string `json:"matchingEntityType"`
-	MatchingOperator    *string `json:"matchingOperator"`
-	MatchingEntityLabel *string `json:"matchingEntityLabel"`
-	OfflineDuration     *int    `json:"offlineDuration"`
+	MatchingEntityType  *string     `json:"matchingEntityType"`
+	MatchingOperator    *string     `json:"matchingOperator"`
+	MatchingEntityLabel *string     `json:"matchingEntityLabel"`
+	OfflineDuration     *int        `json:"offlineDuration"`
+	CloseAfter          *int        `json:"closeAfter"`
+	TagFilter           interface{} `jsom:"tagFilter"`
 }
 
 // CustomEventSpecification is the representation of a custom event specification in Instana

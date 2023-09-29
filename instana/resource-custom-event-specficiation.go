@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -391,18 +392,55 @@ func (r *customEventSpecificationResource) mapRuleToState(rule restapi.RuleSpeci
 		return nil, err
 	}
 
-	if rule.DType == restapi.EntityVerificationRuleType {
-		return r.mapEntityEventSpecificationRuleToState(rule, severity)
-	} else if rule.DType == restapi.SystemRuleType {
-		return r.mapSystemRuleToState(rule, severity)
-	} else if rule.DType == restapi.ThresholdRuleType {
-		return r.mapThresholdRuleToState(rule, severity)
-	} else {
-		return nil, fmt.Errorf("unsupported rule type %s", rule.DType)
+	if rule.DType == restapi.EntityCountRuleType {
+		return r.mapEntityCountRuleToState(rule, severity)
 	}
+	if rule.DType == restapi.EntityCountVerificationRuleType {
+		return r.mapEntityCountVerificationRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.EntityVerificationRuleType {
+		return r.mapEntityVerificationRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.HostAvailabilityRuleType {
+		return r.mapHostAvailabilityRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.SystemRuleType {
+		return r.mapSystemRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.ThresholdRuleType {
+		return r.mapThresholdRuleToState(rule, severity)
+	}
+	return nil, fmt.Errorf("unsupported rule type %s", rule.DType)
 }
 
-func (r *customEventSpecificationResource) mapEntityEventSpecificationRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+func (r *customEventSpecificationResource) mapEntityCountRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+	return map[string]interface{}{
+		CustomEventSpecificationFieldEntityCountRule: []interface{}{
+			map[string]interface{}{
+				CustomEventSpecificationRuleFieldSeverity:          severity,
+				CustomEventSpecificationRuleFieldConditionOperator: rule.ConditionOperator,
+				CustomEventSpecificationRuleFieldConditionValue:    rule.ConditionValue,
+			},
+		},
+	}, nil
+}
+
+func (r *customEventSpecificationResource) mapEntityCountVerificationRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+	return map[string]interface{}{
+		CustomEventSpecificationFieldEntityCountVerificationRule: []interface{}{
+			map[string]interface{}{
+				CustomEventSpecificationRuleFieldSeverity:            severity,
+				CustomEventSpecificationRuleFieldConditionOperator:   rule.ConditionOperator,
+				CustomEventSpecificationRuleFieldConditionValue:      rule.ConditionValue,
+				CustomEventSpecificationRuleFieldMatchingEntityLabel: rule.MatchingEntityLabel,
+				CustomEventSpecificationRuleFieldMatchingEntityType:  rule.MatchingEntityType,
+				CustomEventSpecificationRuleFieldMatchingOperator:    rule.MatchingOperator,
+			},
+		},
+	}, nil
+}
+
+func (r *customEventSpecificationResource) mapEntityVerificationRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
 	return map[string]interface{}{
 		CustomEventSpecificationFieldEntityVerificationRule: []interface{}{
 			map[string]interface{}{
@@ -414,6 +452,23 @@ func (r *customEventSpecificationResource) mapEntityEventSpecificationRuleToStat
 			},
 		},
 	}, nil
+}
+
+func (r *customEventSpecificationResource) mapHostAvailabilityRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+	ruleData := map[string]interface{}{
+		CustomEventSpecificationRuleFieldSeverity:                         severity,
+		CustomEventSpecificationRuleFieldOfflineDuration:                  rule.OfflineDuration,
+		CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter: rule.CloseAfter,
+	}
+	if rule.TagFilter != nil {
+		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(rule.TagFilter.(restapi.TagFilterExpressionElement))
+		if err != nil {
+			return nil, err
+		}
+		ruleData[ApplicationConfigFieldTagFilter] = normalizedTagFilterString
+	}
+
+	return map[string]interface{}{CustomEventSpecificationFieldHostAvailabilityRule: []interface{}{ruleData}}, nil
 }
 
 func (r *customEventSpecificationResource) mapSystemRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
@@ -477,8 +532,17 @@ func (r *customEventSpecificationResource) MapStateToDataObject(d *schema.Resour
 }
 
 func (r *customEventSpecificationResource) mapRuleFromState(ruleData map[string]interface{}) (restapi.RuleSpecification, error) {
+	if rule, ok := ruleData[CustomEventSpecificationFieldEntityCountRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapEntityCountRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
+	}
+	if rule, ok := ruleData[CustomEventSpecificationFieldEntityCountVerificationRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapEntityCountVerificationRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
+	}
 	if rule, ok := ruleData[CustomEventSpecificationFieldEntityVerificationRule]; ok && len(rule.([]interface{})) > 0 {
 		return r.mapEntityVerificationRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
+	}
+	if rule, ok := ruleData[CustomEventSpecificationFieldHostAvailabilityRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapHostAvailabilityRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
 	}
 	if rule, ok := ruleData[CustomEventSpecificationFieldSystemRule]; ok && len(rule.([]interface{})) > 0 {
 		return r.mapSystemRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
@@ -488,6 +552,35 @@ func (r *customEventSpecificationResource) mapRuleFromState(ruleData map[string]
 	}
 
 	return restapi.RuleSpecification{}, errors.New("no supported rule defined")
+}
+
+func (r *customEventSpecificationResource) mapEntityCountRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
+	return restapi.RuleSpecification{
+		DType:             restapi.EntityCountVerificationRuleType,
+		Severity:          severity,
+		ConditionOperator: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionValue),
+		ConditionValue:    GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionOperator),
+	}, nil
+}
+
+func (r *customEventSpecificationResource) mapEntityCountVerificationRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
+	return restapi.RuleSpecification{
+		DType:               restapi.EntityCountVerificationRuleType,
+		Severity:            severity,
+		ConditionOperator:   GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionValue),
+		ConditionValue:      GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionOperator),
+		MatchingEntityLabel: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingEntityLabel),
+		MatchingEntityType:  GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingEntityType),
+		MatchingOperator:    GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingOperator),
+	}, nil
 }
 
 func (r *customEventSpecificationResource) mapEntityVerificationRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
@@ -503,6 +596,39 @@ func (r *customEventSpecificationResource) mapEntityVerificationRuleFromState(ru
 		MatchingOperator:    GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingOperator),
 		OfflineDuration:     GetPointerFromMap[int](rule, CustomEventSpecificationRuleFieldOfflineDuration),
 	}, nil
+}
+
+func (r *customEventSpecificationResource) mapHostAvailabilityRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
+	var tagFilter restapi.TagFilterExpressionElement
+	if tagFilterString, ok := rule[CustomEventSpecificationHostAvailabilityRuleFieldTagFilter]; ok {
+		tagFilter, err = r.mapTagFilterStringToAPIModel(tagFilterString.(string))
+		if err != nil {
+			return restapi.RuleSpecification{}, err
+		}
+	}
+
+	return restapi.RuleSpecification{
+		DType:           restapi.HostAvailabilityRuleType,
+		Severity:        severity,
+		OfflineDuration: GetPointerFromMap[int](rule, CustomEventSpecificationRuleFieldOfflineDuration),
+		CloseAfter:      GetPointerFromMap[int](rule, CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter),
+		TagFilter:       tagFilter,
+	}, nil
+}
+
+func (r *customEventSpecificationResource) mapTagFilterStringToAPIModel(input string) (restapi.TagFilterExpressionElement, error) {
+	parser := tagfilter.NewParser()
+	expr, err := parser.Parse(input)
+	if err != nil {
+		return nil, err
+	}
+
+	mapper := tagfilter.NewMapper()
+	return mapper.ToAPIModel(expr), nil
 }
 
 func (r *customEventSpecificationResource) mapSystemRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
