@@ -125,8 +125,8 @@ func (m *tagFilterMapper) mapRightOfLogicalOr(right *expressionHandle) *LogicalO
 
 func (m *tagFilterMapper) mapLogicalAnd(elements []*expressionHandle) (*expressionHandle, error) {
 	total := len(elements)
-	if total < 2 {
-		return nil, fmt.Errorf("at least two elements are expected for logical and")
+	if total < 1 {
+		return nil, fmt.Errorf("at least one element is expected for logical and")
 	}
 	if elements[0].and != nil {
 		return nil, fmt.Errorf("invalid logical and expression: logical and is not allowed for first element")
@@ -134,6 +134,10 @@ func (m *tagFilterMapper) mapLogicalAnd(elements []*expressionHandle) (*expressi
 
 	operator := Operator(restapi.LogicalAnd)
 	var expression *LogicalAndExpression
+
+	if total == 1 {
+		return elements[0], nil
+	}
 
 	for i := total - 2; i >= 0; i-- {
 		if expression == nil {
