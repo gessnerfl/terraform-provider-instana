@@ -560,10 +560,10 @@ func (r *customEventSpecificationResource) mapEntityCountRuleFromState(rule map[
 		return restapi.RuleSpecification{}, err
 	}
 	return restapi.RuleSpecification{
-		DType:             restapi.EntityCountVerificationRuleType,
+		DType:             restapi.EntityCountRuleType,
 		Severity:          severity,
-		ConditionOperator: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionValue),
-		ConditionValue:    GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionOperator),
+		ConditionOperator: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionOperator),
+		ConditionValue:    GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionValue),
 	}, nil
 }
 
@@ -575,8 +575,8 @@ func (r *customEventSpecificationResource) mapEntityCountVerificationRuleFromSta
 	return restapi.RuleSpecification{
 		DType:               restapi.EntityCountVerificationRuleType,
 		Severity:            severity,
-		ConditionOperator:   GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionValue),
-		ConditionValue:      GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionOperator),
+		ConditionOperator:   GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionOperator),
+		ConditionValue:      GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionValue),
 		MatchingEntityLabel: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingEntityLabel),
 		MatchingEntityType:  GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingEntityType),
 		MatchingOperator:    GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingOperator),
