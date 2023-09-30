@@ -574,6 +574,7 @@ func (r *customerEventSpecificationUnitTest) validateRuleSchema(t *testing.T, ru
 	r.validateEntityCountRuleSchema(t, ruleSchema[CustomEventSpecificationFieldEntityCountRule].Elem.(*schema.Resource).Schema)
 	r.validateEntityCountVerificationRuleSchema(t, ruleSchema[CustomEventSpecificationFieldEntityCountVerificationRule].Elem.(*schema.Resource).Schema)
 	r.validateEntityVerificationRuleSchema(t, ruleSchema[CustomEventSpecificationFieldEntityVerificationRule].Elem.(*schema.Resource).Schema)
+	r.validateHostAvailabilityRuleSchema(t, ruleSchema[CustomEventSpecificationFieldHostAvailabilityRule].Elem.(*schema.Resource).Schema)
 	r.validateSystemRuleSchema(t, ruleSchema[CustomEventSpecificationFieldSystemRule].Elem.(*schema.Resource).Schema)
 	r.validateThresholdRuleSchema(t, ruleSchema[CustomEventSpecificationFieldThresholdRule].Elem.(*schema.Resource).Schema)
 }

@@ -20,9 +20,10 @@ const (
 func TestShouldMapEmptyTagFilterExpressionFromInstanaAPI(t *testing.T) {
 	for _, operator := range restapi.SupportedLogicalOperatorTypes {
 		t.Run(fmt.Sprintf("TestShouldMapEmpty%sTagFilterExpressionFromInstnaAPI", string(operator)), func(t *testing.T) {
+			op := operator
 			expression := &restapi.TagFilter{
 				Type:            restapi.TagFilterExpressionType,
-				LogicalOperator: &operator,
+				LogicalOperator: &op,
 			}
 
 			runTestCaseForMappingFromAPI(expression, nil, t)
