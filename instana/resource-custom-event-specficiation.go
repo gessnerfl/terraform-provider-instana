@@ -464,7 +464,7 @@ func (r *customEventSpecificationResource) mapHostAvailabilityRuleToState(rule r
 		CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter: rule.CloseAfter,
 	}
 	if rule.TagFilter != nil {
-		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(rule.TagFilter.(restapi.TagFilterExpressionElement))
+		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(rule.TagFilter)
 		if err != nil {
 			return nil, err
 		}
@@ -606,7 +606,7 @@ func (r *customEventSpecificationResource) mapHostAvailabilityRuleFromState(rule
 	if err != nil {
 		return restapi.RuleSpecification{}, err
 	}
-	var tagFilter restapi.TagFilterExpressionElement
+	var tagFilter *restapi.TagFilter
 	if tagFilterString, ok := rule[CustomEventSpecificationHostAvailabilityRuleFieldTagFilter]; ok {
 		tagFilter, err = r.mapTagFilterStringToAPIModel(tagFilterString.(string))
 		if err != nil {
@@ -623,7 +623,7 @@ func (r *customEventSpecificationResource) mapHostAvailabilityRuleFromState(rule
 	}, nil
 }
 
-func (r *customEventSpecificationResource) mapTagFilterStringToAPIModel(input string) (restapi.TagFilterExpressionElement, error) {
+func (r *customEventSpecificationResource) mapTagFilterStringToAPIModel(input string) (*restapi.TagFilter, error) {
 	parser := tagfilter.NewParser()
 	expr, err := parser.Parse(input)
 	if err != nil {

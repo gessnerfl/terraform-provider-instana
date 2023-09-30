@@ -255,6 +255,7 @@ resource "instana_custom_event_specification" "example" {
       severity = "warning"
 	  offline_duration = 60000
 	  close_after = 10000
+      tag_filter = "entity.type EQUALS 'foo'"
     }
   }
 }`
@@ -284,7 +285,7 @@ resource "instana_custom_event_specification" "example" {
 		  "value": "foo",
 		  "operator": "EQUALS",
 		  "entity": "DESTINATION"
-		},
+		}
 	}]
 }`
 

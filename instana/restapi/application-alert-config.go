@@ -15,7 +15,7 @@ type ApplicationAlertConfig struct {
 	Triggering            bool                           `json:"triggering"`
 	Applications          map[string]IncludedApplication `json:"applications"`
 	BoundaryScope         BoundaryScope                  `json:"boundaryScope"`
-	TagFilterExpression   interface{}                    `json:"tagFilterExpression"`
+	TagFilterExpression   *TagFilter                     `json:"tagFilterExpression"`
 	IncludeInternal       bool                           `json:"includeInternal"`
 	IncludeSynthetic      bool                           `json:"includeSynthetic"`
 	EvaluationType        ApplicationAlertEvaluationType `json:"evaluationType"`

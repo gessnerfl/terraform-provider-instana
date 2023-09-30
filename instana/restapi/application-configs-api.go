@@ -21,7 +21,7 @@ type ApplicationConfigResource interface {
 type ApplicationConfig struct {
 	ID                  string                 `json:"id"`
 	Label               string                 `json:"label"`
-	TagFilterExpression interface{}            `json:"tagFilterExpression"`
+	TagFilterExpression *TagFilter             `json:"tagFilterExpression"`
 	Scope               ApplicationConfigScope `json:"scope"`
 	BoundaryScope       BoundaryScope          `json:"boundaryScope"`
 }

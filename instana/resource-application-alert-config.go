@@ -593,7 +593,7 @@ func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, con
 	}
 	var normalizedTagFilterString *string
 	if config.TagFilterExpression != nil {
-		normalizedTagFilterString, err = tagfilter.MapTagFilterToNormalizedString(config.TagFilterExpression.(restapi.TagFilterExpressionElement))
+		normalizedTagFilterString, err = tagfilter.MapTagFilterToNormalizedString(config.TagFilterExpression)
 		if err != nil {
 			return err
 		}
@@ -769,7 +769,7 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 		return nil, err
 	}
 
-	var tagFilter restapi.TagFilterExpressionElement
+	var tagFilter *restapi.TagFilter
 	tagFilterStr, ok := d.GetOk(ApplicationAlertConfigFieldTagFilter)
 	if ok {
 		tagFilter, err = r.mapTagFilterExpressionFromSchema(tagFilterStr.(string))
@@ -955,7 +955,7 @@ func (r *applicationAlertConfigResource) mapAlertTypeFromSchema(alertType string
 	return alertType
 }
 
-func (r *applicationAlertConfigResource) mapTagFilterExpressionFromSchema(input string) (restapi.TagFilterExpressionElement, error) {
+func (r *applicationAlertConfigResource) mapTagFilterExpressionFromSchema(input string) (*restapi.TagFilter, error) {
 	parser := tagfilter.NewParser()
 	expr, err := parser.Parse(input)
 	if err != nil {

@@ -8,9 +8,10 @@ import (
 )
 
 func TestShouldReturnNilWhenMappingEmptyTagFilterExpressionToNormalizedString(t *testing.T) {
-	input := &restapi.TagFilterExpression{
+	operatorType := restapi.LogicalOr
+	input := &restapi.TagFilter{
 		Type:            restapi.TagFilterExpressionType,
-		LogicalOperator: restapi.LogicalOr,
+		LogicalOperator: &operatorType,
 	}
 
 	result, err := MapTagFilterToNormalizedString(input)
@@ -20,7 +21,7 @@ func TestShouldReturnNilWhenMappingEmptyTagFilterExpressionToNormalizedString(t 
 }
 
 func TestShouldReturnErrorWhenMappingAnInvalidTagFilterExpressionToNormalizedString(t *testing.T) {
-	input := &restapi.TagFilterExpression{
+	input := &restapi.TagFilter{
 		Type: restapi.TagFilterExpressionElementType("invalid"),
 	}
 

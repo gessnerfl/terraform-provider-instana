@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	. "github.com/gessnerfl/terraform-provider-instana/instana/restapi"
-	"github.com/gessnerfl/terraform-provider-instana/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,10 +12,10 @@ func TestShouldPrependElementToListOfElementsOfTagFilterExpression(t *testing.T)
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	element1 := mocks.NewMockTagFilterExpressionElement(ctrl)
-	element2 := mocks.NewMockTagFilterExpressionElement(ctrl)
-	element3 := mocks.NewMockTagFilterExpressionElement(ctrl)
-	elements := []TagFilterExpressionElement{element1, element2}
+	element1 := NewStringTagFilter(TagFilterEntityDestination, "entity.type", EqualsOperator, "foo")
+	element2 := NewStringTagFilter(TagFilterEntityDestination, "entity.type", EqualsOperator, "bar")
+	element3 := NewStringTagFilter(TagFilterEntityDestination, "entity.type", EqualsOperator, "baz")
+	elements := []*TagFilter{element1, element2}
 
 	sut := NewLogicalAndTagFilter(elements)
 	sut.PrependElement(element3)

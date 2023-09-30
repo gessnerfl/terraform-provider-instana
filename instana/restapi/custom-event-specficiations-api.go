@@ -49,12 +49,12 @@ type RuleSpecification struct {
 	MetricPattern     *MetricPattern `json:"metricPattern"`
 
 	//Entity Verification Rule
-	MatchingEntityType  *string     `json:"matchingEntityType"`
-	MatchingOperator    *string     `json:"matchingOperator"`
-	MatchingEntityLabel *string     `json:"matchingEntityLabel"`
-	OfflineDuration     *int        `json:"offlineDuration"`
-	CloseAfter          *int        `json:"closeAfter"`
-	TagFilter           interface{} `jsom:"tagFilter"`
+	MatchingEntityType  *string    `json:"matchingEntityType"`
+	MatchingOperator    *string    `json:"matchingOperator"`
+	MatchingEntityLabel *string    `json:"matchingEntityLabel"`
+	OfflineDuration     *int       `json:"offlineDuration"`
+	CloseAfter          *int       `json:"closeAfter"`
+	TagFilter           *TagFilter `jsom:"tagFilter"`
 }
 
 // CustomEventSpecification is the representation of a custom event specification in Instana

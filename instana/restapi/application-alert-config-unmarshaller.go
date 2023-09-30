@@ -6,13 +6,10 @@ import (
 
 // NewApplicationAlertConfigUnmarshaller creates a new Unmarshaller instance for ApplicationAlertConfigs
 func NewApplicationAlertConfigUnmarshaller() JSONUnmarshaller[*ApplicationAlertConfig] {
-	return &applicationAlertConfigUnmarshaller{
-		tagFilterUnmarshaller: NewTagFilterUnmarshaller(),
-	}
+	return &applicationAlertConfigUnmarshaller{}
 }
 
 type applicationAlertConfigUnmarshaller struct {
-	tagFilterUnmarshaller TagFilterUnmarshaller
 }
 
 // UnmarshalArray Unmarshaller interface implementation
@@ -21,19 +18,11 @@ func (u *applicationAlertConfigUnmarshaller) UnmarshalArray(data []byte) (*[]*Ap
 }
 
 func (u *applicationAlertConfigUnmarshaller) Unmarshal(data []byte) (*ApplicationAlertConfig, error) {
-	var rawTagFilterExpression json.RawMessage
-	temp := &ApplicationAlertConfig{
-		TagFilterExpression: &rawTagFilterExpression,
-	}
+	temp := &ApplicationAlertConfig{}
 	if err := json.Unmarshal(data, &temp); err != nil {
 		return &ApplicationAlertConfig{}, err
 	}
 
-	tagFilter, err := u.tagFilterUnmarshaller.Unmarshal(rawTagFilterExpression)
-	if err != nil {
-		return &ApplicationAlertConfig{}, err
-	}
-	temp.TagFilterExpression = tagFilter
 	for i, v := range temp.CustomerPayloadFields {
 		temp.CustomerPayloadFields[i] = u.mapCustomPayloadField(v)
 	}

@@ -355,13 +355,13 @@ func (r *sliConfigResource) mapSliAvailabilityEntityToState(sliEntity restapi.Sl
 	var badEventFilterExpression *string
 	var err error
 	if sliEntity.GoodEventFilterExpression != nil {
-		goodEventFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.GoodEventFilterExpression.(restapi.TagFilterExpressionElement))
+		goodEventFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.GoodEventFilterExpression)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if sliEntity.BadEventFilterExpression != nil {
-		badEventFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.BadEventFilterExpression.(restapi.TagFilterExpressionElement))
+		badEventFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.BadEventFilterExpression)
 		if err != nil {
 			return nil, err
 		}
@@ -387,13 +387,13 @@ func (r *sliConfigResource) mapSliWebsiteEventBasedEntityToState(sliEntity resta
 	var badEventFilterExpression *string
 	var err error
 	if sliEntity.GoodEventFilterExpression != nil {
-		goodEventFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.GoodEventFilterExpression.(restapi.TagFilterExpressionElement))
+		goodEventFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.GoodEventFilterExpression)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if sliEntity.BadEventFilterExpression != nil {
-		badEventFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.BadEventFilterExpression.(restapi.TagFilterExpressionElement))
+		badEventFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.BadEventFilterExpression)
 		if err != nil {
 			return nil, err
 		}
@@ -416,7 +416,7 @@ func (r *sliConfigResource) mapSliWebsiteTimeBasedEntityToState(sliEntity restap
 	var tagFilterExpression *string
 	var err error
 	if sliEntity.FilterExpression != nil {
-		tagFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.FilterExpression.(restapi.TagFilterExpressionElement))
+		tagFilterExpression, err = tagfilter.MapTagFilterToNormalizedString(sliEntity.FilterExpression)
 		if err != nil {
 			return nil, err
 		}
@@ -507,8 +507,8 @@ func (r *sliConfigResource) mapSliEntityApplicationFromState(data map[string]int
 }
 
 func (r *sliConfigResource) mapSliEntityAvailabilityFromState(data map[string]interface{}) (restapi.SliEntity, error) {
-	var goodEventFilterExpression restapi.TagFilterExpressionElement
-	var badEventFilterExpression restapi.TagFilterExpressionElement
+	var goodEventFilterExpression *restapi.TagFilter
+	var badEventFilterExpression *restapi.TagFilter
 	var err error
 	if tagFilterString, ok := data[SliConfigFieldGoodEventFilterExpression]; ok {
 		goodEventFilterExpression, err = r.mapTagFilterStringToAPIModel(tagFilterString.(string))
@@ -535,7 +535,7 @@ func (r *sliConfigResource) mapSliEntityAvailabilityFromState(data map[string]in
 }
 
 func (r *sliConfigResource) mapSliEntityWebsiteTimeBasedFromState(data map[string]interface{}) (restapi.SliEntity, error) {
-	var tagFilter restapi.TagFilterExpressionElement
+	var tagFilter *restapi.TagFilter
 	var err error
 	if tagFilterString, ok := data[SliConfigFieldFilterExpression]; ok {
 		tagFilter, err = r.mapTagFilterStringToAPIModel(tagFilterString.(string))
@@ -553,8 +553,8 @@ func (r *sliConfigResource) mapSliEntityWebsiteTimeBasedFromState(data map[strin
 }
 
 func (r *sliConfigResource) mapSliEntityWebsiteEventBasedFromState(data map[string]interface{}) (restapi.SliEntity, error) {
-	var goodEventFilterExpression restapi.TagFilterExpressionElement
-	var badEventFilterExpression restapi.TagFilterExpressionElement
+	var goodEventFilterExpression *restapi.TagFilter
+	var badEventFilterExpression *restapi.TagFilter
 	var err error
 	if tagFilterString, ok := data[SliConfigFieldGoodEventFilterExpression]; ok {
 		goodEventFilterExpression, err = r.mapTagFilterStringToAPIModel(tagFilterString.(string))
@@ -578,7 +578,7 @@ func (r *sliConfigResource) mapSliEntityWebsiteEventBasedFromState(data map[stri
 	}, nil
 }
 
-func (r *sliConfigResource) mapTagFilterStringToAPIModel(input string) (restapi.TagFilterExpressionElement, error) {
+func (r *sliConfigResource) mapTagFilterStringToAPIModel(input string) (*restapi.TagFilter, error) {
 	parser := tagfilter.NewParser()
 	expr, err := parser.Parse(input)
 	if err != nil {

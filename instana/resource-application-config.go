@@ -113,7 +113,7 @@ func (r *applicationConfigResource) SetComputedFields(_ *schema.ResourceData) er
 func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicationConfig *restapi.ApplicationConfig) error {
 	data := make(map[string]interface{})
 	if applicationConfig.TagFilterExpression != nil {
-		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(applicationConfig.TagFilterExpression.(restapi.TagFilterExpressionElement))
+		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(applicationConfig.TagFilterExpression)
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func (r *applicationConfigResource) UpdateState(d *schema.ResourceData, applicat
 }
 
 func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.ApplicationConfig, error) {
-	var tagFilter restapi.TagFilterExpressionElement
+	var tagFilter *restapi.TagFilter
 	var err error
 
 	if tagFilterString, ok := d.GetOk(ApplicationConfigFieldTagFilter); ok {
@@ -147,7 +147,7 @@ func (r *applicationConfigResource) MapStateToDataObject(d *schema.ResourceData)
 	}, nil
 }
 
-func (r *applicationConfigResource) mapTagFilterStringToAPIModel(input string) (restapi.TagFilterExpressionElement, error) {
+func (r *applicationConfigResource) mapTagFilterStringToAPIModel(input string) (*restapi.TagFilter, error) {
 	parser := tagfilter.NewParser()
 	expr, err := parser.Parse(input)
 	if err != nil {
@@ -174,7 +174,7 @@ func (r *applicationConfigResource) schemaV3() *schema.Resource {
 			ApplicationConfigFieldFullLabel:     ApplicationConfigFullLabel,
 			ApplicationConfigFieldScope:         ApplicationConfigScope,
 			ApplicationConfigFieldBoundaryScope: ApplicationConfigBoundaryScope,
-			"match_specification": &schema.Schema{
+			"match_specification": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The match specification of the application config",

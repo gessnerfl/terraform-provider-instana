@@ -14,44 +14,24 @@ const (
 	TagFilterType TagFilterExpressionElementType = "TAG_FILTER"
 )
 
-// TagFilterExpressionElement interface for the Instana API type TagFilterExpressionElement
-type TagFilterExpressionElement interface {
-	GetType() TagFilterExpressionElementType
-}
-
 // NewLogicalOrTagFilter creates a new logical OR expression
-func NewLogicalOrTagFilter(elements []TagFilterExpressionElement) *TagFilterExpression {
-	return &TagFilterExpression{
+func NewLogicalOrTagFilter(elements []*TagFilter) *TagFilter {
+	operator := LogicalOr
+	return &TagFilter{
 		Type:            TagFilterExpressionType,
-		LogicalOperator: LogicalOr,
+		LogicalOperator: &operator,
 		Elements:        elements,
 	}
 }
 
 // NewLogicalAndTagFilter creates a new logical AND expression
-func NewLogicalAndTagFilter(elements []TagFilterExpressionElement) *TagFilterExpression {
-	return &TagFilterExpression{
+func NewLogicalAndTagFilter(elements []*TagFilter) *TagFilter {
+	operator := LogicalAnd
+	return &TagFilter{
 		Type:            TagFilterExpressionType,
-		LogicalOperator: LogicalAnd,
+		LogicalOperator: &operator,
 		Elements:        elements,
 	}
-}
-
-// TagFilterExpression data structure of an Instana tag filter expression
-type TagFilterExpression struct {
-	Elements        []TagFilterExpressionElement   `json:"elements"`
-	LogicalOperator LogicalOperatorType            `json:"logicalOperator"`
-	Type            TagFilterExpressionElementType `json:"type"`
-}
-
-// GetType Implementation of the TagFilterExpressionElement type
-func (e *TagFilterExpression) GetType() TagFilterExpressionElementType {
-	return e.Type
-}
-
-// PrependElement adds a TagFilterExpressionElement to the end of the list of elements
-func (e *TagFilterExpression) PrependElement(element TagFilterExpressionElement) {
-	e.Elements = append([]TagFilterExpressionElement{element}, e.Elements...)
 }
 
 // TagFilterEntity type representing the matcher expression entity of a Matcher Expression (either source or destination or not applicable)
@@ -84,9 +64,9 @@ var SupportedTagFilterEntities = TagFilterEntities{TagFilterEntitySource, TagFil
 // NewStringTagFilter creates a new TagFilter for comparing string values
 func NewStringTagFilter(entity TagFilterEntity, name string, operator ExpressionOperator, value string) *TagFilter {
 	return &TagFilter{
-		Entity:      entity,
-		Name:        name,
-		Operator:    operator,
+		Entity:      &entity,
+		Name:        &name,
+		Operator:    &operator,
 		StringValue: &value,
 		Value:       value,
 		Type:        TagFilterType,
@@ -96,9 +76,9 @@ func NewStringTagFilter(entity TagFilterEntity, name string, operator Expression
 // NewNumberTagFilter creates a new TagFilter for comparing number values
 func NewNumberTagFilter(entity TagFilterEntity, name string, operator ExpressionOperator, value int64) *TagFilter {
 	return &TagFilter{
-		Entity:      entity,
-		Name:        name,
-		Operator:    operator,
+		Entity:      &entity,
+		Name:        &name,
+		Operator:    &operator,
 		NumberValue: &value,
 		Value:       value,
 		Type:        TagFilterType,
@@ -109,9 +89,9 @@ func NewNumberTagFilter(entity TagFilterEntity, name string, operator Expression
 func NewTagTagFilter(entity TagFilterEntity, name string, operator ExpressionOperator, key string, value string) *TagFilter {
 	fullString := fmt.Sprintf("%s=%s", key, value)
 	return &TagFilter{
-		Entity:      entity,
-		Name:        name,
-		Operator:    operator,
+		Entity:      &entity,
+		Name:        &name,
+		Operator:    &operator,
 		Key:         &key,
 		Value:       value,
 		StringValue: &fullString,
@@ -122,9 +102,9 @@ func NewTagTagFilter(entity TagFilterEntity, name string, operator ExpressionOpe
 // NewBooleanTagFilter creates a new TagFilter for comparing tags
 func NewBooleanTagFilter(entity TagFilterEntity, name string, operator ExpressionOperator, value bool) *TagFilter {
 	return &TagFilter{
-		Entity:       entity,
-		Name:         name,
-		Operator:     operator,
+		Entity:       &entity,
+		Name:         &name,
+		Operator:     &operator,
 		BooleanValue: &value,
 		Value:        value,
 		Type:         TagFilterType,
@@ -134,9 +114,9 @@ func NewBooleanTagFilter(entity TagFilterEntity, name string, operator Expressio
 // NewUnaryTagFilter creates a new TagFilter for unary expressions
 func NewUnaryTagFilter(entity TagFilterEntity, name string, operator ExpressionOperator) *TagFilter {
 	return &TagFilter{
-		Entity:   entity,
-		Name:     name,
-		Operator: operator,
+		Entity:   &entity,
+		Name:     &name,
+		Operator: &operator,
 		Type:     TagFilterType,
 	}
 }
@@ -144,28 +124,35 @@ func NewUnaryTagFilter(entity TagFilterEntity, name string, operator ExpressionO
 // NewUnaryTagFilterWithTagKey creates a new TagFilter for unary expressions supporting tagKeys
 func NewUnaryTagFilterWithTagKey(entity TagFilterEntity, name string, tagKey *string, operator ExpressionOperator) *TagFilter {
 	return &TagFilter{
-		Entity:   entity,
-		Name:     name,
+		Entity:   &entity,
+		Name:     &name,
 		Key:      tagKey,
-		Operator: operator,
+		Operator: &operator,
 		Type:     TagFilterType,
 	}
 }
 
 // TagFilter data structure of a Tag Filter from the Instana API
 type TagFilter struct {
-	Entity       TagFilterEntity                `json:"entity"`
-	Name         string                         `json:"name"`
-	Operator     ExpressionOperator             `json:"operator"`
-	BooleanValue *bool                          `json:"booleanValue"`
-	NumberValue  *int64                         `json:"numberValue"`
-	StringValue  *string                        `json:"stringValue"`
-	Key          *string                        `json:"key"`
-	Value        interface{}                    `json:"value"`
-	Type         TagFilterExpressionElementType `json:"type"`
+	Elements        []*TagFilter                   `json:"elements"`
+	LogicalOperator *LogicalOperatorType           `json:"logicalOperator"`
+	Entity          *TagFilterEntity               `json:"entity"`
+	Name            *string                        `json:"name"`
+	Operator        *ExpressionOperator            `json:"operator"`
+	BooleanValue    *bool                          `json:"booleanValue"`
+	NumberValue     *int64                         `json:"numberValue"`
+	StringValue     *string                        `json:"stringValue"`
+	Key             *string                        `json:"key"`
+	Value           interface{}                    `json:"value"`
+	Type            TagFilterExpressionElementType `json:"type"`
 }
 
 // GetType Implementation of the TagFilterExpressionElement type
 func (f *TagFilter) GetType() TagFilterExpressionElementType {
 	return f.Type
+}
+
+// PrependElement adds a TagFilterExpressionElement to the end of the list of elements
+func (e *TagFilter) PrependElement(element *TagFilter) {
+	e.Elements = append(e.Elements, element)
 }
