@@ -54,7 +54,10 @@ const (
 
 var (
 	customEventSpecificationRuleTypeKeys = []string{
+		"rules.0.entity_count",
+		"rules.0.entity_count_verification",
 		"rules.0.entity_verification",
+		"rules.0.host_availability",
 		"rules.0.system",
 		"rules.0.threshold",
 	}

@@ -16,7 +16,10 @@ import (
 
 func TestCustomEventSpecificationResource(t *testing.T) {
 	unitTest := &customerEventSpecificationUnitTest{}
+	t.Run("CRUD integration test of with Entity Count Rule", customerEventSpecificationIntegrationTestWithEntityCountRule().testCrud)
+	t.Run("CRUD integration test of with Entity Count Verification Rule", customerEventSpecificationIntegrationTestWithEntityCountVerificationRule().testCrud)
 	t.Run("CRUD integration test of with Entity Verification Rule", customerEventSpecificationIntegrationTestWithEntityVerificationRule().testCrud)
+	t.Run("CRUD integration test of with Host Availability Rule", customerEventSpecificationIntegrationTestWithHostAvailabilityRule().testCrud)
 	t.Run("CRUD integration test of with System Rule", customerEventSpecificationIntegrationTestWithSystemRule().testCrud)
 	t.Run("CRUD integration test of with Threshold Rule and Metric Name and Rollup", customerEventSpecificationIntegrationTestWithThresholdRuleAndMetricNameAndRollup().testCrud)
 	t.Run("CRUD integration test of with Threshold Rule and Metric Pattern", customerEventSpecificationIntegrationTestWithThresholdRuleAndMetricPattern().testCrud)
@@ -72,6 +75,115 @@ const (
 	systemRuleEntityType             = "any"
 )
 
+func customerEventSpecificationIntegrationTestWithEntityCountRule() *customerEventSpecificationIntegrationTest {
+	resourceTemplate := `
+resource "instana_custom_event_specification" "example" {
+  name = "name %d"
+  entity_type = "host"
+  query = "query"
+  enabled = true
+  triggering = true
+  description = "description"
+  expiration_time = "60000"
+  rules {
+    entity_count {
+      severity = "warning"
+	  condition_operator = "="
+      condition_value = 1.2
+    }
+  }
+}`
+
+	httpServerResponseTemplate := `
+{
+	"id" : "%s",
+	"name" : "name %d",
+	"entityType" : "host",
+	"query" : "query",
+	"enabled" : true,
+	"triggering" : true,
+	"description" : "description",
+	"expirationTime" : 60000,
+	"rules" : [{ 
+		"ruleType" : "entity_count", 
+		"severity" : 5, 
+		"conditionOperator" : "=",
+		"conditionValue" : 1.2
+	}]
+}`
+
+	return newCustomerEventSpecificationIntegrationTest(
+		"host",
+		resourceTemplate,
+		customEventSpecificationConfigResourceName,
+		httpServerResponseTemplate,
+		[]resource.TestCheckFunc{
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountRule, CustomEventSpecificationRuleFieldSeverity), customEventSpecificationWithThresholdRuleSeverity),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountRule, CustomEventSpecificationRuleFieldConditionValue), "1.2"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountRule, CustomEventSpecificationRuleFieldConditionOperator), "="),
+		},
+	)
+}
+
+func customerEventSpecificationIntegrationTestWithEntityCountVerificationRule() *customerEventSpecificationIntegrationTest {
+	resourceTemplate := `
+resource "instana_custom_event_specification" "example" {
+  name = "name %d"
+  entity_type = "host"
+  query = "query"
+  enabled = true
+  triggering = true
+  description = "description"
+  expiration_time = "60000"
+  rules {
+    entity_count_verification {
+      severity = "warning"
+      matching_entity_label = "matching-entity-label"
+      matching_entity_type = "matching-entity-type"
+      matching_operator = "startsWith"
+	  condition_operator = "="
+      condition_value = 1.2
+    }
+  }
+}`
+
+	httpServerResponseTemplate := `
+{
+	"id" : "%s",
+	"name" : "name %d",
+	"entityType" : "host",
+	"query" : "query",
+	"enabled" : true,
+	"triggering" : true,
+	"description" : "description",
+	"expirationTime" : 60000,
+	"rules" : [{ 
+		"ruleType" : "entity_count_verification", 
+		"severity" : 5, 
+		"matchingEntityLabel" : "matching-entity-label", 
+		"matchingEntityType" : "matching-entity-type", 
+		"matchingOperator" : "startsWith", 
+		"conditionOperator" : "=",
+		"conditionValue" : 1.2
+	}]
+}`
+
+	return newCustomerEventSpecificationIntegrationTest(
+		"host",
+		resourceTemplate,
+		customEventSpecificationConfigResourceName,
+		httpServerResponseTemplate,
+		[]resource.TestCheckFunc{
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountVerificationRule, CustomEventSpecificationRuleFieldSeverity), customEventSpecificationWithThresholdRuleSeverity),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountVerificationRule, CustomEventSpecificationRuleFieldMatchingEntityLabel), "matching-entity-label"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountVerificationRule, CustomEventSpecificationRuleFieldMatchingEntityType), "matching-entity-type"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountVerificationRule, CustomEventSpecificationRuleFieldMatchingOperator), "startsWith"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountVerificationRule, CustomEventSpecificationRuleFieldConditionValue), "1.2"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityCountVerificationRule, CustomEventSpecificationRuleFieldConditionOperator), "="),
+		},
+	)
+}
+
 func customerEventSpecificationIntegrationTestWithEntityVerificationRule() *customerEventSpecificationIntegrationTest {
 	resourceTemplate := `
 resource "instana_custom_event_specification" "example" {
@@ -124,6 +236,68 @@ resource "instana_custom_event_specification" "example" {
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationRuleFieldMatchingEntityType), "matching-entity-type"),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationRuleFieldMatchingOperator), "startsWith"),
 			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldEntityVerificationRule, CustomEventSpecificationRuleFieldOfflineDuration), "60000"),
+		},
+	)
+}
+
+func customerEventSpecificationIntegrationTestWithHostAvailabilityRule() *customerEventSpecificationIntegrationTest {
+	resourceTemplate := `
+resource "instana_custom_event_specification" "example" {
+  name = "name %d"
+  entity_type = "host"
+  query = "query"
+  enabled = true
+  triggering = true
+  description = "description"
+  expiration_time = "60000"
+  rules {
+    host_availability {
+      severity = "warning"
+	  offline_duration = 60000
+	  close_after = 10000
+    }
+  }
+}`
+
+	httpServerResponseTemplate := `
+{
+	"id" : "%s",
+	"name" : "name %d",
+	"entityType" : "host",
+	"query" : "query",
+	"enabled" : true,
+	"triggering" : true,
+	"description" : "description",
+	"expirationTime" : 60000,
+	"rules" : [{ 
+		"ruleType" : "host_availability", 
+		"severity" : 5, 
+		"closeAfter" : 10000, 
+		"offlineDuration" : 60000,
+ 		"tagFilter": {
+		  "type": "TAG_FILTER",
+		  "name": "entity.type",
+		  "stringValue": "foo",
+		  "numberValue": null,
+		  "booleanValue": null,
+		  "key": null,
+		  "value": "foo",
+		  "operator": "EQUALS",
+		  "entity": "DESTINATION"
+		},
+	}]
+}`
+
+	return newCustomerEventSpecificationIntegrationTest(
+		"host",
+		resourceTemplate,
+		customEventSpecificationConfigResourceName,
+		httpServerResponseTemplate,
+		[]resource.TestCheckFunc{
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldHostAvailabilityRule, CustomEventSpecificationRuleFieldSeverity), customEventSpecificationWithThresholdRuleSeverity),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldHostAvailabilityRule, CustomEventSpecificationHostAvailabilityRuleFieldTagFilter), "entity.type@dest EQUALS 'foo'"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldHostAvailabilityRule, CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter), "10000"),
+			resource.TestCheckResourceAttr(customEventSpecificationConfigResourceName, fmt.Sprintf(customEventSpecificationRuleFieldPattern, CustomEventSpecificationFieldRules, CustomEventSpecificationFieldHostAvailabilityRule, CustomEventSpecificationRuleFieldOfflineDuration), "60000"),
 		},
 	)
 }
