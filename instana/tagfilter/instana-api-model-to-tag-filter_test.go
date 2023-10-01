@@ -449,15 +449,30 @@ func TestShouldFailToMapLogicalAndFromInstanaAPIWhenFirstElementIsAnAndExpressio
 	require.Contains(t, err.Error(), "logical and is not allowed for first element")
 }
 
-func TestShouldFailToMapLogicalAndFromInstanaAPIWhenOnlyOneElementIsProvided(t *testing.T) {
+func TestShouldUnwrapLogicalAndFromInstanaAPIWhenOnlyOneElementIsProvided(t *testing.T) {
 	primaryExpression := restapi.NewUnaryTagFilter(restapi.TagFilterEntityDestination, tagFilterName, restapi.IsEmptyOperator)
 	input := restapi.NewLogicalAndTagFilter([]*restapi.TagFilter{primaryExpression})
 
-	mapper := NewMapper()
-	_, err := mapper.FromAPIModel(input)
+	expectedResult := &FilterExpression{
+		Expression: &LogicalOrExpression{
+			Left: &LogicalAndExpression{
+				Left: &BracketExpression{
+					Primary: &PrimaryExpression{
+						UnaryOperation: &UnaryOperationExpression{
+							Entity:   &EntitySpec{Identifier: tagFilterName, Origin: utils.StringPtr(EntityOriginDestination.Key())},
+							Operator: Operator(restapi.IsEmptyOperator),
+						},
+					},
+				},
+			},
+		},
+	}
 
-	require.NotNil(t, err)
-	require.Contains(t, err.Error(), "at least two elements are expected for logical and")
+	mapper := NewMapper()
+	result, err := mapper.FromAPIModel(input)
+
+	require.NoError(t, err)
+	require.Equal(t, expectedResult, result)
 }
 
 func TestShouldMapLogicalOrWithTwoPrimaryExpressionsFromInstanaAPI(t *testing.T) {
