@@ -1,5 +1,62 @@
 # Changelog
 
+## [v2.2.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.2.0) (2023-10-01)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v2.1.1...v2.2.0)
+
+**Implemented enhancements:**
+
+- Unable to create custom event specifications when ruleType is host\_availability [\#190](https://github.com/gessnerfl/terraform-provider-instana/issues/190)
+
+**Merged pull requests:**
+
+- Feature/190 additional custom event spec rule types [\#197](https://github.com/gessnerfl/terraform-provider-instana/pull/197) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v2.1.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.1.1) (2023-09-29)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v2.1.0...v2.1.1)
+
+**Fixed bugs:**
+
+- Failed to map TagFilterExpression [\#195](https://github.com/gessnerfl/terraform-provider-instana/issues/195)
+
+**Merged pull requests:**
+
+- \#195: add support for logical ANDs used as wrappers. [\#196](https://github.com/gessnerfl/terraform-provider-instana/pull/196) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v2.1.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.1.0) (2023-09-27)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v2.0.2...v2.1.0)
+
+**Implemented enhancements:**
+
+- Tag filter does not support : character for tag keys. [\#193](https://github.com/gessnerfl/terraform-provider-instana/issues/193)
+
+**Merged pull requests:**
+
+- \#193: add support of strings for tag keys [\#194](https://github.com/gessnerfl/terraform-provider-instana/pull/194) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v2.0.2](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.0.2) (2023-09-22)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v2.0.1...v2.0.2)
+
+**Closed issues:**
+
+- Apply failing with API request timed out when creating multiple resources of the same type with a for\_each [\#191](https://github.com/gessnerfl/terraform-provider-instana/issues/191)
+
+**Merged pull requests:**
+
+- \#191: fix throttling in rest client [\#192](https://github.com/gessnerfl/terraform-provider-instana/pull/192) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v2.0.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.0.1) (2023-09-22)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v2.0.0...v2.0.1)
+
+**Merged pull requests:**
+
+- fix random port algorithm for test server to fix randomly failing tests [\#189](https://github.com/gessnerfl/terraform-provider-instana/pull/189) ([gessnerfl](https://github.com/gessnerfl))
+- split build and release job and permission for sonar annotations on PRs [\#188](https://github.com/gessnerfl/terraform-provider-instana/pull/188) ([gessnerfl](https://github.com/gessnerfl))
+
 ## [v2.0.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.0.0) (2023-09-16)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v1.9.0...v2.0.0)
@@ -59,6 +116,7 @@
 
 - Remove deprecated MatchSpecification from Application Config [\#172](https://github.com/gessnerfl/terraform-provider-instana/issues/172)
 - Remove Resource Formatting \(default\_prefix, default\_suffix\) [\#155](https://github.com/gessnerfl/terraform-provider-instana/issues/155)
+- Migrate deprecated SLI resource to new API schema [\#121](https://github.com/gessnerfl/terraform-provider-instana/issues/121)
 
 **Implemented enhancements:**
 
@@ -67,7 +125,6 @@
 - Sensitive fields of alerting channels should be marked as sensitive [\#163](https://github.com/gessnerfl/terraform-provider-instana/issues/163)
 - Add field ApplicationId on Synthetic Test resources [\#160](https://github.com/gessnerfl/terraform-provider-instana/issues/160)
 - Use generics to improve reuse of code in REST resources and unmarshaller [\#153](https://github.com/gessnerfl/terraform-provider-instana/issues/153)
-- SLI resource deprecated [\#121](https://github.com/gessnerfl/terraform-provider-instana/issues/121)
 
 **Merged pull requests:**
 
