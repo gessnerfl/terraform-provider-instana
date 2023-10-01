@@ -1,6 +1,6 @@
 package restapi
 
-//ApplicationAlertRule is the representation of an application alert rule in Instana
+// ApplicationAlertRule is the representation of an application alert rule in Instana
 type ApplicationAlertRule struct {
 	AlertType   string      `json:"alertType"`
 	MetricName  string      `json:"metricName"`

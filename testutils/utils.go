@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-//GetRootFolder determines the root folder of the project
+// GetRootFolder determines the root folder of the project
 func GetRootFolder() (string, error) {
 	wd, _ := os.Getwd()
 	return lookupRootFolder(wd, 0)
