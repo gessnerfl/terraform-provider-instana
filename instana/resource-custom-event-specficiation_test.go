@@ -79,7 +79,7 @@ func customerEventSpecificationIntegrationTestWithEntityCountRule() *customerEve
 	resourceTemplate := `
 resource "instana_custom_event_specification" "example" {
   name = "name %d"
-  entity_type = "host"
+  entity_type = "instanaAgent"
   query = "query"
   enabled = true
   triggering = true
@@ -98,7 +98,7 @@ resource "instana_custom_event_specification" "example" {
 {
 	"id" : "%s",
 	"name" : "name %d",
-	"entityType" : "host",
+	"entityType" : "instanaAgent",
 	"query" : "query",
 	"enabled" : true,
 	"triggering" : true,
@@ -113,7 +113,7 @@ resource "instana_custom_event_specification" "example" {
 }`
 
 	return newCustomerEventSpecificationIntegrationTest(
-		"host",
+		"instanaAgent",
 		resourceTemplate,
 		customEventSpecificationConfigResourceName,
 		httpServerResponseTemplate,
