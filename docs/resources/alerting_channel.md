@@ -4,9 +4,6 @@ Alerting channel configuration for notifications to a specified target channel.
 
 API Documentation: <https://instana.github.io/openapi/#operation/getAlertingChannels>
 
-The resource does **NOT** support `default_name_prefix` and `default_name_suffix` as this feature will
-be removed in version 2.x.
-
 ## Example Usage
 
 ### Email Alerting Channel
