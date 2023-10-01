@@ -8,7 +8,7 @@ import (
 )
 
 // FromAPIModel Implementation of the mapping from the Instana API model to the filter expression model
-func (m *tagFilterMapper) FromAPIModel(input restapi.TagFilterExpressionElement) (*FilterExpression, error) {
+func (m *tagFilterMapper) FromAPIModel(input *restapi.TagFilter) (*FilterExpression, error) {
 	if m.isEmptyExpression(input) {
 		return nil, nil
 	}
@@ -31,17 +31,15 @@ func (m *tagFilterMapper) FromAPIModel(input restapi.TagFilterExpressionElement)
 	}, nil
 }
 
-func (m *tagFilterMapper) isEmptyExpression(input restapi.TagFilterExpressionElement) bool {
-	return input.GetType() == restapi.TagFilterExpressionType && len(input.(*restapi.TagFilterExpression).Elements) == 0
+func (m *tagFilterMapper) isEmptyExpression(input *restapi.TagFilter) bool {
+	return input.GetType() == restapi.TagFilterExpressionType && len(input.Elements) == 0
 }
 
-func (m *tagFilterMapper) mapExpressionElement(input restapi.TagFilterExpressionElement) (*expressionHandle, error) {
+func (m *tagFilterMapper) mapExpressionElement(input *restapi.TagFilter) (*expressionHandle, error) {
 	if input.GetType() == restapi.TagFilterExpressionType {
-		expression := input.(*restapi.TagFilterExpression)
-		return m.mapExpression(expression)
+		return m.mapExpression(input)
 	} else if input.GetType() == restapi.TagFilterType {
-		tagFilter := input.(*restapi.TagFilter)
-		primaryExpression, err := m.mapTagFilter(tagFilter)
+		primaryExpression, err := m.mapTagFilter(input)
 		if err != nil {
 			return nil, err
 		}
@@ -52,23 +50,23 @@ func (m *tagFilterMapper) mapExpressionElement(input restapi.TagFilterExpression
 	return nil, fmt.Errorf("unsupported tag filter expression of type %s", input.GetType())
 }
 
-func (m *tagFilterMapper) mapExpression(operator *restapi.TagFilterExpression) (*expressionHandle, error) {
-	elements := make([]*expressionHandle, len(operator.Elements))
+func (m *tagFilterMapper) mapExpression(tagFilter *restapi.TagFilter) (*expressionHandle, error) {
+	elements := make([]*expressionHandle, len(tagFilter.Elements))
 	var err error
-	for i := 0; i < len(operator.Elements); i++ {
-		elements[i], err = m.mapExpressionElement(operator.Elements[i])
+	for i := 0; i < len(tagFilter.Elements); i++ {
+		elements[i], err = m.mapExpressionElement(tagFilter.Elements[i])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if operator.LogicalOperator == restapi.LogicalAnd {
+	if *tagFilter.LogicalOperator == restapi.LogicalAnd {
 		return m.mapLogicalAnd(elements)
 	}
-	if operator.LogicalOperator == restapi.LogicalOr {
+	if *tagFilter.LogicalOperator == restapi.LogicalOr {
 		return m.mapLogicalOr(elements)
 	}
-	return nil, fmt.Errorf("invalid logical operator %s", operator.LogicalOperator)
+	return nil, fmt.Errorf("invalid logical operator %s", *tagFilter.LogicalOperator)
 
 }
 
@@ -178,22 +176,22 @@ func (m *tagFilterMapper) mapRightOfLogicalAnd(right *expressionHandle) *Logical
 }
 
 func (m *tagFilterMapper) mapTagFilter(tagFilter *restapi.TagFilter) (*PrimaryExpression, error) {
-	origin := SupportedEntityOrigins.ForInstanaAPIEntity(tagFilter.Entity)
-	if restapi.SupportedUnaryExpressionOperators.IsSupported(tagFilter.Operator) {
+	origin := SupportedEntityOrigins.ForInstanaAPIEntity(*tagFilter.Entity)
+	if restapi.SupportedUnaryExpressionOperators.IsSupported(*tagFilter.Operator) {
 		return &PrimaryExpression{
 			UnaryOperation: &UnaryOperationExpression{
-				Entity:   &EntitySpec{Identifier: tagFilter.Name, TagKey: tagFilter.Key, Origin: utils.StringPtr(origin.Key())},
-				Operator: Operator(tagFilter.Operator),
+				Entity:   &EntitySpec{Identifier: *tagFilter.Name, TagKey: tagFilter.Key, Origin: utils.StringPtr(origin.Key())},
+				Operator: Operator(*tagFilter.Operator),
 			},
 		}, nil
 	}
-	if !restapi.SupportedComparisonOperators.IsSupported(tagFilter.Operator) {
-		return nil, fmt.Errorf("invalid operator: %s is not a supported tag filter operator", tagFilter.Operator)
+	if !restapi.SupportedComparisonOperators.IsSupported(*tagFilter.Operator) {
+		return nil, fmt.Errorf("invalid operator: %s is not a supported tag filter operator", *tagFilter.Operator)
 	}
 	return &PrimaryExpression{
 		Comparison: &ComparisonExpression{
-			Entity:       &EntitySpec{Identifier: tagFilter.Name, TagKey: tagFilter.Key, Origin: utils.StringPtr(origin.Key())},
-			Operator:     Operator(tagFilter.Operator),
+			Entity:       &EntitySpec{Identifier: *tagFilter.Name, TagKey: tagFilter.Key, Origin: utils.StringPtr(origin.Key())},
+			Operator:     Operator(*tagFilter.Operator),
 			StringValue:  m.mapStringOrTagValue(tagFilter),
 			BooleanValue: tagFilter.BooleanValue,
 			NumberValue:  tagFilter.NumberValue,

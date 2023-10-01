@@ -608,13 +608,16 @@ func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformRe
 func (test *websiteAlertConfigTest) createTestCasesShouldFailToUpdateTerraformResourceStateFromModeWhenTagFilterExpressionIsNotValid() func(t *testing.T) {
 	return func(t *testing.T) {
 		value := "test"
+		operator := restapi.EqualsOperator
+		tagFilterName := "service.name"
+		tagFilterEntity := restapi.TagFilterEntitySource
 		websiteConfig := restapi.WebsiteAlertConfig{
-			Name:     "prefix test suffix",
+			Name:     "test",
 			Severity: restapi.SeverityWarning.GetAPIRepresentation(),
 			TagFilterExpression: &restapi.TagFilter{
-				Entity:      restapi.TagFilterEntitySource,
-				Name:        "service.name",
-				Operator:    restapi.EqualsOperator,
+				Entity:      &tagFilterEntity,
+				Name:        &tagFilterName,
+				Operator:    &operator,
 				StringValue: &value,
 				Value:       value,
 				Type:        restapi.TagFilterExpressionElementType("invalid"),

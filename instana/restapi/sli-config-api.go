@@ -14,18 +14,18 @@ type MetricConfiguration struct {
 
 // SliEntity represents the nested object sli entity of the sli config REST resource at Instana
 type SliEntity struct {
-	Type                      string      `json:"sliType"`
-	ApplicationID             *string     `json:"applicationId"`
-	ServiceID                 *string     `json:"serviceId"`
-	EndpointID                *string     `json:"endpointId"`
-	BoundaryScope             *string     `json:"boundaryScope"`
-	IncludeSynthetic          *bool       `json:"includeSynthetic"`
-	IncludeInternal           *bool       `json:"includeInternal"`
-	WebsiteId                 *string     `json:"websiteId"`
-	BeaconType                *string     `json:"beaconType"`
-	GoodEventFilterExpression interface{} `json:"goodEventFilterExpression"`
-	BadEventFilterExpression  interface{} `json:"badEventFilterExpression"`
-	FilterExpression          interface{} `json:"filterExpression"`
+	Type                      string     `json:"sliType"`
+	ApplicationID             *string    `json:"applicationId"`
+	ServiceID                 *string    `json:"serviceId"`
+	EndpointID                *string    `json:"endpointId"`
+	BoundaryScope             *string    `json:"boundaryScope"`
+	IncludeSynthetic          *bool      `json:"includeSynthetic"`
+	IncludeInternal           *bool      `json:"includeInternal"`
+	WebsiteId                 *string    `json:"websiteId"`
+	BeaconType                *string    `json:"beaconType"`
+	GoodEventFilterExpression *TagFilter `json:"goodEventFilterExpression"`
+	BadEventFilterExpression  *TagFilter `json:"badEventFilterExpression"`
+	FilterExpression          *TagFilter `json:"filterExpression"`
 }
 
 // SliConfig represents the REST resource of sli configuration at Instana

@@ -11,7 +11,7 @@ type WebsiteAlertConfig struct {
 	Severity              int                                                       `json:"severity"`
 	Triggering            bool                                                      `json:"triggering"`
 	WebsiteID             string                                                    `json:"websiteId"`
-	TagFilterExpression   interface{}                                               `json:"tagFilterExpression"`
+	TagFilterExpression   *TagFilter                                                `json:"tagFilterExpression"`
 	AlertChannelIDs       []string                                                  `json:"alertChannelIds"`
 	Granularity           Granularity                                               `json:"granularity"`
 	CustomerPayloadFields []CustomPayloadField[StaticStringCustomPayloadFieldValue] `json:"customPayloadFields"`

@@ -78,8 +78,8 @@ const (
 	expressionEntityTypeSrcEqValue  = "entity.type@src EQUALS 'foo'"
 )
 
-var defaultTagFilterModel = restapi.NewLogicalOrTagFilter([]restapi.TagFilterExpressionElement{
-	restapi.NewLogicalAndTagFilter([]restapi.TagFilterExpressionElement{
+var defaultTagFilterModel = restapi.NewLogicalOrTagFilter([]*restapi.TagFilter{
+	restapi.NewLogicalAndTagFilter([]*restapi.TagFilter{
 		restapi.NewStringTagFilter(restapi.TagFilterEntityDestination, entityName, restapi.ContainsOperator, "foo"),
 		restapi.NewTagTagFilter(restapi.TagFilterEntityDestination, "agent.tag", restapi.EqualsOperator, "environment", "dev-local-gessnerfl"),
 	}),

@@ -5,12 +5,12 @@ import (
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 )
 
-//ToAPIModel Implementation of the mapping form filter expression model to the Instana API model
-func (m *tagFilterMapper) ToAPIModel(input *FilterExpression) restapi.TagFilterExpressionElement {
+// ToAPIModel Implementation of the mapping form filter expression model to the Instana API model
+func (m *tagFilterMapper) ToAPIModel(input *FilterExpression) *restapi.TagFilter {
 	return m.mapLogicalOrToAPIModel(input.Expression)
 }
 
-func (m *tagFilterMapper) mapLogicalOrToAPIModel(input *LogicalOrExpression) restapi.TagFilterExpressionElement {
+func (m *tagFilterMapper) mapLogicalOrToAPIModel(input *LogicalOrExpression) *restapi.TagFilter {
 	left := m.mapLogicalAndToAPIModel(input.Left)
 	if input.Operator != nil {
 		right := m.mapLogicalOrToAPIModel(input.Right)
@@ -21,7 +21,7 @@ func (m *tagFilterMapper) mapLogicalOrToAPIModel(input *LogicalOrExpression) res
 	return left
 }
 
-func (m *tagFilterMapper) mapLogicalAndToAPIModel(input *LogicalAndExpression) restapi.TagFilterExpressionElement {
+func (m *tagFilterMapper) mapLogicalAndToAPIModel(input *LogicalAndExpression) *restapi.TagFilter {
 	left := m.mapBracketExpressionToAPIModel(input.Left)
 	if input.Operator != nil {
 		right := m.mapLogicalAndToAPIModel(input.Right)
@@ -32,28 +32,28 @@ func (m *tagFilterMapper) mapLogicalAndToAPIModel(input *LogicalAndExpression) r
 	return left
 }
 
-func (m *tagFilterMapper) unwrapExpressionElements(element restapi.TagFilterExpressionElement, operator restapi.LogicalOperatorType) []restapi.TagFilterExpressionElement {
-	if element.GetType() == restapi.TagFilterExpressionType && element.(*restapi.TagFilterExpression).LogicalOperator == operator {
-		return element.(*restapi.TagFilterExpression).Elements
+func (m *tagFilterMapper) unwrapExpressionElements(element *restapi.TagFilter, operator restapi.LogicalOperatorType) []*restapi.TagFilter {
+	if element.GetType() == restapi.TagFilterExpressionType && element.LogicalOperator != nil && *element.LogicalOperator == operator {
+		return element.Elements
 	}
-	return []restapi.TagFilterExpressionElement{element}
+	return []*restapi.TagFilter{element}
 }
 
-func (m *tagFilterMapper) mapBracketExpressionToAPIModel(input *BracketExpression) restapi.TagFilterExpressionElement {
+func (m *tagFilterMapper) mapBracketExpressionToAPIModel(input *BracketExpression) *restapi.TagFilter {
 	if input.Bracket != nil {
 		return m.mapLogicalOrToAPIModel(input.Bracket)
 	}
 	return m.mapPrimaryExpressionToAPIModel(input.Primary)
 }
 
-func (m *tagFilterMapper) mapPrimaryExpressionToAPIModel(input *PrimaryExpression) restapi.TagFilterExpressionElement {
+func (m *tagFilterMapper) mapPrimaryExpressionToAPIModel(input *PrimaryExpression) *restapi.TagFilter {
 	if input.UnaryOperation != nil {
 		return m.mapUnaryOperatorExpressionToAPIModel(input.UnaryOperation)
 	}
 	return m.mapComparisonExpressionToAPIModel(input.Comparison)
 }
 
-func (m *tagFilterMapper) mapUnaryOperatorExpressionToAPIModel(input *UnaryOperationExpression) restapi.TagFilterExpressionElement {
+func (m *tagFilterMapper) mapUnaryOperatorExpressionToAPIModel(input *UnaryOperationExpression) *restapi.TagFilter {
 	origin := EntityOriginDestination.TagFilterEntity()
 	if input.Entity.Origin != nil {
 		origin = SupportedEntityOrigins.ForKey(*input.Entity.Origin).TagFilterEntity()
@@ -61,7 +61,7 @@ func (m *tagFilterMapper) mapUnaryOperatorExpressionToAPIModel(input *UnaryOpera
 	return restapi.NewUnaryTagFilterWithTagKey(origin, input.Entity.Identifier, input.Entity.TagKey, restapi.ExpressionOperator(input.Operator))
 }
 
-func (m *tagFilterMapper) mapComparisonExpressionToAPIModel(input *ComparisonExpression) restapi.TagFilterExpressionElement {
+func (m *tagFilterMapper) mapComparisonExpressionToAPIModel(input *ComparisonExpression) *restapi.TagFilter {
 	origin := EntityOriginDestination.TagFilterEntity()
 	if input.Entity.Origin != nil {
 		origin = SupportedEntityOrigins.ForKey(*input.Entity.Origin).TagFilterEntity()

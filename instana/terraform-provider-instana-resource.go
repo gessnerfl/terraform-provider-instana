@@ -17,7 +17,7 @@ type ResourceMetaData struct {
 	SchemaVersion      int
 	SkipIDGeneration   bool
 	ResourceIDField    *string
-	CreateOnly       bool
+	CreateOnly         bool
 	DeprecationMessage string
 }
 
@@ -172,8 +172,8 @@ func (r *terraformResourceImpl[T]) ToSchemaResource() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: r.importState,
 		},
-		UpdateContext:  updateOperation,
-		DeleteContext:  r.Delete,
+		UpdateContext:      updateOperation,
+		DeleteContext:      r.Delete,
 		Schema:             metaData.Schema,
 		SchemaVersion:      metaData.SchemaVersion,
 		StateUpgraders:     r.resourceHandle.StateUpgraders(),

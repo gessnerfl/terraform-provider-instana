@@ -75,10 +75,13 @@ const (
 )
 
 var (
-	invalidTagFilterExpression = &restapi.TagFilter{
-		Entity:   restapi.TagFilterEntityDestination,
-		Name:     "foo",
-		Operator: restapi.EqualsOperator,
+	tagFilterEntityDestination         = restapi.TagFilterEntityDestination
+	invalidTagFilterExpressionName     = "foo"
+	invalidTagFilterExpressionOperator = restapi.EqualsOperator
+	invalidTagFilterExpression         = &restapi.TagFilter{
+		Entity:   &tagFilterEntityDestination,
+		Name:     &invalidTagFilterExpressionName,
+		Operator: &invalidTagFilterExpressionOperator,
 		Type:     "invalid",
 	}
 

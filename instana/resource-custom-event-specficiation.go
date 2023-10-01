@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
+	"github.com/gessnerfl/terraform-provider-instana/instana/tagfilter"
 	"github.com/gessnerfl/terraform-provider-instana/tfutils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -21,34 +22,42 @@ const (
 	CustomEventSpecificationFieldExpirationTime = "expiration_time"
 	CustomEventSpecificationFieldEnabled        = "enabled"
 
-	CustomEventSpecificationFieldRules                  = "rules"
-	CustomEventSpecificationFieldEntityVerificationRule = "entity_verification"
-	CustomEventSpecificationFieldSystemRule             = "system"
-	CustomEventSpecificationFieldThresholdRule          = "threshold"
-	customEventSpecificationThresholdRulePath           = "rules.0.threshold.0."
+	CustomEventSpecificationFieldRules                       = "rules"
+	CustomEventSpecificationFieldEntityCountRule             = "entity_count"
+	CustomEventSpecificationFieldEntityCountVerificationRule = "entity_count_verification"
+	CustomEventSpecificationFieldEntityVerificationRule      = "entity_verification"
+	CustomEventSpecificationFieldHostAvailabilityRule        = "host_availability"
+	CustomEventSpecificationFieldSystemRule                  = "system"
+	CustomEventSpecificationFieldThresholdRule               = "threshold"
+	customEventSpecificationThresholdRulePath                = "rules.0.threshold.0."
 
-	CustomEventSpecificationRuleFieldSeverity                              = "severity"
-	CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityType  = "matching_entity_type"
-	CustomEventSpecificationEntityVerificationRuleFieldMatchingOperator    = "matching_operator"
-	CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityLabel = "matching_entity_label"
-	CustomEventSpecificationEntityVerificationRuleFieldOfflineDuration     = "offline_duration"
-	CustomEventSpecificationSystemRuleFieldSystemRuleId                    = "system_rule_id"
-	CustomEventSpecificationThresholdRuleFieldMetricName                   = "metric_name"
-	CustomEventSpecificationThresholdRuleFieldRollup                       = "rollup"
-	CustomEventSpecificationThresholdRuleFieldWindow                       = "window"
-	CustomEventSpecificationThresholdRuleFieldAggregation                  = "aggregation"
-	CustomEventSpecificationThresholdRuleFieldConditionOperator            = "condition_operator"
-	CustomEventSpecificationThresholdRuleFieldConditionValue               = "condition_value"
-	CustomEventSpecificationThresholdRuleFieldMetricPattern                = "metric_pattern"
-	CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix          = "prefix"
-	CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix         = "postfix"
-	CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder     = "placeholder"
-	CustomEventSpecificationThresholdRuleFieldMetricPatternOperator        = "operator"
+	CustomEventSpecificationRuleFieldSeverity                          = "severity"
+	CustomEventSpecificationRuleFieldMatchingEntityType                = "matching_entity_type"
+	CustomEventSpecificationRuleFieldMatchingOperator                  = "matching_operator"
+	CustomEventSpecificationRuleFieldMatchingEntityLabel               = "matching_entity_label"
+	CustomEventSpecificationRuleFieldOfflineDuration                   = "offline_duration"
+	CustomEventSpecificationSystemRuleFieldSystemRuleId                = "system_rule_id"
+	CustomEventSpecificationThresholdRuleFieldMetricName               = "metric_name"
+	CustomEventSpecificationThresholdRuleFieldRollup                   = "rollup"
+	CustomEventSpecificationThresholdRuleFieldWindow                   = "window"
+	CustomEventSpecificationThresholdRuleFieldAggregation              = "aggregation"
+	CustomEventSpecificationRuleFieldConditionOperator                 = "condition_operator"
+	CustomEventSpecificationRuleFieldConditionValue                    = "condition_value"
+	CustomEventSpecificationThresholdRuleFieldMetricPattern            = "metric_pattern"
+	CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix      = "prefix"
+	CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix     = "postfix"
+	CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder = "placeholder"
+	CustomEventSpecificationThresholdRuleFieldMetricPatternOperator    = "operator"
+	CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter  = "close_after"
+	CustomEventSpecificationHostAvailabilityRuleFieldTagFilter         = "tag_filter"
 )
 
 var (
 	customEventSpecificationRuleTypeKeys = []string{
+		"rules.0.entity_count",
+		"rules.0.entity_count_verification",
 		"rules.0.entity_verification",
+		"rules.0.host_availability",
 		"rules.0.system",
 		"rules.0.threshold",
 	}
@@ -59,12 +68,57 @@ var (
 	}
 )
 
-var customEventSpecificationSchemaRuleSeverity = &schema.Schema{
-	Type:         schema.TypeString,
-	Required:     true,
-	ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
-	Description:  "Configures the severity of the rule of the custom event specification",
-}
+var (
+	customEventSpecificationSchemaRuleSeverity = &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validation.StringInSlice(restapi.SupportedSeverities.TerraformRepresentations(), false),
+		Description:  "Configures the severity of the rule of the custom event specification",
+	}
+	customEventSpecificationSchemaRuleConditionOperator = &schema.Schema{
+		Type:     schema.TypeString,
+		Required: true,
+		ValidateFunc: validation.StringInSlice([]string{
+			">",
+			">=",
+			"<",
+			"<=",
+			"=",
+			"!=",
+		}, false),
+		Description: "The condition operator (e.g >, <)",
+	}
+	customEventSpecificationSchemaRuleConditionValue = &schema.Schema{
+		Type:        schema.TypeFloat,
+		Required:    true,
+		Description: "The expected condition value to fulfill the rule",
+	}
+	customEventSpecificationSchemaRuleMatchingEntityType = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The type of the matching entity",
+	}
+	customEventSpecificationSchemaRuleMatchingOperator = &schema.Schema{
+		Type:     schema.TypeString,
+		Required: true,
+		ValidateFunc: validation.StringInSlice([]string{
+			"is",
+			"contains",
+			"startsWith",
+			"endsWith"}, false),
+		Description: "The operator which should be applied for matching the label for the given entity (e.g. is, contains, startsWith, endsWith)",
+	}
+	customEventSpecificationSchemaRuleMatchingEntityLabel = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The label of the matching entity",
+	}
+	customEventSpecificationSchemaRuleOfflineDuration = &schema.Schema{
+		Type:        schema.TypeInt,
+		Required:    true,
+		Description: "The duration after which the matching entity is considered to be offline",
+	}
+)
 
 // NewCustomEventSpecificationResourceHandle creates a new ResourceHandle for the terraform resource of custom event specifications
 func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomEventSpecification] {
@@ -120,6 +174,39 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 					Description: "Indicates the type of rule this custom event specification is about.",
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
+							CustomEventSpecificationFieldEntityCountRule: {
+								Type:        schema.TypeList,
+								MinItems:    0,
+								MaxItems:    1,
+								Optional:    true,
+								Description: "Entity count rule configuration",
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										CustomEventSpecificationRuleFieldSeverity:          customEventSpecificationSchemaRuleSeverity,
+										CustomEventSpecificationRuleFieldConditionOperator: customEventSpecificationSchemaRuleConditionOperator,
+										CustomEventSpecificationRuleFieldConditionValue:    customEventSpecificationSchemaRuleConditionValue,
+									},
+								},
+								ExactlyOneOf: customEventSpecificationRuleTypeKeys,
+							},
+							CustomEventSpecificationFieldEntityCountVerificationRule: {
+								Type:        schema.TypeList,
+								MinItems:    0,
+								MaxItems:    1,
+								Optional:    true,
+								Description: "Entity count rule configuration",
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										CustomEventSpecificationRuleFieldSeverity:            customEventSpecificationSchemaRuleSeverity,
+										CustomEventSpecificationRuleFieldConditionOperator:   customEventSpecificationSchemaRuleConditionOperator,
+										CustomEventSpecificationRuleFieldConditionValue:      customEventSpecificationSchemaRuleConditionValue,
+										CustomEventSpecificationRuleFieldMatchingEntityType:  customEventSpecificationSchemaRuleMatchingEntityType,
+										CustomEventSpecificationRuleFieldMatchingOperator:    customEventSpecificationSchemaRuleMatchingOperator,
+										CustomEventSpecificationRuleFieldMatchingEntityLabel: customEventSpecificationSchemaRuleMatchingEntityLabel,
+									},
+								},
+								ExactlyOneOf: customEventSpecificationRuleTypeKeys,
+							},
 							CustomEventSpecificationFieldEntityVerificationRule: {
 								Type:        schema.TypeList,
 								MinItems:    0,
@@ -128,32 +215,31 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 								Description: "Entity verification rule configuration",
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										CustomEventSpecificationRuleFieldSeverity: customEventSpecificationSchemaRuleSeverity,
-										CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityType: {
-											Type:        schema.TypeString,
-											Required:    true,
-											Description: "The type of the matching entity",
-										},
-										CustomEventSpecificationEntityVerificationRuleFieldMatchingOperator: {
-											Type:     schema.TypeString,
-											Required: true,
-											ValidateFunc: validation.StringInSlice([]string{
-												"is",
-												"contains",
-												"startsWith",
-												"endsWith"}, false),
-											Description: "The operator which should be applied for matching the label for the given entity (e.g. is, contains, startsWith, endsWith)",
-										},
-										CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityLabel: {
-											Type:        schema.TypeString,
-											Required:    true,
-											Description: "The label of the matching entity",
-										},
-										CustomEventSpecificationEntityVerificationRuleFieldOfflineDuration: {
+										CustomEventSpecificationRuleFieldSeverity:            customEventSpecificationSchemaRuleSeverity,
+										CustomEventSpecificationRuleFieldMatchingEntityType:  customEventSpecificationSchemaRuleMatchingEntityType,
+										CustomEventSpecificationRuleFieldMatchingOperator:    customEventSpecificationSchemaRuleMatchingOperator,
+										CustomEventSpecificationRuleFieldMatchingEntityLabel: customEventSpecificationSchemaRuleMatchingEntityLabel,
+										CustomEventSpecificationRuleFieldOfflineDuration:     customEventSpecificationSchemaRuleOfflineDuration,
+									},
+								},
+								ExactlyOneOf: customEventSpecificationRuleTypeKeys,
+							},
+							CustomEventSpecificationFieldHostAvailabilityRule: {
+								Type:        schema.TypeList,
+								MinItems:    0,
+								MaxItems:    1,
+								Optional:    true,
+								Description: "Host availability rule configuration",
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										CustomEventSpecificationRuleFieldSeverity:        customEventSpecificationSchemaRuleSeverity,
+										CustomEventSpecificationRuleFieldOfflineDuration: customEventSpecificationSchemaRuleOfflineDuration,
+										CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter: {
 											Type:        schema.TypeInt,
 											Required:    true,
-											Description: "The duration after which the matching entity is considered to be offline",
+											Description: "if a host is offline for longer than the defined period, Instana does not expect the host to reappear anymore, and the event will be closed after the grace period",
 										},
+										CustomEventSpecificationHostAvailabilityRuleFieldTagFilter: RequiredTagFilterExpressionSchema,
 									},
 								},
 								ExactlyOneOf: customEventSpecificationRuleTypeKeys,
@@ -181,7 +267,7 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 								MinItems:    0,
 								MaxItems:    1,
 								Optional:    true,
-								Description: "System rule configuration",
+								Description: "Threshold rule configuration",
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										CustomEventSpecificationRuleFieldSeverity: customEventSpecificationSchemaRuleSeverity,
@@ -246,24 +332,8 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 											ValidateFunc: validation.StringInSlice([]string{"sum", "avg", "min", "max"}, false),
 											Description:  "The aggregation type (e.g. sum, avg)",
 										},
-										CustomEventSpecificationThresholdRuleFieldConditionOperator: {
-											Type:     schema.TypeString,
-											Required: true,
-											ValidateFunc: validation.StringInSlice([]string{
-												">",
-												">=",
-												"<",
-												"<=",
-												"=",
-												"!=",
-											}, false),
-											Description: "The condition operator (e.g >, <)",
-										},
-										CustomEventSpecificationThresholdRuleFieldConditionValue: {
-											Type:        schema.TypeFloat,
-											Required:    true,
-											Description: "The expected condition value to fulfill the rule",
-										},
+										CustomEventSpecificationRuleFieldConditionOperator: customEventSpecificationSchemaRuleConditionOperator,
+										CustomEventSpecificationRuleFieldConditionValue:    customEventSpecificationSchemaRuleConditionValue,
 									},
 								},
 								ExactlyOneOf: customEventSpecificationRuleTypeKeys,
@@ -325,29 +395,83 @@ func (r *customEventSpecificationResource) mapRuleToState(rule restapi.RuleSpeci
 		return nil, err
 	}
 
-	if rule.DType == restapi.EntityVerificationRuleType {
-		return r.mapEntityEventSpecificationRuleToState(rule, severity)
-	} else if rule.DType == restapi.SystemRuleType {
-		return r.mapSystemRuleToState(rule, severity)
-	} else if rule.DType == restapi.ThresholdRuleType {
-		return r.mapThresholdRuleToState(rule, severity)
-	} else {
-		return nil, fmt.Errorf("unsupported rule type %s", rule.DType)
+	if rule.DType == restapi.EntityCountRuleType {
+		return r.mapEntityCountRuleToState(rule, severity)
 	}
+	if rule.DType == restapi.EntityCountVerificationRuleType {
+		return r.mapEntityCountVerificationRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.EntityVerificationRuleType {
+		return r.mapEntityVerificationRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.HostAvailabilityRuleType {
+		return r.mapHostAvailabilityRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.SystemRuleType {
+		return r.mapSystemRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.ThresholdRuleType {
+		return r.mapThresholdRuleToState(rule, severity)
+	}
+	return nil, fmt.Errorf("unsupported rule type %s", rule.DType)
 }
 
-func (r *customEventSpecificationResource) mapEntityEventSpecificationRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+func (r *customEventSpecificationResource) mapEntityCountRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
 	return map[string]interface{}{
-		CustomEventSpecificationFieldEntityVerificationRule: []interface{}{
+		CustomEventSpecificationFieldEntityCountRule: []interface{}{
 			map[string]interface{}{
-				CustomEventSpecificationRuleFieldSeverity:                              severity,
-				CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityLabel: rule.MatchingEntityLabel,
-				CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityType:  rule.MatchingEntityType,
-				CustomEventSpecificationEntityVerificationRuleFieldMatchingOperator:    rule.MatchingOperator,
-				CustomEventSpecificationEntityVerificationRuleFieldOfflineDuration:     rule.OfflineDuration,
+				CustomEventSpecificationRuleFieldSeverity:          severity,
+				CustomEventSpecificationRuleFieldConditionOperator: rule.ConditionOperator,
+				CustomEventSpecificationRuleFieldConditionValue:    rule.ConditionValue,
 			},
 		},
 	}, nil
+}
+
+func (r *customEventSpecificationResource) mapEntityCountVerificationRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+	return map[string]interface{}{
+		CustomEventSpecificationFieldEntityCountVerificationRule: []interface{}{
+			map[string]interface{}{
+				CustomEventSpecificationRuleFieldSeverity:            severity,
+				CustomEventSpecificationRuleFieldConditionOperator:   rule.ConditionOperator,
+				CustomEventSpecificationRuleFieldConditionValue:      rule.ConditionValue,
+				CustomEventSpecificationRuleFieldMatchingEntityLabel: rule.MatchingEntityLabel,
+				CustomEventSpecificationRuleFieldMatchingEntityType:  rule.MatchingEntityType,
+				CustomEventSpecificationRuleFieldMatchingOperator:    rule.MatchingOperator,
+			},
+		},
+	}, nil
+}
+
+func (r *customEventSpecificationResource) mapEntityVerificationRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+	return map[string]interface{}{
+		CustomEventSpecificationFieldEntityVerificationRule: []interface{}{
+			map[string]interface{}{
+				CustomEventSpecificationRuleFieldSeverity:            severity,
+				CustomEventSpecificationRuleFieldMatchingEntityLabel: rule.MatchingEntityLabel,
+				CustomEventSpecificationRuleFieldMatchingEntityType:  rule.MatchingEntityType,
+				CustomEventSpecificationRuleFieldMatchingOperator:    rule.MatchingOperator,
+				CustomEventSpecificationRuleFieldOfflineDuration:     rule.OfflineDuration,
+			},
+		},
+	}, nil
+}
+
+func (r *customEventSpecificationResource) mapHostAvailabilityRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+	ruleData := map[string]interface{}{
+		CustomEventSpecificationRuleFieldSeverity:                         severity,
+		CustomEventSpecificationRuleFieldOfflineDuration:                  rule.OfflineDuration,
+		CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter: rule.CloseAfter,
+	}
+	if rule.TagFilter != nil {
+		normalizedTagFilterString, err := tagfilter.MapTagFilterToNormalizedString(rule.TagFilter)
+		if err != nil {
+			return nil, err
+		}
+		ruleData[ApplicationConfigFieldTagFilter] = normalizedTagFilterString
+	}
+
+	return map[string]interface{}{CustomEventSpecificationFieldHostAvailabilityRule: []interface{}{ruleData}}, nil
 }
 
 func (r *customEventSpecificationResource) mapSystemRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
@@ -377,14 +501,14 @@ func (r *customEventSpecificationResource) mapThresholdRuleToState(rule restapi.
 	return map[string]interface{}{
 		CustomEventSpecificationFieldThresholdRule: []interface{}{
 			map[string]interface{}{
-				CustomEventSpecificationRuleFieldSeverity:                   severity,
-				CustomEventSpecificationThresholdRuleFieldMetricName:        rule.MetricName,
-				CustomEventSpecificationThresholdRuleFieldMetricPattern:     metricPattern,
-				CustomEventSpecificationThresholdRuleFieldRollup:            rule.Rollup,
-				CustomEventSpecificationThresholdRuleFieldWindow:            rule.Window,
-				CustomEventSpecificationThresholdRuleFieldAggregation:       rule.Aggregation,
-				CustomEventSpecificationThresholdRuleFieldConditionOperator: rule.ConditionOperator,
-				CustomEventSpecificationThresholdRuleFieldConditionValue:    rule.ConditionValue,
+				CustomEventSpecificationRuleFieldSeverity:               severity,
+				CustomEventSpecificationThresholdRuleFieldMetricName:    rule.MetricName,
+				CustomEventSpecificationThresholdRuleFieldMetricPattern: metricPattern,
+				CustomEventSpecificationThresholdRuleFieldRollup:        rule.Rollup,
+				CustomEventSpecificationThresholdRuleFieldWindow:        rule.Window,
+				CustomEventSpecificationThresholdRuleFieldAggregation:   rule.Aggregation,
+				CustomEventSpecificationRuleFieldConditionOperator:      rule.ConditionOperator,
+				CustomEventSpecificationRuleFieldConditionValue:         rule.ConditionValue,
 			},
 		},
 	}, nil
@@ -411,8 +535,17 @@ func (r *customEventSpecificationResource) MapStateToDataObject(d *schema.Resour
 }
 
 func (r *customEventSpecificationResource) mapRuleFromState(ruleData map[string]interface{}) (restapi.RuleSpecification, error) {
+	if rule, ok := ruleData[CustomEventSpecificationFieldEntityCountRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapEntityCountRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
+	}
+	if rule, ok := ruleData[CustomEventSpecificationFieldEntityCountVerificationRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapEntityCountVerificationRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
+	}
 	if rule, ok := ruleData[CustomEventSpecificationFieldEntityVerificationRule]; ok && len(rule.([]interface{})) > 0 {
 		return r.mapEntityVerificationRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
+	}
+	if rule, ok := ruleData[CustomEventSpecificationFieldHostAvailabilityRule]; ok && len(rule.([]interface{})) > 0 {
+		return r.mapHostAvailabilityRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
 	}
 	if rule, ok := ruleData[CustomEventSpecificationFieldSystemRule]; ok && len(rule.([]interface{})) > 0 {
 		return r.mapSystemRuleFromState(rule.([]interface{})[0].(map[string]interface{}))
@@ -424,6 +557,35 @@ func (r *customEventSpecificationResource) mapRuleFromState(ruleData map[string]
 	return restapi.RuleSpecification{}, errors.New("no supported rule defined")
 }
 
+func (r *customEventSpecificationResource) mapEntityCountRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
+	return restapi.RuleSpecification{
+		DType:             restapi.EntityCountRuleType,
+		Severity:          severity,
+		ConditionOperator: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionOperator),
+		ConditionValue:    GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionValue),
+	}, nil
+}
+
+func (r *customEventSpecificationResource) mapEntityCountVerificationRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
+	return restapi.RuleSpecification{
+		DType:               restapi.EntityCountVerificationRuleType,
+		Severity:            severity,
+		ConditionOperator:   GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionOperator),
+		ConditionValue:      GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionValue),
+		MatchingEntityLabel: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingEntityLabel),
+		MatchingEntityType:  GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingEntityType),
+		MatchingOperator:    GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingOperator),
+	}, nil
+}
+
 func (r *customEventSpecificationResource) mapEntityVerificationRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
 	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
 	if err != nil {
@@ -432,11 +594,44 @@ func (r *customEventSpecificationResource) mapEntityVerificationRuleFromState(ru
 	return restapi.RuleSpecification{
 		DType:               restapi.EntityVerificationRuleType,
 		Severity:            severity,
-		MatchingEntityLabel: GetPointerFromMap[string](rule, CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityLabel),
-		MatchingEntityType:  GetPointerFromMap[string](rule, CustomEventSpecificationEntityVerificationRuleFieldMatchingEntityType),
-		MatchingOperator:    GetPointerFromMap[string](rule, CustomEventSpecificationEntityVerificationRuleFieldMatchingOperator),
-		OfflineDuration:     GetPointerFromMap[int](rule, CustomEventSpecificationEntityVerificationRuleFieldOfflineDuration),
+		MatchingEntityLabel: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingEntityLabel),
+		MatchingEntityType:  GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingEntityType),
+		MatchingOperator:    GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldMatchingOperator),
+		OfflineDuration:     GetPointerFromMap[int](rule, CustomEventSpecificationRuleFieldOfflineDuration),
 	}, nil
+}
+
+func (r *customEventSpecificationResource) mapHostAvailabilityRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
+	severity, err := ConvertSeverityFromTerraformToInstanaAPIRepresentation(rule[CustomEventSpecificationRuleFieldSeverity].(string))
+	if err != nil {
+		return restapi.RuleSpecification{}, err
+	}
+	var tagFilter *restapi.TagFilter
+	if tagFilterString, ok := rule[CustomEventSpecificationHostAvailabilityRuleFieldTagFilter]; ok {
+		tagFilter, err = r.mapTagFilterStringToAPIModel(tagFilterString.(string))
+		if err != nil {
+			return restapi.RuleSpecification{}, err
+		}
+	}
+
+	return restapi.RuleSpecification{
+		DType:           restapi.HostAvailabilityRuleType,
+		Severity:        severity,
+		OfflineDuration: GetPointerFromMap[int](rule, CustomEventSpecificationRuleFieldOfflineDuration),
+		CloseAfter:      GetPointerFromMap[int](rule, CustomEventSpecificationHostAvailabilityRuleFieldMetricCloseAfter),
+		TagFilter:       tagFilter,
+	}, nil
+}
+
+func (r *customEventSpecificationResource) mapTagFilterStringToAPIModel(input string) (*restapi.TagFilter, error) {
+	parser := tagfilter.NewParser()
+	expr, err := parser.Parse(input)
+	if err != nil {
+		return nil, err
+	}
+
+	mapper := tagfilter.NewMapper()
+	return mapper.ToAPIModel(expr), nil
 }
 
 func (r *customEventSpecificationResource) mapSystemRuleFromState(rule map[string]interface{}) (restapi.RuleSpecification, error) {
@@ -483,7 +678,7 @@ func (r *customEventSpecificationResource) mapThresholdRuleFromState(rule map[st
 		Rollup:            GetPointerFromMap[int](rule, CustomEventSpecificationThresholdRuleFieldRollup),
 		Window:            GetPointerFromMap[int](rule, CustomEventSpecificationThresholdRuleFieldWindow),
 		Aggregation:       aggregation,
-		ConditionOperator: GetPointerFromMap[string](rule, CustomEventSpecificationThresholdRuleFieldConditionOperator),
-		ConditionValue:    GetPointerFromMap[float64](rule, CustomEventSpecificationThresholdRuleFieldConditionValue),
+		ConditionOperator: GetPointerFromMap[string](rule, CustomEventSpecificationRuleFieldConditionOperator),
+		ConditionValue:    GetPointerFromMap[float64](rule, CustomEventSpecificationRuleFieldConditionValue),
 	}, nil
 }

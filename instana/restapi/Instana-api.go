@@ -69,7 +69,7 @@ func (api *baseInstanaAPI) APITokens() RestResource[*APIToken] {
 
 // ApplicationConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) ApplicationConfigs() RestResource[*ApplicationConfig] {
-	return NewCreatePUTUpdatePUTRestResource(ApplicationConfigsResourcePath, NewApplicationConfigUnmarshaller(), api.client)
+	return NewCreatePUTUpdatePUTRestResource(ApplicationConfigsResourcePath, NewDefaultJSONUnmarshaller(&ApplicationConfig{}), api.client)
 }
 
 // ApplicationAlertConfigs implementation of InstanaAPI interface
@@ -93,7 +93,7 @@ func (api *baseInstanaAPI) AlertingConfigurations() RestResource[*AlertingConfig
 }
 
 func (api *baseInstanaAPI) SliConfigs() RestResource[*SliConfig] {
-	return NewCreatePOSTUpdateNotSupportedRestResource(SliConfigResourcePath, NewSliConfigUnmarshaller(), api.client)
+	return NewCreatePOSTUpdateNotSupportedRestResource(SliConfigResourcePath, NewDefaultJSONUnmarshaller(&SliConfig{}), api.client)
 }
 
 func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource[*WebsiteMonitoringConfig] {
@@ -101,7 +101,7 @@ func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource[*WebsiteMonito
 }
 
 func (api *baseInstanaAPI) WebsiteAlertConfig() RestResource[*WebsiteAlertConfig] {
-	return NewCreatePOSTUpdatePOSTRestResource(WebsiteAlertConfigResourcePath, NewWebsiteAlertConfigUnmarshaller(), api.client)
+	return NewCreatePOSTUpdatePOSTRestResource(WebsiteAlertConfigResourcePath, NewDefaultJSONUnmarshaller(&WebsiteAlertConfig{}), api.client)
 }
 
 func (api *baseInstanaAPI) Groups() RestResource[*Group] {

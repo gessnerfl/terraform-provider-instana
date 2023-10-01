@@ -1,6 +1,6 @@
 package utils
 
-//StringSliceElementsAreUnique checks if the given string slice contains unique elements only
+// StringSliceElementsAreUnique checks if the given string slice contains unique elements only
 func StringSliceElementsAreUnique(slice []string) bool {
 	checkMap := make(map[string]bool)
 
