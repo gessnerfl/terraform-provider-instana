@@ -306,8 +306,8 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 													CustomEventSpecificationThresholdRuleFieldMetricPatternOperator: {
 														Type:         schema.TypeString,
 														Required:     true,
-														ValidateFunc: validation.StringInSlice([]string{"is", "contains", "startsWith", "endsWith"}, false),
-														Description:  "The metric pattern operator (e.g is, contains, startsWith, endsWith)",
+														ValidateFunc: validation.StringInSlice([]string{"is", "contains", "startsWith", "endsWith", "any"}, false),
+														Description:  "The metric pattern operator (e.g is, contains, startsWith, endsWith, any)",
 													},
 												},
 											},
