@@ -857,7 +857,7 @@ func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *sch
 		result := make([]restapi.CustomPayloadField[any], len(fields))
 		for i, v := range fields {
 			field := v.(map[string]interface{})
-			customPayloadFieldType := restapi.StaticCustomPayloadType
+			customPayloadFieldType := restapi.StaticStringCustomPayloadType
 			key := field[ApplicationAlertConfigFieldCustomPayloadFieldsKey].(string)
 			value := field[ApplicationAlertConfigFieldCustomPayloadFieldsValue].(string)
 

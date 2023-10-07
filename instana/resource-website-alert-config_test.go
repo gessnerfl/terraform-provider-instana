@@ -515,7 +515,7 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 			Granularity:     restapi.Granularity600000,
 			CustomerPayloadFields: []restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue]{
 				{
-					Type:  restapi.StaticCustomPayloadType,
+					Type:  restapi.StaticStringCustomPayloadType,
 					Key:   "static-key",
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},
@@ -883,7 +883,7 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 			Granularity:     restapi.Granularity600000,
 			CustomerPayloadFields: []restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue]{
 				{
-					Type:  restapi.StaticCustomPayloadType,
+					Type:  restapi.StaticStringCustomPayloadType,
 					Key:   "static-key",
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},

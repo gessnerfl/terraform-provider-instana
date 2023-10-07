@@ -5,11 +5,6 @@ type InstanaDataObject interface {
 	GetIDForResourcePath() string
 }
 
-type CustomerPayloadFieldsAware interface {
-	GetCustomerPayloadFields() []CustomPayloadField[any]
-	SetCustomerPayloadFields([]CustomPayloadField[any])
-}
-
 // RestResource interface definition of a instana REST resource.
 type RestResource[T InstanaDataObject] interface {
 	GetAll() (*[]T, error)

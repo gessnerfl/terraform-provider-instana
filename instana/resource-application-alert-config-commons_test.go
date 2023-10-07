@@ -638,7 +638,7 @@ func (f *anyApplicationConfigTest) createTestShouldUpdateTerraformResourceStateF
 			IncludeSynthetic: false,
 			CustomerPayloadFields: []restapi.CustomPayloadField[any]{
 				{
-					Type:  restapi.StaticCustomPayloadType,
+					Type:  restapi.StaticStringCustomPayloadType,
 					Key:   "static-key",
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},
@@ -1035,7 +1035,7 @@ func (f *anyApplicationConfigTest) createTestShouldMapTerraformResourceStateToMo
 			IncludeSynthetic: false,
 			CustomerPayloadFields: []restapi.CustomPayloadField[any]{
 				{
-					Type:  restapi.StaticCustomPayloadType,
+					Type:  restapi.StaticStringCustomPayloadType,
 					Key:   "static-key",
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
 				},

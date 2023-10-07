@@ -565,7 +565,7 @@ func (r *websiteAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.
 		result := make([]restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue], len(fields))
 		for i, v := range fields {
 			field := v.(map[string]interface{})
-			customPayloadFieldType := restapi.StaticCustomPayloadType
+			customPayloadFieldType := restapi.StaticStringCustomPayloadType
 			key := field[WebsiteAlertConfigFieldCustomPayloadFieldsKey].(string)
 			value := field[WebsiteAlertConfigFieldCustomPayloadFieldsValue].(string)
 			result[i] = restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue]{

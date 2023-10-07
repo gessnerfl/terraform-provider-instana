@@ -31,3 +31,13 @@ type ApplicationAlertConfig struct {
 func (a *ApplicationAlertConfig) GetIDForResourcePath() string {
 	return a.ID
 }
+
+// GetCustomerPayloadFields implementation of the interface customPayloadFieldsAwareInstanaDataObject
+func (a *ApplicationAlertConfig) GetCustomerPayloadFields() []CustomPayloadField[any] {
+	return a.CustomerPayloadFields
+}
+
+// SetCustomerPayloadFields implementation of the interface customPayloadFieldsAwareInstanaDataObject
+func (a *ApplicationAlertConfig) SetCustomerPayloadFields(fields []CustomPayloadField[any]) {
+	a.CustomerPayloadFields = fields
+}
