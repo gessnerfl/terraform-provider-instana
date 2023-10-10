@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/alecthomas/participle v0.7.1
-	github.com/google/go-cmp v0.5.9
+	github.com/google/go-cmp v0.6.0
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.29.0
 	github.com/rs/xid v1.5.0
