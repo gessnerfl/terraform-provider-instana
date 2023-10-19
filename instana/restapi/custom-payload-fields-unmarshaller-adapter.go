@@ -1,8 +1,12 @@
 package restapi
 
-type customPayloadFieldsAwareInstanaDataObject interface {
+type CustomPayloadFieldsAware interface {
 	GetCustomerPayloadFields() []CustomPayloadField[any]
 	SetCustomerPayloadFields([]CustomPayloadField[any])
+}
+
+type customPayloadFieldsAwareInstanaDataObject interface {
+	CustomPayloadFieldsAware
 	InstanaDataObject
 }
 
@@ -12,7 +16,6 @@ func NewCustomPayloadFieldsUnmarshallerAdapter[T customPayloadFieldsAwareInstana
 }
 
 type customPayloadFieldsUnmarshallerAdapter[T customPayloadFieldsAwareInstanaDataObject] struct {
-	objectType   T
 	unmarshaller JSONUnmarshaller[T]
 }
 
@@ -60,7 +63,9 @@ func (a *customPayloadFieldsUnmarshallerAdapter[T]) mapCustomPayloadField(field 
 			Key:     keyPtr,
 		}
 	} else {
-		field.Value = StaticStringCustomPayloadFieldValue(field.Value.(string))
+
+		value := field.Value.(string)
+		field.Value = StaticStringCustomPayloadFieldValue(value)
 	}
 	return field
 }

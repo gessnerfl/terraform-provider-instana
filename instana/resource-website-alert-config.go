@@ -17,12 +17,6 @@ const (
 	WebsiteAlertConfigFieldAlertChannelIDs = "alert_channel_ids"
 	//WebsiteAlertConfigFieldWebsiteID constant value for field websites.website_id of resource instana_website_alert_config
 	WebsiteAlertConfigFieldWebsiteID = "website_id"
-	//WebsiteAlertConfigFieldCustomPayloadFields constant value for field custom_payload_fields of resource instana_website_alert_config
-	WebsiteAlertConfigFieldCustomPayloadFields = "custom_payload_field"
-	//WebsiteAlertConfigFieldCustomPayloadFieldsKey constant value for field custom_payload_fields.key of resource instana_website_alert_config
-	WebsiteAlertConfigFieldCustomPayloadFieldsKey = "key"
-	//WebsiteAlertConfigFieldCustomPayloadFieldsValue constant value for field custom_payload_fields.value of resource instana_website_alert_config
-	WebsiteAlertConfigFieldCustomPayloadFieldsValue = "value"
 	//WebsiteAlertConfigFieldDescription constant value for field description of resource instana_website_alert_config
 	WebsiteAlertConfigFieldDescription = "description"
 	//WebsiteAlertConfigFieldGranularity constant value for field granularity of resource instana_website_alert_config
@@ -88,30 +82,6 @@ var (
 		},
 		Optional:    true,
 		Description: "List of IDs of alert channels defined in Instana.",
-	}
-	websiteAlertConfigSchemaCustomPayloadFields = &schema.Schema{
-		Type: schema.TypeSet,
-		Set: func(i interface{}) int {
-			return schema.HashString(i.(map[string]interface{})[WebsiteAlertConfigFieldCustomPayloadFieldsKey])
-		},
-		Optional: true,
-		MinItems: 0,
-		MaxItems: 20,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				WebsiteAlertConfigFieldCustomPayloadFieldsKey: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The key of the custom payload field",
-				},
-				WebsiteAlertConfigFieldCustomPayloadFieldsValue: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The value of the custom payload field",
-				},
-			},
-		},
-		Description: "An optional list of custom payload fields (static key/value pairs added to the event)",
 	}
 	websiteAlertConfigSchemaDescription = &schema.Schema{
 		Type:         schema.TypeString,
@@ -351,18 +321,18 @@ var (
 )
 
 var websiteAlertConfigResourceSchema = map[string]*schema.Schema{
-	WebsiteAlertConfigFieldAlertChannelIDs:     websiteAlertConfigSchemaAlertChannelIDs,
-	WebsiteAlertConfigFieldCustomPayloadFields: websiteAlertConfigSchemaCustomPayloadFields,
-	WebsiteAlertConfigFieldDescription:         websiteAlertConfigSchemaDescription,
-	WebsiteAlertConfigFieldGranularity:         websiteAlertConfigSchemaGranularity,
-	WebsiteAlertConfigFieldName:                websiteAlertConfigSchemaName,
-	WebsiteAlertConfigFieldRule:                websiteAlertConfigSchemaRule,
-	WebsiteAlertConfigFieldSeverity:            websiteAlertConfigSchemaSeverity,
-	WebsiteAlertConfigFieldTagFilter:           websiteAlertConfigSchemaTagFilter,
-	ResourceFieldThreshold:                     thresholdSchema,
-	WebsiteAlertConfigFieldTimeThreshold:       websiteAlertConfigSchemaTimeThreshold,
-	WebsiteAlertConfigFieldTriggering:          websiteAlertConfigSchemaTriggering,
-	WebsiteAlertConfigFieldWebsiteID:           websiteAlertConfigSchemaWebsiteID,
+	WebsiteAlertConfigFieldAlertChannelIDs: websiteAlertConfigSchemaAlertChannelIDs,
+	DefaultCustomPayloadFieldsName:         buildCustomPayloadFields(),
+	WebsiteAlertConfigFieldDescription:     websiteAlertConfigSchemaDescription,
+	WebsiteAlertConfigFieldGranularity:     websiteAlertConfigSchemaGranularity,
+	WebsiteAlertConfigFieldName:            websiteAlertConfigSchemaName,
+	WebsiteAlertConfigFieldRule:            websiteAlertConfigSchemaRule,
+	WebsiteAlertConfigFieldSeverity:        websiteAlertConfigSchemaSeverity,
+	WebsiteAlertConfigFieldTagFilter:       websiteAlertConfigSchemaTagFilter,
+	ResourceFieldThreshold:                 thresholdSchema,
+	WebsiteAlertConfigFieldTimeThreshold:   websiteAlertConfigSchemaTimeThreshold,
+	WebsiteAlertConfigFieldTriggering:      websiteAlertConfigSchemaTriggering,
+	WebsiteAlertConfigFieldWebsiteID:       websiteAlertConfigSchemaWebsiteID,
 }
 
 // NewWebsiteAlertConfigResourceHandle creates the resource handle for Website Alert Configs
@@ -418,30 +388,19 @@ func (r *websiteAlertConfigResource) UpdateState(d *schema.ResourceData, config 
 
 	d.SetId(config.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		WebsiteAlertConfigFieldAlertChannelIDs:     config.AlertChannelIDs,
-		WebsiteAlertConfigFieldCustomPayloadFields: r.mapCustomPayloadFieldsToSchema(config),
-		WebsiteAlertConfigFieldDescription:         config.Description,
-		WebsiteAlertConfigFieldGranularity:         config.Granularity,
-		WebsiteAlertConfigFieldName:                config.Name,
-		WebsiteAlertConfigFieldRule:                r.mapRuleToSchema(config),
-		WebsiteAlertConfigFieldSeverity:            severity,
-		WebsiteAlertConfigFieldTagFilter:           normalizedTagFilterString,
-		ResourceFieldThreshold:                     newThresholdMapper().toState(&config.Threshold),
-		WebsiteAlertConfigFieldTimeThreshold:       r.mapTimeThresholdToSchema(config),
-		WebsiteAlertConfigFieldTriggering:          config.Triggering,
-		WebsiteAlertConfigFieldWebsiteID:           config.WebsiteID,
+		WebsiteAlertConfigFieldAlertChannelIDs: config.AlertChannelIDs,
+		DefaultCustomPayloadFieldsName:         mapCustomPayloadFieldsToSchema(config),
+		WebsiteAlertConfigFieldDescription:     config.Description,
+		WebsiteAlertConfigFieldGranularity:     config.Granularity,
+		WebsiteAlertConfigFieldName:            config.Name,
+		WebsiteAlertConfigFieldRule:            r.mapRuleToSchema(config),
+		WebsiteAlertConfigFieldSeverity:        severity,
+		WebsiteAlertConfigFieldTagFilter:       normalizedTagFilterString,
+		ResourceFieldThreshold:                 newThresholdMapper().toState(&config.Threshold),
+		WebsiteAlertConfigFieldTimeThreshold:   r.mapTimeThresholdToSchema(config),
+		WebsiteAlertConfigFieldTriggering:      config.Triggering,
+		WebsiteAlertConfigFieldWebsiteID:       config.WebsiteID,
 	})
-}
-
-func (r *websiteAlertConfigResource) mapCustomPayloadFieldsToSchema(config *restapi.WebsiteAlertConfig) []map[string]string {
-	result := make([]map[string]string, len(config.CustomerPayloadFields))
-	for i, v := range config.CustomerPayloadFields {
-		field := make(map[string]string)
-		field[WebsiteAlertConfigFieldCustomPayloadFieldsKey] = v.Key
-		field[WebsiteAlertConfigFieldCustomPayloadFieldsValue] = string(v.Value)
-		result[i] = field
-	}
-	return result
 }
 
 func (r *websiteAlertConfigResource) mapRuleToSchema(config *restapi.WebsiteAlertConfig) []map[string]interface{} {
@@ -527,13 +486,17 @@ func (r *websiteAlertConfigResource) MapStateToDataObject(d *schema.ResourceData
 			return &restapi.WebsiteAlertConfig{}, err
 		}
 	}
+	customPayloadFields, err := mapDefaultCustomPayloadFieldsFromSchema(d)
+	if err != nil {
+		return &restapi.WebsiteAlertConfig{}, err
+	}
 
 	threshold := newThresholdMapper().fromState(d)
 
 	return &restapi.WebsiteAlertConfig{
 		ID:                    d.Id(),
 		AlertChannelIDs:       ReadStringSetParameterFromResource(d, WebsiteAlertConfigFieldAlertChannelIDs),
-		CustomerPayloadFields: r.mapCustomPayloadFieldsFromSchema(d),
+		CustomerPayloadFields: customPayloadFields,
 		Description:           d.Get(WebsiteAlertConfigFieldDescription).(string),
 		Granularity:           restapi.Granularity(d.Get(WebsiteAlertConfigFieldGranularity).(int)),
 		Name:                  d.Get(WebsiteMonitoringConfigFieldName).(string),
@@ -556,27 +519,6 @@ func (r *websiteAlertConfigResource) mapTagFilterExpressionFromSchema(input stri
 
 	mapper := tagfilter.NewMapper()
 	return mapper.ToAPIModel(expr), nil
-}
-
-func (r *websiteAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue] {
-	val := d.Get(WebsiteAlertConfigFieldCustomPayloadFields)
-	if val != nil {
-		fields := val.(*schema.Set).List()
-		result := make([]restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue], len(fields))
-		for i, v := range fields {
-			field := v.(map[string]interface{})
-			customPayloadFieldType := restapi.StaticStringCustomPayloadType
-			key := field[WebsiteAlertConfigFieldCustomPayloadFieldsKey].(string)
-			value := field[WebsiteAlertConfigFieldCustomPayloadFieldsValue].(string)
-			result[i] = restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue]{
-				Type:  customPayloadFieldType,
-				Key:   key,
-				Value: restapi.StaticStringCustomPayloadFieldValue(value),
-			}
-		}
-		return result
-	}
-	return []restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue]{}
 }
 
 func (r *websiteAlertConfigResource) mapRuleFromSchema(d *schema.ResourceData) *restapi.WebsiteAlertRule {
@@ -693,19 +635,42 @@ func (r *websiteAlertConfigResource) websiteAlertConfigStateUpgradeV0(_ context.
 func (r *websiteAlertConfigResource) websiteAlertConfigSchemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			WebsiteAlertConfigFieldAlertChannelIDs:     websiteAlertConfigSchemaAlertChannelIDs,
-			WebsiteAlertConfigFieldCustomPayloadFields: websiteAlertConfigSchemaCustomPayloadFields,
-			WebsiteAlertConfigFieldDescription:         websiteAlertConfigSchemaDescription,
-			WebsiteAlertConfigFieldGranularity:         websiteAlertConfigSchemaGranularity,
-			WebsiteAlertConfigFieldName:                websiteAlertConfigSchemaName,
-			WebsiteAlertConfigFieldFullName:            websiteAlertConfigSchemaFullName,
-			WebsiteAlertConfigFieldRule:                websiteAlertConfigSchemaRule,
-			WebsiteAlertConfigFieldSeverity:            websiteAlertConfigSchemaSeverity,
-			WebsiteAlertConfigFieldTagFilter:           websiteAlertConfigSchemaTagFilter,
-			ResourceFieldThreshold:                     thresholdSchema,
-			WebsiteAlertConfigFieldTimeThreshold:       websiteAlertConfigSchemaTimeThreshold,
-			WebsiteAlertConfigFieldTriggering:          websiteAlertConfigSchemaTriggering,
-			WebsiteAlertConfigFieldWebsiteID:           websiteAlertConfigSchemaWebsiteID,
+			WebsiteAlertConfigFieldAlertChannelIDs: websiteAlertConfigSchemaAlertChannelIDs,
+			DefaultCustomPayloadFieldsName: {
+				Type: schema.TypeSet,
+				Set: func(i interface{}) int {
+					return schema.HashString(i.(map[string]interface{})[CustomPayloadFieldsFieldKey])
+				},
+				Optional: true,
+				MinItems: 0,
+				MaxItems: 20,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						CustomPayloadFieldsFieldKey: {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The key of the custom payload field",
+						},
+						CustomPayloadFieldsFieldValue: {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "The value of a static string custom payload field",
+						},
+					},
+				},
+				Description: "A list of custom payload fields",
+			},
+			WebsiteAlertConfigFieldDescription:   websiteAlertConfigSchemaDescription,
+			WebsiteAlertConfigFieldGranularity:   websiteAlertConfigSchemaGranularity,
+			WebsiteAlertConfigFieldName:          websiteAlertConfigSchemaName,
+			WebsiteAlertConfigFieldFullName:      websiteAlertConfigSchemaFullName,
+			WebsiteAlertConfigFieldRule:          websiteAlertConfigSchemaRule,
+			WebsiteAlertConfigFieldSeverity:      websiteAlertConfigSchemaSeverity,
+			WebsiteAlertConfigFieldTagFilter:     websiteAlertConfigSchemaTagFilter,
+			ResourceFieldThreshold:               thresholdSchema,
+			WebsiteAlertConfigFieldTimeThreshold: websiteAlertConfigSchemaTimeThreshold,
+			WebsiteAlertConfigFieldTriggering:    websiteAlertConfigSchemaTriggering,
+			WebsiteAlertConfigFieldWebsiteID:     websiteAlertConfigSchemaWebsiteID,
 		},
 	}
 }

@@ -35,12 +35,6 @@ const (
 	ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID = "endpoint_id"
 	//ApplicationAlertConfigFieldBoundaryScope constant value for field boundary_scope of resource instana_application_alert_config
 	ApplicationAlertConfigFieldBoundaryScope = "boundary_scope"
-	//ApplicationAlertConfigFieldCustomPayloadFields constant value for field custom_payload_fields of resource instana_application_alert_config
-	ApplicationAlertConfigFieldCustomPayloadFields = "custom_payload_field"
-	//ApplicationAlertConfigFieldCustomPayloadFieldsKey constant value for field custom_payload_fields.key of resource instana_application_alert_config
-	ApplicationAlertConfigFieldCustomPayloadFieldsKey = "key"
-	//ApplicationAlertConfigFieldCustomPayloadFieldsValue constant value for field custom_payload_fields.value of resource instana_application_alert_config
-	ApplicationAlertConfigFieldCustomPayloadFieldsValue = "value"
 	//ApplicationAlertConfigFieldDescription constant value for field description of resource instana_application_alert_config
 	ApplicationAlertConfigFieldDescription = "description"
 	//ApplicationAlertConfigFieldEvaluationType constant value for field evaluation_type of resource instana_application_alert_config
@@ -249,38 +243,6 @@ var (
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedApplicationAlertConfigBoundaryScopes.ToStringSlice(), false),
 		Description:  "The boundary scope of the application alert config",
-	}
-	applicationAlertConfigSchemaCustomPayloadFields = &schema.Schema{
-		Type: schema.TypeSet,
-		Set: func(i interface{}) int {
-			return schema.HashString(i.(map[string]interface{})[ApplicationAlertConfigFieldCustomPayloadFieldsKey])
-		},
-		Optional: true,
-		MinItems: 0,
-		MaxItems: 20,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				/*
-					ApplicationAlertConfigFieldCustomPayloadFieldsType: {
-						Type:         schema.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(restapi.SupportedCustomPayloadTypes.ToStringSlice(), false),
-						Description:  "The type of the custom payload field",
-					},
-				*/
-				ApplicationAlertConfigFieldCustomPayloadFieldsKey: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The key of the custom payload field",
-				},
-				ApplicationAlertConfigFieldCustomPayloadFieldsValue: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The value of the custom payload field",
-				},
-			},
-		},
-		Description: "An optional list of custom payload fields (static key/value pairs added to the event)",
 	}
 	applicationAlertConfigSchemaDescription = &schema.Schema{
 		Type:         schema.TypeString,
@@ -512,22 +474,22 @@ var (
 )
 
 var applicationAlertConfigResourceSchema = map[string]*schema.Schema{
-	ApplicationAlertConfigFieldAlertChannelIDs:     applicationAlertConfigSchemaAlertChannelIDs,
-	ApplicationAlertConfigFieldApplications:        applicationAlertConfigSchemaApplications,
-	ApplicationAlertConfigFieldBoundaryScope:       applicationAlertConfigSchemaBoundaryScope,
-	ApplicationAlertConfigFieldCustomPayloadFields: applicationAlertConfigSchemaCustomPayloadFields,
-	ApplicationAlertConfigFieldDescription:         applicationAlertConfigSchemaDescription,
-	ApplicationAlertConfigFieldEvaluationType:      applicationAlertConfigSchemaEvaluationType,
-	ApplicationAlertConfigFieldGranularity:         applicationAlertConfigSchemaGranularity,
-	ApplicationAlertConfigFieldIncludeInternal:     applicationAlertConfigSchemaIncludeInternal,
-	ApplicationAlertConfigFieldIncludeSynthetic:    applicationAlertConfigSchemaIncludeSynthetic,
-	ApplicationAlertConfigFieldName:                applicationAlertConfigSchemaName,
-	ApplicationAlertConfigFieldRule:                applicationAlertConfigSchemaRule,
-	ApplicationAlertConfigFieldSeverity:            applicationAlertConfigSchemaSeverity,
-	ApplicationAlertConfigFieldTagFilter:           applicationAlertConfigSchemaTagFilter,
-	ResourceFieldThreshold:                         thresholdSchema,
-	ApplicationAlertConfigFieldTimeThreshold:       applicationAlertConfigSchemaTimeThreshold,
-	ApplicationAlertConfigFieldTriggering:          applicationAlertConfigSchemaTriggering,
+	ApplicationAlertConfigFieldAlertChannelIDs:  applicationAlertConfigSchemaAlertChannelIDs,
+	ApplicationAlertConfigFieldApplications:     applicationAlertConfigSchemaApplications,
+	ApplicationAlertConfigFieldBoundaryScope:    applicationAlertConfigSchemaBoundaryScope,
+	DefaultCustomPayloadFieldsName:              buildCustomPayloadFields(),
+	ApplicationAlertConfigFieldDescription:      applicationAlertConfigSchemaDescription,
+	ApplicationAlertConfigFieldEvaluationType:   applicationAlertConfigSchemaEvaluationType,
+	ApplicationAlertConfigFieldGranularity:      applicationAlertConfigSchemaGranularity,
+	ApplicationAlertConfigFieldIncludeInternal:  applicationAlertConfigSchemaIncludeInternal,
+	ApplicationAlertConfigFieldIncludeSynthetic: applicationAlertConfigSchemaIncludeSynthetic,
+	ApplicationAlertConfigFieldName:             applicationAlertConfigSchemaName,
+	ApplicationAlertConfigFieldRule:             applicationAlertConfigSchemaRule,
+	ApplicationAlertConfigFieldSeverity:         applicationAlertConfigSchemaSeverity,
+	ApplicationAlertConfigFieldTagFilter:        applicationAlertConfigSchemaTagFilter,
+	ResourceFieldThreshold:                      thresholdSchema,
+	ApplicationAlertConfigFieldTimeThreshold:    applicationAlertConfigSchemaTimeThreshold,
+	ApplicationAlertConfigFieldTriggering:       applicationAlertConfigSchemaTriggering,
 }
 
 // NewApplicationAlertConfigResourceHandle creates a new instance of the ResourceHandle for application alert configs
@@ -601,22 +563,22 @@ func (r *applicationAlertConfigResource) UpdateState(d *schema.ResourceData, con
 
 	d.SetId(config.ID)
 	return tfutils.UpdateState(d, map[string]interface{}{
-		ApplicationAlertConfigFieldAlertChannelIDs:     config.AlertChannelIDs,
-		ApplicationAlertConfigFieldApplications:        r.mapApplicationsToSchema(config),
-		ApplicationAlertConfigFieldBoundaryScope:       config.BoundaryScope,
-		ApplicationAlertConfigFieldCustomPayloadFields: r.mapCustomPayloadFieldsToSchema(config),
-		ApplicationAlertConfigFieldDescription:         config.Description,
-		ApplicationAlertConfigFieldEvaluationType:      config.EvaluationType,
-		ApplicationAlertConfigFieldGranularity:         config.Granularity,
-		ApplicationAlertConfigFieldIncludeInternal:     config.IncludeInternal,
-		ApplicationAlertConfigFieldIncludeSynthetic:    config.IncludeSynthetic,
-		ApplicationAlertConfigFieldName:                config.Name,
-		ApplicationAlertConfigFieldRule:                r.mapRuleToSchema(config),
-		ApplicationAlertConfigFieldSeverity:            severity,
-		ApplicationAlertConfigFieldTagFilter:           normalizedTagFilterString,
-		ResourceFieldThreshold:                         newThresholdMapper().toState(&config.Threshold),
-		ApplicationAlertConfigFieldTimeThreshold:       r.mapTimeThresholdToSchema(config),
-		ApplicationAlertConfigFieldTriggering:          config.Triggering,
+		ApplicationAlertConfigFieldAlertChannelIDs:  config.AlertChannelIDs,
+		ApplicationAlertConfigFieldApplications:     r.mapApplicationsToSchema(config),
+		ApplicationAlertConfigFieldBoundaryScope:    config.BoundaryScope,
+		DefaultCustomPayloadFieldsName:              mapCustomPayloadFieldsToSchema(config),
+		ApplicationAlertConfigFieldDescription:      config.Description,
+		ApplicationAlertConfigFieldEvaluationType:   config.EvaluationType,
+		ApplicationAlertConfigFieldGranularity:      config.Granularity,
+		ApplicationAlertConfigFieldIncludeInternal:  config.IncludeInternal,
+		ApplicationAlertConfigFieldIncludeSynthetic: config.IncludeSynthetic,
+		ApplicationAlertConfigFieldName:             config.Name,
+		ApplicationAlertConfigFieldRule:             r.mapRuleToSchema(config),
+		ApplicationAlertConfigFieldSeverity:         severity,
+		ApplicationAlertConfigFieldTagFilter:        normalizedTagFilterString,
+		ResourceFieldThreshold:                      newThresholdMapper().toState(&config.Threshold),
+		ApplicationAlertConfigFieldTimeThreshold:    r.mapTimeThresholdToSchema(config),
+		ApplicationAlertConfigFieldTriggering:       config.Triggering,
 	})
 }
 
@@ -667,27 +629,6 @@ func (r *applicationAlertConfigResource) mapEndpointToSchema(endpoint *restapi.I
 	result := make(map[string]interface{})
 	result[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID] = endpoint.EndpointID
 	result[ApplicationAlertConfigFieldApplicationsInclusive] = endpoint.Inclusive
-	return result
-}
-
-func (r *applicationAlertConfigResource) mapCustomPayloadFieldsToSchema(config *restapi.ApplicationAlertConfig) []map[string]string {
-	result := make([]map[string]string, len(config.CustomerPayloadFields))
-	for i, v := range config.CustomerPayloadFields {
-		field := make(map[string]string)
-		//field[ApplicationAlertConfigFieldCustomPayloadFieldsType] = string(v.Type)
-		field[ApplicationAlertConfigFieldCustomPayloadFieldsKey] = v.Key
-		if v.Type == restapi.DynamicCustomPayloadType {
-			value := v.Value.(restapi.DynamicCustomPayloadFieldValue)
-			key := ""
-			if value.Key != nil {
-				key = "=" + *value.Key
-			}
-			field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = value.TagName + key
-		} else {
-			field[ApplicationAlertConfigFieldCustomPayloadFieldsValue] = string(v.Value.(restapi.StaticStringCustomPayloadFieldValue))
-		}
-		result[i] = field
-	}
 	return result
 }
 
@@ -778,6 +719,11 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 		}
 	}
 
+	customPayloadFields, err := mapDefaultCustomPayloadFieldsFromSchema(d)
+	if err != nil {
+		return &restapi.ApplicationAlertConfig{}, err
+	}
+
 	threshold := newThresholdMapper().fromState(d)
 
 	return &restapi.ApplicationAlertConfig{
@@ -785,7 +731,7 @@ func (r *applicationAlertConfigResource) MapStateToDataObject(d *schema.Resource
 		AlertChannelIDs:       ReadStringSetParameterFromResource(d, ApplicationAlertConfigFieldAlertChannelIDs),
 		Applications:          r.mapApplicationsFromSchema(d),
 		BoundaryScope:         restapi.BoundaryScope(d.Get(ApplicationAlertConfigFieldBoundaryScope).(string)),
-		CustomerPayloadFields: r.mapCustomPayloadFieldsFromSchema(d),
+		CustomerPayloadFields: customPayloadFields,
 		Description:           d.Get(ApplicationAlertConfigFieldDescription).(string),
 		EvaluationType:        restapi.ApplicationAlertEvaluationType(d.Get(ApplicationAlertConfigFieldEvaluationType).(string)),
 		Granularity:           restapi.Granularity(d.Get(ApplicationAlertConfigFieldGranularity).(int)),
@@ -848,45 +794,6 @@ func (r *applicationAlertConfigResource) mapEndpointFromSchema(appData map[strin
 		EndpointID: appData[ApplicationAlertConfigFieldApplicationsServicesEndpointsEndpointID].(string),
 		Inclusive:  appData[ApplicationAlertConfigFieldApplicationsInclusive].(bool),
 	}
-}
-
-func (r *applicationAlertConfigResource) mapCustomPayloadFieldsFromSchema(d *schema.ResourceData) []restapi.CustomPayloadField[any] {
-	val := d.Get(ApplicationAlertConfigFieldCustomPayloadFields)
-	if val != nil {
-		fields := val.(*schema.Set).List()
-		result := make([]restapi.CustomPayloadField[any], len(fields))
-		for i, v := range fields {
-			field := v.(map[string]interface{})
-			customPayloadFieldType := restapi.StaticStringCustomPayloadType
-			key := field[ApplicationAlertConfigFieldCustomPayloadFieldsKey].(string)
-			value := field[ApplicationAlertConfigFieldCustomPayloadFieldsValue].(string)
-
-			/*
-				if customPayloadFieldType == restapi.DynamicCustomPayloadType {
-					parts := strings.Split(value, "=")
-					dynamicValue := restapi.DynamicCustomPayloadFieldValue{TagName: parts[0]}
-					if len(parts) == 2 {
-						valueKey := parts[1]
-						dynamicValue.Key = &valueKey
-					}
-					result[i] = restapi.CustomPayloadField[any]{
-						Type:  customPayloadFieldType,
-						Key:   key,
-						Value: dynamicValue,
-					}
-				} else {
-
-			*/
-			result[i] = restapi.CustomPayloadField[any]{
-				Type:  customPayloadFieldType,
-				Key:   key,
-				Value: restapi.StaticStringCustomPayloadFieldValue(value),
-			}
-			//}
-		}
-		return result
-	}
-	return []restapi.CustomPayloadField[any]{}
 }
 
 func (r *applicationAlertConfigResource) mapRuleFromSchema(d *schema.ResourceData) restapi.ApplicationAlertRule {
@@ -1016,23 +923,23 @@ func (r *applicationAlertConfigResource) stateUpgradeV0(_ context.Context, state
 func (r *applicationAlertConfigResource) schemaV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			ApplicationAlertConfigFieldAlertChannelIDs:     applicationAlertConfigSchemaAlertChannelIDs,
-			ApplicationAlertConfigFieldApplications:        applicationAlertConfigSchemaApplications,
-			ApplicationAlertConfigFieldBoundaryScope:       applicationAlertConfigSchemaBoundaryScope,
-			ApplicationAlertConfigFieldCustomPayloadFields: applicationAlertConfigSchemaCustomPayloadFields,
-			ApplicationAlertConfigFieldDescription:         applicationAlertConfigSchemaDescription,
-			ApplicationAlertConfigFieldEvaluationType:      applicationAlertConfigSchemaEvaluationType,
-			ApplicationAlertConfigFieldGranularity:         applicationAlertConfigSchemaGranularity,
-			ApplicationAlertConfigFieldIncludeInternal:     applicationAlertConfigSchemaIncludeInternal,
-			ApplicationAlertConfigFieldIncludeSynthetic:    applicationAlertConfigSchemaIncludeSynthetic,
-			ApplicationAlertConfigFieldName:                applicationAlertConfigSchemaName,
-			ApplicationAlertConfigFieldFullName:            applicationAlertConfigSchemaFullName,
-			ApplicationAlertConfigFieldRule:                applicationAlertConfigSchemaRule,
-			ApplicationAlertConfigFieldSeverity:            applicationAlertConfigSchemaSeverity,
-			ApplicationAlertConfigFieldTagFilter:           applicationAlertConfigSchemaTagFilter,
-			ResourceFieldThreshold:                         thresholdSchema,
-			ApplicationAlertConfigFieldTimeThreshold:       applicationAlertConfigSchemaTimeThreshold,
-			ApplicationAlertConfigFieldTriggering:          applicationAlertConfigSchemaTriggering,
+			ApplicationAlertConfigFieldAlertChannelIDs:  applicationAlertConfigSchemaAlertChannelIDs,
+			ApplicationAlertConfigFieldApplications:     applicationAlertConfigSchemaApplications,
+			ApplicationAlertConfigFieldBoundaryScope:    applicationAlertConfigSchemaBoundaryScope,
+			DefaultCustomPayloadFieldsName:              buildCustomPayloadFields(),
+			ApplicationAlertConfigFieldDescription:      applicationAlertConfigSchemaDescription,
+			ApplicationAlertConfigFieldEvaluationType:   applicationAlertConfigSchemaEvaluationType,
+			ApplicationAlertConfigFieldGranularity:      applicationAlertConfigSchemaGranularity,
+			ApplicationAlertConfigFieldIncludeInternal:  applicationAlertConfigSchemaIncludeInternal,
+			ApplicationAlertConfigFieldIncludeSynthetic: applicationAlertConfigSchemaIncludeSynthetic,
+			ApplicationAlertConfigFieldName:             applicationAlertConfigSchemaName,
+			ApplicationAlertConfigFieldFullName:         applicationAlertConfigSchemaFullName,
+			ApplicationAlertConfigFieldRule:             applicationAlertConfigSchemaRule,
+			ApplicationAlertConfigFieldSeverity:         applicationAlertConfigSchemaSeverity,
+			ApplicationAlertConfigFieldTagFilter:        applicationAlertConfigSchemaTagFilter,
+			ResourceFieldThreshold:                      thresholdSchema,
+			ApplicationAlertConfigFieldTimeThreshold:    applicationAlertConfigSchemaTimeThreshold,
+			ApplicationAlertConfigFieldTriggering:       applicationAlertConfigSchemaTriggering,
 		},
 	}
 }

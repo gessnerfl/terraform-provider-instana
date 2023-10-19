@@ -36,6 +36,7 @@ resource "instana_website_alert_config" "example" {
       time_window = 600000
     }
   }
+  
   custom_payload_field {
     key   = "test"
     value = "test123"
