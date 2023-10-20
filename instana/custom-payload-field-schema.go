@@ -11,10 +11,8 @@ const (
 	DefaultCustomPayloadFieldsName = "custom_payload_field"
 	//CustomPayloadFieldsFieldKey constant value for field key
 	CustomPayloadFieldsFieldKey = "key"
-	//CustomPayloadFieldsFieldStaticStringValue constant value for field static_string_value
-	CustomPayloadFieldsFieldStaticStringValue = "static_string_value"
-	//CustomPayloadFieldsFieldValue constant value for field value
-	CustomPayloadFieldsFieldValue = "value"
+	//CustomPayloadFieldsFieldStaticStringValue constant value for field value
+	CustomPayloadFieldsFieldStaticStringValue = "value"
 	//CustomPayloadFieldsFieldDynamicValue constant value for field dynamic_value
 	CustomPayloadFieldsFieldDynamicValue = "dynamic_value"
 	//CustomPayloadFieldsFieldDynamicKey constant value for field key of dynamic custom payload fields
@@ -40,20 +38,9 @@ func buildCustomPayloadFields() *schema.Schema {
 					Description: "The key of the custom payload field",
 				},
 				CustomPayloadFieldsFieldStaticStringValue: {
-					Type:        schema.TypeList,
-					MinItems:    0,
-					MaxItems:    1,
+					Type:        schema.TypeString,
 					Optional:    true,
 					Description: "The value of a static string custom payload field",
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							CustomPayloadFieldsFieldValue: {
-								Type:        schema.TypeString,
-								Required:    true,
-								Description: "The value of a static string custom payload field",
-							},
-						},
-					},
 				},
 				CustomPayloadFieldsFieldDynamicValue: {
 					Type:        schema.TypeList,
@@ -96,9 +83,7 @@ func mapCustomPayloadFieldsToSchema(input restapi.CustomPayloadFieldsAware) []ma
 			}}
 		} else {
 			value := v.Value.(restapi.StaticStringCustomPayloadFieldValue)
-			field[CustomPayloadFieldsFieldStaticStringValue] = []interface{}{map[string]interface{}{
-				CustomPayloadFieldsFieldValue: string(value),
-			}}
+			field[CustomPayloadFieldsFieldStaticStringValue] = string(value)
 		}
 		result[i] = field
 	}
@@ -117,8 +102,8 @@ func mapCustomPayloadFieldsFromSchema(d *schema.ResourceData, key string) ([]res
 		for i, v := range fields {
 			field := v.(map[string]interface{})
 			key := field[CustomPayloadFieldsFieldKey].(string)
-			dynamicValue, dynamicValueExists := extractFieldValue(field, CustomPayloadFieldsFieldDynamicValue)
-			staticStringValue, staticStringValueExists := extractFieldValue(field, CustomPayloadFieldsFieldStaticStringValue)
+			dynamicValue, dynamicValueExists := extractDynamicCustomPayloadFieldValue(field)
+			staticStringValue, staticStringValueExists := extractStaticStringCustomPayloadFieldValue(field)
 
 			if (dynamicValueExists && staticStringValueExists) || (!dynamicValueExists && !staticStringValueExists) {
 				return []restapi.CustomPayloadField[any]{}, fmt.Errorf("either a static string value or a dynamic value must be defined for custom field with key %s", key)
@@ -142,7 +127,7 @@ func mapCustomPayloadFieldsFromSchema(d *schema.ResourceData, key string) ([]res
 				result[i] = restapi.CustomPayloadField[any]{
 					Type:  restapi.StaticStringCustomPayloadType,
 					Key:   key,
-					Value: restapi.StaticStringCustomPayloadFieldValue(staticStringValue[CustomPayloadFieldsFieldValue].(string)),
+					Value: restapi.StaticStringCustomPayloadFieldValue(staticStringValue),
 				}
 			}
 		}
@@ -151,10 +136,18 @@ func mapCustomPayloadFieldsFromSchema(d *schema.ResourceData, key string) ([]res
 	return []restapi.CustomPayloadField[any]{}, nil
 }
 
-func extractFieldValue(field map[string]interface{}, valueKey string) (map[string]interface{}, bool) {
-	val, ok := field[valueKey]
+func extractDynamicCustomPayloadFieldValue(field map[string]interface{}) (map[string]interface{}, bool) {
+	val, ok := field[CustomPayloadFieldsFieldDynamicValue]
 	if ok && len(val.([]interface{})) > 0 {
 		return val.([]interface{})[0].(map[string]interface{}), true
 	}
 	return nil, false
+}
+
+func extractStaticStringCustomPayloadFieldValue(field map[string]interface{}) (string, bool) {
+	val, ok := field[CustomPayloadFieldsFieldStaticStringValue]
+	if ok && len(val.(string)) > 0 {
+		return val.(string), true
+	}
+	return "", false
 }

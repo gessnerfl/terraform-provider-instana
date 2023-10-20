@@ -651,7 +651,7 @@ func (r *websiteAlertConfigResource) websiteAlertConfigSchemaV0() *schema.Resour
 							Required:    true,
 							Description: "The key of the custom payload field",
 						},
-						CustomPayloadFieldsFieldValue: {
+						"value": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "The value of a static string custom payload field",

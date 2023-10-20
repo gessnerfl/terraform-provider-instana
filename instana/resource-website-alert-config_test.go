@@ -62,10 +62,8 @@ resource "instana_website_alert_config" "example" {
     }
 
 	custom_payload_field {
-		key   = "test1"
-		static_string_value {
-			value = "test123"
-		}
+		key    = "test1"
+		value  = "test123"
 	}
 
 	custom_payload_field {
@@ -214,7 +212,7 @@ func (test *websiteAlertConfigTest) createIntegrationTestStep(httpPort int, iter
 	thresholdStaticValue := fmt.Sprintf("%s.%d.%s.%d.%s", ResourceFieldThreshold, 0, ResourceFieldThresholdStatic, 0, ResourceFieldThresholdStaticValue)
 	timeThresholdViolationsInSequence := fmt.Sprintf("%s.%d.%s.%d.%s", WebsiteAlertConfigFieldTimeThreshold, 0, WebsiteAlertConfigFieldTimeThresholdViolationsInSequence, 0, WebsiteAlertConfigFieldTimeThresholdTimeWindow)
 	customPayloadFieldStaticKey := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
-	customPayloadFieldStaticValue := fmt.Sprintf("%s.1.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldStaticStringValue, CustomPayloadFieldsFieldValue)
+	customPayloadFieldStaticValue := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldStaticStringValue)
 	customPayloadFieldDynamicKey := fmt.Sprintf("%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
 	customPayloadFieldDynamicValueKey := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicKey)
 	customPayloadFieldDynamicValueTagName := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicTagName)
@@ -576,12 +574,12 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 			map[string]interface{}{
 				CustomPayloadFieldsFieldKey:               "static-key",
 				CustomPayloadFieldsFieldDynamicValue:      []interface{}{},
-				CustomPayloadFieldsFieldStaticStringValue: []interface{}{map[string]interface{}{CustomPayloadFieldsFieldValue: "static-value"}},
+				CustomPayloadFieldsFieldStaticStringValue: "static-value",
 			},
 			map[string]interface{}{
 				CustomPayloadFieldsFieldKey:               "dynamic-key",
 				CustomPayloadFieldsFieldDynamicValue:      []interface{}{map[string]interface{}{CustomPayloadFieldsFieldDynamicKey: dynamicValueKey, CustomPayloadFieldsFieldDynamicTagName: dynamicValueTagName}},
-				CustomPayloadFieldsFieldStaticStringValue: []interface{}{},
+				CustomPayloadFieldsFieldStaticStringValue: "",
 			},
 		}, resourceData.Get(DefaultCustomPayloadFieldsName).(*schema.Set).List())
 		require.Equal(t, ruleTestPair.expected, resourceData.Get(WebsiteAlertConfigFieldRule))
@@ -952,13 +950,12 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 		setValueOnResourceData(t, resourceData, DefaultCustomPayloadFieldsName, []interface{}{
 			map[string]interface{}{
 				CustomPayloadFieldsFieldKey:               "static-key",
-				CustomPayloadFieldsFieldStaticStringValue: []interface{}{map[string]interface{}{CustomPayloadFieldsFieldValue: "static-value"}},
+				CustomPayloadFieldsFieldStaticStringValue: "static-value",
 				CustomPayloadFieldsFieldDynamicValue:      []interface{}{},
 			},
 			map[string]interface{}{
-				CustomPayloadFieldsFieldKey:               "dynamic-key",
-				CustomPayloadFieldsFieldStaticStringValue: []interface{}{},
-				CustomPayloadFieldsFieldDynamicValue:      []interface{}{map[string]interface{}{CustomPayloadFieldsFieldDynamicKey: dynamicValueKey, CustomPayloadFieldsFieldDynamicTagName: dynamicValueTagName}},
+				CustomPayloadFieldsFieldKey:          "dynamic-key",
+				CustomPayloadFieldsFieldDynamicValue: []interface{}{map[string]interface{}{CustomPayloadFieldsFieldDynamicKey: dynamicValueKey, CustomPayloadFieldsFieldDynamicTagName: dynamicValueTagName}},
 			},
 		})
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldDescription, "website-alert-config-description")
