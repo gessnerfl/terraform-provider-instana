@@ -89,7 +89,7 @@ func (api *baseInstanaAPI) AlertingChannels() RestResource[*AlertingChannel] {
 
 // AlertingConfigurations implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingConfigurations() RestResource[*AlertingConfiguration] {
-	return NewCreatePUTUpdatePUTRestResource(AlertsResourcePath, NewDefaultJSONUnmarshaller(&AlertingConfiguration{}), api.client)
+	return NewCreatePUTUpdatePUTRestResource(AlertsResourcePath, NewCustomPayloadFieldsUnmarshallerAdapter(NewDefaultJSONUnmarshaller(&AlertingConfiguration{})), api.client)
 }
 
 func (api *baseInstanaAPI) SliConfigs() RestResource[*SliConfig] {
