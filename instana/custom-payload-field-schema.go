@@ -122,43 +122,51 @@ func mapDefaultCustomPayloadFieldsFromSchema(d *schema.ResourceData) ([]restapi.
 func mapCustomPayloadFieldsFromSchema(d *schema.ResourceData, key string) ([]restapi.CustomPayloadField[any], error) {
 	val, ok := d.GetOk(key)
 	if ok && val != nil {
-		fields := val.(*schema.Set).List()
-		result := make([]restapi.CustomPayloadField[any], len(fields))
-		for i, v := range fields {
-			field := v.(map[string]interface{})
-			key := field[CustomPayloadFieldsFieldKey].(string)
-			dynamicValue, dynamicValueExists := extractDynamicCustomPayloadFieldValue(field)
-			staticStringValue, staticStringValueExists := extractStaticStringCustomPayloadFieldValue(field)
-
-			if (dynamicValueExists && staticStringValueExists) || (!dynamicValueExists && !staticStringValueExists) {
-				return []restapi.CustomPayloadField[any]{}, fmt.Errorf("either a static string value or a dynamic value must be defined for custom field with key %s", key)
-			}
-
-			if dynamicValueExists {
-				var dynamicValueKey *string
-				if val, ok := dynamicValue[CustomPayloadFieldsFieldDynamicKey]; ok {
-					dynamicValueKeyString := val.(string)
-					dynamicValueKey = &dynamicValueKeyString
-				}
-				result[i] = restapi.CustomPayloadField[any]{
-					Type: restapi.DynamicCustomPayloadType,
-					Key:  key,
-					Value: restapi.DynamicCustomPayloadFieldValue{
-						TagName: dynamicValue[CustomPayloadFieldsFieldDynamicTagName].(string),
-						Key:     dynamicValueKey,
-					},
-				}
-			} else if staticStringValueExists {
-				result[i] = restapi.CustomPayloadField[any]{
-					Type:  restapi.StaticStringCustomPayloadType,
-					Key:   key,
-					Value: restapi.StaticStringCustomPayloadFieldValue(staticStringValue),
-				}
-			}
-		}
-		return result, nil
+		return mapCustomPayloadFieldsFromSchemaWhenKeyExists(val)
 	}
 	return []restapi.CustomPayloadField[any]{}, nil
+}
+
+func mapCustomPayloadFieldsFromSchemaWhenKeyExists(val interface{}) ([]restapi.CustomPayloadField[any], error) {
+	fields := val.(*schema.Set).List()
+	result := make([]restapi.CustomPayloadField[any], len(fields))
+	for i, v := range fields {
+		field := v.(map[string]interface{})
+		key := field[CustomPayloadFieldsFieldKey].(string)
+		dynamicValue, dynamicValueExists := extractDynamicCustomPayloadFieldValue(field)
+		staticStringValue, staticStringValueExists := extractStaticStringCustomPayloadFieldValue(field)
+
+		if (dynamicValueExists && staticStringValueExists) || (!dynamicValueExists && !staticStringValueExists) {
+			return []restapi.CustomPayloadField[any]{}, fmt.Errorf("either a static string value or a dynamic value must be defined for custom field with key %s", key)
+		}
+
+		if dynamicValueExists {
+			result[i] = mapDynamicCustomFieldValueFromSchema(key, dynamicValue)
+		} else if staticStringValueExists {
+			result[i] = restapi.CustomPayloadField[any]{
+				Type:  restapi.StaticStringCustomPayloadType,
+				Key:   key,
+				Value: restapi.StaticStringCustomPayloadFieldValue(staticStringValue),
+			}
+		}
+	}
+	return result, nil
+}
+
+func mapDynamicCustomFieldValueFromSchema(key string, dynamicValue map[string]interface{}) restapi.CustomPayloadField[any] {
+	var dynamicValueKey *string
+	if val, ok := dynamicValue[CustomPayloadFieldsFieldDynamicKey]; ok {
+		dynamicValueKeyString := val.(string)
+		dynamicValueKey = &dynamicValueKeyString
+	}
+	return restapi.CustomPayloadField[any]{
+		Type: restapi.DynamicCustomPayloadType,
+		Key:  key,
+		Value: restapi.DynamicCustomPayloadFieldValue{
+			TagName: dynamicValue[CustomPayloadFieldsFieldDynamicTagName].(string),
+			Key:     dynamicValueKey,
+		},
+	}
 }
 
 func extractDynamicCustomPayloadFieldValue(field map[string]interface{}) (map[string]interface{}, bool) {
