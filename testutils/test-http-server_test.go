@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/gessnerfl/terraform-provider-instana/testutils"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -33,7 +33,7 @@ func TestShouldStartNewInstanceWithDynamicPortAndStopTheServerOnClose(t *testing
 	assert.Equal(t, 200, resp.StatusCode)
 
 	defer resp.Body.Close()
-	responseBytes, err := ioutil.ReadAll(resp.Body)
+	responseBytes, err := io.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	responseString := string(responseBytes)
 
