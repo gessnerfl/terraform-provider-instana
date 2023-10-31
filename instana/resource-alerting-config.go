@@ -116,6 +116,7 @@ func NewAlertingConfigResourceHandle() ResourceHandle[*restapi.AlertingConfigura
 				AlertingConfigFieldEventFilterQuery:      AlertingConfigSchemaEventFilterQuery,
 				AlertingConfigFieldEventFilterEventTypes: AlertingConfigSchemaEventFilterEventTypes,
 				AlertingConfigFieldEventFilterRuleIDs:    AlertingConfigSchemaEventFilterRuleIDs,
+				DefaultCustomPayloadFieldsName:           buildStaticStringCustomPayloadFields(),
 			},
 			SchemaVersion: 2,
 		},
@@ -163,6 +164,7 @@ func (r *alertingConfigResource) UpdateState(d *schema.ResourceData, config *res
 		AlertingConfigFieldEventFilterQuery:      config.EventFilteringConfiguration.Query,
 		AlertingConfigFieldEventFilterEventTypes: r.convertEventTypesToHarmonizedStringRepresentation(config.EventFilteringConfiguration.EventTypes),
 		AlertingConfigFieldEventFilterRuleIDs:    config.EventFilteringConfiguration.RuleIDs,
+		DefaultCustomPayloadFieldsName:           mapCustomPayloadFieldsToSchema(config),
 	})
 }
 
@@ -177,6 +179,10 @@ func (r *alertingConfigResource) convertEventTypesToHarmonizedStringRepresentati
 
 func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData) (*restapi.AlertingConfiguration, error) {
 	query := GetStringPointerFromResourceData(d, AlertingConfigFieldEventFilterQuery)
+	customPayloadFields, err := mapDefaultCustomPayloadFieldsFromSchema(d)
+	if err != nil {
+		return &restapi.AlertingConfiguration{}, err
+	}
 
 	return &restapi.AlertingConfiguration{
 		ID:             d.Id(),
@@ -187,6 +193,7 @@ func (r *alertingConfigResource) MapStateToDataObject(d *schema.ResourceData) (*
 			RuleIDs:    ReadStringSetParameterFromResource(d, AlertingConfigFieldEventFilterRuleIDs),
 			EventTypes: r.readEventTypesFromResourceData(d),
 		},
+		CustomerPayloadFields: customPayloadFields,
 	}, nil
 }
 

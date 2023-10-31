@@ -16,14 +16,14 @@ func (types CustomPayloadTypes) ToStringSlice() []string {
 }
 
 const (
-	//StaticCustomPayloadType constant value for the static CustomPayloadType
-	StaticCustomPayloadType = CustomPayloadType("staticString")
+	//StaticStringCustomPayloadType constant value for the static CustomPayloadType
+	StaticStringCustomPayloadType = CustomPayloadType("staticString")
 	//DynamicCustomPayloadType constant value for the dynamic CustomPayloadType
 	DynamicCustomPayloadType = CustomPayloadType("dynamic")
 )
 
 // SupportedCustomPayloadTypes list of all supported CustomPayloadType
-var SupportedCustomPayloadTypes = CustomPayloadTypes{StaticCustomPayloadType, DynamicCustomPayloadType}
+var SupportedCustomPayloadTypes = CustomPayloadTypes{StaticStringCustomPayloadType, DynamicCustomPayloadType}
 
 // StaticStringCustomPayloadFieldValue type for static string values of custom payload field
 type StaticStringCustomPayloadFieldValue string

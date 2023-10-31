@@ -74,12 +74,12 @@ func (api *baseInstanaAPI) ApplicationConfigs() RestResource[*ApplicationConfig]
 
 // ApplicationAlertConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) ApplicationAlertConfigs() RestResource[*ApplicationAlertConfig] {
-	return NewCreatePOSTUpdatePOSTRestResource(ApplicationAlertConfigsResourcePath, NewApplicationAlertConfigUnmarshaller(), api.client)
+	return NewCreatePOSTUpdatePOSTRestResource(ApplicationAlertConfigsResourcePath, NewCustomPayloadFieldsUnmarshallerAdapter(NewDefaultJSONUnmarshaller(&ApplicationAlertConfig{})), api.client)
 }
 
 // GlobalApplicationAlertConfigs implementation of InstanaAPI interface
 func (api *baseInstanaAPI) GlobalApplicationAlertConfigs() RestResource[*ApplicationAlertConfig] {
-	return NewCreatePOSTUpdatePOSTRestResource(GlobalApplicationAlertConfigsResourcePath, NewApplicationAlertConfigUnmarshaller(), api.client)
+	return NewCreatePOSTUpdatePOSTRestResource(GlobalApplicationAlertConfigsResourcePath, NewCustomPayloadFieldsUnmarshallerAdapter(NewDefaultJSONUnmarshaller(&ApplicationAlertConfig{})), api.client)
 }
 
 // AlertingChannels implementation of InstanaAPI interface
@@ -89,7 +89,7 @@ func (api *baseInstanaAPI) AlertingChannels() RestResource[*AlertingChannel] {
 
 // AlertingConfigurations implementation of InstanaAPI interface
 func (api *baseInstanaAPI) AlertingConfigurations() RestResource[*AlertingConfiguration] {
-	return NewCreatePUTUpdatePUTRestResource(AlertsResourcePath, NewDefaultJSONUnmarshaller(&AlertingConfiguration{}), api.client)
+	return NewCreatePUTUpdatePUTRestResource(AlertsResourcePath, NewCustomPayloadFieldsUnmarshallerAdapter(NewDefaultJSONUnmarshaller(&AlertingConfiguration{})), api.client)
 }
 
 func (api *baseInstanaAPI) SliConfigs() RestResource[*SliConfig] {
@@ -101,7 +101,7 @@ func (api *baseInstanaAPI) WebsiteMonitoringConfig() RestResource[*WebsiteMonito
 }
 
 func (api *baseInstanaAPI) WebsiteAlertConfig() RestResource[*WebsiteAlertConfig] {
-	return NewCreatePOSTUpdatePOSTRestResource(WebsiteAlertConfigResourcePath, NewDefaultJSONUnmarshaller(&WebsiteAlertConfig{}), api.client)
+	return NewCreatePOSTUpdatePOSTRestResource(WebsiteAlertConfigResourcePath, NewCustomPayloadFieldsUnmarshallerAdapter(NewDefaultJSONUnmarshaller(&WebsiteAlertConfig{})), api.client)
 }
 
 func (api *baseInstanaAPI) Groups() RestResource[*Group] {

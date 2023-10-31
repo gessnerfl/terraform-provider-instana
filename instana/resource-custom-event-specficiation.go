@@ -468,7 +468,7 @@ func (r *customEventSpecificationResource) mapHostAvailabilityRuleToState(rule r
 		if err != nil {
 			return nil, err
 		}
-		ruleData[ApplicationConfigFieldTagFilter] = normalizedTagFilterString
+		ruleData[CustomEventSpecificationHostAvailabilityRuleFieldTagFilter] = normalizedTagFilterString
 	}
 
 	return map[string]interface{}{CustomEventSpecificationFieldHostAvailabilityRule: []interface{}{ruleData}}, nil

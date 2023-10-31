@@ -62,8 +62,16 @@ resource "instana_website_alert_config" "example" {
     }
 
 	custom_payload_field {
-		key   = "test"
-		value = "test123"
+		key    = "test1"
+		value  = "test123"
+	}
+
+	custom_payload_field {
+		key = "test2"
+		dynamic_value {
+			key      = "dynamic-value-key"
+			tag_name = "dynamic-value-tag-name"
+		}
 	}
 }
 `
@@ -108,8 +116,16 @@ var websiteAlertConfigServerResponseTemplate = `
     "customPayloadFields": [
 		{
 			"type": "staticString",
-			"key": "test",
+			"key": "test1",
 			"value": "test123"
+      	},
+		{
+			"type": "dynamic",
+			"key": "test2",
+			"value": {
+				"key": "dynamic-value-key",
+				"tagName": "dynamic-value-tag-name"
+			}
       	}
 	],
     "created": 1647679325301,
@@ -132,6 +148,7 @@ func (test *websiteAlertConfigTest) run(t *testing.T) {
 	test.createTestCasesForMappingOfTerraformResourceStateToModel(t)
 	t.Run(fmt.Sprintf("%s should fail to map state to model when severity is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCaseShouldFailToMapTerraformResourceStateToModelWhenSeverityIsNotValid())
 	t.Run(fmt.Sprintf("%s should fail to map state to model when tag filter expression is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCaseShouldFailToMapTerraformResourceStateToModelWhenTagFilterIsNotValid())
+	t.Run(fmt.Sprintf("%s should return errr when converting state to data model and custom field is not valid", ResourceInstanaWebsiteAlertConfig), test.shouldReturnErrorWhenConvertingStateToDataModelAndCustomFieldIsNotValid)
 }
 
 func (test *websiteAlertConfigTest) createIntegrationTest() func(t *testing.T) {
@@ -195,8 +212,11 @@ func (test *websiteAlertConfigTest) createIntegrationTestStep(httpPort int, iter
 	thresholdStaticOperator := fmt.Sprintf("%s.%d.%s.%d.%s", ResourceFieldThreshold, 0, ResourceFieldThresholdStatic, 0, ResourceFieldThresholdOperator)
 	thresholdStaticValue := fmt.Sprintf("%s.%d.%s.%d.%s", ResourceFieldThreshold, 0, ResourceFieldThresholdStatic, 0, ResourceFieldThresholdStaticValue)
 	timeThresholdViolationsInSequence := fmt.Sprintf("%s.%d.%s.%d.%s", WebsiteAlertConfigFieldTimeThreshold, 0, WebsiteAlertConfigFieldTimeThresholdViolationsInSequence, 0, WebsiteAlertConfigFieldTimeThresholdTimeWindow)
-	customPayloadFieldStaticKey := fmt.Sprintf("%s.%d.%s", WebsiteAlertConfigFieldCustomPayloadFields, 0, WebsiteAlertConfigFieldCustomPayloadFieldsKey)
-	customPayloadFieldStaticValue := fmt.Sprintf("%s.%d.%s", WebsiteAlertConfigFieldCustomPayloadFields, 0, WebsiteAlertConfigFieldCustomPayloadFieldsValue)
+	customPayloadFieldStaticKey := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
+	customPayloadFieldStaticValue := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldStaticStringValue)
+	customPayloadFieldDynamicKey := fmt.Sprintf("%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
+	customPayloadFieldDynamicValueKey := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicKey)
+	customPayloadFieldDynamicValueTagName := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicTagName)
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(websiteAlertConfigTerraformTemplate, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
@@ -215,8 +235,11 @@ func (test *websiteAlertConfigTest) createIntegrationTestStep(httpPort int, iter
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, thresholdStaticOperator, ">="),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, thresholdStaticValue, "5"),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, timeThresholdViolationsInSequence, "600000"),
-			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, customPayloadFieldStaticKey, "test"),
+			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, customPayloadFieldStaticKey, "test1"),
 			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, customPayloadFieldStaticValue, "test123"),
+			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, customPayloadFieldDynamicKey, "test2"),
+			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, customPayloadFieldDynamicValueKey, "dynamic-value-key"),
+			resource.TestCheckResourceAttr(test.terraformResourceInstanceName, customPayloadFieldDynamicValueTagName, "dynamic-value-tag-name"),
 		),
 	}
 }
@@ -507,17 +530,24 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 		fullName := "website-alert-config-name"
 		websiteAlertConfigID := "website-alert-config-id"
 		websiteID := "website-id"
+		dynamicValueKey := "dynamic-value-key"
+		dynamicValueTagName := "dynamic-value-tag-name"
 		websiteConfig := restapi.WebsiteAlertConfig{
 			ID:              websiteAlertConfigID,
 			AlertChannelIDs: []string{"channel-1", "channel-2"},
 			WebsiteID:       websiteID,
 			Description:     "website-alert-config-description",
 			Granularity:     restapi.Granularity600000,
-			CustomerPayloadFields: []restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue]{
+			CustomerPayloadFields: []restapi.CustomPayloadField[any]{
 				{
-					Type:  restapi.StaticCustomPayloadType,
+					Type:  restapi.StaticStringCustomPayloadType,
 					Key:   "static-key",
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
+				},
+				{
+					Type:  restapi.DynamicCustomPayloadType,
+					Key:   "dynamic-key",
+					Value: restapi.DynamicCustomPayloadFieldValue{Key: &dynamicValueKey, TagName: dynamicValueTagName},
 				},
 			},
 			Name:                fullName,
@@ -542,8 +572,17 @@ func (test *websiteAlertConfigTest) createTestShouldUpdateTerraformResourceState
 		require.Equal(t, "website-alert-config-description", resourceData.Get(WebsiteAlertConfigFieldDescription))
 		require.Equal(t, "website-alert-config-name", resourceData.Get(WebsiteAlertConfigFieldName))
 		require.Equal(t, []interface{}{
-			map[string]interface{}{WebsiteAlertConfigFieldCustomPayloadFieldsKey: "static-key", WebsiteAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
-		}, resourceData.Get(WebsiteAlertConfigFieldCustomPayloadFields).(*schema.Set).List())
+			map[string]interface{}{
+				CustomPayloadFieldsFieldKey:               "static-key",
+				CustomPayloadFieldsFieldDynamicValue:      []interface{}{},
+				CustomPayloadFieldsFieldStaticStringValue: "static-value",
+			},
+			map[string]interface{}{
+				CustomPayloadFieldsFieldKey:               "dynamic-key",
+				CustomPayloadFieldsFieldDynamicValue:      []interface{}{map[string]interface{}{CustomPayloadFieldsFieldDynamicKey: dynamicValueKey, CustomPayloadFieldsFieldDynamicTagName: dynamicValueTagName}},
+				CustomPayloadFieldsFieldStaticStringValue: "",
+			},
+		}, resourceData.Get(DefaultCustomPayloadFieldsName).(*schema.Set).List())
 		require.Equal(t, ruleTestPair.expected, resourceData.Get(WebsiteAlertConfigFieldRule))
 		require.Equal(t, restapi.SeverityCritical.GetTerraformRepresentation(), resourceData.Get(WebsiteAlertConfigFieldSeverity))
 		require.Equal(t, "service.name@src EQUALS 'test'", resourceData.Get(WebsiteAlertConfigFieldTagFilter))
@@ -875,17 +914,24 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 	return func(t *testing.T) {
 		websiteAlertConfigID := "website-alert-config-id"
 		websiteID := "website-id"
+		dynamicValueKey := "dynamic-value-key"
+		dynamicValueTagName := "dynamic-value-tag-name"
 		expectedWebsiteConfig := restapi.WebsiteAlertConfig{
 			ID:              websiteAlertConfigID,
 			AlertChannelIDs: []string{"channel-2", "channel-1"},
 			WebsiteID:       websiteID,
 			Description:     "website-alert-config-description",
 			Granularity:     restapi.Granularity600000,
-			CustomerPayloadFields: []restapi.CustomPayloadField[restapi.StaticStringCustomPayloadFieldValue]{
+			CustomerPayloadFields: []restapi.CustomPayloadField[any]{
 				{
-					Type:  restapi.StaticCustomPayloadType,
+					Type:  restapi.StaticStringCustomPayloadType,
 					Key:   "static-key",
 					Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
+				},
+				{
+					Type:  restapi.DynamicCustomPayloadType,
+					Key:   "dynamic-key",
+					Value: restapi.DynamicCustomPayloadFieldValue{Key: &dynamicValueKey, TagName: dynamicValueTagName},
 				},
 			},
 			Name:                "website-alert-config-name",
@@ -902,8 +948,16 @@ func (test *websiteAlertConfigTest) createTestShouldMapTerraformResourceStateToM
 		resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldAlertChannelIDs, []interface{}{"channel-2", "channel-1"})
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldWebsiteID, websiteID)
-		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldCustomPayloadFields, []interface{}{
-			map[string]interface{}{WebsiteAlertConfigFieldCustomPayloadFieldsKey: "static-key", WebsiteAlertConfigFieldCustomPayloadFieldsValue: "static-value"},
+		setValueOnResourceData(t, resourceData, DefaultCustomPayloadFieldsName, []interface{}{
+			map[string]interface{}{
+				CustomPayloadFieldsFieldKey:               "static-key",
+				CustomPayloadFieldsFieldStaticStringValue: "static-value",
+				CustomPayloadFieldsFieldDynamicValue:      []interface{}{},
+			},
+			map[string]interface{}{
+				CustomPayloadFieldsFieldKey:          "dynamic-key",
+				CustomPayloadFieldsFieldDynamicValue: []interface{}{map[string]interface{}{CustomPayloadFieldsFieldDynamicKey: dynamicValueKey, CustomPayloadFieldsFieldDynamicTagName: dynamicValueTagName}},
+			},
 		})
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldDescription, "website-alert-config-description")
 		setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldGranularity, restapi.Granularity600000)
@@ -952,4 +1006,30 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unexpected token")
 	}
+}
+
+func (test *websiteAlertConfigTest) shouldReturnErrorWhenConvertingStateToDataModelAndCustomFieldIsNotValid(t *testing.T) {
+	testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
+	sut := test.resourceHandle
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+	setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldName, "website-alert-config-name")
+	setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
+	setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
+	setValueOnResourceData(t, resourceData, DefaultCustomPayloadFieldsName, []interface{}{
+		map[string]interface{}{
+			CustomPayloadFieldsFieldKey:               "dynamic-key",
+			CustomPayloadFieldsFieldStaticStringValue: "invalid",
+			CustomPayloadFieldsFieldDynamicValue: []interface{}{
+				map[string]interface{}{
+					CustomPayloadFieldsFieldDynamicKey:     "dynamic-value-key",
+					CustomPayloadFieldsFieldDynamicTagName: "dynamic-value-tag-name",
+				},
+			},
+		},
+	})
+
+	_, err := sut.MapStateToDataObject(resourceData)
+
+	require.Error(t, err)
+	require.ErrorContains(t, err, "either a static string value or a dynamic value must")
 }
