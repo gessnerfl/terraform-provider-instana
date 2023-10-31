@@ -38,6 +38,11 @@ resource "instana_alerting_config" "example" {
   integration_ids          = [ "alerting-channel-id1", "alerting-channel-id2" ]
   event_filter_query       = "query"
   event_filter_event_types = [ "incident", "critical" ]
+
+  custom_payload_field {
+    key   = "test"
+    value = "test123"
+  }
 }
 ``` 
 
@@ -49,6 +54,12 @@ resource "instana_alerting_config" "example" {
 * `event_filter_rule_ids` - Optional - list of rule IDs which are included by the alerting config.
 * `event_filter_event_types` - Optional - list of event types which are included by the alerting config.
 Allowed values: `incident`, `critical`, `warning`, `change`, `online`, `offline`, `agent_monitoring_issue`, `none`
+* `custom_payload_filed` - Optional - An optional list of custom payload fields (static key/value pairs added to the event).  [Details](#custom-payload-field-argument-reference)
+
+### Custom Payload Field Argument Reference
+
+* `key` - Required - The key of the custom payload field
+* `value` - Required - The value of the custom payload field
 
 ## Import
 

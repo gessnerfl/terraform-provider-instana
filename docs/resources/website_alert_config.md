@@ -41,6 +41,14 @@ resource "instana_website_alert_config" "example" {
     key   = "test"
     value = "test123"
   }
+	
+  custom_payload_filed {
+    key = "stage"
+    dynamic_value {
+      key = "stage"
+      tag_name = "aws.tag"
+    }
+  }
 }
 ```
 
@@ -54,7 +62,7 @@ resource "instana_website_alert_config" "example" {
 * `granularity` - Optional - default `600000` - The evaluation granularity used for detection of violations of the defined threshold. In other words, it defines the size of the tumbling window used. Allowed values: `300000`, `600000`, `900000`, `1200000`, `800000`
 * `tag_filter` - Optional - The tag filter of the application alert config. [Details](#tag-filter-argument-reference)
 * `rule` - Required - Indicates the type of rule this alert configuration is about. [Details](#rule-argument-reference)
-* `custom_payload_filed` - Optional - An optional list of custom payload fields (static key/value pairs added to the event).  [Details](#custom-payload-field-argument-reference)
+* `custom_payload_filed` - Optional - An optional list of custom payload fields.  [Details](#custom-payload-field-argument-reference)
 * `threshold` - Required - Indicates the type of threshold this alert rule is evaluated on.  [Details](#threshold-argument-reference)
 * `time_threshold` - Required - Indicates the type of violation of the defined threshold.  [Details](#time-threshold-argument-reference)
 * `website_id` - Required - Unique ID of the website
@@ -123,7 +131,12 @@ Exactly one of the elements below must be configured
 ### Custom Payload Field Argument Reference
 
 * `key` - Required - The key of the custom payload field
-* `value` - Required - The value of the custom payload field
+* `value` - Optional - The static string value of the custom payload field. Either `value` or `dynamic_value` must be defined.
+* `dynamic_value` - Optional - The dynamic value of the custom payload field [Details](#dynamic-custom-payload-field-value). Either `value` or `dynamic_value` must be defined.
+
+#### Dynamic Custom Payload Field Value
+* `key` - Optional - The key of the tag which should be added to the payload
+* `tag_name` - Required - The name of the tag which should be added to the payload
 
 ### Threshold Argument Reference
 

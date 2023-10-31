@@ -52,6 +52,14 @@ resource "instana_application_alert_config" "example" {
 		key   = "test"
 		value = "test123"
 	}
+	
+	custom_payload_filed {
+	    key = "stage"
+	    dynamic_value {
+            key = "stage"
+            tag_name = "aws.tag"
+	    }
+	}
 }
 ```
 
@@ -167,7 +175,12 @@ Exactly one of the elements below must be configured
 ### Custom Payload Field Argument Reference
 
 * `key` - Required - The key of the custom payload field
-* `value` - Required - The value of the custom payload field
+* `value` - Optional - The static string value of the custom payload field. Either `value` or `dynamic_value` must be defined.
+* `dynamic_value` - Optional - The dynamic value of the custom payload field [Details](#dynamic-custom-payload-field-value). Either `value` or `dynamic_value` must be defined.
+
+#### Dynamic Custom Payload Field Value
+* `key` - Optional - The key of the tag which should be added to the payload
+* `tag_name` - Required - The name of the tag which should be added to the payload
 
 ### Threshold Argument Reference
 
