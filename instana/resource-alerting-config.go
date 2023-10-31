@@ -116,7 +116,7 @@ func NewAlertingConfigResourceHandle() ResourceHandle[*restapi.AlertingConfigura
 				AlertingConfigFieldEventFilterQuery:      AlertingConfigSchemaEventFilterQuery,
 				AlertingConfigFieldEventFilterEventTypes: AlertingConfigSchemaEventFilterEventTypes,
 				AlertingConfigFieldEventFilterRuleIDs:    AlertingConfigSchemaEventFilterRuleIDs,
-				DefaultCustomPayloadFieldsName:           buildCustomPayloadFields(),
+				DefaultCustomPayloadFieldsName:           buildStaticStringCustomPayloadFields(),
 			},
 			SchemaVersion: 2,
 		},

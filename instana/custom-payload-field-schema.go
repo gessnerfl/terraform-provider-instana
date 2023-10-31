@@ -21,6 +21,59 @@ const (
 	CustomPayloadFieldsFieldDynamicTagName = "tag_name"
 )
 
+var (
+	customPayloadFieldSchemaKey = &schema.Schema{
+		Type:        schema.TypeString,
+		Required:    true,
+		Description: "The key of the custom payload field",
+	}
+	customPayloadFieldSchemaStaticStringValue = &schema.Schema{
+		Type:        schema.TypeString,
+		Optional:    true,
+		Description: "The value of a static string custom payload field",
+	}
+	customPayloadFieldSchemaDynamicValue = &schema.Schema{
+		Type:        schema.TypeList,
+		MinItems:    0,
+		MaxItems:    1,
+		Optional:    true,
+		Description: "The value of a dynamic custom payload field",
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				CustomPayloadFieldsFieldDynamicKey: {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "The key of the dynamic custom payload field",
+				},
+				CustomPayloadFieldsFieldDynamicTagName: {
+					Type:        schema.TypeString,
+					Required:    true,
+					Description: "The name of the tag of the dynamic custom payload field",
+				},
+			},
+		},
+	}
+)
+
+func buildStaticStringCustomPayloadFields() *schema.Schema {
+	return &schema.Schema{
+		Type: schema.TypeSet,
+		Set: func(i interface{}) int {
+			return schema.HashString(i.(map[string]interface{})[CustomPayloadFieldsFieldKey])
+		},
+		Optional: true,
+		MinItems: 0,
+		MaxItems: 20,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				CustomPayloadFieldsFieldKey:               customPayloadFieldSchemaKey,
+				CustomPayloadFieldsFieldStaticStringValue: customPayloadFieldSchemaStaticStringValue,
+			},
+		},
+		Description: "A list of custom payload fields",
+	}
+}
+
 func buildCustomPayloadFields() *schema.Schema {
 	return &schema.Schema{
 		Type: schema.TypeSet,
@@ -32,37 +85,9 @@ func buildCustomPayloadFields() *schema.Schema {
 		MaxItems: 20,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				CustomPayloadFieldsFieldKey: {
-					Type:        schema.TypeString,
-					Required:    true,
-					Description: "The key of the custom payload field",
-				},
-				CustomPayloadFieldsFieldStaticStringValue: {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "The value of a static string custom payload field",
-				},
-				CustomPayloadFieldsFieldDynamicValue: {
-					Type:        schema.TypeList,
-					MinItems:    0,
-					MaxItems:    1,
-					Optional:    true,
-					Description: "The value of a dynamic custom payload field",
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							CustomPayloadFieldsFieldDynamicKey: {
-								Type:        schema.TypeString,
-								Optional:    true,
-								Description: "The key of the dynamic custom payload field",
-							},
-							CustomPayloadFieldsFieldDynamicTagName: {
-								Type:        schema.TypeString,
-								Required:    true,
-								Description: "The name of the tag of the dynamic custom payload field",
-							},
-						},
-					},
-				},
+				CustomPayloadFieldsFieldKey:               customPayloadFieldSchemaKey,
+				CustomPayloadFieldsFieldStaticStringValue: customPayloadFieldSchemaStaticStringValue,
+				CustomPayloadFieldsFieldDynamicValue:      customPayloadFieldSchemaDynamicValue,
 			},
 		},
 		Description: "A list of custom payload fields",

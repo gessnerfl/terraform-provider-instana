@@ -30,7 +30,6 @@ func TestAlertingConfig(t *testing.T) {
 	t.Run("should update resource state with event types", unitTest.shouldUpdateResourceStateWithEventTypes)
 	t.Run("should convert state to data model with rule ids", unitTest.shouldConvertStateToDataModelWithRuleIds)
 	t.Run("should convert state to data model with event types", unitTest.shouldConvertStateToDataModelWithEventTypes)
-	t.Run("should return error when converting state to data model and custom field is not valid", unitTest.shouldReturnErrorWhenConvertingStateToDataModelAndCustomFieldIsNotValid)
 }
 
 const alertingConfigResourceDefinition = "instana_alerting_config.example"
@@ -46,14 +45,6 @@ resource "instana_alerting_config" "example" {
 	custom_payload_field {
 		key    = "static-key"
 		value  = "static-value"
-	}
-	
-	custom_payload_field {
-		key = "dynamic-key"
-		dynamic_value {
-			key      = "dynamic-value-key"
-			tag_name = "dynamic-value-tag-name"
-		}
 	}
 }
 `
@@ -71,14 +62,6 @@ resource "instana_alerting_config" "example" {
 			"type": "staticString",
 			"key": "static-key",
 			"value": "static-value"
-      	},
-		{
-			"type": "dynamic",
-			"key": "dynamic-key",
-			"value": {
-				"key": "dynamic-value-key",
-				"tagName": "dynamic-value-tag-name"
-			}
       	}
 	]
 }
@@ -108,14 +91,6 @@ resource "instana_alerting_config" "example" {
 		key    = "static-key"
 		value  = "static-value"
 	}
-	
-	custom_payload_field {
-		key = "dynamic-key"
-		dynamic_value {
-			key      = "dynamic-value-key"
-			tag_name = "dynamic-value-tag-name"
-		}
-	}
 }
 `
 	serverResponseTemplate := `
@@ -132,14 +107,6 @@ resource "instana_alerting_config" "example" {
 			"type": "staticString",
 			"key": "static-key",
 			"value": "static-value"
-      	},
-		{
-			"type": "dynamic",
-			"key": "dynamic-key",
-			"value": {
-				"key": "dynamic-value-key",
-				"tagName": "dynamic-value-tag-name"
-			}
       	}
 	]
 }
@@ -184,11 +151,8 @@ func (it *alertingConfigResourceIntegrationTest) testCRUD() func(t *testing.T) {
 func (it *alertingConfigResourceIntegrationTest) createTestCheckFunction(httpPort int, iteration int) resource.TestStep {
 	integrationId1 := "integration_id1"
 	integrationId2 := "integration_id2"
-	customPayloadFieldStaticKey := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
-	customPayloadFieldStaticValue := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldStaticStringValue)
-	customPayloadFieldDynamicKey := fmt.Sprintf("%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
-	customPayloadFieldDynamicValueKey := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicKey)
-	customPayloadFieldDynamicValueTagName := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicTagName)
+	customPayloadFieldStaticKey := fmt.Sprintf("%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
+	customPayloadFieldStaticValue := fmt.Sprintf("%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldStaticStringValue)
 	defaultChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(alertingConfigResourceDefinition, AlertingConfigFieldAlertName, fmt.Sprintf("name %d", iteration)),
 		resource.TestCheckResourceAttr(alertingConfigResourceDefinition, fmt.Sprintf("%s.%d", AlertingConfigFieldIntegrationIds, 0), integrationId1),
@@ -196,9 +160,6 @@ func (it *alertingConfigResourceIntegrationTest) createTestCheckFunction(httpPor
 		resource.TestCheckResourceAttr(alertingConfigResourceDefinition, AlertingConfigFieldEventFilterQuery, "query"),
 		resource.TestCheckResourceAttr(alertingConfigResourceDefinition, customPayloadFieldStaticKey, "static-key"),
 		resource.TestCheckResourceAttr(alertingConfigResourceDefinition, customPayloadFieldStaticValue, "static-value"),
-		resource.TestCheckResourceAttr(alertingConfigResourceDefinition, customPayloadFieldDynamicKey, "dynamic-key"),
-		resource.TestCheckResourceAttr(alertingConfigResourceDefinition, customPayloadFieldDynamicValueKey, "dynamic-value-key"),
-		resource.TestCheckResourceAttr(alertingConfigResourceDefinition, customPayloadFieldDynamicValueTagName, "dynamic-value-tag-name"),
 	}
 	checks := append(defaultChecks, it.useCaseSpecificChecks...)
 	return resource.TestStep{
@@ -312,7 +273,6 @@ func (ut *alertingConfigResourceUnitTest) shouldUpdateResourceStateWithRuleIds(t
 
 	query := alertingConfigQuery
 
-	dynamicPayloadFieldValueKey := "dynamic-value-key"
 	data := restapi.AlertingConfiguration{
 		ID:             alertingConfigID,
 		AlertName:      alertingConfigName,
@@ -324,16 +284,13 @@ func (ut *alertingConfigResourceUnitTest) shouldUpdateResourceStateWithRuleIds(t
 		CustomerPayloadFields: []restapi.CustomPayloadField[any]{
 			{
 				Type:  restapi.StaticStringCustomPayloadType,
-				Key:   "static-key",
-				Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
+				Key:   "static-key-1",
+				Value: restapi.StaticStringCustomPayloadFieldValue("static-value-1"),
 			},
 			{
-				Type: restapi.DynamicCustomPayloadType,
-				Key:  "dynamic-key",
-				Value: restapi.DynamicCustomPayloadFieldValue{
-					Key:     &dynamicPayloadFieldValueKey,
-					TagName: "dynamic-value-tag-name",
-				},
+				Type:  restapi.StaticStringCustomPayloadType,
+				Key:   "static-key-2",
+				Value: restapi.StaticStringCustomPayloadFieldValue("static-value-2"),
 			},
 		},
 	}
@@ -358,7 +315,6 @@ func (ut *alertingConfigResourceUnitTest) shouldUpdateResourceStateWithEventType
 
 	query := alertingConfigQuery
 
-	dynamicPayloadFieldValueKey := "dynamic-value-key"
 	data := restapi.AlertingConfiguration{
 		ID:             alertingConfigID,
 		AlertName:      alertingConfigName,
@@ -370,16 +326,13 @@ func (ut *alertingConfigResourceUnitTest) shouldUpdateResourceStateWithEventType
 		CustomerPayloadFields: []restapi.CustomPayloadField[any]{
 			{
 				Type:  restapi.StaticStringCustomPayloadType,
-				Key:   "static-key",
-				Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
+				Key:   "static-key-1",
+				Value: restapi.StaticStringCustomPayloadFieldValue("static-value-1"),
 			},
 			{
-				Type: restapi.DynamicCustomPayloadType,
-				Key:  "dynamic-key",
-				Value: restapi.DynamicCustomPayloadFieldValue{
-					Key:     &dynamicPayloadFieldValueKey,
-					TagName: "dynamic-value-tag-name",
-				},
+				Type:  restapi.StaticStringCustomPayloadType,
+				Key:   "static-key-2",
+				Value: restapi.StaticStringCustomPayloadFieldValue("static-value-2"),
 			},
 		},
 	}
@@ -425,23 +378,9 @@ func (ut *alertingConfigResourceUnitTest) requireCustomPayloadFieldsSetInResourc
 		model := ut.getCustomPayloadFieldByKey(key, models)
 		require.NotNil(t, model)
 
-		if model.Type == restapi.DynamicCustomPayloadType {
-			require.NotNil(t, field[CustomPayloadFieldsFieldDynamicValue])
-			dynamicCustomFieldValue := field[CustomPayloadFieldsFieldDynamicValue]
-			require.IsType(t, []interface{}{}, dynamicCustomFieldValue)
-			require.Len(t, dynamicCustomFieldValue, 1)
-			require.IsType(t, map[string]interface{}{}, dynamicCustomFieldValue.([]interface{})[0])
-			value := dynamicCustomFieldValue.([]interface{})[0].(map[string]interface{})
-			require.Equal(t, *model.Value.(restapi.DynamicCustomPayloadFieldValue).Key, value[CustomPayloadFieldsFieldDynamicKey])
-			require.Equal(t, model.Value.(restapi.DynamicCustomPayloadFieldValue).TagName, value[CustomPayloadFieldsFieldDynamicTagName])
-			require.Equal(t, "", field[CustomPayloadFieldsFieldStaticStringValue])
-		} else {
-			require.NotNil(t, field[CustomPayloadFieldsFieldStaticStringValue])
-			require.Equal(t, string(model.Value.(restapi.StaticStringCustomPayloadFieldValue)), field[CustomPayloadFieldsFieldStaticStringValue])
-			require.NotNil(t, field[CustomPayloadFieldsFieldDynamicValue])
-			require.IsType(t, []interface{}{}, field[CustomPayloadFieldsFieldDynamicValue])
-			require.Len(t, field[CustomPayloadFieldsFieldDynamicValue].([]interface{}), 0)
-		}
+		require.NotNil(t, field[CustomPayloadFieldsFieldStaticStringValue])
+		require.Equal(t, string(model.Value.(restapi.StaticStringCustomPayloadFieldValue)), field[CustomPayloadFieldsFieldStaticStringValue])
+		require.Nil(t, field[CustomPayloadFieldsFieldDynamicValue])
 	}
 }
 
@@ -467,19 +406,12 @@ func (ut *alertingConfigResourceUnitTest) shouldConvertStateToDataModelWithRuleI
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterRuleIDs, ruleIds)
 	setValueOnResourceData(t, resourceData, DefaultCustomPayloadFieldsName, []interface{}{
 		map[string]interface{}{
-			CustomPayloadFieldsFieldKey:               "static-key",
-			CustomPayloadFieldsFieldStaticStringValue: "static-value",
-			CustomPayloadFieldsFieldDynamicValue:      []interface{}{},
+			CustomPayloadFieldsFieldKey:               "static-key-1",
+			CustomPayloadFieldsFieldStaticStringValue: "static-value-1",
 		},
 		map[string]interface{}{
-			CustomPayloadFieldsFieldKey:               "dynamic-key",
-			CustomPayloadFieldsFieldStaticStringValue: "",
-			CustomPayloadFieldsFieldDynamicValue: []interface{}{
-				map[string]interface{}{
-					CustomPayloadFieldsFieldDynamicKey:     "dynamic-value-key",
-					CustomPayloadFieldsFieldDynamicTagName: "dynamic-value-tag-name",
-				},
-			},
+			CustomPayloadFieldsFieldKey:               "static-key-2",
+			CustomPayloadFieldsFieldStaticStringValue: "static-value-2",
 		},
 	})
 
@@ -494,20 +426,16 @@ func (ut *alertingConfigResourceUnitTest) shouldConvertStateToDataModelWithRuleI
 	require.Equal(t, alertingConfigQuery, *model.EventFilteringConfiguration.Query)
 	ut.requireSliceValuesMatchesToValues(t, model.EventFilteringConfiguration.RuleIDs, alertingConfigRuleId1, alertingConfigRuleId2)
 
-	dynamicPayloadFieldValueKey := "dynamic-value-key"
 	require.Equal(t, []restapi.CustomPayloadField[any]{
 		{
 			Type:  restapi.StaticStringCustomPayloadType,
-			Key:   "static-key",
-			Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
+			Key:   "static-key-2",
+			Value: restapi.StaticStringCustomPayloadFieldValue("static-value-2"),
 		},
 		{
-			Type: restapi.DynamicCustomPayloadType,
-			Key:  "dynamic-key",
-			Value: restapi.DynamicCustomPayloadFieldValue{
-				Key:     &dynamicPayloadFieldValueKey,
-				TagName: "dynamic-value-tag-name",
-			},
+			Type:  restapi.StaticStringCustomPayloadType,
+			Key:   "static-key-1",
+			Value: restapi.StaticStringCustomPayloadFieldValue("static-value-1"),
 		},
 	}, model.CustomerPayloadFields)
 }
@@ -524,19 +452,12 @@ func (ut *alertingConfigResourceUnitTest) shouldConvertStateToDataModelWithEvent
 	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterEventTypes, []string{"incident", "critical"})
 	setValueOnResourceData(t, resourceData, DefaultCustomPayloadFieldsName, []interface{}{
 		map[string]interface{}{
-			CustomPayloadFieldsFieldKey:               "static-key",
-			CustomPayloadFieldsFieldStaticStringValue: "static-value",
-			CustomPayloadFieldsFieldDynamicValue:      []interface{}{},
+			CustomPayloadFieldsFieldKey:               "static-key-1",
+			CustomPayloadFieldsFieldStaticStringValue: "static-value-1",
 		},
 		map[string]interface{}{
-			CustomPayloadFieldsFieldKey:               "dynamic-key",
-			CustomPayloadFieldsFieldStaticStringValue: "",
-			CustomPayloadFieldsFieldDynamicValue: []interface{}{
-				map[string]interface{}{
-					CustomPayloadFieldsFieldDynamicKey:     "dynamic-value-key",
-					CustomPayloadFieldsFieldDynamicTagName: "dynamic-value-tag-name",
-				},
-			},
+			CustomPayloadFieldsFieldKey:               "static-key-2",
+			CustomPayloadFieldsFieldStaticStringValue: "static-value-2",
 		},
 	})
 
@@ -555,20 +476,16 @@ func (ut *alertingConfigResourceUnitTest) shouldConvertStateToDataModelWithEvent
 	require.Contains(t, eventTypes, restapi.CriticalAlertEventType)
 	require.Contains(t, eventTypes, restapi.IncidentAlertEventType)
 
-	dynamicPayloadFieldValueKey := "dynamic-value-key"
 	require.Equal(t, []restapi.CustomPayloadField[any]{
 		{
 			Type:  restapi.StaticStringCustomPayloadType,
-			Key:   "static-key",
-			Value: restapi.StaticStringCustomPayloadFieldValue("static-value"),
+			Key:   "static-key-2",
+			Value: restapi.StaticStringCustomPayloadFieldValue("static-value-2"),
 		},
 		{
-			Type: restapi.DynamicCustomPayloadType,
-			Key:  "dynamic-key",
-			Value: restapi.DynamicCustomPayloadFieldValue{
-				Key:     &dynamicPayloadFieldValueKey,
-				TagName: "dynamic-value-tag-name",
-			},
+			Type:  restapi.StaticStringCustomPayloadType,
+			Key:   "static-key-1",
+			Value: restapi.StaticStringCustomPayloadFieldValue("static-value-1"),
 		},
 	}, model.CustomerPayloadFields)
 }
@@ -582,29 +499,4 @@ func (ut *alertingConfigResourceUnitTest) requireSliceValuesMatchesToValues(t *t
 	for _, v := range values {
 		require.Contains(t, data, v)
 	}
-}
-
-func (ut *alertingConfigResourceUnitTest) shouldReturnErrorWhenConvertingStateToDataModelAndCustomFieldIsNotValid(t *testing.T) {
-	testHelper := NewTestHelper[*restapi.AlertingConfiguration](t)
-	resourceHandle := NewAlertingConfigResourceHandle()
-	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
-	resourceData.SetId(alertingConfigID)
-	setValueOnResourceData(t, resourceData, AlertingConfigFieldEventFilterQuery, alertingConfigQuery)
-	setValueOnResourceData(t, resourceData, DefaultCustomPayloadFieldsName, []interface{}{
-		map[string]interface{}{
-			CustomPayloadFieldsFieldKey:               "dynamic-key",
-			CustomPayloadFieldsFieldStaticStringValue: "invalid",
-			CustomPayloadFieldsFieldDynamicValue: []interface{}{
-				map[string]interface{}{
-					CustomPayloadFieldsFieldDynamicKey:     "dynamic-value-key",
-					CustomPayloadFieldsFieldDynamicTagName: "dynamic-value-tag-name",
-				},
-			},
-		},
-	})
-
-	_, err := resourceHandle.MapStateToDataObject(resourceData)
-
-	require.Error(t, err)
-	require.ErrorContains(t, err, "either a static string value or a dynamic value must")
 }

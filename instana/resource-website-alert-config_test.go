@@ -148,6 +148,7 @@ func (test *websiteAlertConfigTest) run(t *testing.T) {
 	test.createTestCasesForMappingOfTerraformResourceStateToModel(t)
 	t.Run(fmt.Sprintf("%s should fail to map state to model when severity is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCaseShouldFailToMapTerraformResourceStateToModelWhenSeverityIsNotValid())
 	t.Run(fmt.Sprintf("%s should fail to map state to model when tag filter expression is invalid", ResourceInstanaWebsiteAlertConfig), test.createTestCaseShouldFailToMapTerraformResourceStateToModelWhenTagFilterIsNotValid())
+	t.Run(fmt.Sprintf("%s should return errr when converting state to data model and custom field is not valid", ResourceInstanaWebsiteAlertConfig), test.shouldReturnErrorWhenConvertingStateToDataModelAndCustomFieldIsNotValid)
 }
 
 func (test *websiteAlertConfigTest) createIntegrationTest() func(t *testing.T) {
@@ -1005,4 +1006,30 @@ func (test *websiteAlertConfigTest) createTestCaseShouldFailToMapTerraformResour
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "unexpected token")
 	}
+}
+
+func (test *websiteAlertConfigTest) shouldReturnErrorWhenConvertingStateToDataModelAndCustomFieldIsNotValid(t *testing.T) {
+	testHelper := NewTestHelper[*restapi.WebsiteAlertConfig](t)
+	sut := test.resourceHandle
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+	setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldName, "website-alert-config-name")
+	setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldSeverity, restapi.SeverityWarning.GetTerraformRepresentation())
+	setValueOnResourceData(t, resourceData, WebsiteAlertConfigFieldTagFilter, "service.name@src EQUALS 'test'")
+	setValueOnResourceData(t, resourceData, DefaultCustomPayloadFieldsName, []interface{}{
+		map[string]interface{}{
+			CustomPayloadFieldsFieldKey:               "dynamic-key",
+			CustomPayloadFieldsFieldStaticStringValue: "invalid",
+			CustomPayloadFieldsFieldDynamicValue: []interface{}{
+				map[string]interface{}{
+					CustomPayloadFieldsFieldDynamicKey:     "dynamic-value-key",
+					CustomPayloadFieldsFieldDynamicTagName: "dynamic-value-tag-name",
+				},
+			},
+		},
+	})
+
+	_, err := sut.MapStateToDataObject(resourceData)
+
+	require.Error(t, err)
+	require.ErrorContains(t, err, "either a static string value or a dynamic value must")
 }
