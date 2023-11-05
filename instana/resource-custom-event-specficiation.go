@@ -401,25 +401,29 @@ func (c *customEventSpecificationResource) mapRulesToState(customEventSpecificat
 		} else {
 			//only a single rule is allowed for non threshold rules types
 			rule := customEventSpecification.Rules[0]
-			if rule.DType == restapi.EntityCountRuleType {
-				return c.mapEntityCountRuleToState(rule, severity)
-			}
-			if rule.DType == restapi.EntityCountVerificationRuleType {
-				return c.mapEntityCountVerificationRuleToState(rule, severity)
-			}
-			if rule.DType == restapi.EntityVerificationRuleType {
-				return c.mapEntityVerificationRuleToState(rule, severity)
-			}
-			if rule.DType == restapi.HostAvailabilityRuleType {
-				return c.mapHostAvailabilityRuleToState(rule, severity)
-			}
-			if rule.DType == restapi.SystemRuleType {
-				return c.mapSystemRuleToState(rule, severity)
-			}
-			return nil, fmt.Errorf("unsupported rule type %s", rule.DType)
+			return c.mapNonThresholdRulesToState(rule, severity)
 		}
 	}
 	return map[string]interface{}{}, nil
+}
+
+func (c *customEventSpecificationResource) mapNonThresholdRulesToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
+	if rule.DType == restapi.EntityCountRuleType {
+		return c.mapEntityCountRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.EntityCountVerificationRuleType {
+		return c.mapEntityCountVerificationRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.EntityVerificationRuleType {
+		return c.mapEntityVerificationRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.HostAvailabilityRuleType {
+		return c.mapHostAvailabilityRuleToState(rule, severity)
+	}
+	if rule.DType == restapi.SystemRuleType {
+		return c.mapSystemRuleToState(rule, severity)
+	}
+	return nil, fmt.Errorf("unsupported rule type %s", rule.DType)
 }
 
 func (c *customEventSpecificationResource) mapEntityCountRuleToState(rule restapi.RuleSpecification, severity string) (map[string]interface{}, error) {
