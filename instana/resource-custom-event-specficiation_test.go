@@ -35,6 +35,8 @@ func TestCustomEventSpecificationResource(t *testing.T) {
 	t.Run("should map system rule to state", unitTest.shouldMapSystemRuleToState)
 	t.Run("should map threshold rule and metric name to state", unitTest.shouldMapThresholdRuleAndMetricNameToState)
 	t.Run("should map threshold rule and metric pattern to state", unitTest.shouldMapThresholdRuleAndMetricPatternToState)
+	t.Run("should map state of threshold rules to data model", unitTest.shouldMapThresholdRulesToState)
+	t.Run("should fail to map rules to state when multiple rules are defined but not all are of type threshold rule", unitTest.shouldFailToMapRulesToStateWhenMultipleRulesAreDefinedButNotAllAreOfTypeThresholdRule)
 	t.Run("should fail to map rule when severity is not valid", unitTest.shouldFailToMapRuleWhenSeverityIsNotValid)
 	t.Run("should fail to map rule when rule type is not valid", unitTest.shouldFailToMapRuleWhenRuleTypeIsNotValid)
 	t.Run("should map state of entity count rule to data model", unitTest.shouldMapStateOfEntityCountRuleToDataModel)
@@ -50,6 +52,8 @@ func TestCustomEventSpecificationResource(t *testing.T) {
 	t.Run("should fail to map state of system rule when severity is not valid", unitTest.shouldFailToMapStateOfSystemRuleToDataModelWhenSeverityIsNotValid)
 	t.Run("should map state of threshold rule with metric name to data model", unitTest.shouldMapStateOfThresholdRuleWithMetricNameToDataModel)
 	t.Run("should map state of threshold rule with metric pattern to data model", unitTest.shouldMapStateOfThresholdRuleWithMetricPatternToDataModel)
+	t.Run("should map state of threshold rules to data model", unitTest.shouldMapStateOfThresholdRulesToDataModel)
+	t.Run("should fail to map state of threshold rule to data model when metric name and pattern", unitTest.shouldFailToMapStateOfThresholdRuleToDataModelWhenMetricNameAndPattern)
 	t.Run("should fail to map state of threshold rule when severity is not valid", unitTest.shouldFailToMapStateOfThresholdRuleToDataModelWhenSeverityIsNotValid)
 	t.Run("should fail to map state when no rule is provided", unitTest.shouldFailToMapStateWhenNoRuleIsProvided)
 }
@@ -71,8 +75,10 @@ const (
 	customEventSpecificationWithThresholdRuleAggregation    = "sum"
 	customEventSpecificationWithThresholdRuleConditionValue = float64(1.2)
 
-	entityVerificationRuleEntityType = "host"
-	systemRuleEntityType             = "any"
+	entityVerificationRuleEntityType               = "host"
+	systemRuleEntityType                           = "any"
+	customEventSpecificationRuleLogicalOperatorAnd = "AND"
+	customEventSpecificationRuleLogicalOperatorOr  = "OR"
 )
 
 func customerEventSpecificationIntegrationTestWithEntityCountRule() *customerEventSpecificationIntegrationTest {
@@ -104,6 +110,7 @@ resource "instana_custom_event_specification" "example" {
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
+    "ruleLogicalOperator": "AND",
 	"rules" : [{ 
 		"ruleType" : "entity_count", 
 		"severity" : 5, 
@@ -157,6 +164,7 @@ resource "instana_custom_event_specification" "example" {
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
+    "ruleLogicalOperator": "AND",
 	"rules" : [{ 
 		"ruleType" : "entity_count_verification", 
 		"severity" : 5, 
@@ -215,6 +223,7 @@ resource "instana_custom_event_specification" "example" {
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
+    "ruleLogicalOperator": "AND",
 	"rules" : [{ 
 		"ruleType" : "entity_verification", 
 		"severity" : 5, 
@@ -270,6 +279,7 @@ resource "instana_custom_event_specification" "example" {
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
+    "ruleLogicalOperator": "AND",
 	"rules" : [{ 
 		"ruleType" : "host_availability", 
 		"severity" : 5, 
@@ -331,6 +341,7 @@ resource "instana_custom_event_specification" "example" {
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
+    "ruleLogicalOperator": "AND",
 	"rules" : [{
 		"ruleType" : "system", 
 		"severity" : 5, 
@@ -383,6 +394,7 @@ resource "instana_custom_event_specification" "example" {
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
+    "ruleLogicalOperator": "AND",
 	"rules" : [{
 		"ruleType" : "threshold", 
 		"severity" : 5, 
@@ -450,6 +462,7 @@ resource "instana_custom_event_specification" "example" {
 	"triggering" : true,
 	"description" : "description",
 	"expirationTime" : 60000,
+    "ruleLogicalOperator": "AND",
 	"rules" : [{
 		"ruleType" : "threshold", 
 		"severity" : 5, 
@@ -548,10 +561,11 @@ func (r *customerEventSpecificationUnitTest) schemaShouldBeValid(t *testing.T) {
 	schemaData := NewCustomEventSpecificationResourceHandle().MetaData().Schema
 
 	schemaAssert := testutils.NewTerraformSchemaAssert(schemaData, t)
-	require.Len(t, schemaData, 8)
+	require.Len(t, schemaData, 9)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldName)
 	schemaAssert.AssertSchemaIsRequiredAndOfTypeString(CustomEventSpecificationFieldEntityType)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldQuery)
+	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldRuleLogicalOperator)
 	schemaAssert.AssertSchemaIsOfTypeBooleanWithDefault(CustomEventSpecificationFieldTriggering, false)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeString(CustomEventSpecificationFieldDescription)
 	schemaAssert.AssertSchemaIsOptionalAndOfTypeInt(CustomEventSpecificationFieldExpirationTime)
@@ -671,14 +685,15 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityCountRuleToState(t *
 	conditionValue := 1.4
 
 	spec := &restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithRuleID,
-		Name:           resourceName,
-		EntityType:     entityVerificationRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          entityVerificationRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:             restapi.EntityCountRuleType,
@@ -703,6 +718,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityCountRuleToState(t *
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorAnd, resourceData.Get(CustomEventSpecificationFieldRuleLogicalOperator))
 
 	require.IsType(t, []interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules))
 	require.Len(t, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{}), 1)
@@ -730,14 +746,15 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityCountVerificationRul
 	conditionValue := 1.4
 
 	spec := &restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithRuleID,
-		Name:           resourceName,
-		EntityType:     entityVerificationRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          entityVerificationRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:               restapi.EntityCountVerificationRuleType,
@@ -765,6 +782,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityCountVerificationRul
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorAnd, resourceData.Get(CustomEventSpecificationFieldRuleLogicalOperator))
 
 	require.IsType(t, []interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules))
 	require.Len(t, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{}), 1)
@@ -794,14 +812,15 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityVerificationRuleToSt
 	offlineDuration := 1234
 
 	spec := &restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithRuleID,
-		Name:           resourceName,
-		EntityType:     entityVerificationRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          entityVerificationRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:               restapi.EntityVerificationRuleType,
@@ -828,6 +847,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapEntityVerificationRuleToSt
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorAnd, resourceData.Get(CustomEventSpecificationFieldRuleLogicalOperator))
 
 	require.IsType(t, []interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules))
 	require.Len(t, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{}), 1)
@@ -855,14 +875,15 @@ func (r *customerEventSpecificationUnitTest) shouldMapHostAvailabilityRuleToStat
 	offlineDuration := 1234
 
 	spec := &restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithRuleID,
-		Name:           resourceName,
-		EntityType:     entityVerificationRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          entityVerificationRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:           restapi.HostAvailabilityRuleType,
@@ -888,6 +909,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapHostAvailabilityRuleToStat
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorAnd, resourceData.Get(CustomEventSpecificationFieldRuleLogicalOperator))
 
 	require.IsType(t, []interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules))
 	require.Len(t, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{}), 1)
@@ -916,14 +938,15 @@ func (r *customerEventSpecificationUnitTest) shouldFailToMapHostAvailabilityRule
 	offlineDuration := 1234
 
 	spec := &restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithRuleID,
-		Name:           resourceName,
-		EntityType:     entityVerificationRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          entityVerificationRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:           restapi.HostAvailabilityRuleType,
@@ -952,14 +975,15 @@ func (r *customerEventSpecificationUnitTest) shouldMapSystemRuleToState(t *testi
 	systemRuleId := "system-rule-id"
 
 	spec := &restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithRuleID,
-		Name:           resourceName,
-		EntityType:     systemRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          systemRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:        restapi.SystemRuleType,
@@ -983,6 +1007,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapSystemRuleToState(t *testi
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorAnd, resourceData.Get(CustomEventSpecificationFieldRuleLogicalOperator))
 
 	require.IsType(t, []interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules))
 	require.Len(t, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{}), 1)
@@ -1011,14 +1036,15 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricName
 	conditionOperator := "="
 
 	spec := &restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithRuleID,
-		Name:           resourceName,
-		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          customEventSpecificationWithThresholdRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:             restapi.ThresholdRuleType,
@@ -1047,6 +1073,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricName
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorAnd, resourceData.Get(CustomEventSpecificationFieldRuleLogicalOperator))
 
 	require.IsType(t, []interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules))
 	require.Len(t, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{}), 1)
@@ -1062,7 +1089,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricName
 	require.Equal(t, []interface{}{}, rule[CustomEventSpecificationThresholdRuleFieldMetricPattern])
 	require.Equal(t, window, rule[CustomEventSpecificationThresholdRuleFieldWindow])
 	require.Equal(t, rollup, rule[CustomEventSpecificationThresholdRuleFieldRollup])
-	require.Equal(t, string(aggregation), rule[CustomEventSpecificationThresholdRuleFieldAggregation])
+	require.Equal(t, aggregation, rule[CustomEventSpecificationThresholdRuleFieldAggregation])
 	require.Equal(t, conditionOperator, rule[CustomEventSpecificationRuleFieldConditionOperator])
 	require.Equal(t, conditionValue, rule[CustomEventSpecificationRuleFieldConditionValue])
 	require.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), rule[CustomEventSpecificationRuleFieldSeverity])
@@ -1084,14 +1111,15 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	operator := "startsWith"
 
 	spec := &restapi.CustomEventSpecification{
-		ID:             customEventSpecificationWithRuleID,
-		Name:           resourceName,
-		EntityType:     customEventSpecificationWithThresholdRuleEntityType,
-		Query:          &query,
-		Description:    &description,
-		ExpirationTime: &expirationTime,
-		Triggering:     true,
-		Enabled:        true,
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          customEventSpecificationWithThresholdRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
 		Rules: []restapi.RuleSpecification{
 			{
 				DType:    restapi.ThresholdRuleType,
@@ -1125,6 +1153,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
 	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorAnd, resourceData.Get(CustomEventSpecificationFieldRuleLogicalOperator))
 
 	require.IsType(t, []interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules))
 	require.Len(t, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{}), 1)
@@ -1138,7 +1167,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	require.Equal(t, "", rule[CustomEventSpecificationThresholdRuleFieldMetricName])
 	require.Equal(t, window, rule[CustomEventSpecificationThresholdRuleFieldWindow])
 	require.Equal(t, rollup, rule[CustomEventSpecificationThresholdRuleFieldRollup])
-	require.Equal(t, string(aggregation), rule[CustomEventSpecificationThresholdRuleFieldAggregation])
+	require.Equal(t, aggregation, rule[CustomEventSpecificationThresholdRuleFieldAggregation])
 	require.Equal(t, conditionOperator, rule[CustomEventSpecificationRuleFieldConditionOperator])
 	require.Equal(t, conditionValue, rule[CustomEventSpecificationRuleFieldConditionValue])
 	require.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), rule[CustomEventSpecificationRuleFieldSeverity])
@@ -1156,7 +1185,175 @@ func (r *customerEventSpecificationUnitTest) shouldMapThresholdRuleAndMetricPatt
 	require.Equal(t, operator, metricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternOperator])
 }
 
+func (r *customerEventSpecificationUnitTest) shouldMapThresholdRulesToState(t *testing.T) {
+	description := customEventSpecificationWithThresholdRuleDescription
+	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
+	query := customEventSpecificationWithThresholdRuleQuery
+
+	window := customEventSpecificationWithThresholdRuleWindow
+	rollup := customEventSpecificationWithThresholdRuleRollup
+	aggregation := customEventSpecificationWithThresholdRuleAggregation
+	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
+	metricName := customEventSpecificationWithThresholdRuleMetricName
+	conditionOperator := "="
+	prefix := "prefix"
+	postfix := "postfix"
+	placeholder := "placeholder"
+	operator := "startsWith"
+
+	spec := &restapi.CustomEventSpecification{
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          customEventSpecificationWithThresholdRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
+		Rules: []restapi.RuleSpecification{
+			{
+				DType:    restapi.ThresholdRuleType,
+				Severity: restapi.SeverityWarning.GetAPIRepresentation(),
+				MetricPattern: &restapi.MetricPattern{
+					Prefix:      prefix,
+					Postfix:     &postfix,
+					Placeholder: &placeholder,
+					Operator:    operator,
+				},
+				Window:            &window,
+				Rollup:            &rollup,
+				Aggregation:       &aggregation,
+				ConditionOperator: &conditionOperator,
+				ConditionValue:    &conditionValue,
+			},
+			{
+				DType:             restapi.ThresholdRuleType,
+				Severity:          restapi.SeverityWarning.GetAPIRepresentation(),
+				MetricName:        &metricName,
+				Window:            &window,
+				Rollup:            &rollup,
+				Aggregation:       &aggregation,
+				ConditionOperator: &conditionOperator,
+				ConditionValue:    &conditionValue,
+			},
+		},
+	}
+
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
+	sut := NewCustomEventSpecificationResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, spec)
+
+	require.Nil(t, err)
+	require.Equal(t, customEventSpecificationWithRuleID, resourceData.Id())
+	require.Equal(t, resourceName, resourceData.Get(CustomEventSpecificationFieldName))
+	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, resourceData.Get(CustomEventSpecificationFieldEntityType))
+	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, resourceData.Get(CustomEventSpecificationFieldQuery))
+	require.Equal(t, description, resourceData.Get(CustomEventSpecificationFieldDescription))
+	require.True(t, resourceData.Get(CustomEventSpecificationFieldTriggering).(bool))
+	require.True(t, resourceData.Get(CustomEventSpecificationFieldEnabled).(bool))
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorAnd, resourceData.Get(CustomEventSpecificationFieldRuleLogicalOperator))
+
+	require.IsType(t, []interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules))
+	require.Len(t, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0])
+
+	rules := resourceData.Get(CustomEventSpecificationFieldRules).([]interface{})[0].(map[string]interface{})
+	r.verifyExpectedRuleSetWithLen(t, rules, CustomEventSpecificationFieldThresholdRule, 2)
+
+	rule1 := rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[0].(map[string]interface{})
+	require.Len(t, rule1, 8)
+	require.Equal(t, "", rule1[CustomEventSpecificationThresholdRuleFieldMetricName])
+	require.Equal(t, window, rule1[CustomEventSpecificationThresholdRuleFieldWindow])
+	require.Equal(t, rollup, rule1[CustomEventSpecificationThresholdRuleFieldRollup])
+	require.Equal(t, aggregation, rule1[CustomEventSpecificationThresholdRuleFieldAggregation])
+	require.Equal(t, conditionOperator, rule1[CustomEventSpecificationRuleFieldConditionOperator])
+	require.Equal(t, conditionValue, rule1[CustomEventSpecificationRuleFieldConditionValue])
+	require.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), rule1[CustomEventSpecificationRuleFieldSeverity])
+
+	require.IsType(t, []interface{}{}, rule1[CustomEventSpecificationThresholdRuleFieldMetricPattern])
+	require.Len(t, rule1[CustomEventSpecificationThresholdRuleFieldMetricPattern].([]interface{}), 1)
+	require.IsType(t, map[string]interface{}{}, rule1[CustomEventSpecificationThresholdRuleFieldMetricPattern].([]interface{})[0])
+
+	rule1MetricPatternData := rule1[CustomEventSpecificationThresholdRuleFieldMetricPattern].([]interface{})[0].(map[string]interface{})
+
+	require.Len(t, rule1MetricPatternData, 4)
+	require.Equal(t, prefix, rule1MetricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix])
+	require.Equal(t, postfix, rule1MetricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix])
+	require.Equal(t, placeholder, rule1MetricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder])
+	require.Equal(t, operator, rule1MetricPatternData[CustomEventSpecificationThresholdRuleFieldMetricPatternOperator])
+
+	rule2 := rules[CustomEventSpecificationFieldThresholdRule].([]interface{})[1].(map[string]interface{})
+	require.Len(t, rule2, 8)
+	require.Equal(t, metricName, rule2[CustomEventSpecificationThresholdRuleFieldMetricName])
+	require.Equal(t, []interface{}{}, rule2[CustomEventSpecificationThresholdRuleFieldMetricPattern])
+	require.Equal(t, window, rule2[CustomEventSpecificationThresholdRuleFieldWindow])
+	require.Equal(t, rollup, rule2[CustomEventSpecificationThresholdRuleFieldRollup])
+	require.Equal(t, aggregation, rule2[CustomEventSpecificationThresholdRuleFieldAggregation])
+	require.Equal(t, conditionOperator, rule2[CustomEventSpecificationRuleFieldConditionOperator])
+	require.Equal(t, conditionValue, rule2[CustomEventSpecificationRuleFieldConditionValue])
+	require.Equal(t, restapi.SeverityWarning.GetTerraformRepresentation(), rule2[CustomEventSpecificationRuleFieldSeverity])
+}
+
+func (r *customerEventSpecificationUnitTest) shouldFailToMapRulesToStateWhenMultipleRulesAreDefinedButNotAllAreOfTypeThresholdRule(t *testing.T) {
+	description := customEventSpecificationWithThresholdRuleDescription
+	expirationTime := customEventSpecificationWithThresholdRuleExpirationTime
+	query := customEventSpecificationWithThresholdRuleQuery
+
+	window := customEventSpecificationWithThresholdRuleWindow
+	rollup := customEventSpecificationWithThresholdRuleRollup
+	aggregation := customEventSpecificationWithThresholdRuleAggregation
+	conditionValue := customEventSpecificationWithThresholdRuleConditionValue
+	metricName := customEventSpecificationWithThresholdRuleMetricName
+	systemRuleId := "system-rule-id"
+	conditionOperator := "="
+
+	spec := &restapi.CustomEventSpecification{
+		ID:                  customEventSpecificationWithRuleID,
+		Name:                resourceName,
+		EntityType:          customEventSpecificationWithThresholdRuleEntityType,
+		Query:               &query,
+		Description:         &description,
+		ExpirationTime:      &expirationTime,
+		Triggering:          true,
+		Enabled:             true,
+		RuleLogicalOperator: customEventSpecificationRuleLogicalOperatorAnd,
+		Rules: []restapi.RuleSpecification{
+			{
+				DType:             restapi.ThresholdRuleType,
+				Severity:          restapi.SeverityWarning.GetAPIRepresentation(),
+				MetricName:        &metricName,
+				Window:            &window,
+				Rollup:            &rollup,
+				Aggregation:       &aggregation,
+				ConditionOperator: &conditionOperator,
+				ConditionValue:    &conditionValue,
+			},
+			{
+				DType:        restapi.SystemRuleType,
+				Severity:     restapi.SeverityWarning.GetAPIRepresentation(),
+				SystemRuleID: &systemRuleId,
+			},
+		},
+	}
+
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
+	sut := NewCustomEventSpecificationResourceHandle()
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(sut)
+
+	err := sut.UpdateState(resourceData, spec)
+
+	require.Error(t, err)
+	require.ErrorContains(t, err, "invalid rule specification; rules must be of type threshold rule when multiple rules are defined")
+}
+
 func (r *customerEventSpecificationUnitTest) verifyExpectedRuleSet(t *testing.T, rules map[string]interface{}, expectedType string) {
+	r.verifyExpectedRuleSetWithLen(t, rules, expectedType, 1)
+}
+
+func (r *customerEventSpecificationUnitTest) verifyExpectedRuleSetWithLen(t *testing.T, rules map[string]interface{}, expectedType string, expectedNumberOfRules int) {
 	ruleTypes := []string{
 		CustomEventSpecificationFieldEntityCountRule,
 		CustomEventSpecificationFieldEntityCountVerificationRule,
@@ -1169,8 +1366,10 @@ func (r *customerEventSpecificationUnitTest) verifyExpectedRuleSet(t *testing.T,
 	for _, rt := range ruleTypes {
 		if rt == expectedType {
 			require.IsType(t, []interface{}{}, rules[rt])
-			require.Len(t, rules[rt].([]interface{}), 1)
-			require.IsType(t, map[string]interface{}{}, rules[rt].([]interface{})[0])
+			require.Len(t, rules[rt].([]interface{}), expectedNumberOfRules)
+			for _, r := range rules[rt].([]interface{}) {
+				require.IsType(t, map[string]interface{}{}, r)
+			}
 		} else {
 			require.IsType(t, []interface{}{}, rules[rt])
 			require.Len(t, rules[rt].([]interface{}), 0)
@@ -1232,6 +1431,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityCountRuleToDa
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
 		map[string]interface{}{
 			CustomEventSpecificationFieldEntityCountRule: []interface{}{
@@ -1259,6 +1459,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityCountRuleToDa
 	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
 	require.True(t, customEventSpec.Triggering)
 	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorOr, customEventSpec.RuleLogicalOperator)
 
 	require.Equal(t, 1, len(customEventSpec.Rules))
 	require.Equal(t, restapi.EntityCountRuleType, customEventSpec.Rules[0].DType)
@@ -1310,6 +1511,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityCountVerifica
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
 		map[string]interface{}{
 			CustomEventSpecificationFieldEntityCountRule: []interface{}{},
@@ -1340,6 +1542,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityCountVerifica
 	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
 	require.True(t, customEventSpec.Triggering)
 	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorOr, customEventSpec.RuleLogicalOperator)
 
 	require.Equal(t, 1, len(customEventSpec.Rules))
 	require.Equal(t, restapi.EntityCountVerificationRuleType, customEventSpec.Rules[0].DType)
@@ -1395,6 +1598,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityVerificationR
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
 		map[string]interface{}{
 			CustomEventSpecificationFieldEntityCountRule: []interface{}{},
@@ -1423,6 +1627,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfEntityVerificationR
 	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
 	require.True(t, customEventSpec.Triggering)
 	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorOr, customEventSpec.RuleLogicalOperator)
 
 	require.Equal(t, 1, len(customEventSpec.Rules))
 	require.Equal(t, restapi.EntityVerificationRuleType, customEventSpec.Rules[0].DType)
@@ -1474,6 +1679,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfHostAvailabilityRul
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
 		map[string]interface{}{
 			CustomEventSpecificationFieldEntityCountRule:        []interface{}{},
@@ -1501,6 +1707,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfHostAvailabilityRul
 	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
 	require.True(t, customEventSpec.Triggering)
 	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorOr, customEventSpec.RuleLogicalOperator)
 
 	require.Equal(t, 1, len(customEventSpec.Rules))
 	require.Equal(t, restapi.HostAvailabilityRuleType, customEventSpec.Rules[0].DType)
@@ -1577,6 +1784,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfSystemRuleToDataMod
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
 		map[string]interface{}{
 			CustomEventSpecificationFieldEntityCountRule:             []interface{}{},
@@ -1603,6 +1811,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfSystemRuleToDataMod
 	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
 	require.True(t, customEventSpec.Triggering)
 	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorOr, customEventSpec.RuleLogicalOperator)
 
 	require.Equal(t, 1, len(customEventSpec.Rules))
 	require.Equal(t, restapi.SystemRuleType, customEventSpec.Rules[0].DType)
@@ -1650,6 +1859,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
 		map[string]interface{}{
 			CustomEventSpecificationFieldEntityCountRule:             []interface{}{},
@@ -1683,6 +1893,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
 	require.True(t, customEventSpec.Triggering)
 	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorOr, customEventSpec.RuleLogicalOperator)
 
 	require.Equal(t, 1, len(customEventSpec.Rules))
 	require.Equal(t, restapi.ThresholdRuleType, customEventSpec.Rules[0].DType)
@@ -1714,6 +1925,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
 	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
 		map[string]interface{}{
 			CustomEventSpecificationFieldEntityCountRule:             []interface{}{},
@@ -1753,6 +1965,7 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
 	require.True(t, customEventSpec.Triggering)
 	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorOr, customEventSpec.RuleLogicalOperator)
 
 	require.Equal(t, 1, len(customEventSpec.Rules))
 	require.Equal(t, restapi.ThresholdRuleType, customEventSpec.Rules[0].DType)
@@ -1768,6 +1981,153 @@ func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRuleWithMe
 	require.Equal(t, "=", *customEventSpec.Rules[0].ConditionOperator)
 	require.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
 	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+}
+
+func (r *customerEventSpecificationUnitTest) shouldMapStateOfThresholdRulesToDataModel(t *testing.T) {
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
+	resourceHandle := NewCustomEventSpecificationResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+	prefix := "prefix"
+	postfix := "postfix"
+	placeholder := "placeholder"
+	operator := "startsWith"
+
+	resourceData.SetId(customEventSpecificationWithRuleID)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldName, resourceName)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldTriggering, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
+		map[string]interface{}{
+			CustomEventSpecificationFieldEntityCountRule:             []interface{}{},
+			CustomEventSpecificationFieldEntityCountVerificationRule: []interface{}{},
+			CustomEventSpecificationFieldEntityVerificationRule:      []interface{}{},
+			CustomEventSpecificationFieldHostAvailabilityRule:        []interface{}{},
+			CustomEventSpecificationFieldSystemRule:                  []interface{}{},
+			CustomEventSpecificationFieldThresholdRule: []interface{}{
+				map[string]interface{}{
+					CustomEventSpecificationRuleFieldSeverity:               restapi.SeverityWarning.GetTerraformRepresentation(),
+					CustomEventSpecificationThresholdRuleFieldMetricName:    customEventSpecificationWithThresholdRuleMetricName,
+					CustomEventSpecificationThresholdRuleFieldMetricPattern: []interface{}{},
+					CustomEventSpecificationThresholdRuleFieldRollup:        customEventSpecificationWithThresholdRuleRollup,
+					CustomEventSpecificationThresholdRuleFieldWindow:        customEventSpecificationWithThresholdRuleWindow,
+					CustomEventSpecificationThresholdRuleFieldAggregation:   customEventSpecificationWithThresholdRuleAggregation,
+					CustomEventSpecificationRuleFieldConditionOperator:      "=",
+					CustomEventSpecificationRuleFieldConditionValue:         customEventSpecificationWithThresholdRuleConditionValue,
+				},
+				map[string]interface{}{
+					CustomEventSpecificationRuleFieldSeverity: restapi.SeverityWarning.GetTerraformRepresentation(),
+					CustomEventSpecificationThresholdRuleFieldMetricPattern: []interface{}{
+						map[string]interface{}{
+							CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix:      prefix,
+							CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix:     postfix,
+							CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder: placeholder,
+							CustomEventSpecificationThresholdRuleFieldMetricPatternOperator:    operator,
+						},
+					},
+					CustomEventSpecificationThresholdRuleFieldRollup:      customEventSpecificationWithThresholdRuleRollup,
+					CustomEventSpecificationThresholdRuleFieldWindow:      customEventSpecificationWithThresholdRuleWindow,
+					CustomEventSpecificationThresholdRuleFieldAggregation: customEventSpecificationWithThresholdRuleAggregation,
+					CustomEventSpecificationRuleFieldConditionOperator:    "=",
+					CustomEventSpecificationRuleFieldConditionValue:       customEventSpecificationWithThresholdRuleConditionValue,
+				},
+			},
+		},
+	})
+
+	customEventSpec, err := resourceHandle.MapStateToDataObject(resourceData)
+
+	require.Nil(t, err)
+	require.Equal(t, customEventSpecificationWithRuleID, customEventSpec.GetIDForResourcePath())
+	require.Equal(t, resourceName, customEventSpec.Name)
+	require.Equal(t, customEventSpecificationWithThresholdRuleEntityType, customEventSpec.EntityType)
+	require.Equal(t, customEventSpecificationWithThresholdRuleQuery, *customEventSpec.Query)
+	require.Equal(t, customEventSpecificationWithThresholdRuleDescription, *customEventSpec.Description)
+	require.Equal(t, customEventSpecificationWithThresholdRuleExpirationTime, *customEventSpec.ExpirationTime)
+	require.True(t, customEventSpec.Triggering)
+	require.True(t, customEventSpec.Enabled)
+	require.Equal(t, customEventSpecificationRuleLogicalOperatorOr, customEventSpec.RuleLogicalOperator)
+
+	require.Equal(t, 2, len(customEventSpec.Rules))
+
+	require.Equal(t, restapi.ThresholdRuleType, customEventSpec.Rules[0].DType)
+	require.Equal(t, customEventSpecificationWithThresholdRuleMetricName, *customEventSpec.Rules[0].MetricName)
+	require.Nil(t, customEventSpec.Rules[0].MetricPattern)
+	require.Equal(t, customEventSpecificationWithThresholdRuleWindow, *customEventSpec.Rules[0].Window)
+	require.Equal(t, customEventSpecificationWithThresholdRuleRollup, *customEventSpec.Rules[0].Rollup)
+	require.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *customEventSpec.Rules[0].Aggregation)
+	require.Equal(t, "=", *customEventSpec.Rules[0].ConditionOperator)
+	require.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[0].ConditionValue)
+	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[0].Severity)
+
+	require.Equal(t, restapi.ThresholdRuleType, customEventSpec.Rules[1].DType)
+	require.Nil(t, customEventSpec.Rules[1].MetricName)
+	require.NotNil(t, customEventSpec.Rules[1].MetricPattern)
+	require.Equal(t, prefix, customEventSpec.Rules[1].MetricPattern.Prefix)
+	require.Equal(t, postfix, *customEventSpec.Rules[1].MetricPattern.Postfix)
+	require.Equal(t, placeholder, *customEventSpec.Rules[1].MetricPattern.Placeholder)
+	require.Equal(t, operator, customEventSpec.Rules[1].MetricPattern.Operator)
+	require.Equal(t, customEventSpecificationWithThresholdRuleWindow, *customEventSpec.Rules[1].Window)
+	require.Equal(t, customEventSpecificationWithThresholdRuleRollup, *customEventSpec.Rules[1].Rollup)
+	require.Equal(t, customEventSpecificationWithThresholdRuleAggregation, *customEventSpec.Rules[1].Aggregation)
+	require.Equal(t, "=", *customEventSpec.Rules[1].ConditionOperator)
+	require.Equal(t, customEventSpecificationWithThresholdRuleConditionValue, *customEventSpec.Rules[1].ConditionValue)
+	require.Equal(t, restapi.SeverityWarning.GetAPIRepresentation(), customEventSpec.Rules[1].Severity)
+}
+
+func (r *customerEventSpecificationUnitTest) shouldFailToMapStateOfThresholdRuleToDataModelWhenMetricNameAndPattern(t *testing.T) {
+	testHelper := NewTestHelper[*restapi.CustomEventSpecification](t)
+	resourceHandle := NewCustomEventSpecificationResourceHandle()
+
+	resourceData := testHelper.CreateEmptyResourceDataForResourceHandle(resourceHandle)
+
+	resourceData.SetId(customEventSpecificationWithRuleID)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldName, resourceName)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEntityType, customEventSpecificationWithThresholdRuleEntityType)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldQuery, customEventSpecificationWithThresholdRuleQuery)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldTriggering, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldDescription, customEventSpecificationWithThresholdRuleDescription)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldExpirationTime, customEventSpecificationWithThresholdRuleExpirationTime)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldEnabled, true)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRuleLogicalOperator, customEventSpecificationRuleLogicalOperatorOr)
+	setValueOnResourceData(t, resourceData, CustomEventSpecificationFieldRules, []interface{}{
+		map[string]interface{}{
+			CustomEventSpecificationFieldEntityCountRule:             []interface{}{},
+			CustomEventSpecificationFieldEntityCountVerificationRule: []interface{}{},
+			CustomEventSpecificationFieldEntityVerificationRule:      []interface{}{},
+			CustomEventSpecificationFieldHostAvailabilityRule:        []interface{}{},
+			CustomEventSpecificationFieldSystemRule:                  []interface{}{},
+			CustomEventSpecificationFieldThresholdRule: []interface{}{
+				map[string]interface{}{
+					CustomEventSpecificationRuleFieldSeverity:            restapi.SeverityWarning.GetTerraformRepresentation(),
+					CustomEventSpecificationThresholdRuleFieldMetricName: "metricName",
+					CustomEventSpecificationThresholdRuleFieldMetricPattern: []interface{}{
+						map[string]interface{}{
+							CustomEventSpecificationThresholdRuleFieldMetricPatternPrefix:      "prefix",
+							CustomEventSpecificationThresholdRuleFieldMetricPatternPostfix:     "postfix",
+							CustomEventSpecificationThresholdRuleFieldMetricPatternPlaceholder: "placeholder",
+							CustomEventSpecificationThresholdRuleFieldMetricPatternOperator:    "operator",
+						},
+					},
+					CustomEventSpecificationThresholdRuleFieldRollup:      customEventSpecificationWithThresholdRuleRollup,
+					CustomEventSpecificationThresholdRuleFieldWindow:      customEventSpecificationWithThresholdRuleWindow,
+					CustomEventSpecificationThresholdRuleFieldAggregation: customEventSpecificationWithThresholdRuleAggregation,
+					CustomEventSpecificationRuleFieldConditionOperator:    "=",
+					CustomEventSpecificationRuleFieldConditionValue:       customEventSpecificationWithThresholdRuleConditionValue,
+				},
+			},
+		},
+	})
+
+	_, err := resourceHandle.MapStateToDataObject(resourceData)
+
+	require.Error(t, err)
+	require.ErrorContains(t, err, "either metric_metric name or metric_pattern must be defined")
 }
 
 func (r *customerEventSpecificationUnitTest) shouldFailToMapStateOfThresholdRuleToDataModelWhenSeverityIsNotValid(t *testing.T) {

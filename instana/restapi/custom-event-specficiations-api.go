@@ -59,15 +59,16 @@ type RuleSpecification struct {
 
 // CustomEventSpecification is the representation of a custom event specification in Instana
 type CustomEventSpecification struct {
-	ID             string              `json:"id"`
-	Name           string              `json:"name"`
-	EntityType     string              `json:"entityType"`
-	Query          *string             `json:"query"`
-	Triggering     bool                `json:"triggering"`
-	Description    *string             `json:"description"`
-	ExpirationTime *int                `json:"expirationTime"`
-	Enabled        bool                `json:"enabled"`
-	Rules          []RuleSpecification `json:"rules"`
+	ID                  string              `json:"id"`
+	Name                string              `json:"name"`
+	EntityType          string              `json:"entityType"`
+	Query               *string             `json:"query"`
+	Triggering          bool                `json:"triggering"`
+	Description         *string             `json:"description"`
+	ExpirationTime      *int                `json:"expirationTime"`
+	Enabled             bool                `json:"enabled"`
+	RuleLogicalOperator string              `json:"ruleLogicalOperator"`
+	Rules               []RuleSpecification `json:"rules"`
 }
 
 // GetIDForResourcePath implementation of the interface InstanaDataObject
