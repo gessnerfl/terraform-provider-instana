@@ -1,5 +1,32 @@
 # Changelog
 
+## [v2.3.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.3.0) (2023-11-06)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v2.2.1...v2.3.0)
+
+**Implemented enhancements:**
+
+- Support for multiple Threshold Rules [\#206](https://github.com/gessnerfl/terraform-provider-instana/issues/206)
+- Support custom payloads for instana\_alerting\_config resource [\#145](https://github.com/gessnerfl/terraform-provider-instana/issues/145)
+
+**Closed issues:**
+
+- Incompatible provider version [\#200](https://github.com/gessnerfl/terraform-provider-instana/issues/200)
+- Bug: Metric operator in Custom Event is missing the 'any' option [\#198](https://github.com/gessnerfl/terraform-provider-instana/issues/198)
+
+**Merged pull requests:**
+
+- Feature/206 multiple threshold rules [\#208](https://github.com/gessnerfl/terraform-provider-instana/pull/208) ([gessnerfl](https://github.com/gessnerfl))
+- Feature/145 custom fields alerting channel [\#207](https://github.com/gessnerfl/terraform-provider-instana/pull/207) ([gessnerfl](https://github.com/gessnerfl))
+
+## [v2.2.1](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.2.1) (2023-10-03)
+
+[Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v2.2.0...v2.2.1)
+
+**Merged pull requests:**
+
+- Missing 'any' custom metric operator [\#199](https://github.com/gessnerfl/terraform-provider-instana/pull/199) ([bhepburn](https://github.com/bhepburn))
+
 ## [v2.2.0](https://github.com/gessnerfl/terraform-provider-instana/tree/v2.2.0) (2023-10-01)
 
 [Full Changelog](https://github.com/gessnerfl/terraform-provider-instana/compare/v2.1.1...v2.2.0)
