@@ -317,7 +317,7 @@ func NewCustomEventSpecificationResourceHandle() ResourceHandle[*restapi.CustomE
 										CustomEventSpecificationThresholdRuleFieldRollup: {
 											Type:         schema.TypeInt,
 											Optional:     true,
-											ValidateFunc: validation.IntAtLeast(1),
+											ValidateFunc: validation.IntAtLeast(0),
 											Description:  "The rollup of the metric",
 										},
 										CustomEventSpecificationThresholdRuleFieldWindow: {
