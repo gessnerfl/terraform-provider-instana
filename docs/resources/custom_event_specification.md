@@ -126,6 +126,8 @@ resource "instana_custom_event_specification" "example" {
 
 ### Threshold Rule
 
+#### Single Threshold Rule
+
 ```hcl
 resource "instana_custom_event_specification" "example" {
   name            = "name"
@@ -137,6 +139,42 @@ resource "instana_custom_event_specification" "example" {
   entity_type     = "nomadScheduler"
 
   rules { 
+    threshold {
+      severity           = "critical"
+      metric_name        = "nomad.client.allocations.pending"
+      window             = 60000
+      aggregation        = "avg"
+      condition_operator = ">"
+      condition_value    = 0
+    }
+  } 
+}
+```
+
+#### Multiple Threshold Rule
+
+```hcl
+resource "instana_custom_event_specification" "example" {
+  name            = "name"
+  description     = "description"
+  query           = "query"
+  enabled         = true
+  triggering      = true
+  expiration_time = 60000
+  entity_type     = "nomadScheduler"
+
+  rule_logical_operator = "OR"
+  
+  rules { 
+    threshold {
+      severity           = "critical"
+      metric_name        = "nomad.client.allocations.blocked"
+      window             = 60000
+      aggregation        = "avg"
+      condition_operator = ">"
+      condition_value    = 0
+    }
+    
     threshold {
       severity           = "critical"
       metric_name        = "nomad.client.allocations.pending"
@@ -163,6 +201,8 @@ resource "instana_custom_event_specification" "example" {
 * `enabled` - Optional - Boolean flag if the rule should be enabled - default = true
 * `triggering` - Optional - Boolean flag if the rule should trigger an incident - default = false
 * `expiration_time` - Optional - The grace period in milliseconds until the issue is closed
+* `rule_logical_operator` - Optional - the logical operator which will be applied to combine multiple rules (threshold
+  rules only) - default `AND` - allowed values `AND`, `OR`
 * `rules` - Required - The configuration of the specific rule of the custom event [Details](#rules)
 
 ### Rules
@@ -175,7 +215,8 @@ Exactly one of the elements below must be configured:
 * `entity_verifiation` - Optional - configuration of entity verification rules [Details](#entity-verification-rule)
 * `host_availability` - Optional - configuration of host availability rules [Details](#host-availability-rule)
 * `system` - Optional - configuration of system rules [Details](#system-rule)
-* `threshold` - Optional - configuration of threshold rule [Details](#threshold-rule)
+* `threshold` - Optional - configuration of threshold rules [Details](#threshold-rule); Up to 5 rules can be configured
+  and combined using the logical operator specified in `rule_logical_operator`
 
 #### Entity Count Rule
 
