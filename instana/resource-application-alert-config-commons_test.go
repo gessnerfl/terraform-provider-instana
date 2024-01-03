@@ -359,7 +359,6 @@ func (f *anyApplicationConfigTest) createTetResourceShouldHaveCorrectResourceNam
 
 func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceStateFromModel(t *testing.T) {
 	metricName := "test-metric"
-	stableHash := int32(1234)
 	statusCodeStart := int32(200)
 	statusCodeEnd := int32(300)
 	logMessage := "test-log-message"
@@ -372,11 +371,11 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 				AlertType:   ApplicationAlertConfigFieldRuleThroughput,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
-				StableHash:  &stableHash,
 			},
 			expected: []interface{}{
 				map[string]interface{}{
 					ApplicationAlertConfigFieldRuleErrorRate:  []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors:     []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
 					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
 					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
@@ -384,7 +383,6 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:  metricName,
-							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
 						},
 					},
 				},
@@ -396,20 +394,19 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 				AlertType:       "statusCode",
 				Aggregation:     restapi.MinAggregation,
 				MetricName:      metricName,
-				StableHash:      &stableHash,
 				StatusCodeStart: &statusCodeStart,
 				StatusCodeEnd:   &statusCodeEnd,
 			},
 			expected: []interface{}{
 				map[string]interface{}{
 					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors:    []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs:      []interface{}{},
 					ApplicationAlertConfigFieldRuleSlowness:  []interface{}{},
 					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation:     string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:      metricName,
-							ApplicationAlertConfigFieldRuleStableHash:      int(stableHash),
 							ApplicationAlertConfigFieldRuleStatusCodeStart: int(statusCodeStart),
 							ApplicationAlertConfigFieldRuleStatusCodeEnd:   int(statusCodeEnd),
 						},
@@ -424,17 +421,16 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 				AlertType:   ApplicationAlertConfigFieldRuleSlowness,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
-				StableHash:  &stableHash,
 			},
 			expected: []interface{}{
 				map[string]interface{}{
 					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors:    []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs:      []interface{}{},
 					ApplicationAlertConfigFieldRuleSlowness: []interface{}{
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:  metricName,
-							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
 						},
 					},
 					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
@@ -448,7 +444,6 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 				AlertType:   ApplicationAlertConfigFieldRuleLogs,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
-				StableHash:  &stableHash,
 				Message:     &logMessage,
 				Operator:    &logOperator,
 				Level:       &logLevel,
@@ -456,11 +451,11 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 			expected: []interface{}{
 				map[string]interface{}{
 					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors:    []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs: []interface{}{
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation:  string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:   metricName,
-							ApplicationAlertConfigFieldRuleStableHash:   int(stableHash),
 							ApplicationAlertConfigFieldRuleLogsLevel:    string(logLevel),
 							ApplicationAlertConfigFieldRuleLogsMessage:  logMessage,
 							ApplicationAlertConfigFieldRuleLogsOperator: string(logOperator),
@@ -478,7 +473,6 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 				AlertType:   "errorRate",
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
-				StableHash:  &stableHash,
 			},
 			expected: []interface{}{
 				map[string]interface{}{
@@ -486,7 +480,30 @@ func (f *anyApplicationConfigTest) createTestCasesForUpdatesOfTerraformResourceS
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:  metricName,
-							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
+						},
+					},
+					ApplicationAlertConfigFieldRuleErrors:     []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
+				},
+			},
+		},
+		{
+			name: "Errors",
+			input: restapi.ApplicationAlertRule{
+				AlertType:   "errors",
+				Aggregation: restapi.SumAggregation,
+				MetricName:  metricName,
+			},
+			expected: []interface{}{
+				map[string]interface{}{
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation: string(restapi.SumAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:  metricName,
 						},
 					},
 					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
@@ -772,7 +789,6 @@ func (f *anyApplicationConfigTest) requireApplicationAlertConfigThresholdSetOnSc
 
 func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceStateToModel(t *testing.T) {
 	metricName := "test-metric"
-	stableHash := int32(1234)
 	statusCodeStart := int32(200)
 	statusCodeEnd := int32(300)
 	logMessage := "test-log-message"
@@ -785,11 +801,11 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 				AlertType:   ApplicationAlertConfigFieldRuleThroughput,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
-				StableHash:  &stableHash,
 			},
 			input: []map[string]interface{}{
 				{
 					ApplicationAlertConfigFieldRuleErrorRate:  []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors:     []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
 					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
 					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
@@ -797,7 +813,6 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:  metricName,
-							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
 						},
 					},
 				},
@@ -809,20 +824,19 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 				AlertType:       "statusCode",
 				Aggregation:     restapi.MinAggregation,
 				MetricName:      metricName,
-				StableHash:      &stableHash,
 				StatusCodeStart: &statusCodeStart,
 				StatusCodeEnd:   &statusCodeEnd,
 			},
 			input: []map[string]interface{}{
 				{
 					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors:    []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs:      []interface{}{},
 					ApplicationAlertConfigFieldRuleSlowness:  []interface{}{},
 					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation:     string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:      metricName,
-							ApplicationAlertConfigFieldRuleStableHash:      int(stableHash),
 							ApplicationAlertConfigFieldRuleStatusCodeStart: int(statusCodeStart),
 							ApplicationAlertConfigFieldRuleStatusCodeEnd:   int(statusCodeEnd),
 						},
@@ -837,17 +851,16 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 				AlertType:   ApplicationAlertConfigFieldRuleSlowness,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
-				StableHash:  &stableHash,
 			},
 			input: []map[string]interface{}{
 				{
 					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors:    []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs:      []interface{}{},
 					ApplicationAlertConfigFieldRuleSlowness: []interface{}{
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:  metricName,
-							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
 						},
 					},
 					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
@@ -861,7 +874,6 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 				AlertType:   ApplicationAlertConfigFieldRuleLogs,
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
-				StableHash:  &stableHash,
 				Message:     &logMessage,
 				Operator:    &logOperator,
 				Level:       &logLevel,
@@ -869,11 +881,11 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 			input: []map[string]interface{}{
 				{
 					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors:    []interface{}{},
 					ApplicationAlertConfigFieldRuleLogs: []interface{}{
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation:  string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:   metricName,
-							ApplicationAlertConfigFieldRuleStableHash:   int(stableHash),
 							ApplicationAlertConfigFieldRuleLogsLevel:    string(logLevel),
 							ApplicationAlertConfigFieldRuleLogsMessage:  logMessage,
 							ApplicationAlertConfigFieldRuleLogsOperator: string(logOperator),
@@ -891,7 +903,6 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 				AlertType:   "errorRate",
 				Aggregation: restapi.MinAggregation,
 				MetricName:  metricName,
-				StableHash:  &stableHash,
 			},
 			input: []map[string]interface{}{
 				{
@@ -899,7 +910,30 @@ func (f *anyApplicationConfigTest) createTestCasesForMappingOfTerraformResourceS
 						map[string]interface{}{
 							ApplicationAlertConfigFieldRuleAggregation: string(restapi.MinAggregation),
 							ApplicationAlertConfigFieldRuleMetricName:  metricName,
-							ApplicationAlertConfigFieldRuleStableHash:  int(stableHash),
+						},
+					},
+					ApplicationAlertConfigFieldRuleErrors:     []interface{}{},
+					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},
+					ApplicationAlertConfigFieldRuleSlowness:   []interface{}{},
+					ApplicationAlertConfigFieldRuleStatusCode: []interface{}{},
+					ApplicationAlertConfigFieldRuleThroughput: []interface{}{},
+				},
+			},
+		},
+		{
+			name: "Errors",
+			expected: restapi.ApplicationAlertRule{
+				AlertType:   "errors",
+				Aggregation: restapi.SumAggregation,
+				MetricName:  metricName,
+			},
+			input: []map[string]interface{}{
+				{
+					ApplicationAlertConfigFieldRuleErrorRate: []interface{}{},
+					ApplicationAlertConfigFieldRuleErrors: []interface{}{
+						map[string]interface{}{
+							ApplicationAlertConfigFieldRuleAggregation: string(restapi.SumAggregation),
+							ApplicationAlertConfigFieldRuleMetricName:  metricName,
 						},
 					},
 					ApplicationAlertConfigFieldRuleLogs:       []interface{}{},

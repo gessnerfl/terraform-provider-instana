@@ -8,7 +8,7 @@
     },
     "termsOfService": "https://www.instana.com/terms-of-use/",
     "title": "Introduction to Instana public APIs",
-    "version": "1.256.508",
+    "version": "1.263.856",
     "x-logo": {
       "altText": "instana logo",
       "backgroundColor": "#FAFBFC",
@@ -171,14 +171,17 @@
     },
     {
       "name": "Synthetic Settings",
-      "description": "The API endpoints of this group can be used to manage Synthetic Locations and Synthetic Tests. \n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is public or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript (Beta), WebpageAction (Beta), and WebpageScript (Beta). \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.\n    Right now, only Chrome and Firefox are supported. \n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript (Beta), WebpageAction (Beta),\n      and WebpageScript (Beta). The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). \n      It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.\n        - If user defined timeout value exceeds the `maxTimeout` or `testFrequency` in test configuration, the timeout value does not take effect \n          and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n        - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. \n          BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration (Beta), WebpageActionConfiguration (Beta), and WebpageScriptConfiguration (Beta). \n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=monitoring-using-api-scripts\n        - **BrowserScriptConfiguration** has the following properties:\n          - **script** A Node.js based test script, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **scriptType** The type of the script, right now, only Basic type is supported. \n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is BrowserScript. It is required.\n        - **WebpageActionConfiguration** has the following properties:\n          - **url** The URL of the Web page being tested. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageAction. It is required.\n        - **WebpageScriptConfiguration** has the following properties:\n          - **script** A Selenium IDE recording script. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageScript. It is required.\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,\n  Synthetic tests run at all locations simultaneously. \n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes.\n"
+      "description": "The API endpoints of this group can be used to manage Synthetic Locations, Synthetic Tests and Synthetic Credentials. \n\n## Synthetic Location Properties:\n- **id** Unique identifier of the location resource.\n- **label** Friendly name of the location.\n- **description** The description of the location.\n- **locationType** Indicates if the location is public or private.\n- **playbackCapability** The playback capabilities provided by this location resource.\n  The playbackCapability object has the following properties: \n  - **syntheticType** Different types of synthetic tests that can be executed at this location. \n    Possible values are HTTPAction, HTTPScript, BrowserScript (Beta), WebpageAction (Beta), and WebpageScript (Beta). \n    The values are corresponding to the syntheticType parameter available in the createSyntheticTest endpoint.\n  - **browserType** Different types of supported Web browsers when creating synthetic tests for BrowserScript, WebpageAction and WebpageScript.\n    Right now, only Chrome and Firefox are supported. \n- **geoPoint** An object includes the longitude, latitude, country name, and city name properties of a location. \n- **popVersion** PoP's version\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic location.\n- **createdAt** The location created time, following RFC3339 standard.\n- **modifiedAt** The location modified time, following RFC3339 standard.\n- **observedAt** The timestamp when PoP requests a Synthetic test, following RFC3339 standard.\n\n## Synthetic Test Properties:\n- **id** Unique identifier of the Synthetic test resource.\n- **label** Friendly name of the Synthetic test resource.\n- **description** The description of the Synthetic test.\n- **active** Indicates if the Synthetic test is started or not. The default is true.\n- **applicationId** Unique identifier of the Application Perspective.\n- **configuration** An object which has two properties: syntheticType and the corresponding configuration object:\n    - **syntheticType** The type of the Synthetic test. Supported values are HTTPAction, HTTScript, BrowserScript (Beta), WebpageAction (Beta),\n      and WebpageScript (Beta). The locations assigned to execute this Synthetic\n      test must support this syntheticType, i.e. the location's playbackCapabilities property.\n    - **markSyntheticCall** Flag used to control if HTTP calls will be marked as synthetic calls/endpoints in Instana backend, so they can be ignored when calculating service and application KPIs, users can also check \"Hide Synthetic Calls\" checkbox to hide/show them in UI.\n    - **retries** An integer type from 0 to 2, 0 by default.\n      It indicates how many attempts (max 2) will be allowed\n      to get a successful connection (not necessarily a successful result).\n      Failures like socket hangups, gateway timeouts, and DNS lookup fails cause retires, but 404's 400's, do not.\n    - **retryInterval** The time interval between retries in seconds. The default is 1s, max is 10s.\n    - **timeout** The timeout to be used by the PoP playback engines running the test. Values are in integers followed by a time unit (ms, s, m). \n      It is the minimum value of test configuration `timeout`, `testFrequency` and `maxTimeout` configured in PoP deployment.\n        - If user defined timeout value exceeds the `maxTimeout` or `testFrequency` in test configuration, the timeout value does not take effect \n          and PoP playback engines use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n        - If timeout value in test configuration is not provided, the default value is **1m** for HTTPAction and HTTPScript tests. \n          BrowserScript, WebpageAction, and WebpageScript tests use the smaller one of `maxTimeout` and `testFrequency` as the actual timeout value.\n    - **XXXConfiguration** The configuration corresponding to the syntheticType. Configuration types are HTTPActionConfiguration, HTTPScriptConfiguration,\n      BrowserScriptConfiguration (Beta), WebpageActionConfiguration (Beta), and WebpageScriptConfiguration (Beta). \n        - **HTTPActionConfiguration** has the following properties:\n            - **url** The URL is being tested. It is required.\n            - **syntheticType** Its value is HTTPAction. It is required.\n            - **operation** An operation being used must be one of GET, HEAD, OPTIONS, PATCH, POST, PUT, and DELETE. By default, it is GET.\n            - **headers** An object with header/value pairs\n                - **header** The header to be sent in operation. It should not contain the terminating ':' character.\n                - **value** The value of the header.\n            - **body** The body content to send with the operation.\n            - **validationString** An expression to be evaluated.\n            - **followRedirect** A boolean type, true by default; to allow redirect.\n            - **allowInsecure** A boolean type,  true by default; if set to true then allow insecure certificates\n              (expired, self-signed, etc).\n            - **expectStatus** An integer type, by default, the Synthetic passes for any 2XX status code.\n              This forces just one status code to cause a pass, including what would normally be a fail, for example, a 404.\n            - **expectJson** An optional object to be used to check against the test response object.\n            - **expectMatch** An optional regular expression string to be used to check the test response.\n            - **expectExists** An optional list of property labels used to check if they are present in the test response object.\n            - **expectNotEmpty** An optional list of property labels used to check if they are present in the test response object with a non-empty value.\n        - **HTTPScriptConfiguration** has the following properties:\n          - **script** The Javascript content, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **syntheticType** Its value is HTTPScript. It is required.\n          - The API Script Guide, including examples, can be found at: https://www.ibm.com/docs/en/instana-observability/current?topic=monitoring-using-api-scripts\n        - **BrowserScriptConfiguration** has the following properties:\n          - **script** A Node.js based test script, it is plain text, not base64 encoded. **script** and **scripts** are mutually exclusive.\n          - **scripts** Multi script package. **script** and **scripts** are mutually exclusive.\n              - **scriptFile** The name of the file to run\n              - **bundle** All required js files bundled up into a single zip file with base64 encoded\n          - **scriptType** The type of the script, right now, only Basic type is supported. \n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is BrowserScript. It is required.\n        - **WebpageActionConfiguration** has the following properties:\n          - **url** The URL of the Web page being tested. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageAction. It is required.\n        - **WebpageScriptConfiguration** has the following properties:\n          - **script** A Selenium IDE recording script. It is required.\n          - **browser** The type of the browser: chrome or firefox, chrome by default.\n          - **recordVideo** A boolean type, false by default.\n          - **syntheticType** Its value is WebpageScript. It is required.\n- **createdAt** The test created time, following RFC3339 standard.\n- **createdBy** The user identifier who created the test resource.\n- **customProperties** An object with name/value pairs to provide additional information of the Synthetic test.\n- **locations** It is an array of the PoP location IDs where the Synthetic tests are located.\n- **modifiedAt** The test last updated time, following RFC3339 standard.\n- **modifiedBy** The user identifier who updated the test resource.\n- **playbackMode** Defines how the Synthetic test should be executed across multiple\n  PoPs. This property is optional, and its default value is Simultaneous, and only Simultaneous is supported, i.e.,\n  Synthetic tests run at all locations simultaneously. \n- **testFrequency** How often the playback for a Synthetic test is scheduled. The unit of the testFrequency parameter is minute.\n  The default is every 15 minutes. The range is from 1 minute to 120 minutes.\n\n## Synthetic Credentials:\n\nSynthetic credentials can be used to store passwords and/or secrets used by the Synthetic Tests.\n\nAll Script Tests can use credentials in their body and API Simple Tests can use them on header parameters.\n\nIt is required that the credentials used in the test be created before the test is created or modified.\n\nTests using credentials are validated during test creation and update whether you use the API or UI, as follows:\n\n1. The user Id of the logged in user or API Token being used to create or modify the test must have permission to use credentials.  \n  Requests to create or update a test referencing credentials without the correct permission will fail with return code `Forbidden`.\n\n2. The credentials or secrets used in the test must exist.  \n  Requests to create or update a test referencing credentials that do not exist will fail with return code `Bad Request`."
     },
     {
       "name": "Synthetic Test Playback Results",
-      "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes), \n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second), \n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values). \n   \n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), \n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results.\nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for responseTime and responseSize must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseSize\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: synthetic.id (a string representing the test result ID), \nsynthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\nsynthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\nsynthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values).\n\nThe following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\nsynthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\nThe metric synthetic.tags adds the latest list of custom properties to the response.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only synthetic.metricsResponseTime (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have three options to search for a test.\n\n**syntheticType | locationId | applicationId**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**syntheticType | locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a list of Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
+      "description": "The endpoints of this group retrieve the results for defined Synthetic tests.\n\n**Note on names in TagFilter/TagFilterExpression**: From R243, the name used in a TagFilter or a TagFilterExpression has the format: synthetic.\\<name\\>.\nIt can be one of the following: synthetic.id (id is the test result id), synthetic.testId,\nsynthetic.testName, synthetic.locationId, synthetic.applicationId, synthetic.serviceId, synthetic.syntheticType,\nsynthetic.locationName, and synthetic.locationLabel. If it is a metric name, then the format is: synthetic.metrics\\<MetricName\\>.\nFor example, synthetic.metricsResponseTime, synthetic.metricsStatus.\n\nThe names used prior to R243 should be considered as deprecated. They will be accepted temporarily and will be removed in an upcoming release.\n\n## Get Synthetic test playback results \nThe endpoint returns the aggregated Synthetic test result data\n\n### Mandatory Parameters  \n\n**testId** An array of the unique identifiers of Synthetic tests\n\n**metrics** A list of metric objects that define which metric should be returned, with the defined aggregation. Each metrics objects consists of minimum two items:\n1. *metric* select a particular metric. This is the list of available metrics for all types of Synthetic Tests: \n   synthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes), \n   synthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second), \n   synthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values). \n   \n   The following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes), \n   synthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\n   The metric synthetic.tags adds the latest list of custom properties to the response.\n\n2. *aggregation* Depending on the selected metric, different aggregations are available e.g., SUM, MEAN, P90 (90th percentile), DISTINCT_COUNT, and MAX.  MAX is only allowed for synthetic.tags.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\nThe timeFrame might be adjusted to fit the metric granularity so that there is no partial bucket. For example, if the query timeFrame is 08:02 - 09:02 and the metric granularity is 5 minutes, the timeFrame will be adjusted to 08:05 - 09:00. The adjusted timeFrame will be returned in the response payload. If the query does not have any metric with granularity, a default granularity will be used for adjustment.\n\n### Optional Parameters\n\n**metrics** By default you will get an aggregated metric for the selected timeframe\n\n* *granularity*\n    * If it is not set you will get an aggregated value for the selected timeframe\n    * If the granularity is set you will get data points with the specified granularity **in seconds**\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in **milliseconds**)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n    * The granularity values are the same for all metrics\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results.\nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have two options to search for a test.\n\n**locationId | applicationId**\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n### Defaults\n\n**metrics**\n* *granularity:* 0\n\n**timeFrame**\n```\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n**locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a Synthetic test result\n```\n{\n    \"testId\": [\"tUmWgvzdo1Q1vpVRpzR5\", \"Pg0Q1UqHRd7OMysohVLd\"],\n    \"//comment1\": \"Get test results from last 30 minutes (windowSize), data are aggregated every 10 minutes (granularity)\",\n    \"//comment2\": \"The granularity values for responseTime and responseSize must be the same\"\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     },\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 600,    \n        \"metric\": \"synthetic.metricsResponseSize\"\n     }],\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 1800000  \n     }\n}\n```\n\n## Get a list of Synthetic test playback results (no aggregation)\n### Mandatory Parameters\n**syntheticMetrics** It is an array of metrics. The available metrics for all types of Synthetic Tests: synthetic.id (a string representing the test result ID), \nsynthetic.metricsResponseTime (ms), synthetic.metricsResponseSize (bytes), synthetic.metricsStatusCode (an integer represents an HTTP response code, e.g., 200, 401, 500), synthetic.metricsRequestSize (bytes),\nsynthetic.metricsUploadSpeed (bytes per second), synthetic.metricsDownloadSpeed (bytes per second),\nsynthetic.metricsRedirectTime (ms), synthetic.metricsRedirectCount, synthetic.metricsConnectCount, synthetic.metricsStatus (an integer, 1-success or 0-failure), and synthetic.tags (list of custom properties and values).\n\nThe following metrics are only available for the HTTPAction type Synthetic Tests: synthetic.metricsBlocking (bytes), synthetic.metricsDns (bytes), synthetic.metricsConnect (bytes), synthetic.metricsSsl (bytes),\nsynthetic.metricsSending (bytes), synthetic.metricsWaiting (bytes), and synthetic.metricsReceiving (bytes).\n\nThe metric synthetic.tags adds the latest list of custom properties to the response.\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n```\n\n### Optional Parameters\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, e.g. \"synthetic.metricsResponseTime\" to order by that value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. \nIt will be replaced by **tagFilterExpression**.\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with \nlogical operators AND or OR.\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilters\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilters\":[{\n    \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n    \"name\":\"synthetic.testId\",\n    \"operator\":\"EQUALS\"\n  }],\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n### Sample payload to get a list of Synthetic test results with tagFilterExpression\n```json\n{\n  \"syntheticMetrics\":[\"synthetic.metricsResponseTime\",\"synthetic.metricsResponseSize\"],\n  \"order\":{\n    \"by\":\"synthetic.metricsResponseTime\",\n    \"direction\":\"DESC\"\n  },\n  \"tagFilterExpression\": { \n    \"type\":\"EXPRESSION\",\n    \"logicalOperator\":\"AND\",\n    \"elements\":[{\n      \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n      \"name\":\"synthetic.testId\",\n      \"operator\":\"EQUALS\"\n    }, {\n      \"name\": \"synthetic.locationId\", \n      \"operator\": \"EQUALS\", \n      \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n    }]\n  },\n  \"timeFrame\": {\n    \"to\": 0,\n    \"windowSize\": 1800000\n  }\n}\n```\n\n## Get a list of Synthetic tests with Success Rate and Average Response Time data\nThe endpoint returns a list of Synthetic tests with Success Rate and Average Response Time result data\n\n### Mandatory Parameters\n\n**metrics**\n1. *metric* select a particular metric. Right now, only synthetic.metricsResponseTime (ms) is supported.\n2. *aggregation* MEAN\n3. *granularity* 60\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you most probably want to fix the timeFrame for the retrieved metrics\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic test results you want to return with one query\n\n**order** You can order the returned items alphanumerical by label, either ascending or descending\n1. *by* Use the metric name, \"synthetic.metricsResponseTime\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.syntheticType, synthetic.locationId, and synthetic.applicationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.applicationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"AND\",\n  \"elements\":[{\n    \"name\": \"synthetic.metricsStatus\", \n    \"operator\": \"EQUALS\", \n    \"numberValue\": 1\n  }, {\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\nEither tagFilters or tagFilterExpression can specify a custom property by its key and value.\n```\n\"tagFilters\":[{\n  \"name\":\"synthetic.tags\",\n  \"key\":\"location\",\n  \"value\":\"Denver\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\nTo narrow down the result set you have three options to search for a test.\n\n**syntheticType | locationId | applicationId**\n\n* *synthetic.syntheticType:* filter by syntheticType, either HTTPAction or HTTPScript\n\n* *synthetic.locationId:* filter by locationId\n\n* *synthetic.applicationId:* filter by applicationId\n\n\nTests can also be filtered by their active state (`true`/`false`) using the custom property label `synthetic.testActive`.\n```\n\"tagFilters\": [{ \n  \"name\":\"synthetic.testActive\", \n  \"operator\":\"EQUALS\",\n  \"booleanValue\": false \n}]\n```\n\n### Defaults\n\n**syntheticType | locationId | applicationId**\n* no filters are applied in the default call\n\n### Sample payload to get a list of active Synthetic tests with SuccessRate and Average Response Time results\n```\n{\n    \"metrics\": [\n     {\n        \"aggregation\": \"MEAN\",\n        \"granularity\": 60,    \n        \"metric\": \"synthetic.metricsResponseTime\"\n     }],\n     \"tagFilterExpression\": { \n        \"type\":\"EXPRESSION\",\n        \"logicalOperator\":\"AND\",\n        \"elements\":[{\n          \"name\": \"synthetic.locationId\", \n          \"operator\": \"EQUALS\", \n          \"stringValue\": \"abcdefgXSJmQsehOWg1S\"\n        }, {\n          \"name\": \"synthetic.testActive\",\n          \"operator\": \"EQUALS\",\n          \"booleanValue\": true\n        }]\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get a list of Synthetic locations with Last Test Run on (each location) data\nThe endpoint returns a list of Synthetic locations with Last Test Run on (each location) result data\n\n### Mandatory Parameters\n\n**timeFrame** As in our UI you can specify the timeframe for metrics retrieval.\n```\n  windowSize           to\n     (ms)       (unix-timestamp)\n<----------------------|\n\n\"timeFrame\": {\n\t\"windowSize\": 60000,\n\t\"to\": {current timestamp}\n}\n```\n\n### Optional Parameters\n\n**pagination** if you use pagination you should use the same timeFrame for all of the pages you want to query\n1. *page* select the page number you want to retrieve\n2. *pageSize* set the number of Synthetic locations you want to return with one query\n\n**order** You can order the returned items alphanumerically by label, either ascending or descending\n1. *by* Use the metric name, e.g., \"location_name\", to order by its value\n2. *direction* either ascending (ASC) or descending (DESC)\n\n   The sorting can be done on the following metrics: location_name, location_label, status, type, total_tests,\n   last_test_run, and namespace\n\n**tagFilters** It serves as a filter to narrow down return results. The name of a tagFilter is one of the following: \nsynthetic.locationName, synthetic.locationLabel, and synthetic.locationId.\nIt will be replaced by **tagFilterExpression**.\n```\n\"tagFilters\":[{\n  \"stringValue\":\"hYziqsaXSJmQsehOWg1S\",\n  \"name\":\"synthetic.locationId\",\n  \"operator\":\"EQUALS\"\n}]\n```\n\n**tagFilterExpression** It serves as a filter to narrow down return results. Its type can be either EXPRESSION or TAG_FILTER with\nlogical operators AND or OR.\n```\n\"tagFilterExpression\": { \n  \"type\":\"EXPRESSION\",\n  \"logicalOperator\":\"OR\",\n  \"elements\":[{\n    \"name\": \"synthetic.locationId\", \n    \"operator\": \"EQUALS\", \n    \"stringValue\":\"WnjlKKbgzLDnyGra6PAs\"\n  }]\n}\n```\n\nA payload only needs either tagFilters or tagFilterExpression as a filter, not both.\n\n### Sample payload to get a list of Synthetic locations with Last Test Run on (each location) data\n```\n{\n    \"order\": {\n     \t\"by\": \"status\", \n     \t\"direction\": \"Desc\"\n     },\n     \"timeFrame\": {\n       \"to\": 0,\n       \"windowSize\": 3600000  \n     }\n}\n```\n\n## Get Synthetic test playback result detail data\n\n### Query Parameters\n**type** The type of the detailed data. Its value is one of these types: SUBTRANSACTIONS, LOGS, and HAR.\n\n**name** The name of the file to be retrieved, if more than one file available for the same type. Used when the type equals to LOGS or IMAGES\n\n## Download a Synthetic test playback result detail data file\n\n### Query Parameter\n**type** The type of a single compressed file. Its value is one of these types: SUBTRANSACTIONS, LOGS, IMAGES, VIDEOS, and HAR."
     },
     {
       "name": "Automation Settings"
+    },
+    {
+      "name": "Authentication"
     }
   ],
   "paths": {
@@ -1171,7 +1174,8 @@
                 "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
-                "APPLICATION_CONFIG_BLUEPRINT"
+                "APPLICATION_CONFIG_BLUEPRINT",
+                "MAINTENANCE_WINDOWS"
               ],
               "example": null
             }
@@ -1317,7 +1321,8 @@
                 "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
-                "APPLICATION_CONFIG_BLUEPRINT"
+                "APPLICATION_CONFIG_BLUEPRINT",
+                "MAINTENANCE_WINDOWS"
               ],
               "example": null
             }
@@ -3973,7 +3978,7 @@
         "tags": [
           "Events"
         ],
-        "description": "This endpoint retrieves all available events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n- **includeAgentMonitoringIssues:** Optional flag to indicate whether to include Agent Monitoring Issues. The default is `false`.\n- **includeKubernetesInfoEvents:** Optional flag to indicate whether to include Kubernetes Info Events. The default is `false`.\n\n### Examples\n\nFetch all events that have been opened within the last 30 minutes.\n\n```bash\ncurl --request GET 'https://<Host>/api/events?windowSize=1800000&excludeTriggeredBefore=true' \\\n--header 'Authorization: apiToken <Token>'\n```\n\nFetch all events that have been opened or closed within the last minute, using a fetch delay of 120 seconds.\n\n```bash\nTO_MILLIS=$((($(date +%s) - 120) * 1000)) curl --request GET \"https://<Host>/api/events?windowSize=60000&to=$TO_MILLIS&filterEventUpdates=true\" \\\n--header 'Authorization: apiToken <Token>'\n```\n"
+        "description": "This endpoint retrieves all available events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n### Deprecated Parameters\n\n- **includeAgentMonitoringIssues:** Optional flag to indicate whether to include Agent Monitoring Issues. The default is `false`.\n- **includeKubernetesInfoEvents:** Optional flag to indicate whether to include Kubernetes Info Events. The default is `false`.\n\n### Examples\n\nFetch all events that have been opened within the last 30 minutes.\n\n```bash\ncurl --request GET 'https://<Host>/api/events?windowSize=1800000&excludeTriggeredBefore=true' \\\n--header 'Authorization: apiToken <Token>'\n```\n\nFetch all events that have been opened or closed within the last minute, using a fetch delay of 120 seconds.\n\n```bash\nTO_MILLIS=$((($(date +%s) - 120) * 1000)) curl --request GET \"https://<Host>/api/events?windowSize=60000&to=$TO_MILLIS&filterEventUpdates=true\" \\\n--header 'Authorization: apiToken <Token>'\n```\n"
       },
       "post": {
         "operationId": "getEventsByIds",
@@ -4019,6 +4024,160 @@
           "Events"
         ],
         "description": "This endpoint retrieves events given a set of IDs. Only actually existing event IDs are respected in the result set.\n\n### Mandatory Parameters:\n\n- **eventIds:** The set of IDs of the events to fetch."
+      }
+    },
+    "/api/events/agent-monitoring-events": {
+      "get": {
+        "operationId": "agentMonitoringEvents",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "windowSize",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "excludeTriggeredBefore",
+            "schema": {
+              "type": "boolean",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "filterEventUpdates",
+            "schema": {
+              "type": "boolean",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/EventResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get all agent monitoring events",
+        "tags": [
+          "Events"
+        ],
+        "description": "This endpoint retrieves all agent monitoring events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n"
+      }
+    },
+    "/api/events/kubernetes-info-events": {
+      "get": {
+        "operationId": "kubernetesInfoEvents",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "windowSize",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "excludeTriggeredBefore",
+            "schema": {
+              "type": "boolean",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "filterEventUpdates",
+            "schema": {
+              "type": "boolean",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/EventResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get all kubernetes info events",
+        "tags": [
+          "Events"
+        ],
+        "description": "This endpoint retrieves all kubernetes info events for the requested timeframe.\n\n### Query Parameters:\n\n- **to:** The end of the requested timeframe as a Unix timestamp. The current service time is used as a default if not provided. Please note that it is recommended to fetch historical events with a delay using a `to` timestamp in the past due to eventual consistency. It can take up to **2 minutes** in some cases until an event update is reflected in the results.\n- **windowSize:** The size of the requested timeframe in milliseconds relative to `to`. If neither `windowSize` nor `from` is provided, then a default windowSize of *10 minutes* is used.\n- **from:** As an alternative to defining the `windowSize`, the `from` query parameter can be used, which spans the timeframe in range `[from, to)`.\n- **excludeTriggeredBefore:** Whether to exclude events that have been triggered before the requested timeframe in order to enable searching for events that have started within the given timeframe, excluding events that are previously active already. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using tumbling windows, when you only care about new events.\nThis option is more restrictive than `filterEventUpdates` and does not inform about event state updates that got `CLOSED` in the timeframe of the query if not also the start time of the event is within that query timeframe.\n- **filterEventUpdates:** Filters results to event updates only. This means that an event is only included when its event state changed in the given query timeframe. This is useful for 3rd party integrations that fetch events from Instana with a scheduled batch job in a fixed interval using a tumbling windows, when you care about event state updates.\n\n"
       }
     },
     "/api/events/settings/alertingChannels": {
@@ -6479,6 +6638,412 @@
         ]
       }
     },
+    "/api/events/settings/infra-alert-configs": {
+      "get": {
+        "description": "Configs are sorted descending by their created date.",
+        "operationId": "findActiveInfraAlertConfigs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "alertIds",
+            "schema": {
+              "type": "array",
+              "example": null,
+              "items": {
+                "type": "string",
+                "example": null
+              },
+              "maxItems": 1000,
+              "minItems": 0,
+              "uniqueItems": true
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/InfraAlertConfigWithMetadata"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "All Infra Alert Configs",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      },
+      "post": {
+        "operationId": "createInfraAlertConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfraAlertConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfraAlertConfigWithMetadata"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Create Infra Alert Config",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/infra-alert-configs/{id}": {
+      "delete": {
+        "operationId": "deleteInfraAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Delete Infra Alert Config",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      },
+      "get": {
+        "description": "Find a Infra Alert Config by ID. This will deliver deleted configs too.",
+        "operationId": "findInfraAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "query",
+            "name": "validOn",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfraAlertConfigWithMetadata"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get Infra Alert Config",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      },
+      "post": {
+        "operationId": "updateInfraAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InfraAlertConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfraAlertConfigWithMetadata"
+                }
+              }
+            },
+            "description": "Infra Smart Alert successfully updated"
+          },
+          "204": {
+            "description": "Infra Smart Alert did not change"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Update Infra Alert Config",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/infra-alert-configs/{id}/disable": {
+      "put": {
+        "operationId": "disableInfraAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "example": null,
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Disable Infra Alert Config",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/infra-alert-configs/{id}/enable": {
+      "put": {
+        "operationId": "enableInfraAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "example": null,
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Enable Infra Alert Config",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/infra-alert-configs/{id}/restore/{created}": {
+      "put": {
+        "operationId": "restoreInfraAlertConfig",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "in": "path",
+            "name": "created",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "example": null,
+                "nullable": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "CanConfigureGlobalAlertConfigs"
+            ]
+          }
+        ],
+        "summary": "Restore Infra Alert Config",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      }
+    },
+    "/api/events/settings/infra-alert-configs/{id}/versions": {
+      "get": {
+        "description": "Find all versions of a Infra Alert Config by ID. This will deliver deleted configs too. Configs are sorted descending by their created date.",
+        "operationId": "findInfraAlertConfigVersions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/ConfigVersion"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get versions of Infra Alert Config",
+        "tags": [
+          "Infrastructure Alert Configuration"
+        ]
+      }
+    },
     "/api/events/settings/mobile-app-alert-configs": {
       "get": {
         "description": "Configs are sorted descending by their created date.",
@@ -8052,6 +8617,50 @@
         "description": "This endpoint retrieves all available metric definitions of the requested plugin.\n\n### Path Parameters:\n\n**plugin** The plugin id from [available plugins](#operation/getInfrastructureCatalogPlugins)\n\n### Optional Parameters:\n\n**filter** You can restrict the returned metric definitions by passing a filter.\n\n* `custom` to retrieve custom metric definitions only.\n* `builtin` to retrieve built-in metric definitions only.\n"
       }
     },
+    "/api/infrastructure-monitoring/catalog/payloads/{pluginId}": {
+      "get": {
+        "operationId": "getAvailablePayloadKeysByPluginId",
+        "parameters": [
+          {
+            "description": "plugin id",
+            "example": "db2Database",
+            "in": "path",
+            "name": "pluginId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/GetPayloadKeysResult"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get payload keys for plugin",
+        "tags": [
+          "Infrastructure Catalog"
+        ]
+      }
+    },
     "/api/infrastructure-monitoring/catalog/plugins": {
       "get": {
         "operationId": "getInfrastructureCatalogPlugins",
@@ -8259,6 +8868,74 @@
           }
         ],
         "summary": "Monitored host count",
+        "tags": [
+          "Infrastructure Resources"
+        ]
+      }
+    },
+    "/api/infrastructure-monitoring/payloads/{snapshotId}/{payloadKey}": {
+      "get": {
+        "operationId": "getPluginPayload",
+        "parameters": [
+          {
+            "description": "Snapshot id.",
+            "in": "path",
+            "name": "snapshotId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "description": "Payload key. Use `/api/infrastructure-monitoring/catalog/payloads` to retrieve the list of possible keys.",
+            "example": "topqueries",
+            "in": "path",
+            "name": "payloadKey",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "description": "End of timeframe expressed as the Unix epoch time in milliseconds.",
+            "example": 1689018652000,
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          },
+          {
+            "description": "Window size in milliseconds.",
+            "example": 3600000,
+            "in": "query",
+            "name": "windowSize",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get a payload for a snapshot",
         "tags": [
           "Infrastructure Resources"
         ]
@@ -9008,7 +9685,8 @@
                 "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
-                "APPLICATION_CONFIG_BLUEPRINT"
+                "APPLICATION_CONFIG_BLUEPRINT",
+                "MAINTENANCE_WINDOWS"
               ],
               "example": null
             }
@@ -9067,6 +9745,37 @@
           }
         ],
         "summary": "Metric catalog",
+        "tags": [
+          "Mobile App Catalog"
+        ]
+      }
+    },
+    "/api/mobile-app-monitoring/catalog/tags": {
+      "get": {
+        "operationId": "getAllMobileAppCatalogTags",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "example": null,
+                  "items": {
+                    "$ref": "#/components/schemas/Tag"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Get all existing mobile app tags",
         "tags": [
           "Mobile App Catalog"
         ]
@@ -10291,6 +11000,102 @@
         ]
       }
     },
+    "/api/settings/authentication/googleSSO": {
+      "delete": {
+        "operationId": "deleteGoogleSSOConfig",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureAuthenticationMethods"
+            ]
+          }
+        ],
+        "summary": "Delete Google SSO configuration",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/settings/authentication/ldap": {
+      "delete": {
+        "operationId": "deleteLdapConfig",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureAuthenticationMethods"
+            ]
+          }
+        ],
+        "summary": "Delete LDAP configuration",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/settings/authentication/oidc": {
+      "delete": {
+        "operationId": "deleteOidcConfig",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureAuthenticationMethods"
+            ]
+          }
+        ],
+        "summary": "Delete OIDC configuration",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/settings/authentication/saml": {
+      "delete": {
+        "operationId": "deleteSamlConfig",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "ConfigureAuthenticationMethods"
+            ]
+          }
+        ],
+        "summary": "Delete SAML configuration",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
     "/api/settings/invitations": {
       "delete": {
         "operationId": "revokePendingInvitation",
@@ -10323,12 +11128,13 @@
         "summary": "Revoke pending invitation",
         "tags": [
           "User"
-        ]
+        ],
+        "description": "This API endpoint allows to delete an invitation, requires the users’ email as a Query parameter.\n"
       },
       "get": {
         "operationId": "getInvitations",
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
@@ -10352,13 +11158,20 @@
         "summary": "All pending invitations",
         "tags": [
           "User"
-        ]
+        ],
+        "description": "This API endpoint retrieves the list of all pending invitations.  \nDuring the IdP configuration all pending invitations will be dismissed and whilst an IdP is configured invitations are prevented.  "
       },
       "post": {
         "operationId": "inviteUsers",
         "requestBody": {
           "content": {
             "application/json": {
+              "example": [
+                {
+                  "email": "username@example.com",
+                  "groupId": "-1"
+                }
+              ],
               "schema": {
                 "type": "array",
                 "example": null,
@@ -10371,15 +11184,38 @@
           "required": true
         },
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
+                "example": {
+                  "invitationResults": [
+                    {
+                      "userEmail": "username@example.com",
+                      "invitationStatus": "SUCCESS"
+                    }
+                  ]
+                },
                 "schema": {
                   "type": "array",
                   "example": null,
                   "items": {
                     "$ref": "#/components/schemas/InvitationResponse"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "errors": [
+                    "Please set at least one email"
+                  ]
+                },
+                "schema": {
+                  "type": "string",
+                  "example": null
                 }
               }
             }
@@ -10395,7 +11231,8 @@
         "summary": "Send user invitations",
         "tags": [
           "User"
-        ]
+        ],
+        "description": "This API endpoint allows to invite users to this tenant.  \nEach user requires the email address and the group to which the user will be added initially.  \n\nInviting users whilst an IdP is configured will always result in failures, as in this case users will be provisioned during the login based on the IdP configuration.  \nDuring the IdP configurations all pending invitations are automatically revoked.\n\nInviting users who are already members of the tenant will also provide an error result.  "
       }
     },
     "/api/settings/maintenance": {
@@ -10596,7 +11433,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApiGroup"
+                "$ref": "#/components/schemas/ApiCreateGroup"
               }
             }
           },
@@ -11007,6 +11844,67 @@
           "Groups"
         ],
         "description": "Creates a mapping between a group from the IdP (LDAP, OIDC, SAML) and an Instana group.\n\nIf the IdP is configured and mappings are enabled, the `key` `value` pairs a user sent by the idp will be evaluated every time this user logs in.\n\nIf they match the mapping, the user will be assigned to the group corresponding to the `groupId`.\n\nInside the payload, the `id` for the mapping is ignored, and instead, Instana generates a new id."
+      }
+    },
+    "/api/settings/rbac/mappings/identityProvider/restrictEmptyIdpGroups": {
+      "get": {
+        "operationId": "getIdentityProviderPatch",
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdentityProviderPatch"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Check user restrictions for empty Idp group mapping",
+        "tags": [
+          "Groups"
+        ],
+        "description": "Returns `RestrictEmptyIdpGroups` value indicating if access is denied for empty Idp group mapping. `RestrictEmptyIdpGroups = true` indicates that the tenant is locked and only those users are allowed access that have at least one working mapping rule applied to them during the login process."
+      },
+      "put": {
+        "operationId": "updateIdentityProvider",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdentityProviderPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {}
+            },
+            "description": "default response"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": [
+              "Default"
+            ]
+          }
+        ],
+        "summary": "Allow/Restrict users with empty Idp group mapping",
+        "tags": [
+          "Groups"
+        ],
+        "description": "Set the RestrictEmptyIdpGroups value as true/false. See [Check user restrictions for empty Idp group mapping](#operation/getIdentityProviderPatch) for more details."
       }
     },
     "/api/settings/rbac/mappings/{id}": {
@@ -11451,6 +12349,16 @@
           "default": {
             "content": {
               "application/json": {
+                "example": [
+                  {
+                    "id": "userId",
+                    "email": "username@example.com",
+                    "fullName": "username",
+                    "lastLoggedIn": 1636434847190,
+                    "groupCount": 1,
+                    "tfaEnabled": false
+                  }
+                ],
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -11482,6 +12390,25 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "users": [
+                    {
+                      "id": "userId1",
+                      "email": "username@example.com",
+                      "fullName": "fullName",
+                      "lastLoggedIn": 1699313025975,
+                      "groupCount": null,
+                      "tfaEnabled": null
+                    }
+                  ],
+                  "invitations": [
+                    {
+                      "id": "userId2",
+                      "email": "username2@example.com",
+                      "groupId": "-3"
+                    }
+                  ]
+                },
                 "schema": {
                   "$ref": "#/components/schemas/UsersResult"
                 }
@@ -11519,6 +12446,9 @@
         "requestBody": {
           "content": {
             "application/json": {
+              "example": {
+                "fullName": "updatedFullName"
+              },
               "schema": {
                 "$ref": "#/components/schemas/EditUser"
               }
@@ -11578,7 +12508,8 @@
         "summary": "Remove user from tenant",
         "tags": [
           "User"
-        ]
+        ],
+        "description": "This API endpoint removes a single user from the tenant by their id.  \nThe id is provided as a path parameter.  \nRemoving a user from a tenant does not delete their user account. The user account will be scheduled for deletion if they are not a member of any tenant."
       },
       "get": {
         "operationId": "getUserById",
@@ -11597,6 +12528,29 @@
           "default": {
             "content": {
               "application/json": {
+                "example": {
+                  "id": "userId",
+                  "preferredName": "preferredName",
+                  "fullName": "fullName",
+                  "email": "username@example.com",
+                  "encryptedPassword": "",
+                  "lastLoggedIn": 1699442707385,
+                  "timestampAcceptedTos": 1696404223545,
+                  "timestampAcceptedPrivacyAgreement": 1696404223545,
+                  "acceptedTosVersion": 6,
+                  "acceptedPrivacyAgreementVersion": 9,
+                  "tenantsWhereMainContact": [],
+                  "tenants": [],
+                  "createDate": 1696404196256,
+                  "emailConfirmed": true,
+                  "tenantIds": [
+                    "55557f97186b9c0007857730"
+                  ],
+                  "passwordResetAttempt": 0,
+                  "groupCount": null,
+                  "tfaEnabled": null,
+                  "role": null
+                },
                 "schema": {
                   "type": "array",
                   "example": null,
@@ -11618,7 +12572,8 @@
         "summary": "Get single user",
         "tags": [
           "User"
-        ]
+        ],
+        "description": "This API endpoint retrieves a single user by their id. The id is provided as a path parameter."
       }
     },
     "/api/settings/v2/maintenance": {
@@ -11680,6 +12635,58 @@
                     },
                     "invalid": false,
                     "applicationNames": []
+                  },
+                  {
+                    "id": "1698949644924",
+                    "name": "sampleMaintenanceConfig",
+                    "query": "",
+                    "scheduling": {
+                      "start": 1698949644924,
+                      "duration": {
+                        "amount": 2,
+                        "unit": "HOURS"
+                      },
+                      "rrule": "FREQ=WEEKLY;INTERVAL=2;BYDAY=SA;COUNT=10",
+                      "timezoneId": "America/New_York",
+                      "type": "RECURRENT"
+                    },
+                    "paused": false,
+                    "validVersion": 1,
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "OR",
+                      "elements": [
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "synthetic.locationLabelAggregated",
+                          "stringValue": "us-east",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "us-east",
+                          "operator": "EQUALS",
+                          "entity": "NOT_APPLICABLE"
+                        },
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "synthetic.syntheticType",
+                          "stringValue": "HTTPScript",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "HTTPScript",
+                          "operator": "EQUALS",
+                          "entity": "NOT_APPLICABLE"
+                        }
+                      ]
+                    },
+                    "tagFilterExpressionEnabled": true,
+                    "lastUpdated": 1698949645163,
+                    "state": "SCHEDULED",
+                    "occurrence": {
+                      "start": 1699122444000,
+                      "end": 1699129644000
+                    }
                   }
                 ],
                 "schema": {
@@ -11827,7 +12834,7 @@
                   "value": {
                     "id": "maintenanceConfigID",
                     "name": "sampleMaintenanceConfig",
-                    "query": "entity.application.id:\"appID\" OR entity.application.id:\"anotherAppID\" ",
+                    "query": "",
                     "scheduling": {
                       "start": 1683827571245,
                       "duration": {
@@ -11837,6 +12844,35 @@
                       "type": "RECURRENT",
                       "rrule": "FREQ=WEEKLY;INTERVAL=2;BYDAY=SA;COUNT=10",
                       "timezoneId": "America/New_York"
+                    },
+                    "tagFilterExpressionEnabled": true,
+                    "tagFilterExpression": {
+                      "type": "EXPRESSION",
+                      "logicalOperator": "OR",
+                      "elements": [
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "synthetic.locationLabelAggregated",
+                          "stringValue": "us-east",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "us-east",
+                          "operator": "EQUALS",
+                          "entity": "NOT_APPLICABLE"
+                        },
+                        {
+                          "type": "TAG_FILTER",
+                          "name": "synthetic.syntheticType",
+                          "stringValue": "HTTPScript",
+                          "numberValue": null,
+                          "booleanValue": null,
+                          "key": null,
+                          "value": "HTTPScript",
+                          "operator": "EQUALS",
+                          "entity": "NOT_APPLICABLE"
+                        }
+                      ]
                     }
                   }
                 }
@@ -11852,9 +12888,9 @@
                 "example": {
                   "id": "maintenanceConfigId",
                   "name": "maintenanceConfig",
-                  "query": "entity.application.id:\"anApplicationId\"",
+                  "query": "",
                   "scheduling": {
-                    "start": 1684249020728,
+                    "start": 1698938631036,
                     "duration": {
                       "amount": 2,
                       "unit": "HOURS"
@@ -11863,11 +12899,40 @@
                   },
                   "paused": false,
                   "validVersion": 1,
-                  "lastUpdated": 1684249021306,
+                  "tagFilterExpression": {
+                    "type": "EXPRESSION",
+                    "logicalOperator": "OR",
+                    "elements": [
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "synthetic.locationLabelAggregated",
+                        "stringValue": "us-east",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": null,
+                        "value": "us-east",
+                        "operator": "EQUALS",
+                        "entity": "NOT_APPLICABLE"
+                      },
+                      {
+                        "type": "TAG_FILTER",
+                        "name": "synthetic.syntheticType",
+                        "stringValue": "HTTPScript",
+                        "numberValue": null,
+                        "booleanValue": null,
+                        "key": null,
+                        "value": "HTTPScript",
+                        "operator": "EQUALS",
+                        "entity": "NOT_APPLICABLE"
+                      }
+                    ]
+                  },
+                  "tagFilterExpressionEnabled": true,
+                  "lastUpdated": 1698938631408,
                   "state": "ACTIVE",
                   "occurrence": {
-                    "start": 1684249020728,
-                    "end": 1684256220728
+                    "start": 1698938631036,
+                    "end": 1698945831036
                   }
                 }
               }
@@ -11904,7 +12969,7 @@
         "tags": [
           "Maintenance Configuration"
         ],
-        "description": "This endpoint creates or updates a maintenance configuration given its ID.\n\n### Path Parameters:\n\n- **id:** The ID of the maintenance config to create or update.\n\n### Maintenance Configuration Input\nThis is a description for the fields in the request body:\n\n**id**: maintenance configuration unique id  \n**name**: maintenance configuration name  \n**query**: dynamic focus query used to filter alert notifications that will be muted  \n**scheduling**: defines when the maintenance configuration will be scheduled\n- **start**: time in milliseconds from epoch\n- **duration**: duration of each maintenance window occurrence in the maintenance configuration\n    - **amount**: the amount of time\n    - **unit**: the unit of time\n- **type**: `ONE_TIME` or `RECURRENT`\n- **rrule**:  for `RECURRENT` mainteance configurations, the RRULE standard from the [iCalendar Spec](https://datatracker.ietf.org/doc/html/rfc5545)\n\n### **RRULE Support**\nYou can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.\n\n\nThe following RRULE tokens are supported: `FREQ`, `UNTIL`, `COUNT`, `INTERVAL`, `BYDAY`, `BYMONTHDAY`, `BYMONTH`.\n\n**Additional Constraints:**\n\n1. For `MONTHLY` and `YEARLY`, you can only specify one value for `BYDAY` and `BYMONTHDAY`.  \n2. The maximum `INTERVAL` allowed is as follows:  \n    - DAILY is 365\n    - WEEKLY is 52\n    - MONTHLY is 12\n    - YEARLY is 1\n3. If an `UNTIL` date is specified, the value needs to be in UTC."
+        "description": "This endpoint creates or updates a maintenance configuration given its ID.\n\n### Path Parameters:\n\n- **id:** The ID of the maintenance config to create or update.\n\n### Maintenance Configuration Input\nThis is a description for the fields in the request body:\n\n**id**: maintenance configuration unique id  \n**name**: maintenance configuration name  \n**query**: dynamic focus query used to filter alert notifications that will be muted  \n**scheduling**: defines when the maintenance configuration will be scheduled\n- **start**: time in milliseconds from epoch\n- **duration**: duration of each maintenance window occurrence in the maintenance configuration\n    - **amount**: the amount of time\n    - **unit**: the unit of time\n- **type**: `ONE_TIME` or `RECURRENT`\n- **rrule**:  for `RECURRENT` mainteance configurations, the RRULE standard from the [iCalendar Spec](https://datatracker.ietf.org/doc/html/rfc5545)\n- **paused**: indicates whether maintenance configuration is paused or not  \n\n**tagFilterExpressionEnabled (OPTIONAL) (Closed Beta)**: indicates whether tagFilterExpression is used to filter alert notifications  \n**tagFilterExpression (OPTIONAL) (Closed Beta)**: tag filter expression used to filter alert notifications that will be muted (this field needs to be provided if **tagFilterExpressionEnabled** is set to true) \n\n### **Scope**\nThere are four supported scopes; application perspective, dynamic focus query, synthetic tests, all entities. Below is the configuration corresponding to each scope:\n\n**1. Application Perspective**  \n&nbsp;&nbsp; dfq: a valid dynamic focus query  \n&nbsp;&nbsp; tfeEnabled: (optional)  \n&nbsp;&nbsp; tfe: (optional)  \n\n**2. Dynamic Focus Query**  \n&nbsp;&nbsp; dfq: a valid dynamic focus query  \n&nbsp;&nbsp; tfeEnabled: (optional)  \n&nbsp;&nbsp; tfe: (optional)  \n\n**3. Synthetic Tests**  \n&nbsp;&nbsp; dfq: \"\"  \n&nbsp;&nbsp; tfeEnabled: true  \n&nbsp;&nbsp; tfe: a valid tag filter expression  \n\n**4. All Entities**  \n&nbsp;&nbsp; dfq: \"\"  \n&nbsp;&nbsp; tfeEnabled: false  \n&nbsp;&nbsp; tfe: null\n\n### **RRULE Support**\nYou can use the [RRULE tool](https://icalendar.org/rrule-tool.html) for generating RRULEs.\n\n\nThe following RRULE tokens are supported: `FREQ`, `UNTIL`, `COUNT`, `INTERVAL`, `BYDAY`, `BYMONTHDAY`, `BYMONTH`.\n\n**Additional Constraints:**\n\n1. For `MONTHLY` and `YEARLY`, you can only specify one value for `BYDAY` and `BYMONTHDAY`.  \n2. The maximum `INTERVAL` allowed is as follows:  \n    - DAILY is 365\n    - WEEKLY is 52\n    - MONTHLY is 12\n    - YEARLY is 1\n3. If an `UNTIL` date is specified, the value needs to be in UTC.\n\n### **Tag Filter Expression Support**\nWe support the following tag filters:\n- synthetic.syntheticType\n- synthetic.testName\n- synthetic.locationLabelAggregated\n- synthetic.tags"
       }
     },
     "/api/settings/v2/maintenance/{id}/pause": {
@@ -12370,7 +13435,8 @@
                 "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
-                "APPLICATION_CONFIG_BLUEPRINT"
+                "APPLICATION_CONFIG_BLUEPRINT",
+                "MAINTENANCE_WINDOWS"
               ],
               "example": null
             }
@@ -13027,7 +14093,7 @@
         "tags": [
           "Synthetic Settings"
         ],
-        "description": "This API endpoint creates a Synthetic Test.\n\n## Sample script and payload: \n- A sample script to create an API Simple test\n\n```\ncurl -k -v -X POST \\\nhttps://<Host>/api/synthetics/settings/tests \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"label\":\"Test_SimplePing\",\n    \"description\":\"this is to test a simple ping API\",\n    \"serviceId\":\"serviceId001\",\n    \"applicationId\":\"applicationId001\",\n    \"active\":true,\n    \"testFrequency\":1,\n    \"playbackMode\":\"Simultaneous\",\n    \"locations\":[\n        \"saas_instana_test\"\n    ],\n    \"configuration\":{\n        \"syntheticType\":\"HTTPAction\",\n        \"url\":\"https://httpbin.org/post\",\n        \"operation\":\"POST\",\n        \"headers\":{\n            \"Content-Type\":\"text/plain\"\n        },\n        \"body\":\"Hello World!\",\n        \"validationString\":\"Hello World!\"\n    },\n    \"customProperties\":{\n        \"Team\":\"DevTeam\",\n        \"Purpose\":\"Demo\"\n    }\n  }'\n```"
+        "description": "This API endpoint creates a Synthetic Test.\n\n**Note:** The **DNSAction** Synthetic type is not supported.\n\n## Sample script and payload: \n- A sample script to create an API Simple test\n\n```\ncurl -k -v -X POST \\\nhttps://<Host>/api/synthetics/settings/tests \\\n-H 'authorization: apiToken <Token>' \\\n-H 'content-type: application/json' \\\n-d '{\n    \"label\":\"Test_SimplePing\",\n    \"description\":\"this is to test a simple ping API\",\n    \"serviceId\":\"serviceId001\",\n    \"applicationId\":\"applicationId001\",\n    \"active\":true,\n    \"testFrequency\":1,\n    \"playbackMode\":\"Simultaneous\",\n    \"locations\":[\n        \"saas_instana_test\"\n    ],\n    \"configuration\":{\n        \"syntheticType\":\"HTTPAction\",\n        \"url\":\"https://httpbin.org/post\",\n        \"operation\":\"POST\",\n        \"headers\":{\n            \"Content-Type\":\"text/plain\"\n        },\n        \"body\":\"Hello World!\",\n        \"validationString\":\"Hello World!\"\n    },\n    \"customProperties\":{\n        \"Team\":\"DevTeam\",\n        \"Purpose\":\"Demo\"\n    }\n  }'\n```"
       }
     },
     "/api/synthetics/settings/tests/{id}": {
@@ -13296,7 +14362,8 @@
                 "SMART_ALERTS_CUSTOM_PAYLOAD",
                 "SLI_MANAGEMENT",
                 "APPLICATION_CONFIG",
-                "APPLICATION_CONFIG_BLUEPRINT"
+                "APPLICATION_CONFIG_BLUEPRINT",
+                "MAINTENANCE_WINDOWS"
               ],
               "example": null
             }
@@ -14066,6 +15133,7 @@
             "OPS_GENIE": "#/components/schemas/OpsgenieIntegration",
             "PAGER_DUTY": "#/components/schemas/PagerdutyIntegration",
             "PROMETHEUS_WEBHOOK": "#/components/schemas/PrometheusWebhookIntegration",
+            "SALESFORCE": "#/components/schemas/SalesforceIntegration",
             "SERVICE_NOW_WEBHOOK": "#/components/schemas/ServiceNowIntegration",
             "SLACK": "#/components/schemas/SlackIntegration",
             "SPLUNK": "#/components/schemas/SplunkIntegration",
@@ -14604,6 +15672,32 @@
           }
         }
       },
+      "ApiCreateGroup": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "members": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/ApiMember"
+            },
+            "uniqueItems": true
+          },
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "permissionSet": {
+            "$ref": "#/components/schemas/ApiPermissionSet"
+          }
+        },
+        "required": [
+          "members",
+          "name",
+          "permissionSet"
+        ]
+      },
       "ApiGroup": {
         "type": "object",
         "example": null,
@@ -14627,10 +15721,11 @@
             "example": null
           },
           "permissionSet": {
-            "$ref": "#/components/schemas/ApiPermissionSetWithRoles"
+            "$ref": "#/components/schemas/ApiPermissionSet"
           }
         },
         "required": [
+          "id",
           "members",
           "name",
           "permissionSet"
@@ -14653,7 +15748,7 @@
           "userId"
         ]
       },
-      "ApiPermissionSetWithRoles": {
+      "ApiPermissionSet": {
         "type": "object",
         "example": null,
         "properties": {
@@ -14711,6 +15806,9 @@
             "minItems": 0,
             "uniqueItems": true
           },
+          "restrictedApplicationFilter": {
+            "$ref": "#/components/schemas/ApiRestrictedApplicationFilter"
+          },
           "syntheticTestIds": {
             "type": "array",
             "example": null,
@@ -14734,12 +15832,35 @@
         },
         "required": [
           "applicationIds",
+          "infraDfqFilter",
           "kubernetesClusterUUIDs",
           "kubernetesNamespaceUIDs",
           "mobileAppIds",
           "permissions",
           "websiteIds"
         ]
+      },
+      "ApiRestrictedApplicationFilter": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "label": {
+            "type": "string",
+            "example": null
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "INCLUDE_NO_DOWNSTREAM",
+              "INCLUDE_IMMEDIATE_DOWNSTREAM_DATABASE_AND_MESSAGING",
+              "INCLUDE_ALL_DOWNSTREAM"
+            ],
+            "example": null
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          }
+        }
       },
       "ApiToken": {
         "type": "object",
@@ -14770,6 +15891,10 @@
             "example": null
           },
           "canConfigureAutomationActions": {
+            "type": "boolean",
+            "example": null
+          },
+          "canConfigureAutomationPolicies": {
             "type": "boolean",
             "example": null
           },
@@ -14841,7 +15966,15 @@
             "type": "boolean",
             "example": null
           },
+          "canCreateHeapDump": {
+            "type": "boolean",
+            "example": null
+          },
           "canCreatePublicCustomDashboards": {
+            "type": "boolean",
+            "example": null
+          },
+          "canCreateThreadDump": {
             "type": "boolean",
             "example": null
           },
@@ -15073,6 +16206,7 @@
             "format": "int32",
             "default": 600000,
             "enum": [
+              60000,
               300000,
               600000,
               900000,
@@ -15216,6 +16350,7 @@
             "format": "int32",
             "default": 600000,
             "enum": [
+              60000,
               300000,
               600000,
               900000,
@@ -15237,6 +16372,12 @@
           "includeSynthetic": {
             "type": "boolean",
             "example": null
+          },
+          "initialCreated": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
           },
           "name": {
             "type": "string",
@@ -15454,6 +16595,36 @@
               "applicationId": {
                 "type": "string",
                 "example": null
+              },
+              "probableRootCause": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "example": null,
+                    "items": {
+                      "type": "string",
+                      "example": null
+                    }
+                  },
+                  "example": null
+                },
+                "writeOnly": true
+              },
+              "probableRootCauseMetadata": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "example": null
+                  },
+                  "example": null
+                },
+                "example": null,
+                "writeOnly": true
               }
             }
           }
@@ -15939,7 +17110,7 @@
                 "example": null
               },
               "scripts": {
-                "$ref": "#/components/schemas/MultipleScripts"
+                "$ref": "#/components/schemas/MultipleScriptsConfiguration"
               }
             }
           }
@@ -17028,6 +18199,36 @@
               "endpointServiceId": {
                 "type": "string",
                 "example": null
+              },
+              "probableRootCause": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "example": null,
+                    "items": {
+                      "type": "string",
+                      "example": null
+                    }
+                  },
+                  "example": null
+                },
+                "writeOnly": true
+              },
+              "probableRootCauseMetadata": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "example": null
+                  },
+                  "example": null
+                },
+                "example": null,
+                "writeOnly": true
               }
             }
           }
@@ -17446,6 +18647,22 @@
           "problem": {
             "$ref": "#/components/schemas/Problem"
           },
+          "rcaevents": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "string",
+                  "example": null
+                }
+              },
+              "example": null
+            }
+          },
           "start": {
             "type": "integer",
             "format": "int64",
@@ -17584,6 +18801,34 @@
               },
               "example": null
             }
+          },
+          "probableCause": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "string",
+                  "example": null
+                }
+              },
+              "example": null
+            }
+          },
+          "probableCauseMetadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "example": null
+              },
+              "example": null
+            },
+            "example": null
           },
           "problem": {
             "type": "string",
@@ -17869,6 +19114,21 @@
         "required": [
           "id",
           "rootSpan"
+        ]
+      },
+      "GenericInfraAlertRule": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/InfraAlertRule"
+          }
+        ],
+        "example": null,
+        "required": [
+          "aggregation",
+          "crossSeriesAggregation",
+          "entityType",
+          "metricName"
         ]
       },
       "GeoLocationConfiguration": {
@@ -18354,7 +19614,7 @@
               "description": "Entity grouping tag. Use the Instana Analyze Infrastructure dashboard to determine the entity grouping tag name.",
               "example": null
             },
-            "maxItems": 1,
+            "maxItems": 5,
             "minItems": 0
           },
           "metrics": {
@@ -18596,6 +19856,22 @@
           "type"
         ]
       },
+      "GetPayloadKeysResult": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "payloadKeys": {
+            "type": "array",
+            "description": "Keys that can be used to retrieve plugin payloads.",
+            "example": null,
+            "items": {
+              "type": "string",
+              "description": "Keys that can be used to retrieve plugin payloads.",
+              "example": null
+            }
+          }
+        }
+      },
       "GetServices": {
         "type": "object",
         "example": null,
@@ -18732,7 +20008,7 @@
             "minLength": 0
           },
           "tagFilterExpression": {
-            "$ref": "#/components/schemas/TagFilterExpression"
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
           "tagFilters": {
             "type": "array",
@@ -18768,7 +20044,7 @@
             "$ref": "#/components/schemas/Pagination"
           },
           "tagFilterExpression": {
-            "$ref": "#/components/schemas/TagFilterExpression"
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
           "tagFilters": {
             "type": "array",
@@ -18807,7 +20083,7 @@
             }
           },
           "tagFilterExpression": {
-            "$ref": "#/components/schemas/TagFilterExpression"
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
           "tagFilters": {
             "type": "array",
@@ -18842,7 +20118,7 @@
             "$ref": "#/components/schemas/Pagination"
           },
           "tagFilterExpression": {
-            "$ref": "#/components/schemas/TagFilterExpression"
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
           "tagFilters": {
             "type": "array",
@@ -18963,6 +20239,9 @@
         "properties": {
           "pagination": {
             "$ref": "#/components/schemas/CursorPagination"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
           },
           "tagFilters": {
             "type": "array",
@@ -19232,6 +20511,7 @@
             "format": "int32",
             "default": 600000,
             "enum": [
+              60000,
               300000,
               600000,
               900000,
@@ -19253,6 +20533,12 @@
           "includeSynthetic": {
             "type": "boolean",
             "example": null
+          },
+          "initialCreated": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
           },
           "name": {
             "type": "string",
@@ -19361,6 +20647,7 @@
             "format": "int32",
             "default": 600000,
             "enum": [
+              60000,
               300000,
               600000,
               900000,
@@ -19736,7 +21023,7 @@
               "url": {
                 "type": "string",
                 "example": null,
-                "maxLength": 512,
+                "maxLength": 2047,
                 "minLength": 0
               },
               "validationString": {
@@ -19869,7 +21156,7 @@
                 "example": null
               },
               "scripts": {
-                "$ref": "#/components/schemas/MultipleScripts"
+                "$ref": "#/components/schemas/MultipleScriptsConfiguration"
               }
             }
           }
@@ -19944,6 +21231,311 @@
           "name"
         ]
       },
+      "IdentityProviderPatch": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "restrictEmptyIdpGroups": {
+            "type": "boolean",
+            "example": null
+          }
+        }
+      },
+      "InfraAlertConfig": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "alertChannelIds": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "customPayloadFields": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/CustomPayloadField"
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "description": {
+            "type": "string",
+            "example": null,
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "default": 600000,
+            "enum": [
+              60000,
+              300000,
+              600000,
+              900000,
+              1200000,
+              1800000
+            ],
+            "example": null
+          },
+          "groupBy": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            },
+            "maxItems": 5,
+            "minItems": 0
+          },
+          "name": {
+            "type": "string",
+            "example": null,
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "predictiveTrigger": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "writeOnly": true
+          },
+          "rule": {
+            "$ref": "#/components/schemas/InfraAlertRule"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/Threshold"
+          },
+          "timeThreshold": {
+            "$ref": "#/components/schemas/InfraTimeThreshold"
+          }
+        },
+        "required": [
+          "alertChannelIds",
+          "customPayloadFields",
+          "description",
+          "granularity",
+          "groupBy",
+          "name",
+          "rule",
+          "tagFilterExpression",
+          "threshold",
+          "timeThreshold"
+        ]
+      },
+      "InfraAlertConfigWithMetadata": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "alertChannelIds": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            },
+            "maxItems": 1024,
+            "minItems": 0,
+            "uniqueItems": true
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
+          "customPayloadFields": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/CustomPayloadField"
+            },
+            "maxItems": 20,
+            "minItems": 0
+          },
+          "description": {
+            "type": "string",
+            "example": null,
+            "maxLength": 65536,
+            "minLength": 0
+          },
+          "enabled": {
+            "type": "boolean",
+            "example": null
+          },
+          "granularity": {
+            "type": "integer",
+            "format": "int32",
+            "default": 600000,
+            "enum": [
+              60000,
+              300000,
+              600000,
+              900000,
+              1200000,
+              1800000
+            ],
+            "example": null
+          },
+          "groupBy": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "type": "string",
+              "example": null
+            },
+            "maxItems": 5,
+            "minItems": 0
+          },
+          "id": {
+            "type": "string",
+            "example": null,
+            "maxLength": 64,
+            "minLength": 0
+          },
+          "initialCreated": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "example": null,
+            "maxLength": 256,
+            "minLength": 0
+          },
+          "predictiveTrigger": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "writeOnly": true
+          },
+          "readOnly": {
+            "type": "boolean",
+            "example": null
+          },
+          "rule": {
+            "$ref": "#/components/schemas/InfraAlertRule"
+          },
+          "severity": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "threshold": {
+            "$ref": "#/components/schemas/Threshold"
+          },
+          "timeThreshold": {
+            "$ref": "#/components/schemas/InfraTimeThreshold"
+          }
+        },
+        "required": [
+          "alertChannelIds",
+          "customPayloadFields",
+          "description",
+          "granularity",
+          "groupBy",
+          "id",
+          "name",
+          "rule",
+          "tagFilterExpression",
+          "threshold",
+          "timeThreshold"
+        ]
+      },
+      "InfraAlertRule": {
+        "type": "object",
+        "discriminator": {
+          "mapping": {
+            "genericRule": "#/components/schemas/GenericInfraAlertRule"
+          },
+          "propertyName": "alertType"
+        },
+        "example": null,
+        "properties": {
+          "aggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "P99_9",
+              "P99_99",
+              "DISTRIBUTION",
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE",
+              "PER_SECOND"
+            ],
+            "example": null
+          },
+          "alertType": {
+            "type": "string",
+            "example": null
+          },
+          "crossSeriesAggregation": {
+            "type": "string",
+            "enum": [
+              "SUM",
+              "MEAN",
+              "MAX",
+              "MIN",
+              "P25",
+              "P50",
+              "P75",
+              "P90",
+              "P95",
+              "P98",
+              "P99",
+              "P99_9",
+              "P99_99",
+              "DISTRIBUTION",
+              "DISTINCT_COUNT",
+              "SUM_POSITIVE",
+              "PER_SECOND"
+            ],
+            "example": null
+          },
+          "entityType": {
+            "type": "string",
+            "example": null
+          },
+          "metricName": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "alertType",
+          "metricName"
+        ]
+      },
       "InfraEventResult": {
         "type": "object",
         "allOf": [
@@ -19965,6 +21557,36 @@
                   },
                   "example": null
                 }
+              },
+              "probableRootCause": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "example": null,
+                    "items": {
+                      "type": "string",
+                      "example": null
+                    }
+                  },
+                  "example": null
+                },
+                "writeOnly": true
+              },
+              "probableRootCauseMetadata": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "example": null
+                  },
+                  "example": null
+                },
+                "example": null,
+                "writeOnly": true
               }
             }
           }
@@ -20028,7 +21650,7 @@
           },
           "granularity": {
             "type": "integer",
-            "format": "int32",
+            "format": "int64",
             "description": "   * If granularity is not specified an aggregated value for the selected timeframe is returned.\n   * If granularity is specified data points are returned with the specified granularity\n    * The granularity should not be greater than the `windowSize` (important: `windowSize` is expressed in milliseconds)\n    * The granularity should not be set too small relative to the `windowSize` to avoid creating an excessively large number of data points (max 600)\n",
             "example": null,
             "title": "granularity in milliseconds"
@@ -20036,11 +21658,39 @@
           "metric": {
             "type": "string",
             "example": null
+          },
+          "regex": {
+            "type": "boolean",
+            "example": null
           }
         },
         "required": [
           "aggregation",
           "metric"
+        ]
+      },
+      "InfraTimeThreshold": {
+        "type": "object",
+        "discriminator": {
+          "mapping": {
+            "violationsInSequence": "#/components/schemas/ViolationsInSequenceInfraTimeThreshold"
+          },
+          "propertyName": "type"
+        },
+        "example": null,
+        "properties": {
+          "timeWindow": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "type": {
+            "type": "string",
+            "example": null
+          }
+        },
+        "required": [
+          "type"
         ]
       },
       "InfrastructureEntitiesResult": {
@@ -20078,35 +21728,43 @@
       },
       "InfrastructureGroup": {
         "type": "object",
+        "description": "group of infrastructure entities",
         "example": null,
         "properties": {
           "count": {
             "type": "integer",
             "format": "int64",
+            "description": "number of entities in this group",
             "example": null
           },
           "metrics": {
             "type": "object",
             "additionalProperties": {
               "type": "array",
+              "description": "map of metric keys to array of timestamp,value pairs",
               "example": null,
               "items": {
                 "type": "array",
+                "description": "map of metric keys to array of timestamp,value pairs",
                 "example": null,
                 "items": {
                   "type": "number",
+                  "description": "map of metric keys to array of timestamp,value pairs",
                   "example": null
                 }
               }
             },
+            "description": "map of metric keys to array of timestamp,value pairs",
             "example": null
           },
           "tags": {
             "type": "object",
             "additionalProperties": {
               "type": "object",
+              "description": "tag keys and values for this group",
               "example": null
             },
+            "description": "tag keys and values for this group",
             "example": null
           }
         }
@@ -20293,7 +21951,8 @@
             "enum": [
               "SUCCESS",
               "INTERNAL_ERROR",
-              "FAILURE_USER_ALREADY_EXISTS"
+              "FAILURE_USER_ALREADY_EXISTS",
+              "FAILURE_TENANT_IDP_CONFIGURED"
             ],
             "example": null
           },
@@ -20319,6 +21978,45 @@
         },
         "required": [
           "ipMasking"
+        ]
+      },
+      "JsStackTraceLine": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "column": {
+            "type": "integer",
+            "format": "int32",
+            "example": null,
+            "minimum": -1
+          },
+          "file": {
+            "type": "string",
+            "example": null
+          },
+          "line": {
+            "type": "integer",
+            "format": "int32",
+            "example": null,
+            "minimum": -1
+          },
+          "name": {
+            "type": "string",
+            "example": null
+          },
+          "translationExplanation": {
+            "type": "string",
+            "example": null
+          },
+          "translationStatus": {
+            "type": "integer",
+            "format": "int32",
+            "example": null,
+            "minimum": -1
+          }
+        },
+        "required": [
+          "file"
         ]
       },
       "KubernetesPhysicalContext": {
@@ -20391,7 +22089,8 @@
             "type": "string",
             "enum": [
               "USER",
-              "API_TOKEN"
+              "API_TOKEN",
+              "POLICY"
             ],
             "example": null
           }
@@ -20567,6 +22266,13 @@
           },
           "scheduling": {
             "$ref": "#/components/schemas/MaintenanceConfigScheduling"
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilterExpressionEnabled": {
+            "type": "boolean",
+            "example": null
           }
         },
         "required": [
@@ -20623,6 +22329,13 @@
               "PAUSED",
               "EXPIRED"
             ],
+            "example": null
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilterExpressionEnabled": {
+            "type": "boolean",
             "example": null
           }
         },
@@ -21201,6 +22914,7 @@
               "SELF_MONITORING",
               "SOLR",
               "SPARK",
+              "TUXEDO",
               "VSHPERE"
             ],
             "example": null
@@ -21311,6 +23025,7 @@
             "format": "int32",
             "default": 600000,
             "enum": [
+              60000,
               300000,
               600000,
               900000,
@@ -21597,6 +23312,36 @@
               "mobileAppId": {
                 "type": "string",
                 "example": null
+              },
+              "probableRootCause": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "example": null,
+                    "items": {
+                      "type": "string",
+                      "example": null
+                    }
+                  },
+                  "example": null
+                },
+                "writeOnly": true
+              },
+              "probableRootCauseMetadata": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "example": null
+                  },
+                  "example": null
+                },
+                "example": null,
+                "writeOnly": true
               }
             }
           }
@@ -21996,6 +23741,12 @@
             "maxLength": 128,
             "minLength": 0
           },
+          "userSessionId": {
+            "type": "string",
+            "example": null,
+            "maxLength": 128,
+            "minLength": 0
+          },
           "view": {
             "type": "string",
             "example": null,
@@ -22216,7 +23967,7 @@
           }
         }
       },
-      "MultipleScripts": {
+      "MultipleScriptsConfiguration": {
         "type": "object",
         "example": null,
         "properties": {
@@ -22851,6 +24602,45 @@
           "inputName"
         ]
       },
+      "SalesforceIntegration": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AbstractIntegration"
+          },
+          {
+            "type": "object",
+            "example": null,
+            "properties": {
+              "bearerToken": {
+                "type": "string",
+                "example": null
+              },
+              "clientId": {
+                "type": "string",
+                "example": null
+              },
+              "clientSecret": {
+                "type": "string",
+                "example": null
+              },
+              "salesforceUrl": {
+                "type": "string",
+                "example": null
+              }
+            }
+          }
+        ],
+        "example": null,
+        "required": [
+          "clientId",
+          "clientSecret",
+          "id",
+          "kind",
+          "name",
+          "salesforceUrl"
+        ]
+      },
       "ScopeBinding": {
         "type": "object",
         "example": null,
@@ -23031,6 +24821,36 @@
               "applicationId": {
                 "type": "string",
                 "example": null
+              },
+              "probableRootCause": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "example": null,
+                    "items": {
+                      "type": "string",
+                      "example": null
+                    }
+                  },
+                  "example": null
+                },
+                "writeOnly": true
+              },
+              "probableRootCauseMetadata": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "example": null
+                  },
+                  "example": null
+                },
+                "example": null,
+                "writeOnly": true
               },
               "serviceId": {
                 "type": "string",
@@ -23738,11 +25558,43 @@
           "version"
         ]
       },
+      "SourceMapFileBlob": {
+        "type": "object",
+        "example": null,
+        "properties": {
+          "blobIndex": {
+            "type": "integer",
+            "format": "int32",
+            "example": null
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
+          "sizeOnDisk": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          }
+        }
+      },
       "SourceMapFileMeta": {
         "type": "object",
         "example": null,
         "properties": {
+          "blobs": {
+            "type": "array",
+            "example": null,
+            "items": {
+              "$ref": "#/components/schemas/SourceMapFileBlob"
+            }
+          },
           "format": {
+            "type": "string",
+            "example": null
+          },
+          "meta": {
             "type": "string",
             "example": null
           },
@@ -23760,7 +25612,9 @@
             "type": "string",
             "enum": [
               "JS_MAP",
-              "JS"
+              "JS",
+              "R8PG_MAP",
+              "DWARF"
             ],
             "example": null
           },
@@ -24049,45 +25903,6 @@
             "example": null
           }
         }
-      },
-      "StackTraceLine": {
-        "type": "object",
-        "example": null,
-        "properties": {
-          "column": {
-            "type": "integer",
-            "format": "int32",
-            "example": null,
-            "minimum": -1
-          },
-          "file": {
-            "type": "string",
-            "example": null
-          },
-          "line": {
-            "type": "integer",
-            "format": "int32",
-            "example": null,
-            "minimum": -1
-          },
-          "name": {
-            "type": "string",
-            "example": null
-          },
-          "translationExplanation": {
-            "type": "string",
-            "example": null
-          },
-          "translationStatus": {
-            "type": "integer",
-            "format": "int32",
-            "example": null,
-            "minimum": -1
-          }
-        },
-        "required": [
-          "file"
-        ]
       },
       "StaticStringField": {
         "type": "object",
@@ -24411,6 +26226,12 @@
             "maxLength": 64,
             "minLength": 0
           },
+          "initialCreated": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
+          },
           "name": {
             "type": "string",
             "example": null,
@@ -24682,7 +26503,7 @@
             "type": "string",
             "example": null,
             "maxLength": 128,
-            "minLength": 1
+            "minLength": 0
           },
           "label": {
             "type": "string",
@@ -25049,6 +26870,36 @@
                   "type": "string",
                   "example": null
                 }
+              },
+              "probableRootCause": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "example": null,
+                    "items": {
+                      "type": "string",
+                      "example": null
+                    }
+                  },
+                  "example": null
+                },
+                "writeOnly": true
+              },
+              "probableRootCauseMetadata": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "example": null
+                  },
+                  "example": null
+                },
+                "example": null,
+                "writeOnly": true
               },
               "syntheticTestId": {
                 "type": "string",
@@ -25490,6 +27341,11 @@
             "type": "string",
             "example": null
           },
+          "createdAt": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
+          },
           "frequency": {
             "type": "integer",
             "format": "int32",
@@ -25533,6 +27389,11 @@
             "items": {
               "$ref": "#/components/schemas/LocationStatus"
             }
+          },
+          "modifiedAt": {
+            "type": "integer",
+            "format": "int64",
+            "example": null
           },
           "serviceId": {
             "type": "string",
@@ -26564,7 +28425,8 @@
               "MobileSmartAlert",
               "ApplicationSmartAlert",
               "GlobalApplicationSmartAlert",
-              "SyntheticSmartAlert"
+              "SyntheticSmartAlert",
+              "InfraSmartAlert"
             ],
             "example": null
           }
@@ -26716,6 +28578,13 @@
               "PAUSED",
               "EXPIRED"
             ],
+            "example": null
+          },
+          "tagFilterExpression": {
+            "$ref": "#/components/schemas/TagFilterExpressionElement"
+          },
+          "tagFilterExpressionEnabled": {
+            "type": "boolean",
             "example": null
           }
         },
@@ -26893,6 +28762,15 @@
         ],
         "example": null
       },
+      "ViolationsInSequenceInfraTimeThreshold": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/InfraTimeThreshold"
+          }
+        ],
+        "example": null
+      },
       "ViolationsInSequenceMobileAppTimeThreshold": {
         "type": "object",
         "allOf": [
@@ -27040,7 +28918,7 @@
               "url": {
                 "type": "string",
                 "example": null,
-                "maxLength": 512,
+                "maxLength": 2047,
                 "minLength": 0
               }
             }
@@ -27148,6 +29026,7 @@
             "format": "int32",
             "default": 600000,
             "enum": [
+              60000,
               300000,
               600000,
               900000,
@@ -27257,6 +29136,7 @@
             "format": "int32",
             "default": 600000,
             "enum": [
+              60000,
               300000,
               600000,
               900000,
@@ -27270,6 +29150,12 @@
             "example": null,
             "maxLength": 64,
             "minLength": 0
+          },
+          "initialCreated": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
           },
           "name": {
             "type": "string",
@@ -27636,6 +29522,36 @@
             "type": "object",
             "example": null,
             "properties": {
+              "probableRootCause": {
+                "type": "array",
+                "example": null,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "example": null,
+                    "items": {
+                      "type": "string",
+                      "example": null
+                    }
+                  },
+                  "example": null
+                },
+                "writeOnly": true
+              },
+              "probableRootCauseMetadata": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string",
+                    "example": null
+                  },
+                  "example": null
+                },
+                "example": null,
+                "writeOnly": true
+              },
               "websiteId": {
                 "type": "string",
                 "example": null
@@ -27990,7 +29906,7 @@
             "type": "array",
             "example": null,
             "items": {
-              "$ref": "#/components/schemas/StackTraceLine"
+              "$ref": "#/components/schemas/JsStackTraceLine"
             },
             "maxItems": 64,
             "minItems": 0
@@ -28465,6 +30381,7 @@
             "format": "int32",
             "default": 600000,
             "enum": [
+              60000,
               300000,
               600000,
               900000,
@@ -28478,6 +30395,12 @@
             "example": null,
             "maxLength": 64,
             "minLength": 0
+          },
+          "initialCreated": {
+            "type": "integer",
+            "format": "int64",
+            "example": null,
+            "minimum": 1
           },
           "mobileAppId": {
             "type": "string",
@@ -28676,7 +30599,8 @@
         "Maintenance Configuration",
         "Synthetic Calls",
         "Session Settings",
-        "Automation Settings"
+        "Automation Settings",
+        "Authentication"
       ]
     },
     {
@@ -28689,7 +30613,9 @@
       "name": "Service Level Indicators",
       "tags": [
         "SLI Settings",
-        "SLI Report"
+        "SLI Report",
+        "Apdex Settings",
+        "Apdex Report"
       ]
     },
     {

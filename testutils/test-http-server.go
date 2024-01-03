@@ -112,7 +112,6 @@ func (server *testHTTPServerImpl) wrapHandlerFunc(handlerFunc http.HandlerFunc) 
 
 // Start starts the http service with the configured routes
 func (server *testHTTPServerImpl) Start() {
-	binding := fmt.Sprintf(":%d", server.GetPort())
 	srv := &http.Server{
 		Handler:           server.router,
 		ReadHeaderTimeout: 5 * time.Second,
@@ -123,6 +122,7 @@ func (server *testHTTPServerImpl) Start() {
 		panic(err)
 	}
 	port := l.Addr().(*net.TCPAddr).Port
+	binding := fmt.Sprintf(":%d", port)
 
 	go func() {
 		rootFolder, err := GetRootFolder()

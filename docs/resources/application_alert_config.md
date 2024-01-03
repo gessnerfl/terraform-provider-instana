@@ -132,6 +132,7 @@ identifier                := [a-zA-Z_][\.a-zA-Z0-9_\-/]*
 Exactly one of the elements below must be configured
 
 * `error_rate` - Optional - Rule based on the error rate of the configured alert configuration target. [Details](#error-rate-rule-argument-reference)
+* `errors` - Optional - Rule based on the number of errors of the configured alert configuration target. [Details](#errors-rule-argument-reference)
 * `logs` - Optional - Rule based on logs of the configured alert configuration target. [Details](#logs-rule-argument-reference)
 * `slowness` - Optional - Rule based on the slowness of the configured alert configuration target. [Details](#slowness-rule-argument-reference)
 * `status_code` - Optional - Rule based on the HTTP status code of the configured alert configuration target. [Details](#status-code-rule-argument-reference)
@@ -140,14 +141,17 @@ Exactly one of the elements below must be configured
 #### Error Rate Rule Argument Reference
 
 * `metric_name` - Required - The metric name of the application alert rule
-* `aggregation` - Required - The aggregation function of the application alert rule. Supported values `SUM`, `MEAN`, `MAX`, `MIN`, `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `P99_9`, `P99_99`, `DISTRIBUTION`, `DISTINCT_COUNT`, `SUM_POSITIVE`
-* `stable_hash` - Optional - The stable hash used for the application alert rule
+* `aggregation` - Optional - The aggregation function of the application alert rule. Supported values `SUM`, `MEAN`, `MAX`, `MIN`, `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `P99_9`, `P99_99`, `DISTRIBUTION`, `DISTINCT_COUNT`, `SUM_POSITIVE`
+
+#### Errors Rule Argument Reference
+
+* `metric_name` - Required - The metric name of the application alert rule
+* `aggregation` - Optional - The aggregation function of the application alert rule. Supported values `SUM`, `MEAN`, `MAX`, `MIN`, `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `P99_9`, `P99_99`, `DISTRIBUTION`, `DISTINCT_COUNT`, `SUM_POSITIVE`
 
 #### Logs Rule Argument Reference
 
 * `metric_name` - Required - The metric name of the application alert rule
 * `aggregation` - Required - The aggregation function of the application alert rule. Supported values `SUM`, `MEAN`, `MAX`, `MIN`, `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `P99_9`, `P99_99`, `DISTRIBUTION`, `DISTINCT_COUNT`, `SUM_POSITIVE`
-* `stable_hash` - Optional - The stable hash used for the application alert rule
 * `level` - Required - The log level for which this rule applies to. Supported values: `WARN`, `ERROR`, `ANY`
 * `message` - Optional - The log message for which this rule applies to.
 * `operator` - Required - The operator which will be applied to evaluate this rule. Supported values: `EQUALS`, `NOT_EQUAL`, `CONTAINS`, `NOT_CONTAIN`, `IS_EMPTY`, `NOT_EMPTY`, `IS_BLANK`, `IS_BLANK`, `NOT_BLANK`, `STARTS_WITH`, `ENDS_WITH`, `NOT_STARTS_WITH`, `NOT_ENDS_WITH`, `GREATER_OR_EQUAL_THAN`, `LESS_OR_EQUAL_THAN`, `GREATER_THAN`, `LESS_THAN`
@@ -156,13 +160,11 @@ Exactly one of the elements below must be configured
 
 * `metric_name` - Required - The metric name of the application alert rule
 * `aggregation` - Required - The aggregation function of the application alert rule. Supported values `SUM`, `MEAN`, `MAX`, `MIN`, `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `P99_9`, `P99_99`, `DISTRIBUTION`, `DISTINCT_COUNT`, `SUM_POSITIVE`
-* `stable_hash` - Optional - The stable hash used for the application alert rule
 
 #### Status Code Rule Argument Reference
 
 * `metric_name` - Required - The metric name of the application alert rule
 * `aggregation` - Required - The aggregation function of the application alert rule. Supported values `SUM`, `MEAN`, `MAX`, `MIN`, `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `P99_9`, `P99_99`, `DISTRIBUTION`, `DISTINCT_COUNT`, `SUM_POSITIVE`
-* `stable_hash` - Optional - The stable hash used for the application alert rule
 * `status_code_start` - Optional - minimal HTTP status code applied for this rule
 * `status_code_end` - Optional - maximum HTTP status code applied for this rule
 
@@ -170,7 +172,6 @@ Exactly one of the elements below must be configured
 
 * `metric_name` - Required - The metric name of the application alert rule
 * `aggregation` - Required - The aggregation function of the application alert rule. Supported values `SUM`, `MEAN`, `MAX`, `MIN`, `P25`, `P50`, `P75`, `P90`, `P95`, `P98`, `P99`, `P99_9`, `P99_99`, `DISTRIBUTION`, `DISTINCT_COUNT`, `SUM_POSITIVE`
-* `stable_hash` - Optional - The stable hash used for the application alert rule
 
 ### Custom Payload Field Argument Reference
 

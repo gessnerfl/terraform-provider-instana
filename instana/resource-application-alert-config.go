@@ -55,10 +55,10 @@ const (
 	ApplicationAlertConfigFieldRuleMetricName = "metric_name"
 	//ApplicationAlertConfigFieldRuleAggregation constant value for field rule.*.aggregation of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleAggregation = "aggregation"
-	//ApplicationAlertConfigFieldRuleStableHash constant value for field rule.*.stable_hash of resource instana_application_alert_config
-	ApplicationAlertConfigFieldRuleStableHash = "stable_hash"
 	//ApplicationAlertConfigFieldRuleErrorRate constant value for field rule.error_rate of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleErrorRate = "error_rate"
+	//ApplicationAlertConfigFieldRuleErrors constant value for field rule.errors of resource instana_application_alert_config
+	ApplicationAlertConfigFieldRuleErrors = "errors"
 	//ApplicationAlertConfigFieldRuleLogs constant value for field rule.logs of resource instana_application_alert_config
 	ApplicationAlertConfigFieldRuleLogs = "logs"
 	//ApplicationAlertConfigFieldRuleLogsLevel constant value for field rule.logs.level of resource instana_application_alert_config
@@ -102,6 +102,7 @@ const (
 var (
 	applicationAlertRuleTypeKeys = []string{
 		"rule.0.error_rate",
+		"rule.0.errors",
 		"rule.0.logs",
 		"rule.0.slowness",
 		"rule.0.status_code",
@@ -119,12 +120,6 @@ var (
 		Required:     true,
 		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), true),
 		Description:  "The aggregation function of the application alert rule",
-	}
-
-	applicationAlertSchemaRequiredRuleStableHash = &schema.Schema{
-		Type:        schema.TypeInt,
-		Optional:    true,
-		Description: "The stable hash used for the application alert rule",
 	}
 
 	applicationAlertSchemaOptionalRuleAggregation = &schema.Schema{
@@ -304,7 +299,20 @@ var (
 						Schema: map[string]*schema.Schema{
 							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
-							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
+						},
+					},
+					ExactlyOneOf: applicationAlertRuleTypeKeys,
+				},
+				ApplicationAlertConfigFieldRuleErrors: {
+					Type:        schema.TypeList,
+					MinItems:    0,
+					MaxItems:    1,
+					Optional:    true,
+					Description: "Rule based on the number of errors of the configured alert configuration target",
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
+							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
 						},
 					},
 					ExactlyOneOf: applicationAlertRuleTypeKeys,
@@ -319,7 +327,6 @@ var (
 						Schema: map[string]*schema.Schema{
 							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
-							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 							ApplicationAlertConfigFieldRuleLogsLevel: {
 								Type:         schema.TypeString,
 								Required:     true,
@@ -346,7 +353,6 @@ var (
 						Schema: map[string]*schema.Schema{
 							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaRequiredRuleAggregation,
-							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 						},
 					},
 					ExactlyOneOf: applicationAlertRuleTypeKeys,
@@ -361,7 +367,6 @@ var (
 						Schema: map[string]*schema.Schema{
 							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
-							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 							ApplicationAlertConfigFieldRuleStatusCodeStart: {
 								Type:         schema.TypeInt,
 								Optional:     true,
@@ -388,7 +393,6 @@ var (
 						Schema: map[string]*schema.Schema{
 							ApplicationAlertConfigFieldRuleMetricName:  applicationAlertSchemaRuleMetricName,
 							ApplicationAlertConfigFieldRuleAggregation: applicationAlertSchemaOptionalRuleAggregation,
-							ApplicationAlertConfigFieldRuleStableHash:  applicationAlertSchemaRequiredRuleStableHash,
 						},
 					},
 					ExactlyOneOf: applicationAlertRuleTypeKeys,
@@ -637,10 +641,6 @@ func (r *applicationAlertConfigResource) mapRuleToSchema(config *restapi.Applica
 	ruleAttribute[ApplicationAlertConfigFieldRuleMetricName] = config.Rule.MetricName
 	ruleAttribute[ApplicationAlertConfigFieldRuleAggregation] = config.Rule.Aggregation
 
-	if config.Rule.StableHash != nil {
-		ruleAttribute[ApplicationAlertConfigFieldRuleStableHash] = int(*config.Rule.StableHash)
-	}
-
 	if config.Rule.StatusCodeStart != nil {
 		ruleAttribute[ApplicationAlertConfigFieldRuleStatusCodeStart] = int(*config.Rule.StatusCodeStart)
 	}
@@ -815,11 +815,6 @@ func (r *applicationAlertConfigResource) mapRuleConfigFromSchema(config map[stri
 		level := restapi.LogLevel(levelString.(string))
 		levelPtr = &level
 	}
-	var stableHashPtr *int32
-	if v, ok := config[ApplicationAlertConfigFieldRuleStableHash]; ok {
-		stableHash := int32(v.(int))
-		stableHashPtr = &stableHash
-	}
 	var statusCodeStartPtr *int32
 	if v, ok := config[ApplicationAlertConfigFieldRuleStatusCodeStart]; ok {
 		statusCodeStart := int32(v.(int))
@@ -844,7 +839,6 @@ func (r *applicationAlertConfigResource) mapRuleConfigFromSchema(config map[stri
 		AlertType:       r.mapAlertTypeFromSchema(alertType),
 		MetricName:      config[ApplicationAlertConfigFieldRuleMetricName].(string),
 		Aggregation:     restapi.Aggregation(config[ApplicationAlertConfigFieldRuleAggregation].(string)),
-		StableHash:      stableHashPtr,
 		StatusCodeStart: statusCodeStartPtr,
 		StatusCodeEnd:   statusCodeEndPtr,
 		Level:           levelPtr,
