@@ -20,7 +20,7 @@ jobs:
         fetch-depth: 0
 
     - name: Setup Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: '1.20.0'
 
@@ -50,7 +50,7 @@ jobs:
         set +euo pipefail
 
     - name: Upload test log
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: unit-test-report
