@@ -118,14 +118,14 @@ var (
 	applicationAlertSchemaRequiredRuleAggregation = &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
-		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), true),
+		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), false),
 		Description:  "The aggregation function of the application alert rule",
 	}
 
 	applicationAlertSchemaOptionalRuleAggregation = &schema.Schema{
 		Type:         schema.TypeString,
 		Optional:     true,
-		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), true),
+		ValidateFunc: validation.StringInSlice(restapi.SupportedAggregations.ToStringSlice(), false),
 		Description:  "The aggregation function of the application alert rule",
 	}
 
@@ -133,7 +133,7 @@ var (
 		Type:         schema.TypeString,
 		Required:     true,
 		Description:  "The operator which will be applied to evaluate this rule",
-		ValidateFunc: validation.StringInSlice(restapi.SupportedExpressionOperators.ToStringSlice(), true),
+		ValidateFunc: validation.StringInSlice(restapi.SupportedExpressionOperators.ToStringSlice(), false),
 	}
 
 	applicationAlertTimeThresholdTypeKeys = []string{
