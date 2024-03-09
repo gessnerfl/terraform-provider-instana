@@ -1,6 +1,7 @@
 module github.com/gessnerfl/terraform-provider-instana
 
 go 1.22
+toolchain go1.22.1
 
 require (
 	github.com/alecthomas/participle v0.7.1
