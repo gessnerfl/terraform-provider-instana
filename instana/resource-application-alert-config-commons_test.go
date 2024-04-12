@@ -104,6 +104,13 @@ resource "%s" "example" {
 			tag_name = "dynamic-value-tag-name"
 		}
 	}
+
+	custom_payload_field {
+		key = "test3"
+		dynamic_value {
+			tag_name = "dynamic-value-without-key"
+		}
+	}
 }
 `
 
@@ -183,7 +190,15 @@ var applicationAlertConfigServerResponseTemplate = `
 				"key": "dynamic-value-key",
 				"tagName": "dynamic-value-tag-name"
 			}
-      	}
+      	},
+		{
+			"type": "dynamic",
+			"key": "test3",
+			"value": {
+				"tagName": "dynamic-value-without-key",
+				"key": null
+			}
+		}
 	],
     "created": 1647679325301,
     "readOnly": false,
@@ -269,11 +284,14 @@ func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int, itera
 	thresholdStaticOperator := fmt.Sprintf("%s.%d.%s.%d.%s", ResourceFieldThreshold, 0, ResourceFieldThresholdStatic, 0, ResourceFieldThresholdOperator)
 	thresholdStaticValue := fmt.Sprintf("%s.%d.%s.%d.%s", ResourceFieldThreshold, 0, ResourceFieldThresholdStatic, 0, ResourceFieldThresholdStaticValue)
 	timeThresholdViolationsInSequence := fmt.Sprintf("%s.%d.%s.%d.%s", ApplicationAlertConfigFieldTimeThreshold, 0, ApplicationAlertConfigFieldTimeThresholdViolationsInSequence, 0, ApplicationAlertConfigFieldTimeThresholdTimeWindow)
-	customPayloadFieldStaticKey := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
-	customPayloadFieldStaticValue := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldStaticStringValue)
-	customPayloadFieldDynamicKey := fmt.Sprintf("%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
-	customPayloadFieldDynamicValueKey := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicKey)
-	customPayloadFieldDynamicValueTagName := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicTagName)
+	customPayloadFieldStaticKey := fmt.Sprintf("%s.2.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
+	customPayloadFieldStaticValue := fmt.Sprintf("%s.2.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldStaticStringValue)
+	customPayloadFieldDynamicKey := fmt.Sprintf("%s.1.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
+	customPayloadFieldDynamicValueKey := fmt.Sprintf("%s.1.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicKey)
+	customPayloadFieldDynamicValueTagName := fmt.Sprintf("%s.1.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicTagName)
+	customPayloadFieldDynamic2Key := fmt.Sprintf("%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldKey)
+	customPayloadFieldDynamic2ValueKey := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicKey)
+	customPayloadFieldDynamic2ValueTagName := fmt.Sprintf("%s.0.%s.0.%s", DefaultCustomPayloadFieldsName, CustomPayloadFieldsFieldDynamicValue, CustomPayloadFieldsFieldDynamicTagName)
 	return resource.TestStep{
 		Config: appendProviderConfig(fmt.Sprintf(applicationAlertConfigTerraformTemplate, f.terraformResourceName, iteration), httpPort),
 		Check: resource.ComposeTestCheckFunc(
@@ -308,6 +326,9 @@ func (f *anyApplicationConfigTest) createIntegrationTestStep(httpPort int, itera
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamicKey, "test2"),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamicValueKey, "dynamic-value-key"),
 			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamicValueTagName, "dynamic-value-tag-name"),
+			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamic2Key, "test3"),
+			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamic2ValueKey, ""),
+			resource.TestCheckResourceAttr(f.terraformResourceInstanceName, customPayloadFieldDynamic2ValueTagName, "dynamic-value-without-key"),
 		),
 	}
 }

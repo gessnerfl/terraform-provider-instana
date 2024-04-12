@@ -54,7 +54,7 @@ func (a *customPayloadFieldsUnmarshallerAdapter[T]) mapCustomPayloadField(field 
 	if field.Type == DynamicCustomPayloadType {
 		data := field.Value.(map[string]interface{})
 		var keyPtr *string
-		if val, ok := data["key"]; ok {
+		if val, ok := data["key"]; ok && val != nil {
 			key := val.(string)
 			keyPtr = &key
 		}
