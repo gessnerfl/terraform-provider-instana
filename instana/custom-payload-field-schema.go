@@ -102,10 +102,12 @@ func mapCustomPayloadFieldsToSchema(input restapi.CustomPayloadFieldsAware) []ma
 		field[CustomPayloadFieldsFieldKey] = v.Key
 		if v.Type == restapi.DynamicCustomPayloadType {
 			value := v.Value.(restapi.DynamicCustomPayloadFieldValue)
-			field[CustomPayloadFieldsFieldDynamicValue] = []interface{}{map[string]interface{}{
-				CustomPayloadFieldsFieldDynamicKey:     value.Key,
-				CustomPayloadFieldsFieldDynamicTagName: value.TagName,
-			}}
+			data := make(map[string]interface{})
+			data[CustomPayloadFieldsFieldDynamicTagName] = value.TagName
+			if value.Key != nil {
+				data[CustomPayloadFieldsFieldDynamicKey] = value.Key
+			}
+			field[CustomPayloadFieldsFieldDynamicValue] = []interface{}{data}
 		} else {
 			value := v.Value.(restapi.StaticStringCustomPayloadFieldValue)
 			field[CustomPayloadFieldsFieldStaticStringValue] = string(value)
