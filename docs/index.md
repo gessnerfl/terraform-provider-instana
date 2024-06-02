@@ -1,6 +1,6 @@
 # Instana Provider
 
-**Deprecated:** This terraform provider is deprecated. Please use the official IBM Instana terraform provider [https://registry.terraform.io/providers/instana/instana/latest](https://registry.terraform.io/providers/instana/instana/latest).
+**Deprecated:** This project has been handed over to and is maintained by the IBM Instana development teams. Please use the official IBM Instana Terraform provider [https://registry.terraform.io/providers/instana/instana/latest](https://registry.terraform.io/providers/instana/instana/latest).
 
 Terraform provider implementation of the Instana Web REST API. The provider can be used to configure different
 assents in Instana. The provider is aligned with the REST API and links to the endpoint is provided for each 
