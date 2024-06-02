@@ -1,6 +1,9 @@
 # Terraform Provider Instana
 
-![CI/CD Build](https://github.com/gessnerfl/terraform-provider-instana/workflows/CICD/badge.svg)
+> [!CAUTION]
+> Deprecated. This project was handed over to the IBM Instana engineering teams and will be maintained by them. Please use the official IBM Instana terraform provider [https://github.com/instana/terraform-provider-instana](https://github.com/instana/terraform-provider-instana).
+
+[![Build, Test and Verify](https://github.com/gessnerfl/terraform-provider-instana/actions/workflows/build.yml/badge.svg)](https://github.com/gessnerfl/terraform-provider-instana/actions/workflows/build.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=de.gessnerfl.terraform-provider-instana&metric=alert_status)](https://sonarcloud.io/dashboard?id=de.gessnerfl.terraform-provider-instana)
 
 Terraform provider implementation for the Instana REST API.
