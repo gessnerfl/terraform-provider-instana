@@ -1,7 +1,7 @@
 # Terraform Provider Instana
 
-> [!CAUTION]
-> **Deprecated**. This project has been handed over to and is maintained by the IBM Instana development teams. Please use the official IBM Instana Terraform provider [https://github.com/instana/terraform-provider-instana](https://github.com/instana/terraform-provider-instana).
+> [!WARNING] 
+> **Deprecated**. This project has been handed over to and is maintained under IBM's offical [Instana](https://github.com/instana) org. Please use the official IBM Instana Terraform provider [https://github.com/instana/terraform-provider-instana](https://github.com/instana/terraform-provider-instana).
 
 [![Build, Test and Verify](https://github.com/gessnerfl/terraform-provider-instana/actions/workflows/build.yml/badge.svg)](https://github.com/gessnerfl/terraform-provider-instana/actions/workflows/build.yml)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=de.gessnerfl.terraform-provider-instana&metric=alert_status)](https://sonarcloud.io/dashboard?id=de.gessnerfl.terraform-provider-instana)
