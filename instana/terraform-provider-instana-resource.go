@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
@@ -166,6 +167,12 @@ func (r *terraformResourceImpl[T]) ToSchemaResource() *schema.Resource {
 	} else {
 		updateOperation = r.Update
 	}
+
+	deprecationMessage := "This project has been handed over to and is maintained under IBM's offical Instana org. Please use the official IBM Instana Terraform provider instana/instana (https://registry.terraform.io/providers/instana/instana/latest/) instead"
+	if len(metaData.DeprecationMessage) > 0 {
+		deprecationMessage = deprecationMessage + "\n\n" + metaData.DeprecationMessage
+	}
+
 	return &schema.Resource{
 		CreateContext: r.Create,
 		ReadContext:   r.Read,
@@ -177,7 +184,7 @@ func (r *terraformResourceImpl[T]) ToSchemaResource() *schema.Resource {
 		Schema:             metaData.Schema,
 		SchemaVersion:      metaData.SchemaVersion,
 		StateUpgraders:     r.resourceHandle.StateUpgraders(),
-		DeprecationMessage: metaData.DeprecationMessage,
+		DeprecationMessage: deprecationMessage,
 	}
 }
 

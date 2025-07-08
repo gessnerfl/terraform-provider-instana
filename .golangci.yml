@@ -1,13 +1,30 @@
+version: "2"
 output:
-  format: github-actions,checkstyle:golangci-lint-report.json
+  formats: 
+    json:
+      path: golangci-lint-report.json
+    checkstyle:
+      path: checkstyle-golangci-lint-report.xml
 linters:
   enable:
     - errcheck
+    - gocheckcompilerdirectives
+    - gochecknoglobals
+    - gochecknoinits
+    - gochecksumtype
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - goheader
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
     - gosec
-    - gosimple
+    - gosmopolitan
     - govet
     - ineffassign
     - staticcheck
-    - typecheck
     - unused
-max-issues-per-linter: 0

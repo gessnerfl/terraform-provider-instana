@@ -5,4 +5,7 @@ vendor/
 .idea
 .DS_Store
 
+golangci-lint-report.json
+checkstyle-golangci-lint-report.xml
+
 rest-playground.http

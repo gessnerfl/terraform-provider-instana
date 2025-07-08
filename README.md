@@ -1,4 +1,4 @@
-# Terraform Provider Instana
+# !!!Deprecated!!! Terraform Provider Instana
 
 > [!WARNING] 
 > **Deprecated**. This project has been handed over to and is maintained under IBM's offical [Instana](https://github.com/instana) org. Please use the official IBM Instana Terraform provider [https://github.com/instana/terraform-provider-instana](https://github.com/instana/terraform-provider-instana).

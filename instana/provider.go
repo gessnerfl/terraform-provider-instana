@@ -2,8 +2,9 @@ package instana
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/gessnerfl/terraform-provider-instana/instana/restapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -41,6 +42,7 @@ func providerSchema() map[string]*schema.Schema {
 			Required:    true,
 			DefaultFunc: schema.EnvDefaultFunc("INSTANA_API_TOKEN", nil),
 			Description: "API token used to authenticate with the Instana Backend",
+			Deprecated:  "This project has been handed over to and is maintained under IBM's offical Instana org. Please use the official IBM Instana Terraform provider instana/instana (https://registry.terraform.io/providers/instana/instana/latest/) instead",
 		},
 		SchemaFieldEndpoint: {
 			Type:        schema.TypeString,
