@@ -37,11 +37,11 @@ jobs:
       run: go build . 
 
     - name: golangci-lint
-      uses: gessnerfl/golangci-lint-action@master
+      uses: golangci/golangci-lint-action@v8
       continue-on-error: true
       with:
+        version: v2.1
         skip-cache: true
-        output-file: checkstyle:golangci-lint-report.xml
     
     - name: Run testing
       run: |
