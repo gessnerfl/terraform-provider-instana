@@ -56,12 +56,3 @@ jobs:
         name: unit-test-report
         path: unit-test-report.json
         if-no-files-found: error
-
-    - name: Run sonar
-      uses: SonarSource/sonarqube-scan-action@v5.2.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
-      with:
-        args: >
-          -Dsonar.projectVersion=${{ steps.get_version.outputs.VERSION }}
