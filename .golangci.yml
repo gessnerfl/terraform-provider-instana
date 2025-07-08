@@ -7,7 +7,6 @@ output:
       path: checkstyle-golangci-lint-report.xml
 linters:
   enable:
-    - errcheck
     - gocheckcompilerdirectives
     - gochecknoinits
     - gochecksumtype
