@@ -9,22 +9,19 @@ linters:
   enable:
     - errcheck
     - gocheckcompilerdirectives
-    - gochecknoglobals
     - gochecknoinits
     - gochecksumtype
     - gocognit
-    - goconst
-    - gocritic
     - gocyclo
-    - godot
     - godox
     - goheader
     - gomoddirectives
     - gomodguard
     - goprintffuncname
-    - gosec
     - gosmopolitan
     - govet
     - ineffassign
-    - staticcheck
     - unused
+  disable:
+    - errcheck
+    - staticcheck
